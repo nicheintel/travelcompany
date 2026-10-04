@@ -69,9 +69,32 @@ function to_usd(float $amount, string $currency): ?float
 
 // ---------- HTTP ----------
 
+/**
+ * CA bundle for https on XAMPP/Windows, where php.ini often has no curl.cainfo.
+ * Uses the bundle XAMPP ships with; certificates are always verified.
+ */
+function ca_bundle(): ?string
+{
+    if (ini_get('curl.cainfo')) return null; // already configured in php.ini
+    $ini = php_ini_loaded_file();
+    $candidates = array_filter([
+        $ini ? dirname($ini, 2) . '/apache/bin/curl-ca-bundle.crt' : null,
+        'C:/xampp/apache/bin/curl-ca-bundle.crt',
+        $ini ? dirname($ini) . '/extras/ssl/cacert.pem' : null,
+    ]);
+    foreach ($candidates as $file) {
+        if (is_file($file)) return $file;
+    }
+    return null;
+}
+
 function http_json(string $method, string $url, array $headers, ?array $body = null, int $timeout = 30, bool $form = false): array
 {
+    if (!function_exists('curl_init')) {
+        throw new RuntimeException('The PHP curl extension is off. In C:\\xampp\\php\\php.ini remove the ; before extension=curl and restart Apache.');
+    }
     $ch = curl_init($url);
+    if ($ca = ca_bundle()) curl_setopt($ch, CURLOPT_CAINFO, $ca);
     $h = array_merge(['Accept: application/json'], $headers);
     if ($body !== null) {
         $h[] = $form ? 'Content-Type: application/x-www-form-urlencoded' : 'Content-Type: application/json';
