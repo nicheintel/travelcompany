@@ -45,8 +45,11 @@ function db_unavailable(PDOException $err): never
     http_response_code(500);
     echo '<!doctype html><meta charset="utf-8"><body style="font-family:system-ui;padding:40px;max-width:640px;margin:auto">'
         . '<h1>Can\'t connect to the database</h1>'
-        . '<p>Start <strong>MySQL</strong> in the XAMPP Control Panel, then refresh this page.</p>'
-        . '<p>If MySQL is running, check the database name, user and password in <code>config.local.php</code>.</p></body>';
+        . (is_local_request()
+            ? '<p>Start <strong>MySQL</strong> in the XAMPP Control Panel, then refresh this page.</p>'
+              . '<p>If MySQL is running, check the database name, user and password in <code>config.local.php</code>.</p>'
+            : '<p>The site is being set up. Please try again later.</p>')
+        . '</body>';
     exit;
 }
 
