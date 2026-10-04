@@ -11,9 +11,12 @@ step: copy the folder, start XAMPP, open the browser.
    move the inner `travelcompany` folder up so `index.php` is directly inside it):
    - Windows: `C:\xampp\htdocs\travelcompany`
    - Mac: `/Applications/XAMPP/htdocs/travelcompany`
-3. Double-click **`START-TravelCompany.bat`** in that folder — it starts Apache and MySQL and
-   opens the site. (Or start them yourself in the **XAMPP Control Panel** and open
-   **http://localhost/travelcompany**.)
+3. In the **XAMPP Control Panel**, start **Apache** and **MySQL**, then open
+   **http://localhost/travelcompany**.
+
+**Easiest on Windows:** use the ready-made zip (`travelcompany-windows.zip`, built from this
+folder plus `windows/`). Extract it anywhere and double-click `START-TravelCompany.bat` —
+it finds XAMPP, copies the site into `htdocs`, starts Apache and MySQL and opens the browser.
 
 The database `travelcompany` and its tables are created automatically on the first visit
 (using XAMPP's default `root` user with no password). You can also import `database.sql`

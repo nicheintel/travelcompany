@@ -1,0 +1,21 @@
+TravelCompany - how to start the website on Windows
+====================================================
+
+You need XAMPP installed (https://www.apachefriends.org).
+
+1. Right-click the zip file and choose "Extract All". Any folder is fine.
+2. Open the extracted folder.
+3. Double-click  START-TravelCompany.bat
+
+That's it. The website opens in your browser at:
+   http://localhost/travelcompany/
+
+To start it again later, double-click START-TravelCompany.bat again.
+
+If Windows shows "Windows protected your PC", click "More info"
+and then "Run anyway". You can open the .bat file in Notepad to
+see exactly what it does.
+
+Your settings (admin email, Duffel and LiteAPI keys) go in:
+   C:\xampp\htdocs\travelcompany\config.local.php
+Open it in Notepad, remove the // in front of a line and fill it in.
