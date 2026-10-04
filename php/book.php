@@ -119,9 +119,9 @@ parse_str($quote['query'], $qp);
           </div>
         </section>
         <div class="rounded-2xl bg-brand-50 p-5 text-sm text-brand-900 ring-1 ring-brand-100">
-          <p class="font-semibold"><?= stripe_enabled() ? 'Reserve, then pay securely' : 'Reserve now, pay later' ?></p>
-          <p class="mt-1 text-brand-800"><?= stripe_enabled()
-              ? 'Nothing is charged yet. Next you can pay by card to confirm right away — or pay later with help from a travel assistant.'
+          <p class="font-semibold"><?= payments_enabled() ? 'Reserve, then pay securely' : 'Reserve now, pay later' ?></p>
+          <p class="mt-1 text-brand-800"><?= payments_enabled()
+              ? 'Nothing is charged yet. Next you can pay online' . (payment_provider() === 'paypal' ? ' with PayPal or a card' : ' by card') . ' to confirm right away — or pay later with help from a travel assistant.'
               : 'No payment is taken today. A travel assistant will contact you within 24 hours to confirm availability and arrange payment.' ?></p>
         </div>
         <?= submit_button('Reserve trip · ' . money($quote['total']), 'Reserving…') ?>

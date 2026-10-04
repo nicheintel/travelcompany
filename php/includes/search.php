@@ -98,7 +98,8 @@ function http_json(string $method, string $url, array $headers, ?array $body = n
     $h = array_merge(['Accept: application/json'], $headers);
     if ($body !== null) {
         $h[] = $form ? 'Content-Type: application/x-www-form-urlencoded' : 'Content-Type: application/json';
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $form ? http_build_query($body) : json_encode($body));
+        // An empty JSON body must be an object ({}), not a list ([]).
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $form ? http_build_query($body) : ($body === [] ? '{}' : json_encode($body)));
     }
     curl_setopt_array($ch, [
         CURLOPT_CUSTOMREQUEST => $method,

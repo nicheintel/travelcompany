@@ -69,12 +69,12 @@ function customer_cancel(int $userId, string $reference): bool
 }
 
 /** reserved → paid, once. Returns true only for the call that made the change. */
-function mark_paid(string $reference, string $method, ?int $actorId, string $eventMessage, ?string $stripeSession = null): bool
+function mark_paid(string $reference, string $method, ?int $actorId, string $eventMessage, ?string $paymentRef = null): bool
 {
     $n = db_run(
-        "UPDATE bookings SET status = 'paid', paid_at = ?, payment_method = ?, stripe_session_id = COALESCE(?, stripe_session_id)
+        "UPDATE bookings SET status = 'paid', paid_at = ?, payment_method = ?, payment_ref = COALESCE(?, payment_ref)
          WHERE reference = ? AND status = 'reserved'",
-        [now_utc(), $method, $stripeSession, $reference],
+        [now_utc(), $method, $paymentRef, $reference],
     );
     if ($n) add_event($reference, $actorId, 'paid', $eventMessage);
     return $n > 0;

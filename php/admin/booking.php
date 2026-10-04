@@ -100,7 +100,7 @@ echo admin_open('bookings');
           <h2 class="mb-3 font-semibold text-slate-900">Cancel booking</h2>
           <form method="post" class="space-y-3" data-confirm="Cancel <?= e($ref) ?>? The customer will be emailed."><?= csrf_field() ?><input type="hidden" name="action" value="cancel">
             <label class="block text-xs font-medium text-slate-500">Reason<input name="reason" maxlength="300" placeholder="e.g. Customer asked to cancel by phone" class="<?= $input ?> mt-1"></label>
-            <?php if ($booking['status'] === 'paid'): ?><p class="text-xs text-amber-700">This trip is paid. Cancelling doesn't refund automatically — issue the refund in Stripe or your bank.</p><?php endif; ?>
+            <?php if ($booking['status'] === 'paid'): ?><p class="text-xs text-amber-700">This trip is paid. Cancelling doesn't refund automatically — issue the refund in PayPal, Stripe or your bank.</p><?php endif; ?>
             <button type="submit" class="w-full rounded-lg px-4 py-2 text-sm font-semibold text-red-600 ring-1 ring-red-200 hover:bg-red-50">Cancel booking</button>
           </form>
         </section>

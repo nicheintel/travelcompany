@@ -39,7 +39,15 @@ if (liteapi_enabled()) {
     $checks[] = ['LiteAPI (hotels)', false, 'No LiteAPI key yet — add it on the Site settings tab. Hotel search is off.'];
 }
 $checks[] = ['Emails', true, config('resend_api_key') ? 'Sent with Resend' : 'Not sent — written to storage/emails.log'];
-$checks[] = ['Card payments', true, stripe_enabled() ? 'Stripe on' : 'Off — pay later only'];
+if (paypal_enabled()) {
+    $r = probe(function () {
+        paypal_token();
+        return ['status' => 200, 'json' => []];
+    });
+    $checks[] = ['Online payments', $r['ok'], 'PayPal · ' . (paypal_live() ? 'LIVE — real money' : 'Sandbox — test payments only') . ' · ' . ($r['ok'] ? 'signed in to PayPal' : $r['text'])];
+} else {
+    $checks[] = ['Online payments', true, stripe_enabled() ? 'Stripe on' : 'Off — pay later only (add PayPal on Site settings)'];
+}
 $checks[] = ['Demo mode', !demo_mode(), demo_mode() ? 'ON — made-up flights/hotels are shown. Turn off for customers!' : 'Off'];
 $checks[] = ['Markup', true, 'Flights +' . round(markup_rate('flight') * 100) . '%, hotels +' . round(markup_rate('hotel') * 100) . '%, member discount ' . round(member_discount_rate() * 100) . '%'];
 

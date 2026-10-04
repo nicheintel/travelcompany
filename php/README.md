@@ -41,7 +41,9 @@ You can also put settings in a file — values there override Site settings. Cop
 | `flight_markup_rate` / `hotel_markup_rate` | Your margin on supplier prices (default `0.20` = +20%). |
 | `member_discount_rate` | Discount for signed-in members (default `0.10`; `0` turns it off). |
 | `resend_api_key`, `email_from` | Send real emails via [Resend](https://resend.com). Without it, emails are written to `storage/emails.log` (handy for password-reset links on XAMPP). |
-| `stripe_secret_key`, `stripe_webhook_secret` | Card payments with Stripe Checkout. Webhook URL: `https://YOUR-SITE/stripe-webhook.php`. |
+| `paypal_client_id`, `paypal_secret`, `paypal_mode` | Online payments with **PayPal** (PayPal account or any card). Keys from developer.paypal.com → Apps & Credentials; `sandbox` while testing, `live` for real money. |
+| `paypal_webhook_id` | Optional, recommended live: webhook to `https://YOUR-SITE/paypal-webhook.php` for `CHECKOUT.ORDER.APPROVED` and `PAYMENT.CAPTURE.COMPLETED`. |
+| `stripe_secret_key`, `stripe_webhook_secret` | Alternative to PayPal (Stripe isn't available to Philippine-registered businesses). Webhook URL: `https://YOUR-SITE/stripe-webhook.php`. |
 | `db_*` | Database login, if not XAMPP's defaults. |
 | `app_url` | **Set this on a live server**, e.g. `https://www.yourdomain.com`. |
 
@@ -67,7 +69,7 @@ supports environment variables you can use the same names in upper case instead
 | `account.php`, `trip.php`, `settings.php` | My trips, trip details (pay / cancel), account settings |
 | `register.php`, `signin.php`, `forgot-password.php`, `reset-password.php` | Accounts |
 | `admin/` | Staff dashboard: needs-a-call list, bookings, record payments, cancel, notes, users |
-| `stripe-webhook.php` | Stripe payment notifications |
+| `paypal-webhook.php`, `stripe-webhook.php` | Payment notifications from PayPal / Stripe |
 
 Code lives in `includes/` (blocked from the web by `.htaccess`): `search.php` (Duffel, LiteAPI,
 pricing), `quote.php` (booking prices, always recomputed on the server), `bookings.php`,
@@ -79,7 +81,8 @@ Passwords hashed with `password_hash`; CSRF tokens on every form; prepared SQL s
 output escaping; session cookie `HttpOnly` + `SameSite=Lax` (+ `Secure` on https); sign-in
 lockout after 5 wrong passwords (15 min); single-use, hashed password-reset links (1 hour);
 changing the password signs out other devices; booking prices re-checked with the supplier;
-Stripe webhooks signature-verified and payments checked against the booking amount.
+PayPal and Stripe payments confirmed server-to-server and checked against the booking amount;
+payment webhooks signature-verified.
 
 ## Changing the design
 

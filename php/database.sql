@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS bookings (
   paid_at           DATETIME     NULL,
   cancelled_at      DATETIME     NULL,
   payment_method    VARCHAR(60)  NULL,
-  stripe_session_id VARCHAR(255) NULL,
+  payment_ref       VARCHAR(255) NULL,
   INDEX bookings_user (user_id),
   CONSTRAINT bookings_user_fk FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

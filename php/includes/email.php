@@ -93,7 +93,7 @@ function notify_booking(string $event, string $reference): void
         $title = "{$b['quote']['title']} ({$reference})";
         $mail = match ($event) {
             'reserved' => simple_email("Trip reserved: $title", 'Your trip is reserved!', $first, [
-                stripe_enabled()
+                payments_enabled()
                     ? 'You can pay securely online from your trip page, or a travel assistant will contact you within 24 hours.'
                     : 'A travel assistant will contact you within 24 hours to confirm availability and arrange payment.',
             ], $rows, $link, 'View my trip'),

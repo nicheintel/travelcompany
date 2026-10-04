@@ -11,6 +11,7 @@ const EDITABLE_SETTINGS = [
     'admin_emails', 'flight_markup_rate', 'hotel_markup_rate', 'member_discount_rate',
     'duffel_access_token', 'liteapi_key', 'resend_api_key', 'email_from',
     'stripe_secret_key', 'stripe_webhook_secret',
+    'paypal_client_id', 'paypal_secret', 'paypal_mode', 'paypal_webhook_id',
 ];
 
 function config(string $key, mixed $default = null): mixed
@@ -54,7 +55,14 @@ function config(string $key, mixed $default = null): mixed
             'resend_api_key' => '',
             'email_from' => '',
 
-            // Stripe card payments. Empty = "reserve now, pay later" only
+            // PayPal (PayPal account or card via PayPal). Get the Client ID and Secret from
+            // developer.paypal.com → Apps & Credentials. Used instead of Stripe when set.
+            'paypal_client_id' => '',
+            'paypal_secret' => '',
+            'paypal_mode' => 'sandbox', // 'sandbox' for testing, 'live' for real money
+            'paypal_webhook_id' => '',  // optional, from your PayPal webhook
+
+            // Stripe card payments. Empty (and no PayPal) = "reserve now, pay later" only
             'stripe_secret_key' => '',
             'stripe_webhook_secret' => '',
 
@@ -66,6 +74,7 @@ function config(string $key, mixed $default = null): mixed
             'duffel_api_base' => 'https://api.duffel.com',
             'liteapi_api_base' => 'https://api.liteapi.travel/v3.0',
             'stripe_api_base' => 'https://api.stripe.com',
+            'paypal_api_base' => '', // empty = chosen by paypal_mode
         ];
         $fixed = [];
         $local = dirname(__DIR__) . '/config.local.php';

@@ -64,6 +64,11 @@ function migrate(PDO $pdo): void
         return;
     }
     $pdo->exec($schema);
+    // Older databases: the payment reference column used to be Stripe-only.
+    $cols = $pdo->query("SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'bookings'")->fetchAll(PDO::FETCH_COLUMN);
+    if (in_array('stripe_session_id', $cols, true) && !in_array('payment_ref', $cols, true)) {
+        $pdo->exec('ALTER TABLE bookings CHANGE stripe_session_id payment_ref VARCHAR(255) NULL');
+    }
     @touch($marker);
 }
 

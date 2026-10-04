@@ -8,7 +8,10 @@ const SECRET_FIELDS = [
     'duffel_access_token' => ['Duffel access token', 'Flights. Starts with duffel_test_ (test) or duffel_live_ (real airlines).'],
     'liteapi_key' => ['LiteAPI key', 'Hotels. Use the sandbox key while testing.'],
     'resend_api_key' => ['Resend API key', 'Optional. Sends real emails; without it emails go to storage/emails.log.'],
-    'stripe_secret_key' => ['Stripe secret key', 'Optional. Card payments (sk_test_… while testing).'],
+    'paypal_client_id' => ['PayPal Client ID', 'Online payments with PayPal or card. From developer.paypal.com → Apps & Credentials.'],
+    'paypal_secret' => ['PayPal Secret', 'The Secret shown next to the Client ID (Sandbox or Live, matching the mode below).'],
+    'paypal_webhook_id' => ['PayPal Webhook ID', 'Optional, recommended on a live site. From your PayPal app → Webhooks (URL: your-site/paypal-webhook.php).'],
+    'stripe_secret_key' => ['Stripe secret key', 'Optional alternative to PayPal (not available to Philippine-registered businesses).'],
     'stripe_webhook_secret' => ['Stripe webhook secret', 'Optional. whsec_… from your Stripe webhook.'],
 ];
 const PERCENT_FIELDS = [
@@ -54,6 +57,7 @@ if (is_post()) {
         if ($bad) $errors['admin_emails'] = 'Not a valid email: ' . implode(', ', $bad);
         else save_setting('admin_emails', implode(', ', $emails));
     }
+    if (!config_fixed('paypal_mode')) save_setting('paypal_mode', ($_POST['paypal_mode'] ?? '') === 'live' ? 'live' : 'sandbox');
     if (!config_fixed('email_from')) save_setting('email_from', mb_substr(trim((string) ($_POST['email_from'] ?? '')), 0, 200));
     if (!$errors) {
         flash('Settings saved. Check the Diagnostics tab to test your supplier connections.');
@@ -92,6 +96,14 @@ $fixedNote = '<p class="mt-1 text-xs text-amber-700">Set in config.local.php or 
           <?php endif; ?>
         </div>
       <?php endforeach; ?>
+      <div>
+        <label for="s_paypal_mode" class="block text-sm font-medium text-slate-700">PayPal mode</label>
+        <select id="s_paypal_mode" name="paypal_mode" class="<?= $input ?> mt-1 sm:w-72"<?= config_fixed('paypal_mode') ? ' disabled' : '' ?>>
+          <option value="sandbox"<?= config('paypal_mode') !== 'live' ? ' selected' : '' ?>>Sandbox — testing, no real money</option>
+          <option value="live"<?= config('paypal_mode') === 'live' ? ' selected' : '' ?>>Live — real payments</option>
+        </select>
+        <p class="mt-1 text-xs text-slate-500">Use Sandbox keys with Sandbox mode, and Live keys with Live mode.</p>
+      </div>
     </div>
   </section>
 

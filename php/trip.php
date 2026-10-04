@@ -13,10 +13,15 @@ if (is_post()) {
         notify_booking('cancelled', $ref);
         redirect(url('trip.php', ['ref' => $ref]));
     }
-    if ($action === 'pay' && $booking['status'] === 'reserved' && stripe_enabled()) {
+    if ($action === 'pay' && $booking['status'] === 'reserved' && payments_enabled()) {
         try {
+            if (payment_provider() === 'paypal') {
+                [$orderId, $approveUrl] = paypal_create_order($booking);
+                db_run('UPDATE bookings SET payment_ref = ? WHERE reference = ?', [$orderId, $ref]);
+                redirect($approveUrl);
+            }
             $session = create_checkout_session($booking);
-            db_run('UPDATE bookings SET stripe_session_id = ? WHERE reference = ?', [$session['id'], $ref]);
+            db_run('UPDATE bookings SET payment_ref = ? WHERE reference = ?', [$session['id'], $ref]);
             redirect($session['url']);
         } catch (Throwable $e) {
             error_log("[payments] checkout for $ref failed: " . $e->getMessage());
@@ -26,9 +31,21 @@ if (is_post()) {
     redirect(url('trip.php', ['ref' => $ref]));
 }
 
-// Back from Stripe: confirm with Stripe directly (don't trust the URL), in case the webhook is late.
+// Back from PayPal / Stripe: confirm with the provider directly (never trust the URL),
+// in case the webhook is late or not set up.
+$returned = false;
+$paypalOrder = (string) ($_GET['token'] ?? '');
+if (($_GET['paypal'] ?? '') === 'return' && $paypalOrder !== '' && $booking['status'] === 'reserved' && paypal_enabled()) {
+    $returned = true;
+    try {
+        if (paypal_capture($paypalOrder, $ref)) $booking = user_booking($user['id'], $ref);
+    } catch (Throwable $e) {
+        error_log("[paypal] capture for $ref failed: " . $e->getMessage());
+    }
+}
 $sessionId = (string) ($_GET['session_id'] ?? '');
 if ($sessionId !== '' && $booking['status'] === 'reserved' && stripe_enabled()) {
+    $returned = true;
     try {
         $session = retrieve_checkout_session($sessionId);
         if (($session['metadata']['reference'] ?? $session['client_reference_id'] ?? null) === $ref) {
@@ -39,11 +56,14 @@ if ($sessionId !== '' && $booking['status'] === 'reserved' && stripe_enabled()) 
         error_log("[payments] verify for $ref failed: " . $e->getMessage());
     }
 }
+$returned = $returned || $sessionId !== '' || ($_GET['paypal'] ?? '') === 'return';
 
 $status = $booking['status'];
 $isNew = ($_GET['new'] ?? '') === '1' && $status === 'reserved';
-$justPaid = $sessionId !== '' && $status === 'paid';
-$canPay = $status === 'reserved' && stripe_enabled();
+$justPaid = $returned && $status === 'paid';
+$payFailed = $returned && $status === 'reserved';
+$canPay = $status === 'reserved' && payments_enabled();
+$provider = payment_provider();
 $title = "Trip $ref";
 require __DIR__ . '/includes/header.php';
 $check = '<span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-emerald-500 text-white">' . icon('check', 20) . '</span>';
@@ -64,6 +84,10 @@ $check = '<span class="grid h-10 w-10 shrink-0 place-items-center rounded-full b
   <?php endif; ?>
   <?php if (($_GET['payment'] ?? '') === 'error' && $status === 'reserved'): ?>
     <div class="mb-6"><?= alert_box("We couldn't start the payment just now. Please try again in a moment.") ?></div>
+  <?php elseif (($_GET['payment'] ?? '') === 'cancelled' && $status === 'reserved'): ?>
+    <div class="mb-6"><?= alert_box("Payment cancelled — you haven't been charged. You can pay whenever you're ready.") ?></div>
+  <?php elseif ($payFailed): ?>
+    <div class="mb-6"><?= alert_box("We couldn't confirm your payment yet. If money was taken, it will show here shortly — otherwise please try again.") ?></div>
   <?php endif; ?>
 
   <div class="flex flex-wrap items-center gap-3">
@@ -94,9 +118,11 @@ $check = '<span class="grid h-10 w-10 shrink-0 place-items-center rounded-full b
       <?php if ($canPay): ?>
         <section class="rounded-2xl border-2 border-brand-200 bg-white p-6">
           <h2 class="text-lg font-semibold text-slate-900">Pay now to confirm</h2>
-          <p class="mt-1 text-sm text-slate-600">Pay <?= money($booking['total']) ?> securely by card. You'll be taken to our payment partner Stripe and brought back here afterwards.</p>
+          <p class="mt-1 text-sm text-slate-600"><?= $provider === 'paypal'
+              ? 'Pay ' . money($booking['total']) . ' securely with your PayPal account or any debit/credit card. You\'ll be taken to PayPal and brought back here afterwards.'
+              : 'Pay ' . money($booking['total']) . ' securely by card. You\'ll be taken to our payment partner Stripe and brought back here afterwards.' ?></p>
           <form method="post" class="mt-4 sm:w-64"><?= csrf_field() ?><input type="hidden" name="action" value="pay">
-            <button type="submit" class="w-full rounded-xl bg-accent-500 py-3 font-bold text-white shadow-sm hover:bg-accent-600">Pay <?= money($booking['total']) ?></button>
+            <button type="submit" class="w-full rounded-xl bg-accent-500 py-3 font-bold text-white shadow-sm hover:bg-accent-600">Pay <?= money($booking['total']) ?><?= $provider === 'paypal' ? ' with PayPal' : '' ?></button>
           </form>
         </section>
       <?php endif; ?>
