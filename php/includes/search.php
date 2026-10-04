@@ -208,7 +208,22 @@ function duffel_search(array $s): array
     );
     $cabin = ['economy' => 'economy', 'premium' => 'premium_economy', 'business' => 'business', 'first' => 'first'][$s['cabin']];
     $req = duffel('POST', '/air/offer_requests?return_offers=true&supplier_timeout=20000', compact('slices', 'passengers') + ['cabin_class' => $cabin]);
-    $offers = array_values(array_filter(array_map('duffel_map', $req['offers'] ?? [])));
+    // Only keep offers for the route the customer asked for (same airport, or same city e.g. JFK/LGA).
+    $matches = function (array $place, array $wanted): bool {
+        return ($place['iata_code'] ?? null) === $wanted['code']
+            || (($place['iata_city_code'] ?? null) !== null && ($place['iata_city_code'] ?? null) === ($wanted['city_code'] ?? false));
+    };
+    $want = [
+        ['code' => $s['from']['code'], 'city_code' => $req['slices'][0]['origin']['iata_city_code'] ?? null],
+        ['code' => $s['to']['code'], 'city_code' => $req['slices'][0]['destination']['iata_city_code'] ?? null],
+    ];
+    $raw = $req['offers'] ?? [];
+    $raw = array_filter($raw, fn($o) => isset($o['slices'][0])
+        && $matches($o['slices'][0]['origin'], $want[0]) && $matches($o['slices'][0]['destination'], $want[1]));
+    if (count($raw) < count($req['offers'] ?? [])) {
+        error_log('[duffel] dropped ' . (count($req['offers']) - count($raw)) . ' offers for a different route than ' . $want[0]['code'] . '-' . $want[1]['code']);
+    }
+    $offers = array_values(array_filter(array_map('duffel_map', $raw)));
     usort($offers, fn($a, $b) => $a['total'] <=> $b['total']);
     return array_slice($offers, 0, 60);
 }
