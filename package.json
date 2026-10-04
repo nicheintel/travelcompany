@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "php:css": "tailwindcss -i php/assets/tailwind.css -o php/assets/app.css --minify"
   },
   "dependencies": {
     "better-sqlite3": "^13.0.3",
@@ -17,6 +18,7 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
+    "@tailwindcss/cli": "^4.3.3",
     "@tailwindcss/postcss": "^4",
     "@types/better-sqlite3": "^9.6.0",
     "@types/node": "^20",

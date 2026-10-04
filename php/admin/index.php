@@ -1,0 +1,34 @@
+<?php
+require dirname(__DIR__) . '/includes/bootstrap.php';
+
+$admin = require_admin();
+$stats = admin_stats();
+$attention = admin_needs_attention();
+$recent = admin_search_bookings([], 1, 10)['bookings'];
+$title = 'Admin';
+$noindex = true;
+require dirname(__DIR__) . '/includes/header.php';
+$stat = fn(string $label, string $value, string $href, string $hint = '') => '<a href="' . e($href) . '" class="block rounded-xl border border-slate-200 bg-white p-5 transition hover:border-brand-300 hover:shadow-md">'
+    . '<p class="text-sm font-medium text-slate-500">' . e($label) . '</p><p class="mt-1 text-3xl font-extrabold text-slate-900">' . e($value) . '</p>'
+    . ($hint ? '<p class="mt-1 text-xs text-slate-500">' . e($hint) . '</p>' : '') . '</a>';
+echo admin_open('overview');
+?>
+<div class="space-y-10">
+  <div><h1 class="text-2xl font-bold text-slate-900">Hello, <?= e(explode(' ', $admin['name'])[0]) ?></h1><p class="text-slate-600">Here's what needs your attention today.</p></div>
+  <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <?= $stat('Awaiting payment', (string) $stats['awaiting'], url('admin/bookings.php', ['status' => 'reserved']), money($stats['awaiting_total']) . ' in upcoming unpaid trips') ?>
+    <?= $stat('Bookings (7 days)', (string) $stats['bookings_7d'], url('admin/bookings.php')) ?>
+    <?= $stat('Revenue (30 days)', money($stats['revenue_30d']), url('admin/bookings.php', ['status' => 'paid']), 'Paid bookings') ?>
+    <?= $stat('New members (7 days)', (string) $stats['users_7d'], url('admin/users.php')) ?>
+  </div>
+  <section>
+    <div class="mb-3"><h2 class="text-lg font-semibold text-slate-900">Needs a call (<?= count($attention) ?>)</h2>
+      <p class="text-sm text-slate-500">Unpaid trips departing within 14 days, or reserved more than 24 hours ago — soonest departure first.</p></div>
+    <?= bookings_table($attention, 'All caught up — no unpaid trips need a call right now. 🎉') ?>
+  </section>
+  <section>
+    <div class="mb-3 flex items-end justify-between"><h2 class="text-lg font-semibold text-slate-900">Latest bookings</h2><a href="<?= e(url('admin/bookings.php')) ?>" class="text-sm font-semibold text-brand-700 hover:underline">All bookings →</a></div>
+    <?= bookings_table($recent, 'No bookings yet.') ?>
+  </section>
+</div>
+<?php echo admin_close(); require dirname(__DIR__) . '/includes/footer.php';

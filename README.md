@@ -2,6 +2,12 @@
 
 A travel assistant website for finding affordable flights, hotels and Flight + Hotel + Car promo packages.
 
+> **Two versions live in this repository:**
+> - **`php/` — PHP + MySQL, runs on XAMPP and any Hostinger plan.** See [`php/README.md`](php/README.md).
+> - The root folder — the original Next.js version (needs Node.js), documented below.
+>
+> Both have the same features and design.
+
 Built with [Next.js](https://nextjs.org) (App Router), TypeScript and Tailwind CSS.
 
 ## Getting started

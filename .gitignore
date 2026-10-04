@@ -42,3 +42,9 @@ next-env.d.ts
 
 # local SQLite database
 /data/
+
+# PHP version: local settings and runtime files
+/php/config.local.php
+/php/storage/*.log
+/php/storage/schema-*
+/php/storage/*.json
