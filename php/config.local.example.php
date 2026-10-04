@@ -10,6 +10,9 @@ return [
     // 'duffel_access_token' => 'duffel_test_...',
     // 'liteapi_key' => '...',
 
+    // Only for demos without supplier keys: shows MADE-UP flights/hotels, clearly marked.
+    // 'demo_mode' => true,
+
     // 'resend_api_key' => 're_...',
     // 'email_from' => 'TravelCompany <hello@yourdomain.com>',
 

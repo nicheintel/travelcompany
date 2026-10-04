@@ -29,8 +29,9 @@ Copy `config.local.example.php` to **`config.local.php`** and fill in what you u
 | Setting | What it does |
 | --- | --- |
 | `admin_emails` | Your email(s). Sign up with that email and **Admin dashboard** appears in the user menu. |
-| `duffel_access_token` | Live flight prices from Duffel (`duffel_test_…` while testing). |
-| `liteapi_key` | Live hotel prices from LiteAPI (sandbox key while testing). |
+| `duffel_access_token` | Real flights from Duffel. Without it, flight search says "not available" — the site never invents flights. Test tokens (`duffel_test_…`) only return Duffel's pretend airline "Duffel Airways"; real airlines appear after **Go live** in Duffel. |
+| `liteapi_key` | Real hotels from LiteAPI (sandbox key while testing; production key to sell). |
+| `demo_mode` | `true` shows clearly-marked **made-up** sample flights and hotels when no key is set — for demos only, never for customers. Default `false`. |
 | `flight_markup_rate` / `hotel_markup_rate` | Your margin on supplier prices (default `0.20` = +20%). |
 | `member_discount_rate` | Discount for signed-in members (default `0.10`; `0` turns it off). |
 | `resend_api_key`, `email_from` | Send real emails via [Resend](https://resend.com). Without it, emails are written to `storage/emails.log` (handy for password-reset links on XAMPP). |

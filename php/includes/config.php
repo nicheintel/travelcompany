@@ -33,7 +33,7 @@ function config(string $key, mixed $default = null): mixed
             'member_discount_rate' => 0.10, // members' discount on bookings (0 = off)
             'fx_rates_to_usd' => ['USD' => 1, 'EUR' => 1.08, 'GBP' => 1.27, 'CAD' => 0.73, 'AUD' => 0.66, 'SGD' => 0.75, 'PHP' => 0.0175, 'JPY' => 0.0067],
 
-            // Live suppliers — empty = sample data
+            // Live suppliers. Without a key, search says "not connected" — no invented results.
             'duffel_access_token' => '',
             'liteapi_key' => '',
 
@@ -44,6 +44,10 @@ function config(string $key, mixed $default = null): mixed
             // Stripe card payments. Empty = "reserve now, pay later" only
             'stripe_secret_key' => '',
             'stripe_webhook_secret' => '',
+
+            // true = show made-up SAMPLE flights/hotels when no supplier key is set (demos only,
+            // never for real customers). Leave false.
+            'demo_mode' => false,
 
             // For automated tests only
             'duffel_api_base' => 'https://api.duffel.com',

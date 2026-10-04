@@ -45,6 +45,7 @@ function flight_quote(array $params): ?array
         $cost = $o['cost'];
         $note = "Live airline fare. Fares can change until your ticket is issued — we'll confirm before charging any difference.";
     } else {
+        if (!demo_mode()) return null; // never sell made-up flights
         $o = null;
         foreach (sample_flights($p['search']) as $offer) {
             if ($offer['id'] === $offerId) $o = $offer;
@@ -118,6 +119,7 @@ function hotel_quote(array $params): ?array
     if (liteapi_enabled()) {
         $h = liteapi_hotel($s, $hotelId);
     } else {
+        if (!demo_mode()) return null; // never sell made-up hotels
         $h = null;
         foreach (sample_hotels($s) as $candidate) {
             if ($candidate['id'] === $hotelId) $h = $candidate;

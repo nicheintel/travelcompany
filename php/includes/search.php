@@ -314,9 +314,20 @@ function liteapi_hotel(array $s, string $hotelId): ?array
 
 // ---------- Search entry points (live when keys are set, otherwise sample data) ----------
 
+function demo_mode(): bool
+{
+    return filter_var(config('demo_mode'), FILTER_VALIDATE_BOOLEAN);
+}
+
+/** No supplier key: sample data in demo mode only, otherwise "not connected". */
+function not_connected(): array
+{
+    return ['items' => [], 'live' => false, 'error' => null, 'not_connected' => true];
+}
+
 function search_flights(array $s): array
 {
-    if (!duffel_enabled()) return ['items' => sample_flights($s), 'live' => false, 'error' => null];
+    if (!duffel_enabled()) return demo_mode() ? ['items' => sample_flights($s), 'live' => false, 'error' => null] : not_connected();
     try {
         return ['items' => duffel_search($s), 'live' => true, 'error' => null];
     } catch (Throwable $e) {
@@ -327,7 +338,7 @@ function search_flights(array $s): array
 
 function search_hotels(array $s): array
 {
-    if (!liteapi_enabled()) return ['items' => sample_hotels($s), 'live' => false, 'error' => null];
+    if (!liteapi_enabled()) return demo_mode() ? ['items' => sample_hotels($s), 'live' => false, 'error' => null] : not_connected();
     try {
         return ['items' => liteapi_search($s), 'live' => true, 'error' => null];
     } catch (Throwable $e) {

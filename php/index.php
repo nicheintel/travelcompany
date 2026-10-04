@@ -64,7 +64,7 @@ require __DIR__ . '/includes/header.php';
   <div class="grid gap-4 md:grid-cols-3">
     <?php foreach ([
         ['packages.php', 'from-accent-400 to-accent-600', 'package', 'Packages', 'Flight + Hotel + Car', 'Save up to 40% when you bundle.', 'See promo packages →'],
-        ['flights.php', 'from-sky-500 to-brand-700', 'plane', 'Flights', 'Weekend getaways', 'Round trips from $199.', 'Find cheap flights →'],
+        ['flights.php', 'from-sky-500 to-brand-700', 'plane', 'Flights', 'Compare airlines', 'Real fares from airlines worldwide.', 'Search flights →'],
         ['register.php', 'from-emerald-500 to-teal-700', 'user', 'Members', $memberPct > 0 ? "Extra $memberPct% off" : 'Save your trips', $memberPct > 0 ? 'Free account, member-only prices.' : 'Free account, faster booking and price alerts.', 'Create free account →'],
     ] as [$href, $grad, $ic, $kicker, $heading, $text, $cta]): ?>
       <a href="<?= e(url($href)) ?>" class="group relative overflow-hidden rounded-2xl bg-gradient-to-br <?= $grad ?> p-6 text-white shadow-lg">
@@ -82,17 +82,17 @@ require __DIR__ . '/includes/header.php';
   <div class="mb-6 flex items-end justify-between gap-4">
     <div>
       <h2 class="text-2xl font-bold text-slate-900 sm:text-3xl">Popular destinations</h2>
-      <p class="mt-1 text-slate-600">Round-trip fares from New York this season.</p>
+      <p class="mt-1 text-slate-600">Check today's fares from New York.</p>
     </div>
     <a href="<?= e(url('flights.php')) ?>" class="hidden text-sm font-semibold text-brand-700 hover:underline sm:block">Explore all flights →</a>
   </div>
   <div class="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
-    <?php foreach (POPULAR_DESTINATIONS as [$city, $country, $code, $price, $grad]): ?>
+    <?php foreach (POPULAR_DESTINATIONS as [$city, $country, $code, $grad]): ?>
       <a href="<?= e(url('flights.php', ['from' => 'JFK', 'to' => $code])) ?>" class="group relative flex aspect-[3/4] flex-col justify-end overflow-hidden rounded-2xl bg-gradient-to-br <?= $grad ?> p-4 text-white shadow-md transition hover:-translate-y-1 hover:shadow-xl">
         <span class="absolute right-3 top-3 rounded-md bg-black/20 px-2 py-0.5 font-mono text-xs font-semibold backdrop-blur"><?= $code ?></span>
         <p class="text-xs font-medium text-white/80"><?= e($country) ?></p>
         <p class="text-lg font-bold"><?= e($city) ?></p>
-        <p class="mt-1 text-sm">from <span class="font-bold"><?= money($price) ?></span></p>
+        <p class="mt-1 text-sm font-semibold">See fares →</p>
       </a>
     <?php endforeach; ?>
   </div>

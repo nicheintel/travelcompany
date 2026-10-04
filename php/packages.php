@@ -63,7 +63,7 @@ require __DIR__ . '/includes/header.php';
       <label class="flex cursor-pointer items-center gap-2 text-slate-700"><input type="checkbox" data-filter-flag="car" class="h-4 w-4 accent-brand-600"> Includes rental car</label>
       <label class="flex items-center gap-2 text-slate-700">Sort by
         <select class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 font-medium" data-sort-select>
-          <option value="">Recommended</option><option value="price">Lowest price</option><option value="-savings">Biggest savings</option><option value="-rating">Guest rating</option>
+          <option value="">Recommended</option><option value="price">Lowest price</option><option value="-savings">Biggest savings</option>
         </select>
       </label>
     </div>

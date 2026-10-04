@@ -165,7 +165,7 @@ function package_card(array $p, string $bookQuery = ''): string
     $perks = implode('', array_map(fn($x) => '<li class="flex items-center gap-2">' . icon('check', 14, 'text-emerald-500') . e($x) . '</li>', $p['perks']));
     $href = url('book.php') . '?kind=package&id=' . rawurlencode($p['id']) . ($bookQuery ? '&' . $bookQuery : '');
     return '<article id="' . e($p['id']) . '" class="group flex scroll-mt-24 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl"'
-        . ' data-item data-category="' . e($p['category']) . '" data-car="' . ($p['car'] ? '1' : '0') . '" data-price="' . $p['price'] . '" data-savings="' . $save . '" data-rating="' . $p['rating'] . '">'
+        . ' data-item data-category="' . e($p['category']) . '" data-car="' . ($p['car'] ? '1' : '0') . '" data-price="' . $p['price'] . '" data-savings="' . $save . '">'
         . '<div class="relative h-44 bg-gradient-to-br ' . $p['gradient'] . ' p-4 text-white">'
         . '<svg class="absolute inset-0 h-full w-full opacity-20" viewBox="0 0 400 180" preserveAspectRatio="none" aria-hidden="true"><path d="M0 140 Q100 100 200 130 T400 120 V180 H0Z" fill="white"/><path d="M0 160 Q120 130 240 155 T400 150 V180 H0Z" fill="white"/></svg>'
         . '<div class="relative flex items-start justify-between">' . ($p['badge'] ? '<span class="rounded-full bg-white/95 px-3 py-1 text-xs font-bold text-slate-900 shadow">' . e($p['badge']) . '</span>' : '<span></span>')
@@ -176,7 +176,6 @@ function package_card(array $p, string $bookQuery = ''): string
         . '<div class="mt-3 flex flex-wrap gap-1.5 text-xs font-medium">' . $chip('plane', 'Flight') . $chip('bed', 'Hotel') . ($p['car'] ? $chip('car', 'Car') : '') . '</div>'
         . '<ul class="mt-3 space-y-1 text-sm text-slate-600">' . $perks . '</ul>'
         . '<div class="mt-auto flex items-end justify-between gap-3 pt-5"><div>'
-        . '<p class="text-xs text-slate-500"><span class="font-semibold text-slate-700">' . $p['rating'] . '</span>/5 · ' . number_format($p['reviews']) . ' reviews</p>'
         . '<p class="text-sm text-slate-400 line-through">' . money($p['original']) . '</p>'
         . '<p class="text-2xl font-extrabold text-slate-900">' . money($p['price']) . '<span class="text-xs font-medium text-slate-500"> /person</span></p>'
         . '<p class="text-xs font-semibold text-emerald-600">You save ' . money($save) . '</p></div>'
@@ -269,12 +268,20 @@ function submit_button(string $label, string $pendingLabel, string $class = 'w-f
 
 function results_notice(array $result, string $what): string
 {
+    if (!empty($result['not_connected'])) {
+        $supplier = $what === 'flights' ? 'duffel_access_token' : 'liteapi_key';
+        return '<div class="mb-4 rounded-2xl border border-slate-200 bg-white p-8 text-center">'
+            . '<p class="text-lg font-semibold text-slate-900">Live ' . $what . ' search isn\'t available yet</p>'
+            . '<p class="mt-1 text-slate-600">Please contact our travel assistants and we\'ll find the best ' . $what . ' for you.</p>'
+            . (is_admin() ? '<p class="mt-4 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800 ring-1 ring-amber-200">Admin: add <code>' . $supplier . '</code> in config.local.php to show real ' . $what . ' from your supplier.</p>' : '')
+            . '</div>';
+    }
     if ($result['error']) return '<div class="mb-4">' . alert_box($result['error']) . '</div>';
     if (!$result['items']) {
         return '<p class="mb-4 rounded-xl border border-dashed border-slate-300 bg-white p-8 text-center text-slate-600">No ' . $what . ' available for these dates. Try different dates or a nearby airport.</p>';
     }
     if (!$result['live']) {
-        return '<p class="mb-4 rounded-xl bg-amber-50 px-4 py-2 text-xs font-medium text-amber-800 ring-1 ring-amber-200">Showing sample ' . $what . ' — live prices appear once the supplier API key is added in config.local.php.</p>';
+        return '<p class="mb-4 rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-700 ring-1 ring-red-200">DEMO MODE — these ' . $what . ' are made up for testing, not real. Turn off demo_mode before showing the site to customers.</p>';
     }
     return '';
 }
