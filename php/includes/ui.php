@@ -269,11 +269,10 @@ function submit_button(string $label, string $pendingLabel, string $class = 'w-f
 function results_notice(array $result, string $what): string
 {
     if (!empty($result['not_connected'])) {
-        $supplier = $what === 'flights' ? 'duffel_access_token' : 'liteapi_key';
         return '<div class="mb-4 rounded-2xl border border-slate-200 bg-white p-8 text-center">'
             . '<p class="text-lg font-semibold text-slate-900">Live ' . $what . ' search isn\'t available yet</p>'
             . '<p class="mt-1 text-slate-600">Please contact our travel assistants and we\'ll find the best ' . $what . ' for you.</p>'
-            . (is_admin() ? '<p class="mt-4 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800 ring-1 ring-amber-200">Admin: add <code>' . $supplier . '</code> in config.local.php to show real ' . $what . ' from your supplier.</p>' : '')
+            . (is_admin() ? '<p class="mt-4 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800 ring-1 ring-amber-200">Admin: add your ' . ($what === 'flights' ? 'Duffel' : 'LiteAPI') . ' key on <a class="font-semibold underline" href="' . e(url('admin/settings.php')) . '">Admin → Site settings</a> to show real ' . $what . '.</p>' : '')
             . '</div>';
     }
     if ($result['error']) return '<div class="mb-4">' . alert_box($result['error']) . '</div>';
@@ -337,7 +336,7 @@ function trip_card(array $b): string
 
 function admin_open(string $active): string
 {
-    $links = [['admin/', 'Overview', 'overview'], ['admin/bookings.php', 'Bookings', 'bookings'], ['admin/users.php', 'Users', 'users'], ['admin/diagnostics.php', 'Diagnostics', 'diagnostics']];
+    $links = [['admin/', 'Overview', 'overview'], ['admin/bookings.php', 'Bookings', 'bookings'], ['admin/users.php', 'Users', 'users'], ['admin/settings.php', 'Site settings', 'settings'], ['admin/diagnostics.php', 'Diagnostics', 'diagnostics']];
     $nav = implode('', array_map(fn($l) => '<a href="' . e(url($l[0])) . '" class="shrink-0 rounded-lg px-4 py-2 text-sm font-semibold transition '
         . ($l[2] === $active ? 'bg-white text-brand-800 shadow-sm' : 'text-brand-100 hover:bg-white/10 hover:text-white') . '">' . $l[1] . '</a>', $links));
     return '<div class="min-h-full bg-slate-50"><div class="bg-brand-900"><div class="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">'

@@ -58,3 +58,9 @@ CREATE TABLE IF NOT EXISTS rate_limits (
   hits     INT UNSIGNED NOT NULL,
   reset_at DATETIME     NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS settings (
+  name       VARCHAR(64) NOT NULL PRIMARY KEY,
+  value      TEXT        NOT NULL,
+  updated_at DATETIME    NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

@@ -24,7 +24,13 @@ in phpMyAdmin if you prefer.
 
 ## Settings (API keys, admin, email, payments)
 
-Copy `config.local.example.php` to **`config.local.php`** and fill in what you use:
+**Easiest:** on your own computer, the first account you use becomes the admin automatically
+(only on `localhost`, and only while the site has no admin). Then open
+**Admin dashboard → Site settings** to paste your Duffel and LiteAPI keys and set your markup,
+and **Diagnostics** to check the connections. No files to edit.
+
+You can also put settings in a file — values there override Site settings. Copy
+`config.local.example.php` to **`config.local.php`** and fill in what you use:
 
 | Setting | What it does |
 | --- | --- |

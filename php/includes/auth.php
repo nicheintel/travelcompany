@@ -56,7 +56,34 @@ function current_user(): ?array
         unset($_SESSION['uid'], $_SESSION['ver']);
         $user = null;
     }
+    if ($user && $user['role'] !== 'admin' && claim_owner($user)) {
+        $user['role'] = 'admin';
+    }
     return $user;
+}
+
+/** Visiting from this same computer (XAMPP), not from the internet. */
+function is_local_request(): bool
+{
+    $host = strtolower((string) parse_url('http://' . ($_SERVER['HTTP_HOST'] ?? ''), PHP_URL_HOST));
+    return in_array($_SERVER['REMOTE_ADDR'] ?? '', ['127.0.0.1', '::1'], true)
+        && in_array($host, ['localhost', '127.0.0.1', '::1', '[::1]'], true)
+        && empty($_SERVER['HTTP_X_FORWARDED_FOR']);
+}
+
+/**
+ * First-run setup on your own computer: while the site has no admin at all (none in the
+ * database and none in admin_emails), the account you use on localhost becomes the admin.
+ * Never applies to visitors from the internet.
+ */
+function claim_owner(array $user): bool
+{
+    if (!is_local_request() || configured_admins() || db_one("SELECT 1 FROM users WHERE role = 'admin' LIMIT 1")) {
+        return false;
+    }
+    db_run("UPDATE users SET role = 'admin' WHERE id = ?", [$user['id']]);
+    flash("You're the site owner on this computer, so your account is now the admin. Open Admin dashboard → Site settings to add your supplier keys.");
+    return true;
 }
 
 function is_admin(): bool

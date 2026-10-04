@@ -30,13 +30,13 @@ if (duffel_enabled()) {
     $r = probe(fn() => http_json('GET', rtrim((string) config('duffel_api_base'), '/') . '/air/airlines?limit=1', ['Authorization: Bearer ' . config('duffel_access_token'), 'Duffel-Version: v2'], null, 20));
     $checks[] = ['Duffel (flights)', $r['ok'], $mode . ' · ' . $r['text']];
 } else {
-    $checks[] = ['Duffel (flights)', false, 'No duffel_access_token in config.local.php — flight search is off'];
+    $checks[] = ['Duffel (flights)', false, 'No Duffel key yet — add it on the Site settings tab. Flight search is off.'];
 }
 if (liteapi_enabled()) {
     $r = probe(fn() => http_json('GET', rtrim((string) config('liteapi_api_base'), '/') . '/data/countries', ['X-API-Key: ' . config('liteapi_key')], null, 20));
     $checks[] = ['LiteAPI (hotels)', $r['ok'], $r['text']];
 } else {
-    $checks[] = ['LiteAPI (hotels)', false, 'No liteapi_key in config.local.php — hotel search is off'];
+    $checks[] = ['LiteAPI (hotels)', false, 'No LiteAPI key yet — add it on the Site settings tab. Hotel search is off.'];
 }
 $checks[] = ['Emails', true, config('resend_api_key') ? 'Sent with Resend' : 'Not sent — written to storage/emails.log'];
 $checks[] = ['Card payments', true, stripe_enabled() ? 'Stripe on' : 'Off — pay later only'];
@@ -66,7 +66,7 @@ echo admin_open('diagnostics');
       </tbody>
     </table>
   </div>
-  <p class="text-sm text-slate-500">After changing config.local.php, refresh this page. Then try a real search:
+  <p class="text-sm text-slate-500">After changing Site settings, refresh this page. Then try a real search:
     <a class="font-semibold text-brand-700 hover:underline" href="<?= e(url('flights.php', ['from' => 'JFK', 'to' => 'LHR'])) ?>">New York → London flights</a> ·
     <a class="font-semibold text-brand-700 hover:underline" href="<?= e(url('hotels.php', ['to' => 'BKK'])) ?>">Hotels in Bangkok</a></p>
 </div>
