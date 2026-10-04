@@ -1,30 +1,36 @@
 import "server-only";
 
 /**
- * Minimal in-memory limiter for failed sign-ins. Resets on restart and isn't
- * shared between server instances — replace with Redis or a DB table in production.
+ * Minimal in-memory fixed-window limiter. Resets on restart and isn't shared
+ * between server instances — replace with Redis or a DB table in production.
  */
-const WINDOW_MS = 15 * 60 * 1000;
-const MAX_FAILURES = 5;
-const failures = new Map<string, { count: number; resetAt: number }>();
+export function createLimiter({ max, windowMs }: { max: number; windowMs: number }) {
+  const hits = new Map<string, { count: number; resetAt: number }>();
 
-export function isLocked(key: string) {
-  const entry = failures.get(key);
-  if (!entry) return false;
-  if (entry.resetAt < Date.now()) {
-    failures.delete(key);
-    return false;
-  }
-  return entry.count >= MAX_FAILURES;
+  return {
+    isLimited(key: string) {
+      const entry = hits.get(key);
+      if (!entry) return false;
+      if (entry.resetAt < Date.now()) {
+        hits.delete(key);
+        return false;
+      }
+      return entry.count >= max;
+    },
+    hit(key: string) {
+      const now = Date.now();
+      const entry = hits.get(key);
+      if (!entry || entry.resetAt < now) hits.set(key, { count: 1, resetAt: now + windowMs });
+      else entry.count++;
+    },
+    clear(key: string) {
+      hits.delete(key);
+    },
+  };
 }
 
-export function recordFailure(key: string) {
-  const now = Date.now();
-  const entry = failures.get(key);
-  if (!entry || entry.resetAt < now) failures.set(key, { count: 1, resetAt: now + WINDOW_MS });
-  else entry.count++;
-}
+/** 5 failed sign-ins per email locks it for 15 minutes. */
+export const signInFailures = createLimiter({ max: 5, windowMs: 15 * 60 * 1000 });
 
-export function clearFailures(key: string) {
-  failures.delete(key);
-}
+/** At most 3 reset emails per address per hour. */
+export const resetRequests = createLimiter({ max: 3, windowMs: 60 * 60 * 1000 });

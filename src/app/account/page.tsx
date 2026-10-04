@@ -9,8 +9,9 @@ import { requireUser } from "@/lib/server/dal";
 
 export const metadata: Metadata = { title: "My account" };
 
-export default async function AccountPage() {
+export default async function AccountPage({ searchParams }: PageProps<"/account">) {
   const user = await requireUser("/account");
+  const passwordReset = (await searchParams).reset === "1";
   const firstName = user.name.split(" ")[0];
   const bookings = listBookings(user.id);
   const today = serverToday();
@@ -23,6 +24,11 @@ export default async function AccountPage() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
+      {passwordReset && (
+        <p className="mb-6 rounded-xl bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800 ring-1 ring-emerald-200">
+          Your password has been changed and you&apos;ve been signed out on other devices.
+        </p>
+      )}
       <div className="flex flex-col gap-4 rounded-3xl bg-gradient-to-br from-brand-800 to-brand-600 p-8 text-white sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-brand-100">My account</p>

@@ -30,6 +30,11 @@ export function SignInForm({ next }: { next?: string }) {
         required
         errors={state?.errors?.password}
       />
+      <div className="-mt-2 text-right">
+        <Link href="/forgot-password" className="text-sm font-medium text-brand-700 hover:underline">
+          Forgot password?
+        </Link>
+      </div>
       <SubmitButton pending={pending}>{pending ? "Signing in…" : "Sign in"}</SubmitButton>
       <p className="text-center text-sm text-slate-600">
         New here?{" "}

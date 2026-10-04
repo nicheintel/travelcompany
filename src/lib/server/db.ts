@@ -50,6 +50,14 @@ function open() {
     );
 
     CREATE INDEX IF NOT EXISTS bookings_user_id ON bookings(user_id);
+
+    CREATE TABLE IF NOT EXISTS password_resets (
+      token_hash TEXT    PRIMARY KEY,
+      user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      expires_at INTEGER NOT NULL,
+      used_at    INTEGER,
+      created_at INTEGER NOT NULL
+    );
   `);
   return db;
 }
