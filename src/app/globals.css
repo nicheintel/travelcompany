@@ -1,0 +1,35 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@theme {
+  --color-brand-50: #eef5ff;
+  --color-brand-100: #d9e8ff;
+  --color-brand-200: #bcd7ff;
+  --color-brand-300: #8ebeff;
+  --color-brand-400: #5899ff;
+  --color-brand-500: #3273fb;
+  --color-brand-600: #1c54f0;
+  --color-brand-700: #1640d9;
+  --color-brand-800: #1935b0;
+  --color-brand-900: #1a328a;
+  --color-brand-950: #0f1d4f;
+
+  --color-accent-400: #ffa53d;
+  --color-accent-500: #ff8a12;
+  --color-accent-600: #f06c06;
+}
+
+body {
+  background: #f6f8fc;
+  color: #0f172a;
+}
+
+/* Make native date pickers inherit our font sizing */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.6;
+}
