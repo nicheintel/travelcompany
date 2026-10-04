@@ -380,3 +380,23 @@ function pager(int $page, bool $hasMore, callable $href): string
         . '<span class="text-slate-500">Page ' . $page . '</span>'
         . ($hasMore ? '<a href="' . e($href($page + 1)) . '" class="text-brand-700 hover:underline">Older →</a>' : '<span></span>') . '</div>';
 }
+
+/**
+ * Admin-only: supplier price, markup and what we keep after the member discount.
+ * Only call when is_admin() — this must never be rendered for customers.
+ */
+function admin_cost_line(?array $cost, int $sellTotal): string
+{
+    if (!$cost || !is_admin()) return '';
+    $discount = (int) round($sellTotal * member_discount_rate());
+    $keep = $sellTotal - $discount - $cost['net_usd'];
+    $net = $cost['net_currency'] === 'USD'
+        ? '$' . number_format($cost['net_amount'], 2)
+        : number_format($cost['net_amount'], 2) . ' ' . e($cost['net_currency']) . ' (≈$' . number_format($cost['net_usd'], 2) . ')';
+    return '<div class="rounded-lg bg-slate-900 px-3 py-2 text-xs text-slate-100" title="Only admins can see this">'
+        . '<span class="font-semibold text-amber-300">Admin</span> · Supplier price <strong>' . $net . '</strong>'
+        . ' · +' . round($cost['markup_rate'] * 100) . '% = ' . money($sellTotal)
+        . ($discount ? ' · after ' . round(member_discount_rate() * 100) . '% member discount you keep <strong class="' . ($keep >= 0 ? 'text-emerald-300' : 'text-red-300') . '">$' . number_format($keep, 2) . '</strong>'
+                     : ' · you keep <strong class="text-emerald-300">$' . number_format($keep, 2) . '</strong>')
+        . ' <span class="text-slate-400">(before card &amp; supplier fees)</span></div>';
+}

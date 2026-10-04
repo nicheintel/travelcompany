@@ -103,6 +103,7 @@ require __DIR__ . '/includes/header.php';
                 <?php foreach (array_slice($h['amenities'], 0, 4) as $am): ?><li class="rounded-md bg-slate-100 px-2 py-1 text-slate-700"><?= AMENITY_LABELS[$am] ?></li><?php endforeach; ?>
               </ul>
               <?php if ($h['free_cancel']): ?><p class="flex items-center gap-1 text-sm font-medium text-emerald-700"><?= icon('check', 14) ?> Free cancellation</p><?php endif; ?>
+              <?= admin_cost_line($h['cost'] ?? null, $total) ?>
             </div>
             <div class="flex shrink-0 flex-row items-end justify-between gap-3 md:flex-col md:text-right">
               <div>

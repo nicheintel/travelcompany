@@ -113,6 +113,7 @@ require __DIR__ . '/includes/header.php';
             </div>
             <?= leg_row($o['outbound'], 'Depart') ?>
             <?= $o['inbound'] ? leg_row($o['inbound'], 'Return') : '' ?>
+            <?= admin_cost_line($o['cost'] ?? null, $o['total']) ?>
           </div>
           <div class="flex items-center justify-between gap-4 border-t border-slate-100 pt-4 md:flex-col md:items-end md:justify-center md:border-l md:border-t-0 md:pl-6 md:pt-0">
             <div class="md:text-right">

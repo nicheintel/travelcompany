@@ -127,7 +127,7 @@ parse_str($quote['query'], $qp);
         <?= submit_button('Reserve trip · ' . money($quote['total']), 'Reserving…') ?>
       </form>
     </div>
-    <aside class="h-fit lg:sticky lg:top-20"><?= trip_summary($quote) ?></aside>
+    <aside class="h-fit space-y-3 lg:sticky lg:top-20"><?= admin_cost_line($quote['supplier'], $quote['subtotal']) ?><?= trip_summary($quote) ?></aside>
   </div>
 </div>
 <?php require __DIR__ . '/includes/footer.php';
