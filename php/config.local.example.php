@@ -2,6 +2,8 @@
 // Copy this file to config.local.php and fill in what you use.
 // config.local.php is ignored by git, so your keys stay private.
 return [
+    // 'db_host' => 'localhost',
+    // 'db_name' => 'travelcompany',
     // 'db_user' => 'root',
     // 'db_pass' => '',
     // 'app_url' => 'https://www.yourdomain.com',
