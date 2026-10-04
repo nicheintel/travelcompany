@@ -21,6 +21,9 @@ export type FlightLeg = {
   stops: number;
   stopCities: string[];
   flightNumber: string;
+  /** Local arrival time; live fares provide it (sample data derives it from the duration). */
+  arriveMinutes?: number;
+  arriveDayOffset?: number;
 };
 
 export type FlightOffer = {
@@ -30,11 +33,11 @@ export type FlightOffer = {
   inbound?: FlightLeg;
   pricePerPerson: number;
   totalPrice: number;
-  seatsLeft: number;
+  seatsLeft?: number;
   refundable: boolean;
 };
 
-export type Airline = { code: string; name: string; color: string };
+export type Airline = { code: string; name: string; color: string; logoUrl?: string | null };
 
 export const AIRLINES: Airline[] = [
   { code: "SK", name: "SkyBridge Air", color: "#1c54f0" },
@@ -96,7 +99,8 @@ export type FlightSearch = {
   cabin: CabinClass;
 };
 
-export function searchFlights(search: FlightSearch): FlightOffer[] {
+/** Deterministic sample fares — used until a Duffel key is configured. */
+export function sampleFlights(search: FlightSearch): FlightOffer[] {
   const { from, to, depart, returnDate, adults, children, cabin } = search;
   const rand = seeded(`${from.code}-${to.code}-${depart}-${returnDate ?? ""}-${cabin}`);
   const km = distanceKm(from, to);

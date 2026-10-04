@@ -4,7 +4,9 @@ import { BedIcon } from "@/components/icons";
 import { HotelSearchForm } from "@/components/search/HotelSearchForm";
 import { findAirport } from "@/lib/airports";
 import { formatDate } from "@/lib/format";
-import { parseHotelParams, searchHotels } from "@/lib/hotels";
+import { ResultsNotice } from "@/components/ResultsNotice";
+import { parseHotelParams } from "@/lib/hotels";
+import { searchHotels } from "@/lib/server/travel-search";
 import { HotelResults } from "./HotelResults";
 
 export const metadata: Metadata = {
@@ -18,7 +20,8 @@ export default async function HotelsPage({ searchParams }: PageProps<"/hotels">)
   const { city, checkIn, checkOut, adults, children, rooms, search, query } = parseHotelParams(
     await searchParams,
   );
-  const hotels = search ? searchHotels(search) : [];
+  const result = search ? await searchHotels(search) : null;
+  const hotels = result?.items ?? [];
 
   return (
     <>
@@ -60,8 +63,9 @@ export default async function HotelsPage({ searchParams }: PageProps<"/hotels">)
       </section>
 
       <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+        {result && <ResultsNotice live={result.live} error={result.error} empty={!result.error && !hotels.length} what="hotels" />}
         {search ? (
-          <HotelResults key={query} hotels={hotels} nights={search.nights} rooms={rooms} bookQuery={query} />
+          hotels.length > 0 && <HotelResults key={query} hotels={hotels} nights={search.nights} rooms={rooms} bookQuery={query} />
         ) : (
           <div>
             <h2 className="text-xl font-bold text-slate-900">Popular cities</h2>

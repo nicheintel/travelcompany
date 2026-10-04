@@ -48,7 +48,7 @@ export async function createBookingAction(
   }
 
   // Re-price on the server from the canonical query; the browser only tells us *what* to book.
-  const quote = buildQuote(kind, Object.fromEntries(new URLSearchParams(query)));
+  const quote = await buildQuote(kind, Object.fromEntries(new URLSearchParams(query)));
   if (!quote) return { message: "Sorry, this deal is no longer available. Please search again.", values };
 
   if (Number(field(formData, "expectedTotal")) !== quote.total) {

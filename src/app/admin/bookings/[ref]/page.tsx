@@ -5,7 +5,7 @@ import { LocalTime } from "@/components/admin/LocalTime";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { TripSummary } from "@/components/TripSummary";
 import { formatDob, formatPrice } from "@/lib/format";
-import { adminGetBooking, listEvents } from "@/lib/server/bookings";
+import { type AdminBooking, adminGetBooking, listEvents } from "@/lib/server/bookings";
 import { requireAdmin } from "@/lib/server/dal";
 import { CancelForm, MarkPaidForm, NoteForm } from "./BookingActions";
 
@@ -145,9 +145,55 @@ export default async function AdminBookingPage({ params, searchParams }: PagePro
               <CancelForm reference={booking.reference} wasPaid={booking.status === "paid"} />
             </section>
           )}
+          {booking.quote.supplier && <SupplierPanel booking={booking} />}
           <TripSummary quote={booking.quote} />
         </aside>
       </div>
     </div>
+  );
+}
+
+const PROVIDER_NAME = { duffel: "Duffel (flights)", liteapi: "LiteAPI (hotels)" } as const;
+
+/** Staff-only: what we owe the supplier and what we keep. */
+function SupplierPanel({ booking }: { booking: AdminBooking }) {
+  const s = booking.quote.supplier!;
+  const margin = booking.total - s.netUsd;
+  const net =
+    s.netCurrency === "USD"
+      ? formatPrice(s.netAmount)
+      : `${s.netAmount.toFixed(2)} ${s.netCurrency} (≈${formatPrice(s.netUsd)})`;
+  return (
+    <section className="rounded-xl border border-slate-200 bg-white p-5 text-sm">
+      <h2 className="font-semibold text-slate-900">Supplier & margin</h2>
+      <dl className="mt-3 space-y-2">
+        <div className="flex justify-between gap-3">
+          <dt className="text-slate-500">Supplier</dt>
+          <dd className="font-medium text-slate-900">{PROVIDER_NAME[s.provider]}</dd>
+        </div>
+        <div className="flex justify-between gap-3">
+          <dt className="text-slate-500">Offer ID</dt>
+          <dd className="truncate font-mono text-xs text-slate-700" title={s.offerId}>{s.offerId}</dd>
+        </div>
+        <div className="flex justify-between gap-3">
+          <dt className="text-slate-500">Cost when booked</dt>
+          <dd className="font-medium text-slate-900">{net}</dd>
+        </div>
+        <div className="flex justify-between gap-3">
+          <dt className="text-slate-500">Customer pays</dt>
+          <dd className="font-medium text-slate-900">{formatPrice(booking.total)}</dd>
+        </div>
+        <div className="flex justify-between gap-3 border-t border-slate-100 pt-2">
+          <dt className="font-semibold text-slate-700">Gross margin</dt>
+          <dd className={`font-bold ${margin >= 0 ? "text-emerald-700" : "text-red-600"}`}>
+            {formatPrice(margin)} ({Math.round((margin / booking.total) * 100)}%)
+          </dd>
+        </div>
+      </dl>
+      <p className="mt-3 text-xs text-slate-500">
+        Before supplier fees and card fees. Issue the ticket or room in the {s.provider === "duffel" ? "Duffel" : "LiteAPI"}{" "}
+        dashboard after payment — supplier prices can change until then.
+      </p>
+    </section>
   );
 }

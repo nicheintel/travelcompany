@@ -232,19 +232,24 @@ export function FlightResults({
           >
             <div className="space-y-4">
               <div className="flex items-center gap-3">
-                <span
-                  className="grid h-9 w-9 place-items-center rounded-lg text-xs font-bold text-white"
-                  style={{ backgroundColor: o.airline.color }}
-                >
-                  {o.airline.code}
-                </span>
+                {o.airline.logoUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element -- airline logos come from Duffel's CDN
+                  <img src={o.airline.logoUrl} alt="" className="h-9 w-9 rounded-lg object-contain" />
+                ) : (
+                  <span
+                    className="grid h-9 w-9 place-items-center rounded-lg text-xs font-bold text-white"
+                    style={{ backgroundColor: o.airline.color }}
+                  >
+                    {o.airline.code}
+                  </span>
+                )}
                 <span className="font-medium text-slate-900">{o.airline.name}</span>
                 {o.refundable && (
                   <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700">
                     Refundable
                   </span>
                 )}
-                {o.seatsLeft <= 3 && (
+                {o.seatsLeft !== undefined && o.seatsLeft <= 3 && (
                   <span className="rounded-full bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-600">
                     {o.seatsLeft} seat{o.seatsLeft === 1 ? "" : "s"} left
                   </span>
@@ -257,7 +262,9 @@ export function FlightResults({
             <div className="flex items-center justify-between gap-4 border-t border-slate-100 pt-4 md:flex-col md:items-end md:justify-center md:border-l md:border-t-0 md:pl-6 md:pt-0">
               <div className="md:text-right">
                 <p className="text-2xl font-extrabold text-slate-900">{formatPrice(o.totalPrice)}</p>
-                <p className="text-xs text-slate-500">{formatPrice(o.pricePerPerson)} per adult</p>
+                <p className="text-xs text-slate-500">
+                  {travellers > 1 ? `Total for ${travellers} · ≈${formatPrice(Math.ceil(o.totalPrice / travellers))} each` : "per traveler"}
+                </p>
               </div>
               <Link
                 href={`/book/flight?${bookQuery}&offer=${encodeURIComponent(o.id)}`}
@@ -274,8 +281,8 @@ export function FlightResults({
 }
 
 export function LegRow({ leg, label }: { leg: FlightLeg; label: string }) {
-  const arrive = leg.departMinutes + leg.durationMinutes;
-  const dayOffset = Math.floor(arrive / 1440);
+  const arrive = leg.arriveMinutes ?? leg.departMinutes + leg.durationMinutes;
+  const dayOffset = leg.arriveDayOffset ?? Math.floor(arrive / 1440);
   const from = findAirport(leg.from);
   const to = findAirport(leg.to);
 

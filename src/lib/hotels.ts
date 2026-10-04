@@ -18,18 +18,22 @@ export const AMENITY_LABELS: Record<Amenity, string> = {
 export type Hotel = {
   id: string;
   name: string;
+  /** 0 when unknown. */
   stars: number;
-  /** Guest score out of 10. */
-  rating: number;
-  reviews: number;
+  /** Guest score out of 10, when known. */
+  rating?: number;
+  reviews?: number;
   neighborhood: string;
-  distanceKm: number;
+  distanceKm?: number;
   roomType: string;
   nightlyPrice: number;
   originalNightly?: number;
   amenities: Amenity[];
   freeCancellation: boolean;
   gradient: string;
+  photoUrl?: string;
+  /** Live rates: exact price for the whole stay (all rooms), taxes included. */
+  stayTotal?: number;
 };
 
 /** Rough hotel price level per city (1 = average). */
@@ -63,7 +67,8 @@ export type HotelSearch = {
   rooms: number;
 };
 
-export function searchHotels(search: HotelSearch): Hotel[] {
+/** Deterministic sample hotels — used until a LiteAPI key is configured. */
+export function sampleHotels(search: HotelSearch): Hotel[] {
   const { city, checkIn } = search;
   // Seeded by city so a hotel keeps its identity; prices also vary with the date.
   const rand = seeded(`hotels-${city.code}`);

@@ -35,14 +35,14 @@ export function HotelResults({
     const list = hotels.filter(
       (h) =>
         (!stars.length || stars.includes(h.stars)) &&
-        h.rating >= minRating &&
+        (minRating === 0 || (h.rating ?? 0) >= minRating) &&
         amenities.every((a) => h.amenities.includes(a)) &&
         (!freeCancel || h.freeCancellation) &&
         h.nightlyPrice <= maxPrice,
     );
-    const score = (h: Hotel) => h.rating * 10 - h.nightlyPrice / 20 + (h.freeCancellation ? 5 : 0);
+    const score = (h: Hotel) => (h.rating ?? 7) * 10 + h.stars * 3 - h.nightlyPrice / 20 + (h.freeCancellation ? 5 : 0);
     if (sort === "price") return list.sort((a, b) => a.nightlyPrice - b.nightlyPrice);
-    if (sort === "rating") return list.sort((a, b) => b.rating - a.rating);
+    if (sort === "rating") return list.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
     if (sort === "stars") return list.sort((a, b) => b.stars - a.stars || a.nightlyPrice - b.nightlyPrice);
     return list.sort((a, b) => score(b) - score(a));
   }, [hotels, stars, minRating, amenities, freeCancel, maxPrice, sort]);
@@ -162,20 +162,28 @@ export function HotelResults({
         )}
 
         {visible.map((h) => {
-          const total = h.nightlyPrice * nights * rooms;
+          const total = h.stayTotal ?? h.nightlyPrice * nights * rooms;
           return (
             <article
               key={h.id}
               className="grid overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md sm:grid-cols-[220px_1fr]"
             >
-              <div className={`relative flex min-h-40 items-end bg-gradient-to-br ${h.gradient} p-4 text-white`}>
-                <BedIcon className="absolute right-4 top-4 text-white/30" width={48} height={48} />
+              <div className={`relative flex min-h-40 items-end overflow-hidden bg-gradient-to-br ${h.gradient} p-4 text-white`}>
+                {h.photoUrl ? (
+                  <>
+                    {/* eslint-disable-next-line @next/next/no-img-element -- hotel photos come from the supplier's CDN */}
+                    <img src={h.photoUrl} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
+                    <span className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                  </>
+                ) : (
+                  <BedIcon className="absolute right-4 top-4 text-white/30" width={48} height={48} />
+                )}
                 {h.originalNightly && (
-                  <span className="absolute left-3 top-3 rounded-full bg-accent-500 px-2.5 py-1 text-xs font-bold">
+                  <span className="absolute left-3 top-3 z-10 rounded-full bg-accent-500 px-2.5 py-1 text-xs font-bold">
                     Deal −{Math.round((1 - h.nightlyPrice / h.originalNightly) * 100)}%
                   </span>
                 )}
-                <span className="text-xs font-medium">{h.roomType}</span>
+                <span className="relative text-xs font-medium">{h.roomType}</span>
               </div>
               <div className="flex flex-col gap-4 p-5 md:flex-row md:justify-between">
                 <div className="min-w-0 space-y-2">
@@ -186,13 +194,21 @@ export function HotelResults({
                   </div>
                   <h3 className="text-lg font-semibold text-slate-900">{h.name}</h3>
                   <p className="flex items-center gap-1 text-sm text-slate-500">
-                    <MapPinIcon width={14} height={14} /> {h.neighborhood} · {h.distanceKm} km from center
+                    <MapPinIcon width={14} height={14} className="shrink-0" />
+                    <span className="truncate">
+                      {h.neighborhood}
+                      {h.distanceKm !== undefined && ` · ${h.distanceKm} km from center`}
+                    </span>
                   </p>
-                  <div className="flex items-center gap-2">
-                    <span className="rounded-lg bg-brand-700 px-2 py-1 text-sm font-bold text-white">{h.rating.toFixed(1)}</span>
-                    <span className="text-sm font-semibold text-slate-800">{ratingLabel(h.rating)}</span>
-                    <span className="text-xs text-slate-500">{h.reviews.toLocaleString("en-US")} reviews</span>
-                  </div>
+                  {h.rating !== undefined && (
+                    <div className="flex items-center gap-2">
+                      <span className="rounded-lg bg-brand-700 px-2 py-1 text-sm font-bold text-white">{h.rating.toFixed(1)}</span>
+                      <span className="text-sm font-semibold text-slate-800">{ratingLabel(h.rating)}</span>
+                      {h.reviews !== undefined && (
+                        <span className="text-xs text-slate-500">{h.reviews.toLocaleString("en-US")} reviews</span>
+                      )}
+                    </div>
+                  )}
                   <ul className="flex flex-wrap gap-1.5 text-xs">
                     {h.amenities.slice(0, 4).map((a) => (
                       <li key={a} className="rounded-md bg-slate-100 px-2 py-1 text-slate-700">
@@ -214,7 +230,7 @@ export function HotelResults({
                     <p className="text-2xl font-extrabold text-slate-900">{formatPrice(h.nightlyPrice)}</p>
                     <p className="text-xs text-slate-500">per night</p>
                     <p className="mt-1 text-xs text-slate-600">
-                      {formatPrice(total)} total + taxes
+                      {formatPrice(total)} total {h.stayTotal ? "incl. taxes" : "+ taxes"}
                     </p>
                   </div>
                   <Link

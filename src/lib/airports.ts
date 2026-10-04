@@ -69,3 +69,16 @@ export function distanceKm(a: Airport, b: Airport) {
     Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLon / 2) ** 2;
   return 2 * R * Math.asin(Math.sqrt(h));
 }
+
+const COUNTRY_CODES: Record<string, string> = {
+  "United States": "US", Canada: "CA", Mexico: "MX", "United Kingdom": "GB", France: "FR",
+  Italy: "IT", Spain: "ES", Netherlands: "NL", "Türkiye": "TR", "United Arab Emirates": "AE",
+  Qatar: "QA", Singapore: "SG", Thailand: "TH", Indonesia: "ID", Malaysia: "MY",
+  Philippines: "PH", "Hong Kong": "HK", Japan: "JP", "South Korea": "KR", India: "IN",
+  Australia: "AU", Brazil: "BR",
+};
+
+/** ISO 3166-1 alpha-2 country code, e.g. "PH". */
+export function countryCode(a: Airport) {
+  return COUNTRY_CODES[a.country] ?? "";
+}

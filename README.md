@@ -49,8 +49,33 @@ Open http://localhost:3000.
   - `packages.ts` — promo package catalog
   - `site.ts` — site name / tagline (change branding here)
 
-> Flight, hotel and package prices are sample data. Swap `searchFlights` / `searchHotels`
-> for real APIs (e.g. Amadeus, Duffel, Expedia Rapid) when ready.
+> Flights and hotels use **live prices** once supplier keys are set (see below); without keys the
+> site shows clearly-labelled sample data. Promo packages are a fixed catalog in `src/lib/packages.ts`.
+
+## Live prices: Duffel (flights) & LiteAPI (hotels)
+
+1. **Duffel** — sign up at [duffel.com](https://duffel.com), copy a **test** access token
+   (`duffel_test_…`) into `DUFFEL_ACCESS_TOKEN`. Test mode returns real-looking fares from
+   "Duffel Airways"; switch to a live token when you're ready to sell.
+2. **LiteAPI** — sign up at [liteapi.travel](https://www.liteapi.travel), copy your sandbox API key
+   into `LITEAPI_KEY`.
+
+How pricing works:
+
+- Customer price = supplier price × (1 + markup), rounded **up** to the dollar.
+  `FLIGHT_MARKUP_RATE` and `HOTEL_MARKUP_RATE` (default `0.2` = 20%).
+- Then the member discount (`MEMBER_DISCOUNT_RATE`, default `0.1`) comes off the total.
+- Hotels are never sold below the hotel's suggested selling price (rate-parity rules).
+- Prices are in USD. Flights quoted in other currencies are converted with the rates in
+  `src/lib/server/pricing.ts` (override with `FX_RATES_TO_USD`); unknown currencies are skipped.
+- The booking page **re-checks the price with the supplier**; if it changed, the customer sees
+  the new price before reserving. Expired fares show "no longer available".
+- Staff see the supplier, offer ID, cost and gross margin on each booking in the admin dashboard.
+- Tickets and rooms are **issued by staff** in the Duffel / LiteAPI dashboards after payment
+  (automatic issuing is the next step). Supplier prices can change until then.
+
+Code: `src/lib/server/providers/duffel.ts`, `src/lib/server/providers/liteapi.ts`,
+`src/lib/server/travel-search.ts` (live vs sample switch), `src/lib/quote.ts` (booking prices).
 
 ## Bookings & payments
 
@@ -63,8 +88,8 @@ A booking is saved with a `TC-XXXXXX` reference and status `reserved`. Then:
 - **Without Stripe**, it's "reserve now, pay later": a travel assistant contacts the customer.
 
 Reserved (unpaid) trips can be cancelled by the customer; paid trips are changed through support.
-Members get a discount set by `MEMBER_DISCOUNT_RATE` in `src/lib/site.ts` (10% by default; set to
-`0` to turn it off).
+Members get a discount set by the `MEMBER_DISCOUNT_RATE` environment variable (10% by default;
+set to `0` to turn it off — the landing page offer updates automatically).
 
 ### Emails sent
 
@@ -111,6 +136,11 @@ access on the server.
 | `EMAIL_FROM`      | Sender, e.g. `TravelCompany <hello@yourdomain.com>` (domain must be verified in Resend) |
 | `STRIPE_SECRET_KEY` | Turns on card payments via Stripe Checkout                                   |
 | `STRIPE_WEBHOOK_SECRET` | Verifies Stripe webhook calls (required for the webhook)                  |
+| `DUFFEL_ACCESS_TOKEN` | Live flight search and prices (Duffel)                                    |
+| `LITEAPI_KEY`     | Live hotel search and prices (LiteAPI)                                        |
+| `FLIGHT_MARKUP_RATE` / `HOTEL_MARKUP_RATE` | Your margin on supplier prices (default `0.2` = 20%) |
+| `MEMBER_DISCOUNT_RATE` | Member discount on bookings (default `0.1` = 10%; `0` = off)            |
+| `FX_RATES_TO_USD` | Optional JSON of exchange rates, e.g. `{"EUR":1.09,"GBP":1.28}`               |
 | `ADMIN_EMAILS`    | Emails that are always admins, e.g. `owner@yourdomain.com,manager@yourdomain.com` |
 | `DATABASE_PATH`   | Optional SQLite file location (default `data/travelcompany.db`)               |
 

@@ -31,7 +31,7 @@ export default async function BookPage({ params, searchParams }: PageProps<"/boo
   const sp = await searchParams;
 
   const user = await requireUser(`/book/${kind}?${toQuery(sp)}`);
-  const quote = buildQuote(kind, sp);
+  const quote = await buildQuote(kind, sp);
 
   if (!quote) {
     return (

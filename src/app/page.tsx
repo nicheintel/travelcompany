@@ -14,6 +14,7 @@ import { SearchTabs } from "@/components/search/SearchTabs";
 import { POPULAR_DESTINATIONS } from "@/lib/destinations";
 import { formatPrice } from "@/lib/format";
 import { PROMO_PACKAGES } from "@/lib/packages";
+import { memberDiscountRate } from "@/lib/server/pricing";
 
 const WHY_US = [
   {
@@ -64,6 +65,7 @@ const FAQ = [
 ];
 
 export default function Home() {
+  const memberPct = Math.round(memberDiscountRate() * 100);
   return (
     <>
       {/* Hero */}
@@ -157,8 +159,10 @@ export default function Home() {
           >
             <UserIcon className="absolute -bottom-4 -right-4 text-white/20" width={120} height={120} />
             <p className="text-sm font-semibold uppercase tracking-wider text-white/80">Members</p>
-            <h3 className="mt-2 text-2xl font-bold">Extra 10% off</h3>
-            <p className="mt-1 text-white/90">Free account, member-only prices.</p>
+            <h3 className="mt-2 text-2xl font-bold">{memberPct > 0 ? `Extra ${memberPct}% off` : "Save your trips"}</h3>
+            <p className="mt-1 text-white/90">
+              {memberPct > 0 ? "Free account, member-only prices." : "Free account, faster booking and price alerts."}
+            </p>
             <span className="mt-4 inline-block font-semibold underline-offset-4 group-hover:underline">
               Create free account →
             </span>

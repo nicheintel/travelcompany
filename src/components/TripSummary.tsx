@@ -1,7 +1,6 @@
 import { LegRow } from "@/app/flights/FlightResults";
 import { formatPrice } from "@/lib/format";
 import type { Quote } from "@/lib/quote";
-import { MEMBER_DISCOUNT_RATE } from "@/lib/site";
 import { BedIcon, PackageIcon, PlaneIcon } from "./icons";
 
 const KIND_ICON = { flight: PlaneIcon, package: PackageIcon, hotel: BedIcon } as const;
@@ -45,7 +44,7 @@ export function TripSummary({ quote }: { quote: Quote }) {
         ))}
         {quote.discount > 0 && (
           <div className="flex justify-between text-emerald-700">
-            <dt>Member discount ({Math.round(MEMBER_DISCOUNT_RATE * 100)}%)</dt>
+            <dt>Member discount ({Math.round((quote.discountRate ?? 0.1) * 100)}%)</dt>
             <dd>−{formatPrice(quote.discount)}</dd>
           </div>
         )}
@@ -54,6 +53,7 @@ export function TripSummary({ quote }: { quote: Quote }) {
           <dd className="text-2xl font-extrabold text-slate-900">{formatPrice(quote.total)}</dd>
         </div>
         <p className="text-right text-xs text-slate-500">Taxes and fees included</p>
+        {quote.note && <p className="pt-2 text-xs leading-relaxed text-slate-500">{quote.note}</p>}
       </dl>
     </div>
   );

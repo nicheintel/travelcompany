@@ -3,7 +3,9 @@ import Link from "next/link";
 import { PlaneIcon } from "@/components/icons";
 import { FlightSearchForm } from "@/components/search/FlightSearchForm";
 import { findAirport } from "@/lib/airports";
-import { CABIN_LABELS, parseFlightParams, searchFlights } from "@/lib/flights";
+import { ResultsNotice } from "@/components/ResultsNotice";
+import { CABIN_LABELS, parseFlightParams } from "@/lib/flights";
+import { searchFlights } from "@/lib/server/travel-search";
 import { formatDate } from "@/lib/format";
 import { FlightResults } from "./FlightResults";
 
@@ -25,7 +27,8 @@ export default async function FlightsPage({ searchParams }: PageProps<"/flights"
   const { from, to, depart, returnDate, trip, adults, children, cabin, search, query } =
     parseFlightParams(await searchParams);
   const canSearch = !!search;
-  const offers = search ? searchFlights(search) : [];
+  const result = search ? await searchFlights(search) : null;
+  const offers = result?.items ?? [];
 
   return (
     <>
@@ -69,8 +72,9 @@ export default async function FlightsPage({ searchParams }: PageProps<"/flights"
       </section>
 
       <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+        {result && <ResultsNotice live={result.live} error={result.error} empty={!result.error && !offers.length} what="flights" />}
         {canSearch ? (
-          <FlightResults
+          offers.length > 0 && <FlightResults
             key={query}
             offers={offers}
             travellers={adults + children}
