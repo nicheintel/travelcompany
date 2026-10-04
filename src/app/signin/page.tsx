@@ -1,15 +1,19 @@
 import type { Metadata } from "next";
-import { ComingSoon } from "@/components/ComingSoon";
-import { UserIcon } from "@/components/icons";
+import { redirect } from "next/navigation";
+import { AuthShell } from "@/components/auth/AuthShell";
+import { SignInForm } from "@/components/auth/SignInForm";
+import { getCurrentUser } from "@/lib/server/dal";
+import { noticeFor, readNextParam } from "@/lib/server/next-param";
 
 export const metadata: Metadata = { title: "Sign in" };
 
-export default function SignInPage() {
+export default async function SignInPage({ searchParams }: PageProps<"/signin">) {
+  const next = readNextParam((await searchParams).next);
+  if (await getCurrentUser()) redirect(next ?? "/account");
+
   return (
-    <ComingSoon
-      icon={<UserIcon width={32} height={32} />}
-      title="Sign in"
-      body="Account sign-in is the next feature we're building. Soon you'll be able to save trips, track prices and book in a few clicks."
-    />
+    <AuthShell title="Welcome back" subtitle="Sign in to manage your trips and unlock member prices." notice={noticeFor(next)}>
+      <SignInForm next={next} />
+    </AuthShell>
   );
 }

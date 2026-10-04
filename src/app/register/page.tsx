@@ -1,15 +1,23 @@
 import type { Metadata } from "next";
-import { ComingSoon } from "@/components/ComingSoon";
-import { UserIcon } from "@/components/icons";
+import { redirect } from "next/navigation";
+import { AuthShell } from "@/components/auth/AuthShell";
+import { RegisterForm } from "@/components/auth/RegisterForm";
+import { getCurrentUser } from "@/lib/server/dal";
+import { noticeFor, readNextParam } from "@/lib/server/next-param";
 
 export const metadata: Metadata = { title: "Create account" };
 
-export default function RegisterPage() {
+export default async function RegisterPage({ searchParams }: PageProps<"/register">) {
+  const next = readNextParam((await searchParams).next);
+  if (await getCurrentUser()) redirect(next ?? "/account");
+
   return (
-    <ComingSoon
-      icon={<UserIcon width={32} height={32} />}
+    <AuthShell
       title="Create your free account"
-      body="Registration is coming next. Members will get saved trips, price alerts and member-only deals."
-    />
+      subtitle="It takes less than a minute. No credit card needed."
+      notice={noticeFor(next)}
+    >
+      <RegisterForm next={next} />
+    </AuthShell>
   );
 }
