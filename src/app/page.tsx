@@ -69,7 +69,9 @@ export default function Home() {
   return (
     <>
       {/* Hero */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-brand-950 via-brand-800 to-brand-600">
+      <section className="relative bg-gradient-to-br from-brand-950 via-brand-800 to-brand-600">
+        {/* Decorations are clipped here, not on the section, so search dropdowns can overflow it. */}
+        <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
         <svg
           className="pointer-events-none absolute inset-0 h-full w-full opacity-[0.12]"
           viewBox="0 0 1200 600"
@@ -92,6 +94,7 @@ export default function Home() {
           height={120}
           strokeWidth={1}
         />
+        </div>
 
         <div className="relative mx-auto max-w-7xl px-4 pb-16 pt-14 sm:px-6 sm:pt-20 lg:pb-24">
           <div className="max-w-2xl text-white">

@@ -19,8 +19,8 @@ $bundle = (int) round($separateTotal * 0.68);
 $title = 'Promo packages — Flight + Hotel + Car';
 require __DIR__ . '/includes/header.php';
 ?>
-<section class="relative overflow-hidden bg-gradient-to-br from-accent-600 via-rose-500 to-brand-700">
-  <svg class="pointer-events-none absolute inset-0 h-full w-full opacity-15" viewBox="0 0 1200 500" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><circle cx="1050" cy="90" r="120" fill="white"/><path d="M0 420 Q300 340 600 400 T1200 380 V500 H0Z" fill="white"/></svg>
+<section class="relative bg-gradient-to-br from-accent-600 via-rose-500 to-brand-700">
+  <div class="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true"><svg class="absolute inset-0 h-full w-full opacity-15" viewBox="0 0 1200 500" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><circle cx="1050" cy="90" r="120" fill="white"/><path d="M0 420 Q300 340 600 400 T1200 380 V500 H0Z" fill="white"/></svg></div>
   <div class="relative mx-auto max-w-7xl px-4 pb-14 pt-12 sm:px-6 sm:pt-16">
     <div class="max-w-2xl text-white">
       <p class="mb-3 inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-sm font-semibold ring-1 ring-white/25">Limited-time promo</p>

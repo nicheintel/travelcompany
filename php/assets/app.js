@@ -196,6 +196,8 @@
         else if (codes[0] === codes[1]) msg = "Origin and destination must be different.";
       } else if (!codes[codes.length - 1]) {
         msg = "Please choose a destination.";
+      } else if (codes.length === 2 && codes[0] === codes[1]) {
+        msg = "Leaving from and going to must be different.";
       }
       if (msg) {
         e.preventDefault();

@@ -22,12 +22,14 @@ $faq = [
 $tabs = [['flights', 'Flights', 'plane'], ['packages', 'Flight + Hotel + Car', 'package'], ['hotels', 'Hotels', 'bed']];
 require __DIR__ . '/includes/header.php';
 ?>
-<section class="relative overflow-hidden bg-gradient-to-br from-brand-950 via-brand-800 to-brand-600">
+<section class="relative bg-gradient-to-br from-brand-950 via-brand-800 to-brand-600">
+  <div class="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
   <svg class="pointer-events-none absolute inset-0 h-full w-full opacity-[0.12]" viewBox="0 0 1200 600" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
     <path d="M-50 480 C 250 380, 450 560, 700 420 S 1100 220, 1300 300" fill="none" stroke="white" stroke-width="2" stroke-dasharray="10 12"/>
     <circle cx="980" cy="120" r="140" fill="white" opacity="0.4"/><circle cx="160" cy="80" r="60" fill="white" opacity="0.3"/>
   </svg>
   <?= icon('plane', 120, 'pointer-events-none absolute right-[8%] top-24 hidden rotate-12 text-white/20 lg:block', 1) ?>
+  </div>
   <div class="relative mx-auto max-w-7xl px-4 pb-16 pt-14 sm:px-6 sm:pt-20 lg:pb-24">
     <div class="max-w-2xl text-white">
       <p class="mb-4 inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-sm font-medium ring-1 ring-white/20"><span class="h-2 w-2 rounded-full bg-accent-400"></span>Your personal travel assistant</p>

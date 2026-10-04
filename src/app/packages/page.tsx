@@ -44,7 +44,8 @@ export default async function PackagesPage({ searchParams }: PageProps<"/package
 
   return (
     <>
-      <section className="relative overflow-hidden bg-gradient-to-br from-accent-600 via-rose-500 to-brand-700">
+      <section className="relative bg-gradient-to-br from-accent-600 via-rose-500 to-brand-700">
+        <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
         <svg
           className="pointer-events-none absolute inset-0 h-full w-full opacity-15"
           viewBox="0 0 1200 500"
@@ -54,6 +55,7 @@ export default async function PackagesPage({ searchParams }: PageProps<"/package
           <circle cx="1050" cy="90" r="120" fill="white" />
           <path d="M0 420 Q300 340 600 400 T1200 380 V500 H0Z" fill="white" />
         </svg>
+        </div>
         <div className="relative mx-auto max-w-7xl px-4 pb-14 pt-12 sm:px-6 sm:pt-16">
           <div className="max-w-2xl text-white">
             <p className="mb-3 inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-sm font-semibold ring-1 ring-white/25">
