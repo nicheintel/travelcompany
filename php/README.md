@@ -6,7 +6,9 @@ step: copy the folder, start XAMPP, open the browser.
 ## Run it on XAMPP (Windows / Mac)
 
 1. Install [XAMPP](https://www.apachefriends.org) (PHP 8.1 or newer).
-2. Copy this `php` folder into XAMPP's `htdocs` folder and rename it to **`travelcompany`**:
+2. Copy this `php` folder into XAMPP's `htdocs` folder and rename it to **`travelcompany`**
+   (from the zip: make sure you don't end up with `htdocs\travelcompany-xampp\travelcompany` —
+   move the inner `travelcompany` folder up so `index.php` is directly inside it):
    - Windows: `C:\xampp\htdocs\travelcompany`
    - Mac: `/Applications/XAMPP/htdocs/travelcompany`
 3. Double-click **`START-TravelCompany.bat`** in that folder — it starts Apache and MySQL and

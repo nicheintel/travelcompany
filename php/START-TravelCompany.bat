@@ -2,16 +2,31 @@
 title TravelCompany
 setlocal
 rem Double-click to start XAMPP's Apache and MySQL (if needed) and open the website.
-rem This folder must be inside XAMPP's htdocs, e.g. C:\xampp\htdocs\travelcompany
+rem This folder must be somewhere inside XAMPP's htdocs, e.g. C:\xampp\htdocs\travelcompany
 
 set "SITE=%~dp0"
-for %%I in ("%SITE%..\..") do set "XAMPP=%%~fI"
+
+rem Find the part of this folder's path after "\htdocs\" -> that's the web address.
+set "REL=%SITE:*\htdocs\=%"
+if /I "%REL%"=="%SITE%" (
+  echo This folder is not inside XAMPP's htdocs folder:
+  echo   %SITE%
+  echo.
+  echo Move the "travelcompany" folder into C:\xampp\htdocs and double-click this file again.
+  pause
+  exit /b 1
+)
+call set "XAMPP=%%SITE:\htdocs\%REL%=%%"
 if not exist "%XAMPP%\apache_start.bat" set "XAMPP=C:\xampp"
 if not exist "%XAMPP%\apache_start.bat" (
-  echo Could not find XAMPP.
-  echo 1. Install XAMPP from https://www.apachefriends.org
-  echo 2. Put this folder in C:\xampp\htdocs\travelcompany
-  echo 3. Double-click this file again.
+  echo Could not find XAMPP. Install it from https://www.apachefriends.org
+  pause
+  exit /b 1
+)
+set "URLPATH=%REL:\=/%"
+
+if not exist "%SITE%index.php" (
+  echo index.php is missing in %SITE% - please extract the zip again.
   pause
   exit /b 1
 )
@@ -33,11 +48,10 @@ tasklist /FI "IMAGENAME eq mysqld.exe" | find /I "mysqld.exe" >nul || (
 echo Waiting for the servers to start...
 timeout /t 6 /nobreak >nul
 
-for %%I in ("%SITE%.") do set "FOLDER=%%~nxI"
-start "" "http://localhost/%FOLDER%/"
+start "" "http://localhost/%URLPATH%"
 
 echo.
-echo TravelCompany is running at http://localhost/%FOLDER%/
+echo TravelCompany is running at http://localhost/%URLPATH%
 echo.
 echo To stop it: close the minimized "Apache" and "MySQL" windows,
 echo or use Stop in the XAMPP Control Panel.
