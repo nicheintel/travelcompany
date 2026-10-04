@@ -92,11 +92,13 @@ function notify_booking(string $event, string $reference): void
         $rows = trip_rows($b);
         $title = "{$b['quote']['title']} ({$reference})";
         $mail = match ($event) {
-            'reserved' => simple_email("Trip reserved: $title", 'Your trip is reserved!', $first, [
-                payments_enabled()
-                    ? 'You can pay securely online from your trip page, or a travel assistant will contact you within 24 hours.'
-                    : 'A travel assistant will contact you within 24 hours to confirm availability and arrange payment.',
-            ], $rows, $link, 'View my trip'),
+            'reserved' => payments_enabled()
+                ? simple_email("Trip reserved: $title", 'Your trip is reserved!', $first, [
+                    'You can pay securely online now to confirm it — or a travel assistant will contact you within 24 hours.',
+                ], $rows, pay_link($reference), 'Pay now — ' . money($b['total']))
+                : simple_email("Trip reserved: $title", 'Your trip is reserved!', $first, [
+                    'A travel assistant will contact you within 24 hours to confirm availability and arrange payment.',
+                ], $rows, $link, 'View my trip'),
             'paid' => simple_email("Payment received: $title", "Payment received — you're all set", $first, [
                 'Thanks — we\'ve received your payment of ' . money($b['total']) . '. Your trip is confirmed.',
             ], $rows, $link, 'View my trip'),
@@ -110,4 +112,27 @@ function notify_booking(string $event, string $reference): void
     } catch (Throwable $err) {
         error_log("[email] $event email for $reference failed: " . $err->getMessage());
     }
+}
+
+/** Link that opens the trip page at the payment box (after signing in if needed). */
+function pay_link(string $reference): string
+{
+    return app_url() . '/trip.php?ref=' . rawurlencode($reference) . '&pay=1';
+}
+
+/** Staff-sent payment reminder with a Pay now button and an optional personal message. */
+function send_payment_link(array $b, string $message): void
+{
+    $first = $b['travelers'][0]['first'] ?? 'there';
+    $paragraphs = ["Your trip {$b['reference']} is reserved and waiting for payment. You can pay securely with PayPal or a debit/credit card — it only takes a minute."];
+    if ($message !== '') array_unshift($paragraphs, $message);
+    send_email($b['contact_email'], simple_email(
+        "Payment for your trip {$b['reference']} (" . money($b['total']) . ')',
+        'Ready to confirm your trip?',
+        $first,
+        $paragraphs,
+        trip_rows($b),
+        pay_link($b['reference']),
+        'Pay now — ' . money($b['total']),
+    ));
 }

@@ -323,6 +323,8 @@
         if (btn) setTimeout(() => { btn.disabled = true; btn.textContent = btn.dataset.pending; }, 0);
       }),
     );
+    const focusEl = $("[data-scroll-into-view]");
+    if (focusEl) focusEl.scrollIntoView({ block: "center" });
     $$("time[data-local]").forEach((t) => {
       const d = new Date(t.getAttribute("datetime"));
       if (!isNaN(d)) t.textContent = t.hasAttribute("data-date-only")

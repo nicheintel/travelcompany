@@ -22,6 +22,16 @@ if (is_post()) {
         if (!in_array($method, $methods, true)) $error = 'Choose how the customer paid.';
         elseif (!mark_paid($ref, $method, $admin['id'], "Marked as paid — $method." . ($note ? " $note" : ''))) $error = 'Only reserved (unpaid) bookings can be marked as paid.';
         else { notify_booking('paid', $ref); flash('Marked as paid. The customer has been emailed a receipt.'); redirect($self); }
+    } elseif ($action === 'paylink') {
+        $message = mb_substr(post('message'), 0, 500);
+        if ($booking['status'] !== 'reserved') $error = 'Only unpaid bookings can get a payment link.';
+        elseif (!payments_enabled()) $error = 'Connect PayPal on Site settings first.';
+        else {
+            send_payment_link($booking, $message);
+            add_event($ref, $admin['id'], 'email', "Payment link emailed to {$booking['contact_email']}." . ($message !== '' ? " Message: $message" : ''));
+            flash("Payment link sent to {$booking['contact_email']}.");
+            redirect($self);
+        }
     } elseif ($action === 'cancel') {
         $reason = post('reason');
         if (mb_strlen($reason) < 3) $error = "Please give a reason (it's saved in the activity log).";
@@ -35,7 +45,7 @@ $q = $booking['quote'];
 $title = $ref;
 $noindex = true;
 require dirname(__DIR__) . '/includes/header.php';
-$dot = ['created' => 'bg-brand-500', 'paid' => 'bg-emerald-500', 'cancelled' => 'bg-red-500', 'note' => 'bg-slate-400'];
+$dot = ['created' => 'bg-brand-500', 'paid' => 'bg-emerald-500', 'cancelled' => 'bg-red-500', 'note' => 'bg-slate-400', 'email' => 'bg-accent-500'];
 $input = 'w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900';
 echo admin_open('bookings');
 ?>
@@ -84,6 +94,19 @@ echo admin_open('bookings');
     </div>
     <aside class="space-y-6">
       <?php if ($booking['status'] === 'reserved'): ?>
+        <section class="rounded-xl border-2 border-accent-500/40 bg-white p-5">
+          <h2 class="font-semibold text-slate-900">Send payment link</h2>
+          <?php if (payments_enabled()): ?>
+            <p class="mb-3 mt-1 text-sm text-slate-500">Emails <?= e($booking['contact_email']) ?> a <strong>Pay now — <?= money($booking['total']) ?></strong> button.</p>
+            <form method="post" class="space-y-3"><?= csrf_field() ?><input type="hidden" name="action" value="paylink">
+              <label class="block text-xs font-medium text-slate-500">Personal message (optional)
+                <textarea name="message" rows="2" maxlength="500" placeholder="e.g. Great talking to you! Here's the link to confirm your trip." class="<?= $input ?> mt-1"></textarea></label>
+              <button type="submit" class="w-full rounded-lg bg-accent-500 px-4 py-2 text-sm font-semibold text-white hover:bg-accent-600">Email payment link</button>
+            </form>
+          <?php else: ?>
+            <p class="mt-1 text-sm text-slate-500">Connect PayPal on <a class="font-semibold text-brand-700 hover:underline" href="<?= e(url('admin/settings.php')) ?>">Site settings</a> to email customers a payment link.</p>
+          <?php endif; ?>
+        </section>
         <section class="rounded-xl border-2 border-emerald-200 bg-white p-5">
           <h2 class="font-semibold text-slate-900">Record a payment</h2>
           <p class="mb-3 mt-1 text-sm text-slate-500">For payments taken outside the website. The customer gets a receipt email.</p>

@@ -116,7 +116,7 @@ $check = '<span class="grid h-10 w-10 shrink-0 place-items-center rounded-full b
         </dl>
       </section>
       <?php if ($canPay): ?>
-        <section class="rounded-2xl border-2 border-brand-200 bg-white p-6">
+        <section id="pay" class="scroll-mt-24 rounded-2xl border-2 bg-white p-6 <?= ($_GET['pay'] ?? '') === '1' ? 'border-accent-500 ring-4 ring-accent-500/20' : 'border-brand-200' ?>"<?= ($_GET['pay'] ?? '') === '1' ? ' data-scroll-into-view' : '' ?>>
           <h2 class="text-lg font-semibold text-slate-900">Pay now to confirm</h2>
           <p class="mt-1 text-sm text-slate-600"><?= $provider === 'paypal'
               ? 'Pay ' . money($booking['total']) . ' securely with your PayPal account or any debit/credit card. You\'ll be taken to PayPal and brought back here afterwards.'
