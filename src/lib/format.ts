@@ -39,3 +39,15 @@ export function addDays(iso: string, days: number) {
   const date = new Date(Date.UTC(y, mo - 1, d + days));
   return date.toISOString().slice(0, 10);
 }
+
+/** Full date with year, no weekday — for dates of birth. */
+export function formatDob(iso: string) {
+  const [y, mo, d] = iso.split("-").map(Number);
+  if (!y || !mo || !d) return iso;
+  return new Date(Date.UTC(y, mo - 1, d)).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  });
+}

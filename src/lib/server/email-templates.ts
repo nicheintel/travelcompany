@@ -101,12 +101,15 @@ export function bookingPaidEmail(firstName: string, b: Booking, link: string): O
 
 export function bookingCancelledEmail(firstName: string, b: Booking, link: string): Omit<Email, "to"> {
   const items = tripRows(b);
+  const money = b.paidAt
+    ? "Our team will contact you about your refund, which depends on the airline and hotel rules."
+    : "You haven't been charged.";
   return {
     subject: `Reservation cancelled: ${b.quote.title} (${b.reference})`,
-    text: `Hi ${firstName},\n\nYour reservation has been cancelled. You haven't been charged.\n\n${textRows(items)}\n\nDetails: ${link}\n\n${signoff}`,
+    text: `Hi ${firstName},\n\nYour reservation has been cancelled. ${money}\n\n${textRows(items)}\n\nDetails: ${link}\n\n${signoff}`,
     html: layout(
       "Reservation cancelled",
-      p(`Hi ${e(firstName)},`) + p("Your reservation has been cancelled. You haven't been charged.") + rows(items) + button(link, "View details"),
+      p(`Hi ${e(firstName)},`) + p(`Your reservation has been cancelled. ${e(money)}`) + rows(items) + button(link, "View details"),
     ),
   };
 }

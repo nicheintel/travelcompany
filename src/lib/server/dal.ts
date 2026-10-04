@@ -1,5 +1,5 @@
 import "server-only";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { cache } from "react";
 import { readSession } from "./session";
 import { findUserById, type User } from "./users";
@@ -14,6 +14,13 @@ export const getCurrentUser = cache(async (): Promise<User | null> => {
 export async function requireUser(returnTo: string): Promise<User> {
   const user = await getCurrentUser();
   if (!user) redirect(`/signin?next=${encodeURIComponent(returnTo)}`);
+  return user;
+}
+
+/** Use in every admin page and action. Non-admins get a 404 so the area isn't advertised. */
+export async function requireAdmin(returnTo: string): Promise<User> {
+  const user = await requireUser(returnTo);
+  if (user.role !== "admin") notFound();
   return user;
 }
 

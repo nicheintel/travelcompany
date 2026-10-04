@@ -29,6 +29,9 @@ Open http://localhost:3000.
 | `/account/trips/[ref]` | Trip details, online payment (Stripe) and cancellation          |
 | `/account/settings` | Change name, email (needs current password) and password             |
 | `/api/stripe/webhook` | Stripe payment notifications                                     |
+| `/admin`     | **Staff only.** Overview: unpaid trips that need a call, key numbers, latest bookings |
+| `/admin/bookings` | Search and filter all bookings; open one to record a payment, cancel or add notes |
+| `/admin/users` | Customers and staff; grant or remove admin access                        |
 
 ## Project layout
 
@@ -78,6 +81,27 @@ email address changed (sent to the *old* address).
 3. Locally, run `stripe listen --forward-to localhost:3000/api/stripe/webhook` with the
    [Stripe CLI](https://docs.stripe.com/stripe-cli) and use the secret it prints.
 
+## Admin dashboard (for travel assistants)
+
+1. Put the owner's email in `ADMIN_EMAILS` (comma-separated for several), then sign up / sign in
+   with that email. **Admin dashboard** appears in the user menu.
+2. Other staff create a normal account; an admin gives them access from **Admin → Users**.
+
+What staff can do:
+
+- **Overview** — unpaid trips departing within 14 days or reserved over 24 hours ago (the "call
+  these people" list), money awaiting payment, 30-day revenue, new members.
+- **Bookings** — search by reference, name, email, phone or traveler; filter by status and type.
+- **Booking page** — tap-to-call / email the customer, full traveler names and dates of birth,
+  **record a payment** taken by phone, bank transfer or cash (customer gets a receipt),
+  **cancel** with a reason (customer is emailed), and **internal notes**. Every change is kept in
+  the booking's activity log with who did it and when.
+- **Users** — see each customer's bookings; make someone an admin or remove access. Admins from
+  `ADMIN_EMAILS` can't be removed from the dashboard, and nobody can change their own access.
+
+Non-staff get a "not found" page for anything under `/admin`, and every admin action re-checks
+access on the server.
+
 ## Environment variables
 
 | Variable          | Needed for                                                                    |
@@ -87,6 +111,7 @@ email address changed (sent to the *old* address).
 | `EMAIL_FROM`      | Sender, e.g. `TravelCompany <hello@yourdomain.com>` (domain must be verified in Resend) |
 | `STRIPE_SECRET_KEY` | Turns on card payments via Stripe Checkout                                   |
 | `STRIPE_WEBHOOK_SECRET` | Verifies Stripe webhook calls (required for the webhook)                  |
+| `ADMIN_EMAILS`    | Emails that are always admins, e.g. `owner@yourdomain.com,manager@yourdomain.com` |
 | `DATABASE_PATH`   | Optional SQLite file location (default `data/travelcompany.db`)               |
 
 ## Accounts & security
@@ -108,5 +133,5 @@ email address changed (sent to the *old* address).
 - SQLite needs a persistent disk. On serverless hosts (e.g. Vercel), move to a hosted database
   such as Postgres — only `src/lib/server/db.ts`, `users.ts` and `session.ts` touch the database.
 - Switch Stripe from test keys to live keys, and register the live webhook endpoint.
-- Not built yet: email verification at sign-up, refunds from the site, and an admin dashboard
-  for travel assistants to see and manage bookings.
+- Not built yet: email verification at sign-up, and issuing Stripe refunds from the dashboard
+  (refund in the Stripe dashboard for now).

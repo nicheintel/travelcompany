@@ -7,7 +7,7 @@ import { signOut } from "@/app/actions/auth";
 import { Logo } from "./Logo";
 import { BedIcon, CloseIcon, MenuIcon, PackageIcon, PlaneIcon, ShieldIcon, UserIcon } from "./icons";
 
-export type HeaderUser = { name: string; email: string };
+export type HeaderUser = { name: string; email: string; isAdmin?: boolean };
 
 function initials(name: string) {
   return name
@@ -126,6 +126,15 @@ export function Header({ user }: { user?: HeaderUser | null }) {
                     Sign out
                   </button>
                 </form>
+                {user.isAdmin && (
+                  <Link
+                    href="/admin"
+                    onClick={() => setOpen(false)}
+                    className="col-span-2 rounded-full border border-brand-200 py-2 text-center text-sm font-semibold text-brand-700"
+                  >
+                    Admin dashboard
+                  </Link>
+                )}
               </div>
             </div>
           ) : (
@@ -205,6 +214,16 @@ function UserMenu({ user }: { user: HeaderUser }) {
           >
             <UserIcon width={16} height={16} /> My account &amp; trips
           </Link>
+          {user.isAdmin && (
+            <Link
+              href="/admin"
+              role="menuitem"
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-brand-700 hover:bg-brand-50"
+            >
+              <PackageIcon width={16} height={16} /> Admin dashboard
+            </Link>
+          )}
           <Link
             href="/account/settings"
             role="menuitem"

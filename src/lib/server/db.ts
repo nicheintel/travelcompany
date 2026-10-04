@@ -69,6 +69,19 @@ function migrate(db: Database.Database) {
     (db.prepare(`PRAGMA table_info(${table})`).all() as { name: string }[]).some((c) => c.name === column);
   if (!has("bookings", "paid_at")) db.exec("ALTER TABLE bookings ADD COLUMN paid_at INTEGER");
   if (!has("bookings", "stripe_session_id")) db.exec("ALTER TABLE bookings ADD COLUMN stripe_session_id TEXT");
+  if (!has("bookings", "payment_method")) db.exec("ALTER TABLE bookings ADD COLUMN payment_method TEXT");
+  if (!has("users", "role")) db.exec("ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'customer'");
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS booking_events (
+      id         INTEGER PRIMARY KEY AUTOINCREMENT,
+      reference  TEXT    NOT NULL REFERENCES bookings(reference) ON DELETE CASCADE,
+      actor_id   INTEGER REFERENCES users(id) ON DELETE SET NULL,
+      type       TEXT    NOT NULL,
+      message    TEXT    NOT NULL,
+      created_at INTEGER NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS booking_events_reference ON booking_events(reference);
+  `);
 }
 
 // Reuse one connection across hot reloads in development.

@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { cancelBookingAction, payBookingAction } from "@/app/actions/bookings";
 import { CheckIcon } from "@/components/icons";
 import { TripSummary } from "@/components/TripSummary";
-import { formatDate } from "@/lib/format";
+import { formatDob } from "@/lib/format";
 import { getBooking } from "@/lib/server/bookings";
 import { applyPaidSession, paymentsEnabled, retrieveCheckoutSession } from "@/lib/server/payments";
 import { formatPrice } from "@/lib/format";
@@ -118,7 +118,7 @@ export default async function TripPage({ params, searchParams }: PageProps<"/acc
                   </span>
                   <span className="text-slate-500">
                     {booking.quote.travelerSlots[i]?.label}
-                    {t.dob ? ` · born ${formatDate(t.dob)}` : ""}
+                    {t.dob ? ` · born ${formatDob(t.dob)}` : ""}
                   </span>
                 </li>
               ))}

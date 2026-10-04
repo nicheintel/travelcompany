@@ -45,5 +45,5 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
 /** Reads the session in its own Suspense boundary so the rest of the page can stream first. */
 async function HeaderWithUser() {
   const user = await getCurrentUser();
-  return <Header user={user ? { name: user.name, email: user.email } : null} />;
+  return <Header user={user ? { name: user.name, email: user.email, isAdmin: user.role === "admin" } : null} />;
 }
