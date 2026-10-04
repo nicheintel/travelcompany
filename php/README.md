@@ -9,8 +9,9 @@ step: copy the folder, start XAMPP, open the browser.
 2. Copy this `php` folder into XAMPP's `htdocs` folder and rename it to **`travelcompany`**:
    - Windows: `C:\xampp\htdocs\travelcompany`
    - Mac: `/Applications/XAMPP/htdocs/travelcompany`
-3. In the **XAMPP Control Panel**, start **Apache** and **MySQL**.
-4. Open **http://localhost/travelcompany**
+3. Double-click **`START-TravelCompany.bat`** in that folder — it starts Apache and MySQL and
+   opens the site. (Or start them yourself in the **XAMPP Control Panel** and open
+   **http://localhost/travelcompany**.)
 
 The database `travelcompany` and its tables are created automatically on the first visit
 (using XAMPP's default `root` user with no password). You can also import `database.sql`
