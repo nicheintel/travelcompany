@@ -15,7 +15,7 @@ export default async function AccountPage({ searchParams }: PageProps<"/account"
   const firstName = user.name.split(" ")[0];
   const bookings = listBookings(user.id);
   const today = serverToday();
-  const upcoming = bookings.filter((b) => b.status === "reserved" && (b.quote.endDate ?? b.startDate) >= today);
+  const upcoming = bookings.filter((b) => b.status !== "cancelled" && (b.quote.endDate ?? b.startDate) >= today);
   const other = bookings.filter((b) => !upcoming.includes(b)).reverse();
   const memberSince = new Date(user.createdAt).toLocaleDateString("en-US", {
     month: "long",
@@ -121,7 +121,13 @@ export default async function AccountPage({ searchParams }: PageProps<"/account"
               <dd className="font-medium text-slate-900">{memberSince}</dd>
             </div>
           </dl>
-          <form action={signOut} className="mt-6">
+          <Link
+            href="/account/settings"
+            className="mt-6 block w-full rounded-xl py-2.5 text-center text-sm font-semibold text-brand-700 ring-1 ring-brand-200 hover:bg-brand-50"
+          >
+            Account settings
+          </Link>
+          <form action={signOut} className="mt-3">
             <button
               type="submit"
               className="w-full rounded-xl py-2.5 text-sm font-semibold text-red-600 ring-1 ring-red-200 hover:bg-red-50"

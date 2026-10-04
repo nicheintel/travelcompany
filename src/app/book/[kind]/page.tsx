@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { TripSummary } from "@/components/TripSummary";
 import { BOOKING_KINDS, type BookingKind, buildQuote } from "@/lib/quote";
 import { requireUser } from "@/lib/server/dal";
+import { paymentsEnabled } from "@/lib/server/payments";
 import { BookingForm } from "./BookingForm";
 import { PackageOptions } from "./PackageOptions";
 
@@ -75,6 +76,7 @@ export default async function BookPage({ params, searchParams }: PageProps<"/boo
             total={quote.total}
             slots={quote.travelerSlots}
             defaults={{ firstName, lastName: rest.join(" "), email: user.email }}
+            payOnline={paymentsEnabled()}
           />
         </div>
         <aside className="h-fit lg:sticky lg:top-20">

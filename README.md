@@ -26,7 +26,9 @@ Open http://localhost:3000.
 | `/forgot-password`, `/reset-password` | Email a single-use reset link (1 hour) and choose a new password |
 | `/book/flight`, `/book/hotel`, `/book/package` | Booking: traveler details, contact info, price summary (members only) |
 | `/account`   | Signed-in members only: profile and "My trips" (upcoming, past & cancelled) |
-| `/account/trips/[ref]` | Trip details and cancellation                                   |
+| `/account/trips/[ref]` | Trip details, online payment (Stripe) and cancellation          |
+| `/account/settings` | Change name, email (needs current password) and password             |
+| `/api/stripe/webhook` | Stripe payment notifications                                     |
 
 ## Project layout
 
@@ -47,12 +49,34 @@ Open http://localhost:3000.
 > Flight, hotel and package prices are sample data. Swap `searchFlights` / `searchHotels`
 > for real APIs (e.g. Amadeus, Duffel, Expedia Rapid) when ready.
 
-## Bookings
+## Bookings & payments
 
-Bookings are **reserve now, pay later**: no payment is taken online. A booking is saved with a
-`TC-XXXXXX` reference and status `reserved`, and a travel assistant contacts the customer to
-confirm and take payment. Members get a discount set by `MEMBER_DISCOUNT_RATE` in
-`src/lib/site.ts` (10% by default; set to `0` to turn it off).
+A booking is saved with a `TC-XXXXXX` reference and status `reserved`. Then:
+
+- **With Stripe configured**, the trip page shows **Pay now**, which opens Stripe Checkout. The
+  booking becomes `paid` when Stripe confirms it — via the webhook, or by checking with Stripe
+  when the customer returns. The amount and booking reference must match, and the receipt is
+  emailed once.
+- **Without Stripe**, it's "reserve now, pay later": a travel assistant contacts the customer.
+
+Reserved (unpaid) trips can be cancelled by the customer; paid trips are changed through support.
+Members get a discount set by `MEMBER_DISCOUNT_RATE` in `src/lib/site.ts` (10% by default; set to
+`0` to turn it off).
+
+### Emails sent
+
+Trip reserved · payment received · reservation cancelled · password reset · password changed ·
+email address changed (sent to the *old* address).
+
+### Setting up Stripe
+
+1. Create an account at [stripe.com](https://stripe.com) and copy the **secret key** (`sk_test_…`
+   while testing) into `STRIPE_SECRET_KEY`.
+2. In Stripe → Developers → Webhooks, add an endpoint `https://YOUR-SITE/api/stripe/webhook`
+   for `checkout.session.completed` and `checkout.session.async_payment_succeeded`, and copy its
+   signing secret (`whsec_…`) into `STRIPE_WEBHOOK_SECRET`.
+3. Locally, run `stripe listen --forward-to localhost:3000/api/stripe/webhook` with the
+   [Stripe CLI](https://docs.stripe.com/stripe-cli) and use the secret it prints.
 
 ## Environment variables
 
@@ -61,6 +85,8 @@ confirm and take payment. Members get a discount set by `MEMBER_DISCOUNT_RATE` i
 | `APP_URL`         | **Required in production** — your site address, used in reset-password emails (e.g. `https://www.example.com`) |
 | `RESEND_API_KEY`  | Sending email via [Resend](https://resend.com). Without it, development prints emails to the server log |
 | `EMAIL_FROM`      | Sender, e.g. `TravelCompany <hello@yourdomain.com>` (domain must be verified in Resend) |
+| `STRIPE_SECRET_KEY` | Turns on card payments via Stripe Checkout                                   |
+| `STRIPE_WEBHOOK_SECRET` | Verifies Stripe webhook calls (required for the webhook)                  |
 | `DATABASE_PATH`   | Optional SQLite file location (default `data/travelcompany.db`)               |
 
 ## Accounts & security
@@ -81,5 +107,6 @@ confirm and take payment. Members get a discount set by `MEMBER_DISCOUNT_RATE` i
 
 - SQLite needs a persistent disk. On serverless hosts (e.g. Vercel), move to a hosted database
   such as Postgres — only `src/lib/server/db.ts`, `users.ts` and `session.ts` touch the database.
-- Not built yet: online payment, email verification, booking confirmation emails, and changing
-  your password or email from the account page.
+- Switch Stripe from test keys to live keys, and register the live webhook endpoint.
+- Not built yet: email verification at sign-up, refunds from the site, and an admin dashboard
+  for travel assistants to see and manage bookings.

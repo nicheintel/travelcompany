@@ -4,7 +4,7 @@ import type { Quote } from "../quote";
 import { db } from "./db";
 
 export type Traveler = { firstName: string; lastName: string; dob?: string };
-export type BookingStatus = "reserved" | "cancelled";
+export type BookingStatus = "reserved" | "paid" | "cancelled";
 
 export type Booking = {
   reference: string;
@@ -18,6 +18,7 @@ export type Booking = {
   startDate: string;
   createdAt: number;
   cancelledAt: number | null;
+  paidAt: number | null;
 };
 
 type BookingRow = {
@@ -32,6 +33,8 @@ type BookingRow = {
   start_date: string;
   created_at: number;
   cancelled_at: number | null;
+  paid_at: number | null;
+  user_id: number;
 };
 
 function toBooking(r: BookingRow): Booking {
@@ -47,6 +50,7 @@ function toBooking(r: BookingRow): Booking {
     startDate: r.start_date,
     createdAt: r.created_at,
     cancelledAt: r.cancelled_at,
+    paidAt: r.paid_at,
   };
 }
 
@@ -109,5 +113,35 @@ export function cancelBooking(userId: number, reference: string) {
       "UPDATE bookings SET status = 'cancelled', cancelled_at = ? WHERE reference = ? AND user_id = ? AND status = 'reserved'",
     )
     .run(Date.now(), reference, userId);
+  return info.changes > 0;
+}
+
+/** Remember the Stripe Checkout session started for a reserved booking. */
+export function setStripeSession(userId: number, reference: string, sessionId: string) {
+  db.prepare("UPDATE bookings SET stripe_session_id = ? WHERE reference = ? AND user_id = ?").run(
+    sessionId,
+    reference,
+    userId,
+  );
+}
+
+/** Owner and amount due, for checking a payment against the booking (no user context). */
+export function getBookingForPayment(reference: string) {
+  const row = db
+    .prepare("SELECT user_id, total, status FROM bookings WHERE reference = ?")
+    .get(reference) as { user_id: number; total: number; status: BookingStatus } | undefined;
+  return row ? { userId: row.user_id, total: row.total, status: row.status } : null;
+}
+
+/**
+ * reserved → paid. Returns true only for the call that made the change, so the
+ * receipt email is sent once even if the webhook and the return page both report it.
+ */
+export function markBookingPaid(reference: string, sessionId: string) {
+  const info = db
+    .prepare(
+      "UPDATE bookings SET status = 'paid', paid_at = ?, stripe_session_id = ? WHERE reference = ? AND status = 'reserved'",
+    )
+    .run(Date.now(), sessionId, reference);
   return info.changes > 0;
 }

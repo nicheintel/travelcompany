@@ -4,11 +4,12 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { safeRedirectPath } from "@/lib/server/dal";
 import { burnPasswordCheck, hashPassword, verifyPassword } from "@/lib/server/password";
-import { appUrl, escapeHtml, sendEmail } from "@/lib/server/email";
+import { appUrl, sendEmail } from "@/lib/server/email";
+import { passwordResetEmail } from "@/lib/server/email-templates";
 import { consumeResetToken, createResetToken } from "@/lib/server/password-reset";
 import { resetRequests, signInFailures } from "@/lib/server/rate-limit";
 import { createSession, deleteSession } from "@/lib/server/session";
-import { SITE_NAME } from "@/lib/site";
+import { EmailSchema, NameSchema, PasswordSchema } from "@/lib/server/validation";
 import {
   createUser,
   emailExists,
@@ -25,21 +26,10 @@ export type AuthFormState =
     }
   | undefined;
 
-const PasswordSchema = z
-  .string()
-  .min(8, "Password must be at least 8 characters.")
-  .max(128, "Password must be 128 characters or fewer.")
-  .regex(/[a-zA-Z]/, "Password must contain at least one letter.")
-  .regex(/[0-9]/, "Password must contain at least one number.");
-
 const RegisterSchema = z
   .object({
-    name: z
-      .string()
-      .trim()
-      .min(2, "Please enter your full name.")
-      .max(60, "Name must be 60 characters or fewer."),
-    email: z.email("Please enter a valid email address.").max(254),
+    name: NameSchema,
+    email: EmailSchema,
     password: PasswordSchema,
     confirmPassword: z.string(),
   })
@@ -148,12 +138,7 @@ export async function requestPasswordReset(
 
   const link = `${await appUrl()}/reset-password?token=${createResetToken(found.user.id)}`;
   const firstName = found.user.name.split(" ")[0];
-  await sendEmail({
-    to: found.user.email,
-    subject: `Reset your ${SITE_NAME} password`,
-    text: `Hi ${firstName},\n\nWe received a request to reset your password. Open this link to choose a new one (it expires in 1 hour):\n\n${link}\n\nIf you didn't ask for this, you can ignore this email — your password won't change.\n\n— The ${SITE_NAME} team`,
-    html: `<p>Hi ${escapeHtml(firstName)},</p><p>We received a request to reset your password. This link expires in 1 hour:</p><p><a href="${link}" style="display:inline-block;padding:12px 20px;background:#1c54f0;color:#fff;border-radius:10px;text-decoration:none;font-weight:600">Choose a new password</a></p><p>If you didn't ask for this, you can ignore this email — your password won't change.</p><p>— The ${SITE_NAME} team</p>`,
-  });
+  await sendEmail({ to: found.user.email, ...passwordResetEmail(firstName, link) });
   return sent;
 }
 

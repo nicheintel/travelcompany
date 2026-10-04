@@ -2,7 +2,7 @@ import "server-only";
 import { headers } from "next/headers";
 import { SITE_NAME } from "../site";
 
-type Email = { to: string; subject: string; text: string; html: string };
+export type Email = { to: string; subject: string; text: string; html: string };
 
 /**
  * Sends email through Resend (https://resend.com) when RESEND_API_KEY is set.
@@ -19,18 +19,23 @@ export async function sendEmail(email: Email) {
     return;
   }
 
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      from: process.env.EMAIL_FROM ?? `${SITE_NAME} <onboarding@resend.dev>`,
-      to: email.to,
-      subject: email.subject,
-      text: email.text,
-      html: email.html,
-    }),
-  });
-  if (!res.ok) console.error(`[email] Resend error ${res.status}: ${await res.text()}`);
+  // Never throw: a failed email must not undo a booking or password change.
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        from: process.env.EMAIL_FROM ?? `${SITE_NAME} <onboarding@resend.dev>`,
+        to: email.to,
+        subject: email.subject,
+        text: email.text,
+        html: email.html,
+      }),
+    });
+    if (!res.ok) console.error(`[email] Resend error ${res.status}: ${await res.text()}`);
+  } catch (err) {
+    console.error(`[email] Could not reach Resend:`, err);
+  }
 }
 
 /**

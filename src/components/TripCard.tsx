@@ -28,8 +28,12 @@ export function TripCard({ booking }: { booking: Booking }) {
       </div>
       <div className="text-right">
         <p className="font-bold text-slate-900">{formatPrice(booking.total)}</p>
-        <p className={`text-xs font-semibold ${cancelled ? "text-slate-500" : "text-amber-700"}`}>
-          {cancelled ? "Cancelled" : "Reserved"}
+        <p
+          className={`text-xs font-semibold ${
+            cancelled ? "text-slate-500" : booking.status === "paid" ? "text-emerald-700" : "text-amber-700"
+          }`}
+        >
+          {cancelled ? "Cancelled" : booking.status === "paid" ? "Paid" : "Reserved · unpaid"}
         </p>
       </div>
     </Link>

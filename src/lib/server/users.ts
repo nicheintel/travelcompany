@@ -42,3 +42,23 @@ export function createUser(name: string, email: string, passwordHash: string): U
     .run(name.trim(), normalizeEmail(email), passwordHash, now);
   return { id: Number(info.lastInsertRowid), name: name.trim(), email: normalizeEmail(email), createdAt: now };
 }
+
+export function updateUserName(id: number, name: string) {
+  db.prepare("UPDATE users SET name = ? WHERE id = ?").run(name.trim(), id);
+}
+
+/** Throws SQLITE_CONSTRAINT_UNIQUE if another account already uses the email. */
+export function updateUserEmail(id: number, email: string) {
+  db.prepare("UPDATE users SET email = ? WHERE id = ?").run(normalizeEmail(email), id);
+}
+
+export function updateUserPassword(id: number, passwordHash: string) {
+  db.prepare("UPDATE users SET password_hash = ? WHERE id = ?").run(passwordHash, id);
+}
+
+export function getPasswordHash(id: number) {
+  const row = db.prepare("SELECT password_hash FROM users WHERE id = ?").get(id) as
+    | { password_hash: string }
+    | undefined;
+  return row?.password_hash ?? null;
+}

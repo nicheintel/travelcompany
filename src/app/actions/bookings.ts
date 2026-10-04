@@ -4,8 +4,11 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { formatPrice } from "@/lib/format";
 import { buildQuote } from "@/lib/quote";
-import { cancelBooking, createBooking, type Traveler } from "@/lib/server/bookings";
+import { cancelBooking, createBooking, getBooking, setStripeSession, type Traveler } from "@/lib/server/bookings";
+import { appUrl } from "@/lib/server/email";
+import { createCheckoutSession, paymentsEnabled } from "@/lib/server/payments";
 import { getCurrentUser } from "@/lib/server/dal";
+import { notifyBooking } from "@/lib/server/notify";
 
 export type BookingFormState =
   | {
@@ -88,6 +91,7 @@ export async function createBookingAction(
   }
 
   const reference = createBooking(user.id, { quote, travelers, contactEmail, contactPhone });
+  await notifyBooking("reserved", user.id, reference);
   redirect(`/account/trips/${reference}?new=1`);
 }
 
@@ -95,6 +99,25 @@ export async function cancelBookingAction(formData: FormData) {
   const user = await getCurrentUser();
   if (!user) redirect("/signin");
   const reference = String(formData.get("reference") ?? "");
-  cancelBooking(user.id, reference);
+  if (cancelBooking(user.id, reference)) await notifyBooking("cancelled", user.id, reference);
   redirect(`/account/trips/${encodeURIComponent(reference)}`);
+}
+
+export async function payBookingAction(formData: FormData) {
+  const user = await getCurrentUser();
+  if (!user) redirect("/signin");
+  const reference = String(formData.get("reference") ?? "");
+  const booking = getBooking(user.id, reference);
+  const tripUrl = `/account/trips/${encodeURIComponent(reference)}`;
+  if (!booking || booking.status !== "reserved" || !paymentsEnabled()) redirect(tripUrl);
+
+  let checkoutUrl: string | null = null;
+  try {
+    const session = await createCheckoutSession(booking, await appUrl());
+    setStripeSession(user.id, reference, session.id);
+    checkoutUrl = session.url;
+  } catch (err) {
+    console.error(`[payments] Could not start checkout for ${reference}:`, err);
+  }
+  redirect(checkoutUrl ?? `${tripUrl}?payment=error`);
 }

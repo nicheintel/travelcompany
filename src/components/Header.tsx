@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { signOut } from "@/app/actions/auth";
 import { Logo } from "./Logo";
-import { BedIcon, CloseIcon, MenuIcon, PackageIcon, PlaneIcon, UserIcon } from "./icons";
+import { BedIcon, CloseIcon, MenuIcon, PackageIcon, PlaneIcon, ShieldIcon, UserIcon } from "./icons";
 
 export type HeaderUser = { name: string; email: string };
 
@@ -204,6 +204,14 @@ function UserMenu({ user }: { user: HeaderUser }) {
             className="flex items-center gap-2 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50"
           >
             <UserIcon width={16} height={16} /> My account &amp; trips
+          </Link>
+          <Link
+            href="/account/settings"
+            role="menuitem"
+            onClick={() => setOpen(false)}
+            className="flex items-center gap-2 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50"
+          >
+            <ShieldIcon width={16} height={16} /> Settings
           </Link>
           <form action={signOut}>
             <button

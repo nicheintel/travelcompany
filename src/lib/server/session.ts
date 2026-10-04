@@ -55,3 +55,12 @@ export async function deleteSession() {
   if (token) db.prepare("DELETE FROM sessions WHERE token_hash = ?").run(hashToken(token));
   store.delete(SESSION_COOKIE);
 }
+
+/** Signs the user out everywhere except this browser. */
+export async function deleteOtherSessions(userId: number) {
+  const token = (await cookies()).get(SESSION_COOKIE)?.value;
+  db.prepare("DELETE FROM sessions WHERE user_id = ? AND token_hash != ?").run(
+    userId,
+    token ? hashToken(token) : "",
+  );
+}

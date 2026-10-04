@@ -59,7 +59,16 @@ function open() {
       created_at INTEGER NOT NULL
     );
   `);
+  migrate(db);
   return db;
+}
+
+/** Add columns introduced after a database was first created. */
+function migrate(db: Database.Database) {
+  const has = (table: string, column: string) =>
+    (db.prepare(`PRAGMA table_info(${table})`).all() as { name: string }[]).some((c) => c.name === column);
+  if (!has("bookings", "paid_at")) db.exec("ALTER TABLE bookings ADD COLUMN paid_at INTEGER");
+  if (!has("bookings", "stripe_session_id")) db.exec("ALTER TABLE bookings ADD COLUMN stripe_session_id TEXT");
 }
 
 // Reuse one connection across hot reloads in development.

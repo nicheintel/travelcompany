@@ -12,12 +12,15 @@ export function BookingForm({
   total,
   slots,
   defaults,
+  payOnline,
 }: {
   kind: string;
   query: string;
   total: number;
   slots: TravelerSlot[];
   defaults: { firstName: string; lastName: string; email: string };
+  /** Stripe is configured: the next page offers card payment. */
+  payOnline: boolean;
 }) {
   const [state, action, pending] = useActionState(createBookingAction, undefined);
   const v = (name: string, fallback = "") => state?.values?.[name] ?? fallback;
@@ -100,10 +103,11 @@ export function BookingForm({
       </section>
 
       <div className="rounded-2xl bg-brand-50 p-5 text-sm text-brand-900 ring-1 ring-brand-100">
-        <p className="font-semibold">Reserve now, pay later</p>
+        <p className="font-semibold">{payOnline ? "Reserve, then pay securely" : "Reserve now, pay later"}</p>
         <p className="mt-1 text-brand-800">
-          No payment is taken today. A travel assistant will contact you within 24 hours to confirm
-          availability and arrange payment.
+          {payOnline
+            ? "Nothing is charged yet. Next you can pay by card to confirm right away — or pay later with help from a travel assistant."
+            : "No payment is taken today. A travel assistant will contact you within 24 hours to confirm availability and arrange payment."}
         </p>
       </div>
 
