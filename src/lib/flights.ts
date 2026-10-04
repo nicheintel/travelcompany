@@ -1,4 +1,7 @@
-import { type Airport, distanceKm } from "./airports";
+import { type Airport, distanceKm, findAirport } from "./airports";
+import { seeded } from "./random";
+import { addDays } from "./format";
+import { dateParam, earliestDate, int, type RawParams, str } from "./search-params";
 
 export type CabinClass = "economy" | "premium" | "business" | "first";
 
@@ -50,21 +53,6 @@ const CABIN_MULTIPLIER: Record<CabinClass, number> = {
   business: 3.2,
   first: 5.5,
 };
-
-/** Small deterministic PRNG so the same search always shows the same results. */
-function seeded(seedText: string) {
-  let h = 1779033703 ^ seedText.length;
-  for (let i = 0; i < seedText.length; i++) {
-    h = Math.imul(h ^ seedText.charCodeAt(i), 3432918353);
-    h = (h << 13) | (h >>> 19);
-  }
-  return () => {
-    h = Math.imul(h ^ (h >>> 16), 2246822507);
-    h = Math.imul(h ^ (h >>> 13), 3266489909);
-    h ^= h >>> 16;
-    return (h >>> 0) / 4294967296;
-  };
-}
 
 function buildLeg(
   rand: () => number,
@@ -127,7 +115,6 @@ export function searchFlights(search: FlightSearch): FlightOffer[] {
     let pricePerPerson = basePrice * stopFactor * variance * CABIN_MULTIPLIER[cabin];
     if (inbound) pricePerPerson *= 1.85;
     pricePerPerson = Math.round(pricePerPerson);
-    const childPrice = Math.round(pricePerPerson * 0.75);
 
     offers.push({
       id: `${airline.code}-${i}`,
@@ -135,10 +122,63 @@ export function searchFlights(search: FlightSearch): FlightOffer[] {
       outbound,
       inbound,
       pricePerPerson,
-      totalPrice: pricePerPerson * adults + childPrice * children,
+      totalPrice: pricePerPerson * adults + childPrice(pricePerPerson) * children,
       seatsLeft: 1 + Math.floor(rand() * 9),
       refundable: rand() > 0.6,
     });
   }
   return offers.sort((a, b) => a.totalPrice - b.totalPrice);
+}
+
+export type ParsedFlightSearch = {
+  from?: Airport;
+  to?: Airport;
+  depart: string;
+  returnDate?: string;
+  trip: "roundtrip" | "oneway";
+  adults: number;
+  children: number;
+  cabin: CabinClass;
+  /** Ready-to-search criteria, or null when origin/destination are missing or equal. */
+  search: FlightSearch | null;
+  /** Normalised query string that reproduces this search. */
+  query: string;
+};
+
+/** Parse and sanitise flight search URL params. Shared by the results and booking pages. */
+export function parseFlightParams(params: RawParams): ParsedFlightSearch {
+  const from = findAirport(str(params.from));
+  const to = findAirport(str(params.to));
+  const min = earliestDate();
+  const depart = dateParam(str(params.depart), min) ?? addDays(min, 15);
+  const trip = str(params.trip) === "oneway" ? "oneway" : "roundtrip";
+  const returnDate =
+    trip === "oneway" ? undefined : (dateParam(str(params.return), depart) ?? addDays(depart, 7));
+  const adults = int(str(params.adults), 1, 1, 9);
+  const children = int(str(params.children), 0, 0, 8);
+  const cabinParam = str(params.cabin);
+  const cabin: CabinClass =
+    cabinParam && cabinParam in CABIN_LABELS ? (cabinParam as CabinClass) : "economy";
+
+  const search =
+    from && to && from.code !== to.code
+      ? { from, to, depart, returnDate, adults, children, cabin }
+      : null;
+
+  const query = new URLSearchParams({
+    from: from?.code ?? "",
+    to: to?.code ?? "",
+    depart,
+    ...(returnDate ? { return: returnDate } : {}),
+    trip,
+    adults: String(adults),
+    children: String(children),
+    cabin,
+  }).toString();
+
+  return { from, to, depart, returnDate, trip, adults, children, cabin, search, query };
+}
+
+export function childPrice(pricePerPerson: number) {
+  return Math.round(pricePerPerson * 0.75);
 }

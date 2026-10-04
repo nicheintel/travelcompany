@@ -23,6 +23,7 @@ export default async function PackagesPage({ searchParams }: PageProps<"/package
   const depart = str(params.depart);
   const ret = str(params.return);
   const withCar = str(params.car) === "1";
+  const adultsParam = str(params.adults);
 
   // Show every package for the destination; when a car was requested, list those with one first.
   const matches = to
@@ -30,6 +31,13 @@ export default async function PackagesPage({ searchParams }: PageProps<"/package
         (a, b) => (withCar ? Number(b.includesCar) - Number(a.includesCar) : 0),
       )
     : [];
+
+  // Carry the visitor's origin, dates and party size into the booking page.
+  const bookQuery = new URLSearchParams({
+    ...(from ? { from: from.code } : {}),
+    ...(depart ? { depart } : {}),
+    ...(adultsParam ? { adults: adultsParam } : {}),
+  }).toString();
 
   const separateTotal = HOW_BUNDLES_SAVE.reduce((sum, i) => sum + i.price, 0);
   const bundlePrice = Math.round(separateTotal * 0.68);
@@ -91,7 +99,7 @@ export default async function PackagesPage({ searchParams }: PageProps<"/package
             {matches.length > 0 ? (
               <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {matches.map((pkg) => (
-                  <PackageCard key={pkg.id} pkg={pkg} />
+                  <PackageCard key={pkg.id} pkg={pkg} searchQuery={bookQuery} />
                 ))}
               </div>
             ) : (

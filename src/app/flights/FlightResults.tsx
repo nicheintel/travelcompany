@@ -33,11 +33,12 @@ function bestScore(o: FlightOffer, minPrice: number, minDuration: number) {
 export function FlightResults({
   offers,
   travellers,
-  bookHref,
+  bookQuery,
 }: {
   offers: FlightOffer[];
   travellers: number;
-  bookHref: string;
+  /** Search query string; the offer id is appended to build the booking link. */
+  bookQuery: string;
 }) {
   const priceCeiling = Math.max(...offers.map((o) => o.totalPrice));
   const priceFloor = Math.min(...offers.map((o) => o.totalPrice));
@@ -259,7 +260,7 @@ export function FlightResults({
                 <p className="text-xs text-slate-500">{formatPrice(o.pricePerPerson)} per adult</p>
               </div>
               <Link
-                href={bookHref}
+                href={`/book/flight?${bookQuery}&offer=${encodeURIComponent(o.id)}`}
                 className="rounded-xl bg-accent-500 px-6 py-2.5 text-sm font-bold text-white hover:bg-accent-600"
               >
                 Select
@@ -272,7 +273,7 @@ export function FlightResults({
   );
 }
 
-function LegRow({ leg, label }: { leg: FlightLeg; label: string }) {
+export function LegRow({ leg, label }: { leg: FlightLeg; label: string }) {
   const arrive = leg.departMinutes + leg.durationMinutes;
   const dayOffset = Math.floor(arrive / 1440);
   const from = findAirport(leg.from);

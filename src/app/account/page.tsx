@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { signOut } from "@/app/actions/auth";
 import { BedIcon, PackageIcon, PlaneIcon, UserIcon } from "@/components/icons";
+import { TripCard } from "@/components/TripCard";
+import { serverToday } from "@/lib/search-params";
+import { listBookings } from "@/lib/server/bookings";
 import { requireUser } from "@/lib/server/dal";
 
 export const metadata: Metadata = { title: "My account" };
@@ -9,6 +12,10 @@ export const metadata: Metadata = { title: "My account" };
 export default async function AccountPage() {
   const user = await requireUser("/account");
   const firstName = user.name.split(" ")[0];
+  const bookings = listBookings(user.id);
+  const today = serverToday();
+  const upcoming = bookings.filter((b) => b.status === "reserved" && (b.quote.endDate ?? b.startDate) >= today);
+  const other = bookings.filter((b) => !upcoming.includes(b)).reverse();
   const memberSince = new Date(user.createdAt).toLocaleDateString("en-US", {
     month: "long",
     year: "numeric",
@@ -30,26 +37,62 @@ export default async function AccountPage() {
       <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_320px]">
         <section className="rounded-2xl border border-slate-200 bg-white p-6">
           <h2 className="text-lg font-semibold text-slate-900">My trips</h2>
+          {bookings.length === 0 ? (
           <div className="mt-6 flex flex-col items-center rounded-xl border border-dashed border-slate-300 px-6 py-10 text-center">
-            <span className="grid h-14 w-14 place-items-center rounded-2xl bg-brand-50 text-brand-600">
-              <PlaneIcon width={28} height={28} />
-            </span>
-            <p className="mt-4 font-semibold text-slate-900">No trips yet</p>
-            <p className="mt-1 max-w-sm text-sm text-slate-600">
-              When you book a flight, hotel or package it will show up here.
-            </p>
-            <div className="mt-6 flex flex-wrap justify-center gap-3">
-              <Link href="/flights" className="flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-700">
-                <PlaneIcon width={16} height={16} /> Find flights
-              </Link>
-              <Link href="/packages" className="flex items-center gap-2 rounded-xl bg-accent-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-accent-600">
-                <PackageIcon width={16} height={16} /> Browse packages
-              </Link>
-              <Link href="/hotels" className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-brand-700 ring-1 ring-brand-200 hover:bg-brand-50">
-                <BedIcon width={16} height={16} /> Hotels
-              </Link>
+                <span className="grid h-14 w-14 place-items-center rounded-2xl bg-brand-50 text-brand-600">
+                  <PlaneIcon width={28} height={28} />
+                </span>
+                <p className="mt-4 font-semibold text-slate-900">No trips yet</p>
+                <p className="mt-1 max-w-sm text-sm text-slate-600">
+                  When you book a flight, hotel or package it will show up here.
+                </p>
+                <div className="mt-6 flex flex-wrap justify-center gap-3">
+                  <Link href="/flights" className="flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-700">
+                    <PlaneIcon width={16} height={16} /> Find flights
+                  </Link>
+                  <Link href="/packages" className="flex items-center gap-2 rounded-xl bg-accent-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-accent-600">
+                    <PackageIcon width={16} height={16} /> Browse packages
+                  </Link>
+                  <Link href="/hotels" className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-brand-700 ring-1 ring-brand-200 hover:bg-brand-50">
+                    <BedIcon width={16} height={16} /> Hotels
+                  </Link>
+                </div>
+              </div>
+          ) : (
+            <div className="mt-4 space-y-6">
+              <div>
+                <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">
+                  Upcoming ({upcoming.length})
+                </h3>
+                {upcoming.length ? (
+                  <div className="space-y-3">
+                    {upcoming.map((b) => (
+                      <TripCard key={b.reference} booking={b} />
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-slate-500">
+                    No upcoming trips.{" "}
+                    <Link href="/packages" className="font-semibold text-brand-700 hover:underline">
+                      Find your next getaway →
+                    </Link>
+                  </p>
+                )}
+              </div>
+              {other.length > 0 && (
+                <div>
+                  <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">
+                    Past & cancelled
+                  </h3>
+                  <div className="space-y-3">
+                    {other.map((b) => (
+                      <TripCard key={b.reference} booking={b} />
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
-          </div>
+          )}
         </section>
 
         <aside className="h-fit rounded-2xl border border-slate-200 bg-white p-6">

@@ -3,7 +3,7 @@ import { formatPrice } from "@/lib/format";
 import type { PromoPackage } from "@/lib/packages";
 import { BedIcon, CarIcon, CheckIcon, PlaneIcon, StarIcon } from "./icons";
 
-export function PackageCard({ pkg }: { pkg: PromoPackage }) {
+export function PackageCard({ pkg, searchQuery }: { pkg: PromoPackage; searchQuery?: string }) {
   const savings = pkg.originalPrice - pkg.price;
   const savingsPct = Math.round((savings / pkg.originalPrice) * 100);
 
@@ -89,10 +89,10 @@ export function PackageCard({ pkg }: { pkg: PromoPackage }) {
             </p>
           </div>
           <Link
-            href={`/signin?next=${encodeURIComponent(`/packages#${pkg.id}`)}`}
+            href={`/book/package?id=${pkg.id}${searchQuery ? `&${searchQuery}` : ""}`}
             className="shrink-0 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-700"
           >
-            View deal
+            Book deal
           </Link>
         </div>
       </div>

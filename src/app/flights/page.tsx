@@ -3,25 +3,14 @@ import Link from "next/link";
 import { PlaneIcon } from "@/components/icons";
 import { FlightSearchForm } from "@/components/search/FlightSearchForm";
 import { findAirport } from "@/lib/airports";
-import { CABIN_LABELS, type CabinClass, searchFlights } from "@/lib/flights";
-import { addDays, formatDate } from "@/lib/format";
+import { CABIN_LABELS, parseFlightParams, searchFlights } from "@/lib/flights";
+import { formatDate } from "@/lib/format";
 import { FlightResults } from "./FlightResults";
 
 export const metadata: Metadata = {
   title: "Cheap flights",
   description: "Compare airlines and find affordable flights to anywhere.",
 };
-
-const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
-
-function str(v: string | string[] | undefined) {
-  return Array.isArray(v) ? v[0] : v;
-}
-
-function int(v: string | undefined, fallback: number, min: number, max: number) {
-  const n = Number.parseInt(v ?? "", 10);
-  return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
-}
 
 const POPULAR_ROUTES = [
   ["JFK", "LHR"],
@@ -33,50 +22,19 @@ const POPULAR_ROUTES = [
 ];
 
 export default async function FlightsPage({ searchParams }: PageProps<"/flights">) {
-  const params = await searchParams;
-  const from = findAirport(str(params.from));
-  const to = findAirport(str(params.to));
-
-  const today = new Date().toISOString().slice(0, 10);
-  const departParam = str(params.depart);
-  const depart = departParam && DATE_RE.test(departParam) && departParam >= today ? departParam : addDays(today, 14);
-  const trip = str(params.trip) === "oneway" ? "oneway" : "roundtrip";
-  const returnParam = str(params.return);
-  const returnDate =
-    trip === "oneway"
-      ? undefined
-      : returnParam && DATE_RE.test(returnParam) && returnParam >= depart
-        ? returnParam
-        : addDays(depart, 7);
-  const adults = int(str(params.adults), 1, 1, 9);
-  const children = int(str(params.children), 0, 0, 8);
-  const cabinParam = str(params.cabin) as CabinClass | undefined;
-  const cabin: CabinClass = cabinParam && cabinParam in CABIN_LABELS ? cabinParam : "economy";
-
-  const canSearch = from && to && from.code !== to.code;
-  const offers = canSearch
-    ? searchFlights({ from, to, depart, returnDate, adults, children, cabin })
-    : [];
-
-  const query = new URLSearchParams({
-    from: from?.code ?? "",
-    to: to?.code ?? "",
-    depart,
-    ...(returnDate ? { return: returnDate } : {}),
-    trip,
-    adults: String(adults),
-    children: String(children),
-    cabin,
-  }).toString();
+  const { from, to, depart, returnDate, trip, adults, children, cabin, search, query } =
+    parseFlightParams(await searchParams);
+  const canSearch = !!search;
+  const offers = search ? searchFlights(search) : [];
 
   return (
     <>
       <section className="bg-gradient-to-br from-brand-900 to-brand-700 pb-8 pt-8">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
-          {canSearch ? (
+          {search ? (
             <div className="mb-5 text-white">
               <h1 className="flex flex-wrap items-center gap-3 text-2xl font-bold sm:text-3xl">
-                {from.city} <PlaneIcon className="rotate-45 text-accent-400" /> {to.city}
+                {search.from.city} <PlaneIcon className="rotate-45 text-accent-400" /> {search.to.city}
               </h1>
               <p className="mt-1 text-brand-100">
                 {formatDate(depart)}
@@ -116,7 +74,7 @@ export default async function FlightsPage({ searchParams }: PageProps<"/flights"
             key={query}
             offers={offers}
             travellers={adults + children}
-            bookHref={`/signin?next=${encodeURIComponent(`/flights?${query}`)}`}
+            bookQuery={query}
           />
         ) : (
           <div>

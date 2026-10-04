@@ -32,6 +32,24 @@ function open() {
     );
 
     CREATE INDEX IF NOT EXISTS sessions_user_id ON sessions(user_id);
+
+    CREATE TABLE IF NOT EXISTS bookings (
+      id             INTEGER PRIMARY KEY AUTOINCREMENT,
+      reference      TEXT    NOT NULL UNIQUE,
+      user_id        INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      kind           TEXT    NOT NULL,
+      status         TEXT    NOT NULL DEFAULT 'reserved',
+      quote_json     TEXT    NOT NULL,
+      travelers_json TEXT    NOT NULL,
+      contact_email  TEXT    NOT NULL,
+      contact_phone  TEXT    NOT NULL,
+      total          INTEGER NOT NULL,
+      start_date     TEXT    NOT NULL,
+      created_at     INTEGER NOT NULL,
+      cancelled_at   INTEGER
+    );
+
+    CREATE INDEX IF NOT EXISTS bookings_user_id ON bookings(user_id);
   `);
   return db;
 }
