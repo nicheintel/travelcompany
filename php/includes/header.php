@@ -1,4 +1,5 @@
 <?php
+defined('TC_APP') || exit;
 /** @var string|null $title  Page title (set before including) */
 /** @var bool $noindex */
 $user = current_user();

@@ -1,3 +1,4 @@
+<?php defined('TC_APP') || exit; ?>
 </main>
 <?php
 $columns = [
@@ -31,7 +32,7 @@ $columns = [
     </div>
   </div>
 </footer>
-<script>window.AIRPORTS = <?= airports_json() ?>;</script>
+<script nonce="<?= e(csp_nonce()) ?>">window.AIRPORTS = <?= airports_json() ?>;</script>
 <script src="<?= e(asset('app.js')) ?>" defer></script>
 </body>
 </html>

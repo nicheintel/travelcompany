@@ -5,10 +5,11 @@
  * database), then the defaults below. Don't put passwords or API keys in this file.
  */
 declare(strict_types=1);
+defined('TC_APP') || exit;
 
 /** Settings admins can change on the Admin → Site settings page. */
 const EDITABLE_SETTINGS = [
-    'admin_emails', 'flight_markup_rate', 'hotel_markup_rate', 'member_discount_rate',
+    'app_url', 'admin_emails', 'flight_markup_rate', 'hotel_markup_rate', 'member_discount_rate',
     'duffel_access_token', 'liteapi_key', 'resend_api_key', 'email_from',
     'stripe_secret_key', 'stripe_webhook_secret',
     'paypal_client_id', 'paypal_secret', 'paypal_mode', 'paypal_webhook_id',
@@ -32,8 +33,9 @@ function config(string $key, mixed $default = null): mixed
             'db_user' => 'root',
             'db_pass' => '',
 
-            // Leave empty to detect automatically (e.g. http://localhost/travelcompany).
-            // Set it on a live server, e.g. https://www.yourdomain.com — reset-password links use it.
+            // Your site's address, e.g. https://www.yourdomain.com — links in emails use it.
+            // Empty = detected on your own computer; on a live server it's saved the first time an
+            // admin opens the dashboard (or set it on Admin → Site settings).
             'app_url' => '',
 
             'site_name' => 'TravelCompany',
@@ -51,7 +53,7 @@ function config(string $key, mixed $default = null): mixed
             'duffel_access_token' => '',
             'liteapi_key' => '',
 
-            // Email (Resend). Empty = emails are written to storage/emails.log
+            // Email (Resend). Empty = emails are written to storage/emails.log.php
             'resend_api_key' => '',
             'email_from' => '',
 

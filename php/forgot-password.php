@@ -13,10 +13,17 @@ if (is_post()) {
         // Same response whether or not the account exists. Max 3 emails per address per hour.
         $sent = true;
         $key = 'reset:' . normalize_email($email);
-        if (!rate_limited($key, 3)) {
+        if (!rate_limited($key, 3) && !ip_throttled('reset', 10, 3600)) {
             rate_hit($key, 3600);
-            if ($row = find_user_by_email($email)) {
-                $link = app_url() . '/reset-password.php?token=' . create_reset_token((int) $row['id']);
+            $row = find_user_by_email($email);
+            try {
+                $base = app_url();
+            } catch (RuntimeException $err) {
+                error_log('[reset] ' . $err->getMessage());
+                $base = null;
+            }
+            if ($row && $base !== null) {
+                $link = $base . '/reset-password.php?token=' . create_reset_token((int) $row['id']);
                 $first = explode(' ', $row['name'])[0];
                 send_email($row['email'], simple_email('Reset your ' . config('site_name') . ' password', 'Reset your password', $first, [
                     'We received a request to reset your password. This link expires in 1 hour.',

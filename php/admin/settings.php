@@ -7,7 +7,7 @@ $admin = require_admin();
 const SECRET_FIELDS = [
     'duffel_access_token' => ['Duffel access token', 'Flights. Starts with duffel_test_ (test) or duffel_live_ (real airlines).'],
     'liteapi_key' => ['LiteAPI key', 'Hotels. Use the sandbox key while testing.'],
-    'resend_api_key' => ['Resend API key', 'Optional. Sends real emails; without it emails go to storage/emails.log.'],
+    'resend_api_key' => ['Resend API key', 'Optional. Sends real emails; without it emails go to storage/emails.log.php.'],
     'paypal_client_id' => ['PayPal Client ID', 'Online payments with PayPal or card. From developer.paypal.com → Apps & Credentials.'],
     'paypal_secret' => ['PayPal Secret', 'The Secret shown next to the Client ID (Sandbox or Live, matching the mode below).'],
     'paypal_webhook_id' => ['PayPal Webhook ID', 'Optional, recommended on a live site. From your PayPal app → Webhooks (URL: your-site/paypal-webhook.php).'],
@@ -56,6 +56,15 @@ if (is_post()) {
         $bad = array_filter($emails, fn($e) => !valid_email($e));
         if ($bad) $errors['admin_emails'] = 'Not a valid email: ' . implode(', ', $bad);
         else save_setting('admin_emails', implode(', ', $emails));
+    }
+    if (!config_fixed('app_url')) {
+        $site = rtrim(trim((string) ($_POST['app_url'] ?? '')), '/');
+        $parts = parse_url($site);
+        if ($site !== '' && (!$parts || !in_array($parts['scheme'] ?? '', ['http', 'https'], true) || empty($parts['host']) || isset($parts['query']) || isset($parts['fragment']) || isset($parts['user']))) {
+            $errors['app_url'] = 'Enter the address like https://www.yourdomain.com';
+        } else {
+            save_setting('app_url', $site);
+        }
     }
     if (!config_fixed('paypal_mode')) save_setting('paypal_mode', ($_POST['paypal_mode'] ?? '') === 'live' ? 'live' : 'sandbox');
     if (!config_fixed('email_from')) save_setting('email_from', mb_substr(trim((string) ($_POST['email_from'] ?? '')), 0, 200));
@@ -128,6 +137,13 @@ $fixedNote = '<p class="mt-1 text-xs text-amber-700">Set in config.local.php or 
   <section class="rounded-xl border border-slate-200 bg-white p-6">
     <h2 class="text-lg font-semibold text-slate-900">Admins &amp; email</h2>
     <div class="mt-5 space-y-4">
+      <div>
+        <label for="s_app_url" class="block text-sm font-medium text-slate-700">Site address</label>
+        <input id="s_app_url" name="app_url" type="url" value="<?= e(is_post() ? (string) ($_POST['app_url'] ?? '') : (string) config('app_url')) ?>" placeholder="https://www.yourdomain.com" class="<?= $input ?> mt-1"<?= config_fixed('app_url') ? ' disabled' : '' ?>>
+        <?php if (isset($errors['app_url'])): ?><p class="mt-1 text-sm text-red-600"><?= e($errors['app_url']) ?></p><?php endif; ?>
+        <p class="mt-1 text-xs text-slate-500">Your website's address, used for links in emails. Leave empty on your own computer. On a live site it's filled in the first time you open this dashboard there — use https:// once SSL is on.</p>
+        <?php if (config_fixed('app_url')): ?><?= $fixedNote ?><?php endif; ?>
+      </div>
       <div>
         <label for="s_admin_emails" class="block text-sm font-medium text-slate-700">Admin emails <span class="font-normal text-slate-400">· comma-separated</span></label>
         <input id="s_admin_emails" name="admin_emails" type="text" value="<?= e(is_post() ? (string) ($_POST['admin_emails'] ?? '') : (string) config('admin_emails')) ?>" placeholder="you@example.com" class="<?= $input ?> mt-1"<?= config_fixed('admin_emails') ? ' disabled' : '' ?>>

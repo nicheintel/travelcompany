@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+defined('TC_APP') || exit;
 
 /*
  * Online payments: PayPal (preferred when configured) or Stripe Checkout, both over their

@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+defined('TC_APP') || exit;
 
 function to_booking(array $r): array
 {

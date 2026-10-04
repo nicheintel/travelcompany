@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+defined('TC_APP') || exit;
 
 // ---------- Search parameters (shared by results and booking pages) ----------
 
@@ -364,11 +365,30 @@ function not_connected(): array
     return ['items' => [], 'live' => false, 'error' => null, 'not_connected' => true];
 }
 
+/**
+ * Live searches cost money at the supplier after a free allowance, so each visitor gets at
+ * most 40 live searches per 10 minutes, and the same search repeated within 3 minutes
+ * (refresh, back button) is answered from their session instead of calling the supplier again.
+ */
+function live_search(string $kind, array $s, callable $fetch): array
+{
+    $key = $kind . ':' . sha1(serialize($s));
+    $cache = &$_SESSION['search_cache'];
+    $cache = array_filter((array) $cache, fn($c) => $c['at'] > time() - 180);
+    if (isset($cache[$key])) return $cache[$key]['result'];
+    if (ip_throttled('search', 40, 600)) {
+        return ['items' => [], 'live' => true, 'error' => "You've searched a lot in a short time. Please wait a few minutes and try again."];
+    }
+    $result = ['items' => $fetch($s), 'live' => true, 'error' => null];
+    $cache = array_slice($cache, -2, null, true) + [$key => ['at' => time(), 'result' => $result]];
+    return $result;
+}
+
 function search_flights(array $s): array
 {
     if (!duffel_enabled()) return demo_mode() ? ['items' => sample_flights($s), 'live' => false, 'error' => null] : not_connected();
     try {
-        return ['items' => duffel_search($s), 'live' => true, 'error' => null];
+        return live_search('flights', $s, 'duffel_search');
     } catch (Throwable $e) {
         error_log('[duffel] search failed: ' . $e->getMessage());
         return ['items' => [], 'live' => true, 'error' => "We couldn't load live fares just now. Please try again in a moment."];
@@ -379,7 +399,7 @@ function search_hotels(array $s): array
 {
     if (!liteapi_enabled()) return demo_mode() ? ['items' => sample_hotels($s), 'live' => false, 'error' => null] : not_connected();
     try {
-        return ['items' => liteapi_search($s), 'live' => true, 'error' => null];
+        return live_search('hotels', $s, 'liteapi_search');
     } catch (Throwable $e) {
         error_log('[liteapi] search failed: ' . $e->getMessage());
         return ['items' => [], 'live' => true, 'error' => "We couldn't load live hotel prices just now. Please try again in a moment."];

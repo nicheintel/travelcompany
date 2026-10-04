@@ -28,7 +28,7 @@ if (is_post()) {
             send_email($user['email'], simple_email('Your ' . config('site_name') . ' email address was changed', 'Your email address was changed', explode(' ', $user['name'])[0], [
                 "The email address on your account was changed to $email. Future emails will go there.",
                 "If this wasn't you, reset your password right away and contact our support team.",
-            ], [], app_url() . '/forgot-password.php', 'Reset password'));
+            ], [], account_link('forgot-password.php'), 'Reset password'));
             flash("Your email is now $email.");
             redirect(url('settings.php'));
         }
@@ -45,7 +45,7 @@ if (is_post()) {
             send_email($user['email'], simple_email('Your ' . config('site_name') . ' password was changed', 'Your password was changed', explode(' ', $user['name'])[0], [
                 'Your password was just changed and you were signed out on other devices.',
                 "If this wasn't you, reset your password right away.",
-            ], [], app_url() . '/forgot-password.php', 'Reset password'));
+            ], [], account_link('forgot-password.php'), 'Reset password'));
             flash("Password changed. You've been signed out on all other devices.");
             redirect(url('settings.php'));
         }

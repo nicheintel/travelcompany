@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+defined('TC_APP') || exit;
 
 /** Escape for HTML output. Use for every value printed into a page. */
 function e(mixed $value): string
@@ -33,8 +34,36 @@ function app_url(): string
     if ($configured !== '') {
         return $configured;
     }
-    $https = ($_SERVER['HTTPS'] ?? '') === 'on' || ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https';
-    return ($https ? 'https' : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . base_path();
+    // Building links from the Host header is only safe on your own computer: on the internet an
+    // attacker could send a fake Host and get password-reset emails that point to their site.
+    if (PHP_SAPI === 'cli' || is_local_request()) {
+        return request_origin() . base_path();
+    }
+    throw new RuntimeException('The site address is not set (Admin → Site settings → Site address).');
+}
+
+/** "https://host" of the current request (only trust it where the host is checked first). */
+function request_origin(): string
+{
+    return (request_is_https() ? 'https' : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost');
+}
+
+function request_is_https(): bool
+{
+    return ($_SERVER['HTTPS'] ?? '') === 'on' || ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https';
+}
+
+/** The visitor's IP address. Forwarded-for headers are ignored because anyone can fake them. */
+function client_ip(): string
+{
+    return (string) ($_SERVER['REMOTE_ADDR'] ?? 'unknown');
+}
+
+/** Random value for this response that lets our own inline <script> run under the CSP. */
+function csp_nonce(): string
+{
+    static $nonce = null;
+    return $nonce ??= base64_encode(random_bytes(16));
 }
 
 /** Link to a page in this site: url('flights.php', ['to' => 'CDG']). */

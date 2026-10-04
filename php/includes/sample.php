@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+defined('TC_APP') || exit;
 
 /*
  * Sample flights and hotels, shown until Duffel / LiteAPI keys are configured.

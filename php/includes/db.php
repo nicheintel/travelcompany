@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+defined('TC_APP') || exit;
 
 /** Shared PDO connection. Creates the database and tables on first use. */
 function db(): PDO

@@ -4,6 +4,10 @@ require __DIR__ . '/includes/bootstrap.php';
 $kind = (string) ($_GET['kind'] ?? '');
 if (!in_array($kind, BOOKING_KINDS, true)) not_found();
 $user = require_user();
+if (ip_throttled('quote', 60, 600)) {
+    http_response_code(429);
+    exit('Too many requests. Please wait a few minutes and try again.');
+}
 $params = $_GET;
 unset($params['kind']);
 $quote = build_quote($kind, $params);
@@ -42,7 +46,10 @@ if ($quote && is_post()) {
         if (!preg_match('/^\+?[0-9][0-9\s().-]{6,19}$/', $phone)) $errors['phone'] = 'Enter a valid phone number, including country code.';
         if ($errors) {
             $message = 'Please fix the highlighted fields.';
+        } elseif (rate_limited('book:' . $user['id'], 20) || ip_throttled('book', 30, 86400)) {
+            $message = "You've made a lot of reservations today. Please contact us if you need more.";
         } else {
+            rate_hit('book:' . $user['id'], 86400);
             $ref = create_booking($user['id'], $quote, $travelers, $email, $phone);
             notify_booking('reserved', $ref);
             redirect(url('trip.php', ['ref' => $ref, 'new' => 1]));

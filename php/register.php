@@ -16,6 +16,7 @@ if (is_post()) {
     if (!valid_email($email)) $errors['email'] = 'Please enter a valid email address.';
     if ($err = password_problem($password)) $errors['password'] = $err;
     if ($password !== $confirm) $errors['confirm'] = "Passwords don't match.";
+    if (!$errors && ip_throttled('register', 10, 3600)) $errors['email'] = 'Too many new accounts from your network. Please try again in an hour.';
     if (!$errors && find_user_by_email($email)) $errors['email'] = 'An account with this email already exists. Try signing in.';
     if (!$errors) {
         try {

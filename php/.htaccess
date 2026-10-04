@@ -1,5 +1,8 @@
 # Keep code, settings and logs private
-<FilesMatch "^(config\.local\.php|config\.local\.example\.php|database\.sql|.*\.bat|README\.md)$">
+<FilesMatch "(^\.|^config\.local.*\.php$|\.(sql|bat|md|log|txt|json|lock|ini|sh)$)">
     Require all denied
+</FilesMatch>
+<FilesMatch "^robots\.txt$">
+    Require all granted
 </FilesMatch>
 Options -Indexes

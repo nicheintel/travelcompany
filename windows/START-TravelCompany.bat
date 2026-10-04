@@ -77,7 +77,7 @@ echo  Settings and API keys - open this file in Notepad:
 echo    %TARGET%\config.local.php
 echo.
 echo  Emails such as password-reset links are saved in:
-echo    %TARGET%\storage\emails.log
+echo    %TARGET%\storage\emails.log.php
 echo.
 echo  To stop the website: close the minimized "Apache"
 echo  and "MySQL" windows, or press Stop in XAMPP.

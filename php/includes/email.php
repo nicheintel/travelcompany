@@ -1,16 +1,20 @@
 <?php
 declare(strict_types=1);
+defined('TC_APP') || exit;
 
 /**
  * Sends through Resend (https://resend.com) when resend_api_key is set. Otherwise the email
- * is written to storage/emails.log — handy on XAMPP to see reset links. Never throws.
+ * is written to storage/emails.log.php — handy on XAMPP to see reset links. Never throws.
  */
 function send_email(string $to, array $mail): void
 {
     $key = (string) config('resend_api_key');
     if ($key === '') {
         $entry = sprintf("[%s] To: %s\nSubject: %s\n%s\n\n", gmdate('c'), $to, $mail['subject'], $mail['text']);
-        @file_put_contents(dirname(__DIR__) . '/storage/emails.log', $entry, FILE_APPEND | LOCK_EX);
+        // A .php file starting with exit, so it can't be read from the web even where .htaccess is ignored.
+        $file = dirname(__DIR__) . '/storage/emails.log.php';
+        if (!is_file($file)) @file_put_contents($file, "<?php exit; ?>\n", LOCK_EX);
+        @file_put_contents($file, $entry, FILE_APPEND | LOCK_EX);
         return;
     }
     try {
@@ -111,6 +115,17 @@ function notify_booking(string $event, string $reference): void
         send_email($b['contact_email'], $mail);
     } catch (Throwable $err) {
         error_log("[email] $event email for $reference failed: " . $err->getMessage());
+    }
+}
+
+/** Full link to a page for use in emails (falls back to a plain path if the site address isn't set). */
+function account_link(string $page): string
+{
+    try {
+        return app_url() . '/' . $page;
+    } catch (RuntimeException $err) {
+        error_log('[email] ' . $err->getMessage());
+        return url($page);
     }
 }
 

@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+defined('TC_APP') || exit;
 
 /*
  * Booking prices. Always rebuilt on the server from the search parameters —

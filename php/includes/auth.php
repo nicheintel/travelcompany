@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+defined('TC_APP') || exit;
 
 /*
  * Accounts and sessions.
@@ -65,10 +66,16 @@ function current_user(): ?array
 /** Visiting from this same computer (XAMPP), not from the internet. */
 function is_local_request(): bool
 {
+    $loopback = ['127.0.0.1', '::1'];
     $host = strtolower((string) parse_url('http://' . ($_SERVER['HTTP_HOST'] ?? ''), PHP_URL_HOST));
-    return in_array($_SERVER['REMOTE_ADDR'] ?? '', ['127.0.0.1', '::1'], true)
+    $proxied = false;
+    foreach (['HTTP_X_FORWARDED_FOR', 'HTTP_X_FORWARDED_HOST', 'HTTP_X_REAL_IP', 'HTTP_FORWARDED', 'HTTP_CLIENT_IP', 'HTTP_X_CLIENT_IP'] as $h) {
+        if (!empty($_SERVER[$h])) $proxied = true;
+    }
+    return in_array($_SERVER['REMOTE_ADDR'] ?? '', $loopback, true)
+        && (!isset($_SERVER['SERVER_ADDR']) || in_array($_SERVER['SERVER_ADDR'], $loopback, true))
         && in_array($host, ['localhost', '127.0.0.1', '::1', '[::1]'], true)
-        && empty($_SERVER['HTTP_X_FORWARDED_FOR']);
+        && !$proxied;
 }
 
 /**
@@ -121,6 +128,7 @@ function require_admin(): array
     if ($user['role'] !== 'admin') {
         not_found();
     }
+    remember_site_address();
     return $user;
 }
 
@@ -170,6 +178,19 @@ function rate_hit(string $key, int $windowSeconds): void
     );
 }
 
+/**
+ * Per-IP limit for an action (sign-in, sign-up, searches…). Counts this attempt and returns
+ * true when the visitor has gone over $max in $windowSeconds. Not applied on your own computer.
+ */
+function ip_throttled(string $action, int $max, int $windowSeconds): bool
+{
+    if (is_local_request() && !getenv('TC_TEST_IP_LIMITS')) return false;
+    $key = "ip:$action:" . client_ip();
+    if (rate_limited($key, $max)) return true;
+    rate_hit($key, $windowSeconds);
+    return false;
+}
+
 function rate_clear(string $key): void
 {
     db_run('DELETE FROM rate_limits WHERE rkey = ?', [$key]);
@@ -194,7 +215,23 @@ function check_password_with_lockout(array $userRow, string $password, string $w
         return $wrongMessage;
     }
     rate_clear($key);
+    if (password_needs_rehash($userRow['password_hash'], PASSWORD_DEFAULT)) {
+        db_run('UPDATE users SET password_hash = ? WHERE id = ?', [password_hash($password, PASSWORD_DEFAULT), $userRow['id']]);
+    }
     return null;
+}
+
+/**
+ * On a live server, the first time an admin opens the dashboard we save the address they used
+ * as the site address (for links in emails) — an admin's own browser can't be faked by others.
+ */
+function remember_site_address(): void
+{
+    if ((string) config('app_url') !== '' || config_fixed('app_url') || is_local_request() || PHP_SAPI === 'cli') return;
+    $host = strtolower((string) ($_SERVER['HTTP_HOST'] ?? ''));
+    if (!preg_match('/^[a-z0-9.-]+(:\d+)?$/', $host)) return;
+    db_run("INSERT INTO settings (name, value, updated_at) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE value = IF(value = '', VALUES(value), value)", ['app_url', request_origin() . base_path(), now_utc()]);
+    config('__reset');
 }
 
 // ---------- Password reset tokens (only a SHA-256 hash is stored) ----------

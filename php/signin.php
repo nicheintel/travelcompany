@@ -13,7 +13,9 @@ if (is_post()) {
     $password = (string) ($_POST['password'] ?? '');
     if (!valid_email($email)) $errors['email'] = 'Please enter a valid email address.';
     if ($password === '') $errors['password'] = 'Please enter your password.';
-    if (!$errors) {
+    if (!$errors && ip_throttled('signin', 30, 900)) {
+        $message = 'Too many sign-in attempts from your network. Please wait 15 minutes and try again.';
+    } elseif (!$errors) {
         $row = find_user_by_email($email);
         if ($row) {
             $message = check_password_with_lockout($row, $password, 'Incorrect email or password.');

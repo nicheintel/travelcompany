@@ -38,7 +38,14 @@ if (liteapi_enabled()) {
 } else {
     $checks[] = ['LiteAPI (hotels)', false, 'No LiteAPI key yet — add it on the Site settings tab. Hotel search is off.'];
 }
-$checks[] = ['Emails', true, config('resend_api_key') ? 'Sent with Resend' : 'Not sent — written to storage/emails.log'];
+$checks[] = ['Emails', true, config('resend_api_key') ? 'Sent with Resend' : 'Not sent — written to storage/emails.log.php'];
+
+// Security
+$site = (string) config('app_url');
+$local = is_local_request();
+$checks[] = ['Site address', $site !== '' || $local, $site !== '' ? $site . ' — used for links in emails' : ($local ? 'Detected automatically on this computer' : 'Not set — set it on Site settings so emails contain working links')];
+$checks[] = ['HTTPS (secure connection)', $local || request_is_https(), $local ? 'Not needed on your own computer' : (request_is_https() ? 'On' : 'OFF — turn on SSL for your domain at your hosting company, then use an https:// site address')];
+$checks[] = ['Database password', $local || (string) config('db_pass') !== '', (string) config('db_pass') !== '' ? 'Set' : ($local ? 'Empty (fine for XAMPP on your own computer)' : 'EMPTY — use a database user with a strong password on a live server')];
 if (paypal_enabled()) {
     $r = probe(function () {
         paypal_token();

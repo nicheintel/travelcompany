@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+defined('TC_APP') || exit;
 
 /** code => [city, country, airport name, lat, lon, ISO country code] */
 const AIRPORTS = [

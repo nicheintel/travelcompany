@@ -40,7 +40,7 @@ You can also put settings in a file — values there override Site settings. Cop
 | `demo_mode` | `true` shows clearly-marked **made-up** sample flights and hotels when no key is set — for demos only, never for customers. Default `false`. |
 | `flight_markup_rate` / `hotel_markup_rate` | Your margin on supplier prices (default `0.20` = +20%). |
 | `member_discount_rate` | Discount for signed-in members (default `0.10`; `0` turns it off). |
-| `resend_api_key`, `email_from` | Send real emails via [Resend](https://resend.com). Without it, emails are written to `storage/emails.log` (handy for password-reset links on XAMPP). |
+| `resend_api_key`, `email_from` | Send real emails via [Resend](https://resend.com). Without it, emails are written to `storage/emails.log.php` (handy for password-reset links on XAMPP). |
 | `paypal_client_id`, `paypal_secret`, `paypal_mode` | Online payments with **PayPal** (PayPal account or any card). Keys from developer.paypal.com → Apps & Credentials; `sandbox` while testing, `live` for real money. |
 | `paypal_webhook_id` | Optional, recommended live: webhook to `https://YOUR-SITE/paypal-webhook.php` for `CHECKOUT.ORDER.APPROVED` and `PAYMENT.CAPTURE.COMPLETED`. |
 | `stripe_secret_key`, `stripe_webhook_secret` | Alternative to PayPal (Stripe isn't available to Philippine-registered businesses). Webhook URL: `https://YOUR-SITE/stripe-webhook.php`. |
@@ -56,8 +56,10 @@ supports environment variables you can use the same names in upper case instead
 1. hPanel → **Databases → MySQL Databases**: create a database and user; note the names and password.
 2. Upload the **contents** of this folder to `public_html` (File Manager or FTP).
 3. Create `config.local.php` there with `db_name`, `db_user`, `db_pass`, `db_host` (usually
-   `localhost`), `app_url` (your domain with `https://`) and your keys.
-4. Visit your domain — the tables are created automatically.
+   `localhost`) and your keys.
+4. hPanel → **Security → SSL**: turn on the free SSL certificate.
+5. Visit `https://yourdomain.com` — the tables are created automatically. Sign in as admin and
+   open the dashboard once, so the site saves its address for links in emails.
 
 ## Pages
 
@@ -83,6 +85,29 @@ lockout after 5 wrong passwords (15 min); single-use, hashed password-reset link
 changing the password signs out other devices; booking prices re-checked with the supplier;
 PayPal and Stripe payments confirmed server-to-server and checked against the booking amount;
 payment webhooks signature-verified.
+
+Also:
+- **Content-Security-Policy with a per-request nonce.** Only this site's own scripts can run,
+  and forms can only post to this site (then on to PayPal/Stripe). Pages can't be framed
+  (clickjacking), and `nosniff`, `Referrer-Policy` and `Permissions-Policy` headers are sent.
+- **HTTPS.** When the site address starts with `https://`, plain http is redirected to https,
+  HSTS is sent and the session cookie becomes `__Secure-` and `Secure`.
+- **Links in emails** use only the configured site address, never the request's Host header.
+  On a live server the address is saved the first time an admin opens the dashboard, or can be
+  set on Admin → Site settings.
+- **Limits per IP address.** Sign-in (30 per 15 min), new accounts (10 per hour), password-reset
+  emails (10 per hour), live searches (40 per 10 min, repeats cached for 3 minutes) and
+  reservations (20 per account and 30 per IP per day). `X-Forwarded-For` is ignored, so it
+  can't be faked to get around them.
+- **Private files.** `includes/` files refuse to run directly; the email log is
+  `storage/emails.log.php` and starts with `exit`, so it can't be read from the web even on
+  servers that ignore `.htaccess`. Error details are never shown to visitors.
+- **Owner setup** (first local account becomes admin) only works from `localhost` on your own
+  computer, with no proxy headers.
+- Admin → Diagnostics warns when HTTPS, the site address or a database password is missing.
+
+Only the PHP version in this folder has these protections. The Next.js version in the repository
+root is a prototype and shouldn't be put online as is.
 
 ## Changing the design
 
