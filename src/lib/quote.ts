@@ -8,13 +8,14 @@ import {
   searchFlights,
 } from "./flights";
 import { addDays, formatDate } from "./format";
+import { HOTEL_TAX_RATE, parseHotelParams, searchHotels } from "./hotels";
 import { PROMO_PACKAGES } from "./packages";
 import { dateParam, earliestDate, int, type RawParams, str } from "./search-params";
 import { MEMBER_DISCOUNT_RATE } from "./site";
 
-export type BookingKind = "flight" | "package";
+export type BookingKind = "flight" | "package" | "hotel";
 
-export const BOOKING_KINDS: BookingKind[] = ["flight", "package"];
+export const BOOKING_KINDS: BookingKind[] = ["flight", "package", "hotel"];
 
 export type TravelerSlot = { label: string; needsDob: boolean };
 
@@ -114,9 +115,45 @@ function packageQuote(params: RawParams): Quote | null {
   });
 }
 
+function hotelQuote(params: RawParams): Quote | null {
+  const parsed = parseHotelParams(params);
+  if (!parsed.search) return null;
+  const hotel = searchHotels(parsed.search).find((h) => h.id === str(params.hotel));
+  if (!hotel) return null;
+
+  const { city, checkIn, checkOut, nights, rooms, adults, children } = parsed.search;
+  const roomTotal = hotel.nightlyPrice * nights * rooms;
+  const guests = adults + children;
+
+  return finish({
+    kind: "hotel",
+    title: hotel.name,
+    subtitle: `${city.city}, ${city.country} · ${hotel.neighborhood} · ${hotel.stars}★`,
+    startDate: checkIn,
+    endDate: checkOut,
+    travelerSlots: [{ label: "Lead guest", needsDob: false }],
+    lines: [
+      {
+        label: `${nights} night${nights === 1 ? "" : "s"} × ${rooms} room${rooms === 1 ? "" : "s"}`,
+        amount: roomTotal,
+      },
+      { label: "Taxes & fees", amount: Math.round(roomTotal * HOTEL_TAX_RATE) },
+    ],
+    facts: [
+      { label: "Check-in", value: formatDate(checkIn) },
+      { label: "Check-out", value: formatDate(checkOut) },
+      { label: "Room", value: `${rooms} × ${hotel.roomType}` },
+      { label: "Guests", value: `${guests} (${adults} adult${adults === 1 ? "" : "s"}${children ? `, ${children} child${children === 1 ? "" : "ren"}` : ""})` },
+      { label: "Cancellation", value: hotel.freeCancellation ? "Free cancellation" : "Non-refundable" },
+    ],
+    query: `${parsed.query}&hotel=${encodeURIComponent(hotel.id)}`,
+  });
+}
+
 /** Build a price quote from URL params. Always recomputed on the server — never trust a client price. */
 export function buildQuote(kind: string, params: RawParams): Quote | null {
   if (kind === "flight") return flightQuote(params);
   if (kind === "package") return packageQuote(params);
+  if (kind === "hotel") return hotelQuote(params);
   return null;
 }

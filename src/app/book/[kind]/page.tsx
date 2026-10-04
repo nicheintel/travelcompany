@@ -9,6 +9,12 @@ import { PackageOptions } from "./PackageOptions";
 
 export const metadata: Metadata = { title: "Complete your booking" };
 
+const BACK = {
+  flight: { label: "flight results", href: (q: string) => `/flights?${q}` },
+  hotel: { label: "hotel results", href: (q: string) => `/hotels?${q}` },
+  package: { label: "packages", href: () => "/packages" },
+} as const;
+
 function toQuery(params: Record<string, string | string[] | undefined>) {
   const q = new URLSearchParams();
   for (const [k, v] of Object.entries(params)) {
@@ -31,7 +37,7 @@ export default async function BookPage({ params, searchParams }: PageProps<"/boo
       <div className="mx-auto max-w-xl px-4 py-24 text-center">
         <h1 className="text-2xl font-bold text-slate-900">This deal is no longer available</h1>
         <p className="mt-2 text-slate-600">Prices and availability change quickly. Please search again.</p>
-        <Link href={kind === "package" ? "/packages" : "/flights"} className="mt-6 inline-block rounded-xl bg-brand-600 px-5 py-2.5 font-semibold text-white">
+        <Link href={`/${kind === "flight" ? "flights" : kind === "hotel" ? "hotels" : "packages"}`} className="mt-6 inline-block rounded-xl bg-brand-600 px-5 py-2.5 font-semibold text-white">
           Search again
         </Link>
       </div>
@@ -44,8 +50,8 @@ export default async function BookPage({ params, searchParams }: PageProps<"/boo
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
       <nav className="mb-4 text-sm text-slate-500">
-        <Link href={kind === "flight" ? `/flights?${quote.query}` : "/packages"} className="hover:text-brand-700">
-          ← Back to {kind === "flight" ? "flight results" : "packages"}
+        <Link href={BACK[quote.kind].href(quote.query)} className="hover:text-brand-700">
+          ← Back to {BACK[quote.kind].label}
         </Link>
       </nav>
       <h1 className="text-3xl font-bold text-slate-900">Complete your booking</h1>
