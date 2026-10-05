@@ -13,6 +13,18 @@ function gcash_enabled(): bool
     return trim((string) config('gcash_number')) !== '' && isset(fx_rates()['rates']['PHP']);
 }
 
+/**
+ * GCash only works with Philippine accounts, so it's offered when the customer looks like they pay from the
+ * Philippines: a +63 contact number, a Filipino traveler, or pesos / Filipino chosen on the site.
+ * (No location tracking — just what the customer told us.)
+ */
+function gcash_for_booking(array $b): bool
+{
+    if (str_starts_with(preg_replace('/\s+/', '', (string) $b['contact_phone']), '+63')) return true;
+    foreach ($b['travelers'] as $t) if (($t['nationality'] ?? '') === 'PH') return true;
+    return current_currency() === 'PHP' || current_lang() === 'fil';
+}
+
 /** The US-dollar total in whole pesos at today's rate, rounded up. */
 function gcash_amount(int $usd): ?int
 {
