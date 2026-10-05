@@ -111,7 +111,18 @@
       .catch(function () { form.submit(); });
   });
 
+  // Buttons that show/hide a section (e.g. "Change email" on the confirm page).
+  document.querySelectorAll('[data-toggle]').forEach(function (btn) {
+    var target = document.getElementById(btn.getAttribute('data-toggle'));
+    if (!target) return;
+    btn.addEventListener('click', function () {
+      target.hidden = !target.hidden;
+      btn.setAttribute('aria-expanded', target.hidden ? 'false' : 'true');
+      if (!target.hidden) { var f = target.querySelector('input:not([type=hidden])'); if (f) f.focus(); }
+    });
+  });
 
+  // Ask before destructive actions.
   document.addEventListener('submit', function (ev) {
     var msg = ev.target.getAttribute('data-confirm');
     if (msg && !window.confirm(msg)) ev.preventDefault();

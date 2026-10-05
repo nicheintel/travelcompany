@@ -50,7 +50,7 @@ if (is_post()) {
     if ($wait > 0) {
         $errors[] = "We just sent an email. Please wait $wait seconds before sending another one.";
     } elseif (rate_limited('verify', 'u' . $u['id'], 6, 86400)) {
-        $errors[] = "You've asked for several emails today. Please check your spam folder, or contact us and we'll confirm your account.";
+        $errors[] = "You've asked for several emails today. Call us or tap Chat, and we'll confirm your account for you.";
     } elseif ($action === 'change') {
         $email = strtolower(post('email', 190));
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -75,37 +75,64 @@ if (is_post()) {
     }
 }
 
+// "Open Gmail"-style button for the big email providers
+$domain = email_domain((string) $u['email']);
+$inbox = null;
+foreach ([
+    ['Open Gmail', 'https://mail.google.com/', ['gmail.com', 'googlemail.com']],
+    ['Open Outlook', 'https://outlook.live.com/mail/', ['outlook.com', 'hotmail.com', 'live.com', 'msn.com']],
+    ['Open Yahoo Mail', 'https://mail.yahoo.com/', ['yahoo.com', 'ymail.com']],
+    ['Open iCloud Mail', 'https://www.icloud.com/mail', ['icloud.com', 'me.com', 'mac.com']],
+    ['Open AOL Mail', 'https://mail.aol.com/', ['aol.com']],
+] as [$label, $href, $domains]) {
+    if (in_array($domain, $domains, true)) {
+        $inbox = [$label, $href];
+    }
+}
+$changeOpen = ($_POST['action'] ?? '') === 'change' && $errors;
+$phone = (string) config('contact_phone');
+
 page_header('Confirm your email', '', '', 'page-auth');
 ?>
-<section class="section">
-  <div class="container narrow">
-    <div class="card pad verify-card">
+<section class="section verify-section">
+  <div class="container">
+    <ol class="steps-bar" aria-label="Sign-up steps">
+      <li class="done"><span><?= icon('check') ?></span>Account created</li>
+      <li class="current" aria-current="step"><span>2</span>Confirm email</li>
+      <li><span>3</span>Complete profile</li>
+    </ol>
+
+    <div class="card verify-card">
       <div class="verify-ico"><?= icon('mail') ?></div>
-      <h1>Check your email</h1>
-      <p class="lead">We sent a confirmation link to <b><?= e($u['email']) ?></b>. Click it to activate your account.</p>
-      <p class="muted">You need to confirm your email before you can apply for jobs, upload documents or fill in your driver profile. The link works for <?= VERIFY_HOURS ?> hours.</p>
+      <h1>You're almost in! 🚚</h1>
+      <p class="verify-lead">We just emailed a confirmation link to:</p>
+      <p class="verify-email"><?= e($u['email']) ?></p>
+      <p class="verify-text">Tap the link to activate your account. Then you can apply for loads, routes and jobs.</p>
+
       <?php if ($errors): ?><ul class="errors"><?php foreach ($errors as $er): ?><li><?= e($er) ?></li><?php endforeach; ?></ul><?php endif; ?>
-      <div class="verify-tips">
-        <b>Didn't get it?</b>
-        <ul>
-          <li>Check your spam or junk folder, and "Promotions" in Gmail.</li>
-          <li>It can take a few minutes to arrive.</li>
-        </ul>
-      </div>
-      <form method="post" action="<?= e(url('verify.php')) ?>">
-        <?= csrf_field() ?><input type="hidden" name="action" value="resend">
-        <button class="btn btn-accent btn-block" type="submit">Send the email again</button>
-      </form>
-      <details class="verify-change">
-        <summary>Wrong email address? Change it</summary>
-        <form method="post" action="<?= e(url('verify.php')) ?>" class="verify-change-form">
-          <?= csrf_field() ?><input type="hidden" name="action" value="change">
-          <label for="email">Your correct email</label>
-          <input id="email" name="email" type="email" maxlength="190" required autocomplete="email" value="<?= e(post('email', 190)) ?>">
-          <button class="btn btn-primary" type="submit">Save and send the link</button>
+
+      <?php if ($inbox): ?>
+        <a class="btn btn-accent btn-block" href="<?= e($inbox[1]) ?>" target="_blank" rel="noopener"><?= e($inbox[0]) ?> <?= icon('arrow') ?></a>
+      <?php endif; ?>
+      <div class="verify-actions<?= $inbox ? '' : ' single' ?>">
+        <form method="post" action="<?= e(url('verify.php')) ?>">
+          <?= csrf_field() ?><input type="hidden" name="action" value="resend">
+          <button class="btn <?= $inbox ? 'btn-ghost' : 'btn-accent' ?> btn-block" type="submit">Resend email</button>
         </form>
-      </details>
-      <p class="hint center mt">Still stuck? Use the Chat button or call <?= e((string) config('contact_phone')) ?> and we'll confirm your account for you.</p>
+        <button class="btn btn-ghost btn-block" type="button" data-toggle="change-email" aria-expanded="<?= $changeOpen ? 'true' : 'false' ?>" aria-controls="change-email">Change email</button>
+      </div>
+
+      <form method="post" action="<?= e(url('verify.php')) ?>" class="verify-change-form" id="change-email"<?= $changeOpen ? '' : ' hidden' ?>>
+        <?= csrf_field() ?><input type="hidden" name="action" value="change">
+        <label for="email">Your correct email</label>
+        <div class="verify-change-row">
+          <input id="email" name="email" type="email" maxlength="190" required autocomplete="email" value="<?= e(post('email', 190)) ?>" placeholder="you@example.com">
+          <button class="btn btn-primary" type="submit">Save &amp; send</button>
+        </div>
+      </form>
+
+      <p class="verify-note"><?= icon('clock') ?> It can take a minute to arrive. The link works for <?= VERIFY_HOURS ?> hours.</p>
+      <p class="verify-help">Still nothing? <?php if ($phone !== ''): ?>Call us at <a href="<?= e(tel_href($phone)) ?>"><?= e($phone) ?></a> or tap Chat<?php else: ?>Tap Chat<?php endif; ?>, and we'll confirm your account for you.</p>
     </div>
   </div>
 </section>
