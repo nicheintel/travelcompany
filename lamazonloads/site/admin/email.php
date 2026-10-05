@@ -30,10 +30,10 @@ $txt = $dns($domain, DNS_TXT);
 $spf = $txt === null ? null : array_values(array_filter(array_map(fn ($r) => (string) ($r['txt'] ?? ''), $txt), fn ($t) => str_starts_with(strtolower($t), 'v=spf1')));
 $dmarc = $dns('_dmarc.' . $domain, DNS_TXT);
 $dkim = [];
-foreach (['hostingermail1', 'hostingermail2', 'hostingermail3'] as $sel) {
-    $r = $dns($sel . '._domainkey.' . $domain, DNS_CNAME | DNS_TXT);
-    if ($r) {
+foreach (['hostingermail-a', 'hostingermail1', 'titan', 'default'] as $sel) { // Hostinger, older Hostinger, Titan, generic
+    if ($dns($sel . '._domainkey.' . $domain, DNS_CNAME)) {
         $dkim[] = $sel;
+        break;
     }
 }
 $unconfirmed = (int) db_val('SELECT COUNT(*) FROM users WHERE is_admin = 0 AND email_verified_at IS NULL');
