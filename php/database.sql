@@ -34,6 +34,8 @@ CREATE TABLE IF NOT EXISTS bookings (
   ticketed_at       DATETIME     NULL,
   supplier_ref      VARCHAR(100) NULL,
   ticket_note       TEXT         NULL,
+  bought_from       VARCHAR(100) NULL,
+  bought_cost       DECIMAL(10,2) NULL,
   INDEX bookings_user (user_id),
   CONSTRAINT bookings_user_fk FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

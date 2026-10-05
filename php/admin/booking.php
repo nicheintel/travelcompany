@@ -55,8 +55,12 @@ if (is_post()) {
     } elseif ($action === 'ticket') {
         $code = mb_strtoupper(trim(post('code')));
         $note = mb_substr(trim(post('ticket_note')), 0, 1000);
-        if (!preg_match('/^[A-Z0-9][A-Z0-9 ,\/-]{1,98}$/', $code)) $error = 'Enter the confirmation code from the airline or hotel (letters and numbers, e.g. ABC123).';
-        elseif (!mark_ticketed($ref, $admin['id'], $code, $note)) $error = 'Only paid bookings can be marked as ticketed.';
+        $boughtFrom = mb_substr(trim(post('bought_from')), 0, 100);
+        $costRaw = str_replace([',', '$'], '', trim(post('bought_cost')));
+        $boughtCost = $costRaw === '' ? null : (is_numeric($costRaw) && (float) $costRaw >= 0 && (float) $costRaw < 1000000 ? round((float) $costRaw, 2) : false);
+        if ($boughtCost === false) $error = 'Enter what you paid as a number in US dollars (e.g. 389.50), or leave it empty.';
+        elseif (!preg_match('/^[A-Z0-9][A-Z0-9 ,\/-]{1,98}$/', $code)) $error = 'Enter the confirmation code from the airline or hotel (letters and numbers, e.g. ABC123).';
+        elseif (!mark_ticketed($ref, $admin['id'], $code, $note, $boughtFrom, $boughtCost)) $error = 'Only paid bookings can be marked as ticketed.';
         else { notify_booking('ticketed', $ref); flash("Saved. {$booking['contact_email']} has been emailed the confirmation $code."); redirect($self); }
     } elseif ($action === 'cancel') {
         $reason = post('reason');
@@ -180,10 +184,13 @@ echo admin_open('bookings');
           <h2 class="font-semibold text-slate-900"><?= $isPaid ? 'Issue the ticket' : 'Ticket issued' ?></h2>
           <?php if ($isPaid): ?>
             <ol class="mb-3 mt-2 list-decimal space-y-1 pl-5 text-sm text-slate-600">
-              <li>Buy this <?= $booking['kind'] === 'hotel' ? 'room' : 'trip' ?> in the <?= ['liteapi' => 'LiteAPI', 'liteapi_flights' => 'LiteAPI', 'duffel' => 'Duffel'][$q['supplier']['provider'] ?? ''] ?? 'supplier' ?> dashboard for the travelers listed here.</li>
+              <li>Buy this <?= $booking['kind'] === 'hotel' ? 'room' : 'trip' ?> for the travelers listed here — from <?= ['liteapi' => 'LiteAPI', 'liteapi_flights' => 'LiteAPI', 'duffel' => 'Duffel'][$q['supplier']['provider'] ?? ''] ?? 'the supplier' ?> or any other site (Agoda, CheapOair, the airline…). Check it's the same <?= $booking['kind'] === 'hotel' ? 'hotel, room and dates' : 'flights, dates and cabin' ?>.</li>
               <li>Copy the confirmation code below and save — the customer is emailed straight away.</li>
             </ol>
           <?php else: ?>
+            <?php if ($booking['bought_cost'] !== null): $profit = $booking['total'] - $booking['bought_cost']; ?>
+              <p class="mt-2 rounded-lg bg-slate-900 px-3 py-2 text-sm text-slate-200">Customer paid <strong class="text-white"><?= money($booking['total']) ?></strong> · you paid <strong class="text-white">$<?= number_format($booking['bought_cost'], 2) ?></strong><?= $booking['bought_from'] ? ' on ' . e($booking['bought_from']) : '' ?> · profit <strong class="<?= $profit >= 0 ? 'text-emerald-400' : 'text-red-400' ?>"><?= $profit < 0 ? '−' : '' ?>$<?= number_format(abs($profit), 2) ?></strong> <span class="text-slate-400">(before PayPal fees)</span></p>
+            <?php endif; ?>
             <p class="mb-3 mt-1 text-sm text-slate-600">Confirmation <strong class="font-mono"><?= e($booking['supplier_ref']) ?></strong> was emailed to the customer. Fix a mistake below — they'll get the corrected details by email.</p>
           <?php endif; ?>
           <form method="post" class="space-y-3"><?= csrf_field() ?><input type="hidden" name="action" value="ticket">
@@ -191,6 +198,15 @@ echo admin_open('bookings');
               <input name="code" required maxlength="99" value="<?= e((string) ($booking['supplier_ref'] ?? '')) ?>" placeholder="e.g. ABC123" class="<?= $input ?> mt-1 font-mono uppercase"></label>
             <label class="block text-xs font-medium text-slate-500">Message for the customer (optional)
               <textarea name="ticket_note" rows="3" maxlength="1000" placeholder="e.g. E-ticket numbers 075-1234567890. Check in online 24 hours before departure. 1 checked bag included." class="<?= $input ?> mt-1"><?= e((string) ($booking['ticket_note'] ?? '')) ?></textarea></label>
+            <div class="rounded-lg bg-slate-50 p-3 ring-1 ring-slate-200">
+              <p class="mb-2 text-xs font-semibold text-slate-600">🔒 Private — only admins see this, never the customer</p>
+              <div class="grid grid-cols-2 gap-2">
+                <label class="block text-xs font-medium text-slate-500">Bought from
+                  <input name="bought_from" maxlength="100" value="<?= e((string) ($booking['bought_from'] ?? '')) ?>" placeholder="e.g. Agoda" class="<?= $input ?> mt-1"></label>
+                <label class="block text-xs font-medium text-slate-500">What I paid (USD)
+                  <input name="bought_cost" inputmode="decimal" value="<?= $booking['bought_cost'] !== null ? e(number_format($booking['bought_cost'], 2, '.', '')) : '' ?>" placeholder="e.g. 389.50" class="<?= $input ?> mt-1"></label>
+              </div>
+            </div>
             <button type="submit" class="w-full rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700"><?= $isPaid ? 'Mark as ticketed &amp; email customer' : 'Save &amp; email corrected details' ?></button>
           </form>
         </section>

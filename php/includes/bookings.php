@@ -12,6 +12,8 @@ function to_booking(array $r): array
         'start_date' => $r['start_date'], 'created_at' => $r['created_at'], 'paid_at' => $r['paid_at'],
         'cancelled_at' => $r['cancelled_at'], 'payment_method' => $r['payment_method'],
         'ticketed_at' => $r['ticketed_at'] ?? null, 'supplier_ref' => $r['supplier_ref'] ?? null, 'ticket_note' => $r['ticket_note'] ?? null,
+        // Admin-only: where the ticket was bought and what it cost (never shown to customers).
+        'bought_from' => $r['bought_from'] ?? null, 'bought_cost' => isset($r['bought_cost']) ? (float) $r['bought_cost'] : null,
         'customer_name' => $r['customer_name'] ?? null, 'customer_email' => $r['customer_email'] ?? null,
     ];
 }
@@ -158,13 +160,13 @@ function admin_needs_ticket(): array
  * Records the airline/hotel confirmation after staff bought it from the supplier.
  * Also used to correct the details later (the customer is emailed again).
  */
-function mark_ticketed(string $reference, int $actorId, string $code, string $note): bool
+function mark_ticketed(string $reference, int $actorId, string $code, string $note, ?string $boughtFrom = null, ?float $boughtCost = null): bool
 {
     $before = db_one('SELECT status FROM bookings WHERE reference = ?', [$reference]);
     if (!$before || !in_array($before['status'], ['paid', 'ticketed'], true)) return false;
     db_run(
-        "UPDATE bookings SET status = 'ticketed', supplier_ref = ?, ticket_note = ?, ticketed_at = COALESCE(ticketed_at, ?) WHERE reference = ?",
-        [$code, $note !== '' ? $note : null, now_utc(), $reference],
+        "UPDATE bookings SET status = 'ticketed', supplier_ref = ?, ticket_note = ?, bought_from = ?, bought_cost = ?, ticketed_at = COALESCE(ticketed_at, ?) WHERE reference = ?",
+        [$code, $note !== '' ? $note : null, $boughtFrom !== '' ? $boughtFrom : null, $boughtCost, now_utc(), $reference],
     );
     add_event($reference, $actorId, 'ticketed', ($before['status'] === 'ticketed' ? 'Ticket details updated' : 'Ticket issued') . " — confirmation $code." . ($note !== '' ? " Note to customer: $note" : ''));
     return true;

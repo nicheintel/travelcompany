@@ -80,7 +80,7 @@ function migrate(PDO $pdo): void
         $pdo->exec('UPDATE users SET email_verified_at = created_at');
     }
     // Ticket details, contact name and checked-bag requests (added later).
-    foreach (['ticketed_at' => 'DATETIME NULL', 'supplier_ref' => 'VARCHAR(100) NULL', 'ticket_note' => 'TEXT NULL', 'contact_name' => 'VARCHAR(100) NULL', 'bag_status' => 'VARCHAR(10) NULL'] as $col => $type) {
+    foreach (['ticketed_at' => 'DATETIME NULL', 'supplier_ref' => 'VARCHAR(100) NULL', 'ticket_note' => 'TEXT NULL', 'contact_name' => 'VARCHAR(100) NULL', 'bag_status' => 'VARCHAR(10) NULL', 'bought_from' => 'VARCHAR(100) NULL', 'bought_cost' => 'DECIMAL(10,2) NULL'] as $col => $type) {
         if (!in_array($col, $cols, true)) $pdo->exec("ALTER TABLE bookings ADD COLUMN $col $type");
     }
     @touch($marker);
