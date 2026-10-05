@@ -198,7 +198,7 @@ function member_job_marks(): array
     return $marks;
 }
 
-/** Job box: title, "LamazonLoads – location", a short description, Apply Now and a heart to save it. */
+/** Job box: title, "LamazonLoads – location", a short description, View & apply and a heart to save it. */
 function job_card(array $job): string
 {
     $id = (int) $job['id'];
@@ -214,7 +214,7 @@ function job_card(array $job): string
         . '<div class="jc-actions">'
         . ($applied
             ? '<a class="btn jc-apply is-applied" href="' . $href . '">Applied ' . icon('check') . '</a>'
-            : '<a class="btn jc-apply" href="' . $href . '#apply">Apply Now</a>')
+            : '<a class="btn jc-apply" href="' . $href . '">View &amp; apply ' . icon('arrow') . '</a>')
         . '<form method="post" action="' . e(url('save.php')) . '" class="jc-save-form" data-save>'
         . csrf_field() . '<input type="hidden" name="job" value="' . $id . '">'
         . '<button type="submit" class="jc-save' . ($saved ? ' on' : '') . '" aria-pressed="' . ($saved ? 'true' : 'false') . '" aria-label="' . ($saved ? 'Saved. Remove from saved jobs' : 'Save this job') . '" title="' . ($saved ? 'Saved' : 'Save job') . '">'
