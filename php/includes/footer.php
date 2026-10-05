@@ -2,7 +2,7 @@
 </main>
 <?php
 $columns = [
-    'Book' => [['flights.php', 'Cheap flights'], ['hotels.php', 'Hotels'], ['packages.php', 'Vacation packages'], ['packages.php', 'Flight + Hotel + Car']],
+    'Book' => [['flights.php', 'Cheap flights'], ['hotels.php', 'Hotels'], ['packages.php', 'Flight + Hotel packages']],
     'Account' => [['signin.php', 'Sign in'], ['register.php', 'Create account'], ['account.php', 'My trips']],
     'Support' => [['index.php#faq', 'FAQ'], ['index.php#why-us', 'Why book with us'], ['index.php#newsletter', 'Deal alerts']],
 ];

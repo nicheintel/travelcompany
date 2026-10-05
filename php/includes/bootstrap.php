@@ -19,6 +19,7 @@ require __DIR__ . '/sample.php';
 require __DIR__ . '/search.php';
 require __DIR__ . '/quote.php';
 require __DIR__ . '/bookings.php';
+require __DIR__ . '/packages.php';
 require __DIR__ . '/email.php';
 require __DIR__ . '/payments.php';
 require __DIR__ . '/ui.php';

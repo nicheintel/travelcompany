@@ -20,7 +20,7 @@ function slots(int $adults, int $children): array
 function finish_quote(array $q): array
 {
     $subtotal = array_sum(array_column($q['lines'], 'amount'));
-    $rate = member_discount_rate();
+    $rate = empty($q['no_discount']) ? member_discount_rate() : 0.0;
     $discount = (int) round($subtotal * $rate);
     return $q + ['subtotal' => $subtotal, 'discount' => $discount, 'discount_rate' => $rate, 'total' => $subtotal - $discount];
 }
@@ -83,9 +83,10 @@ function package_quote(array $params): ?array
 {
     $pkg = find_package((string) ($params['id'] ?? ''));
     if (!$pkg) return null;
-    $from = airport($params['from'] ?? '');
-    if (!$from || $from['code'] === $pkg['code']) $from = airport('JFK');
-    $depart = date_param((string) ($params['depart'] ?? ''), earliest_date()) ?? add_days(earliest_date(), 22);
+    [$first, $last] = package_dates($pkg);
+    if ($first > $last) return null; // the deal has ended
+    $depart = date_param((string) ($params['depart'] ?? ''), $first);
+    if (!$depart || $depart > $last) $depart = $first;
     $return = add_days($depart, $pkg['nights']);
     $adults = max(1, min(6, (int) ($params['adults'] ?? 2) ?: 2));
     $includes = array_merge(['Round-trip flights', 'Hotel'], $pkg['car'] ? ['Rental car'] : []);
@@ -93,21 +94,23 @@ function package_quote(array $params): ?array
     return finish_quote([
         'kind' => 'package',
         'title' => $pkg['title'],
-        'subtitle' => "{$from['city']} → {$pkg['destination']} · {$pkg['nights']} nights · {$pkg['hotel']}",
+        'subtitle' => "{$pkg['from_city']} → {$pkg['destination']} · {$pkg['nights']} nights · {$pkg['hotel']}",
         'start_date' => $depart,
         'end_date' => $return,
         'slots' => slots($adults, 0),
-        'lines' => [['label' => "$adults × package price", 'amount' => $pkg['price'] * $adults]],
+        'lines' => [['label' => "$adults × " . money($pkg['price']) . ' per person', 'amount' => $pkg['price'] * $adults]],
         'facts' => [
-            ['Leaving from', "{$from['city']} ({$from['code']})"],
+            ['Leaving from', "{$pkg['from_city']} ({$pkg['from_code']})"],
             ['Dates', fmt_date($depart) . ' – ' . fmt_date($return)],
-            ['Hotel', "{$pkg['hotel']} ({$pkg['stars']}★)"],
-            ['Includes', implode(', ', $includes)],
+            ['Hotel', $pkg['hotel'] . ($pkg['stars'] ? " ({$pkg['stars']}★)" : '')],
+            ['Includes', implode(', ', array_merge($includes, $pkg['highlights']))],
             ['Travelers', (string) $adults],
         ],
-        'query' => http_build_query(['id' => $pkg['id'], 'from' => $from['code'], 'depart' => $depart, 'adults' => $adults]),
+        'query' => http_build_query(['id' => $pkg['slug'], 'depart' => $depart, 'adults' => $adults]),
         'note' => null,
         'supplier' => null,
+        'no_discount' => true, // promo prices are already final
+        'package' => ['slug' => $pkg['slug'], 'first' => $first, 'last' => $last],
     ]);
 }
 

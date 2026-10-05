@@ -84,9 +84,11 @@ parse_str($quote['query'], $qp);
         <form method="get" action="<?= e(url('book.php')) ?>" class="rounded-2xl border border-slate-200 bg-white p-6">
           <h2 class="text-lg font-semibold text-slate-900">Trip options</h2>
           <input type="hidden" name="kind" value="package"><input type="hidden" name="id" value="<?= e($qp['id']) ?>">
-          <div class="mt-4 grid gap-3 sm:grid-cols-[1fr_1fr_0.8fr_auto]">
-            <?= airport_field('from', 'Leaving from', 'City or airport', $qp['from']) ?>
-            <?= date_field('depart', 'Departure', $qp['depart']) ?>
+          <p class="mt-1 text-sm text-slate-500">Choose any departure date from <?= e(fmt_date($quote['package']['first'])) ?> to <?= e(fmt_date($quote['package']['last'])) ?>.</p>
+          <div class="mt-4 grid gap-3 sm:grid-cols-[1fr_0.8fr_auto]">
+            <label class="<?= FIELD_BOX ?>"><span class="<?= FIELD_LABEL ?>">Departure</span>
+              <span class="flex items-center gap-2"><?= icon('calendar', 16, 'shrink-0 text-brand-500') ?>
+              <input type="date" name="depart" value="<?= e($qp['depart']) ?>" min="<?= e($quote['package']['first']) ?>" max="<?= e($quote['package']['last']) ?>" required class="<?= FIELD_INPUT ?>"></span></label>
             <label class="flex flex-col rounded-xl border border-slate-200 bg-white px-4 py-2.5">
               <span class="text-xs font-medium uppercase tracking-wide text-slate-500">Travelers</span>
               <select name="adults" class="bg-transparent text-base font-semibold text-slate-900 outline-none">

@@ -199,6 +199,7 @@
     }
     form.addEventListener("submit", (e) => {
       const codes = $$("[data-airport-code]", form).map((i) => i.value);
+      if (!codes.length) return; // e.g. the packages destination list
       let msg = "";
       if (form.dataset.searchForm === "flight") {
         if (!codes[0] || !codes[1]) msg = "Please choose where you're flying from and to.";

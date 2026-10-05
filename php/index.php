@@ -4,7 +4,7 @@ require __DIR__ . '/includes/bootstrap.php';
 $memberPct = (int) round(member_discount_rate() * 100);
 $whyUs = [
     ['tag', 'Low fares, no surprises', 'We compare hundreds of airlines and hotels so you see the real price up front — taxes and fees included.'],
-    ['package', 'Bundle & save', 'Combine your flight, hotel and car in one booking and unlock package-only rates.'],
+    ['package', 'Ready-made packages', 'Flights and hotel in one booking at one price per person, put together by our travel assistants.'],
     ['headset', 'A real travel assistant', 'Our team helps you plan, change or cancel — by chat or phone, whenever you need us.'],
     ['shield', 'Secure booking', 'Your account and payment details are protected with industry-standard encryption.'],
 ];
@@ -15,11 +15,12 @@ $steps = [
 ];
 $faq = [
     ['How do you find affordable flights?', 'We search many airlines and booking sources at once and sort the results so the best-value options appear first. Flexible dates usually unlock even lower fares.'],
-    ['What is included in a promo package?', 'Every package includes round-trip flights and a hotel stay. Many also include a rental car, airport transfers, breakfast or tours — check the package details.'],
+    ['What is included in a promo package?', 'Every package includes round-trip flights and a hotel stay. Some also include a rental car or extras like breakfast or tours — each package lists exactly what is included.'],
     ['Do I need an account to book?', "You can search without an account. To book, save trips and receive member-only deals, you'll sign in or create a free account."],
     ['Can I change or cancel my booking?', 'It depends on the fare or hotel rules. Refundable options are clearly marked, and our assistants can help with changes.'],
 ];
-$tabs = [['flights', 'Flights', 'plane'], ['packages', 'Flight + Hotel + Car', 'package'], ['hotels', 'Hotels', 'bed']];
+$tabs = [['flights', 'Flights', 'plane'], ['packages', 'Flight + Hotel', 'package'], ['hotels', 'Hotels', 'bed']];
+$promos = active_packages();
 require __DIR__ . '/includes/header.php';
 ?>
 <section class="relative bg-gradient-to-br from-brand-950 via-brand-800 to-brand-600">
@@ -34,7 +35,7 @@ require __DIR__ . '/includes/header.php';
     <div class="max-w-2xl text-white">
       <p class="mb-4 inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-sm font-medium ring-1 ring-white/20"><span class="h-2 w-2 rounded-full bg-accent-400"></span>Your personal travel assistant</p>
       <h1 class="text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl lg:text-6xl">Fly further. <span class="text-accent-400">Pay less.</span></h1>
-      <p class="mt-4 text-lg text-brand-100 sm:text-xl">Affordable flights, hand-picked hotels and money-saving Flight + Hotel + Car packages — all in one place.</p>
+      <p class="mt-4 text-lg text-brand-100 sm:text-xl">Affordable flights, hotels and Flight + Hotel packages — all in one place.</p>
     </div>
     <div class="mt-10 rounded-2xl bg-white shadow-2xl shadow-brand-950/20" data-tabs>
       <div role="tablist" class="flex overflow-x-auto border-b border-slate-100 px-2 sm:px-4">
@@ -42,7 +43,6 @@ require __DIR__ . '/includes/header.php';
           <button type="button" role="tab" aria-selected="<?= $i === 0 ? 'true' : 'false' ?>" data-tab="<?= $id ?>"
             class="flex shrink-0 items-center gap-2 border-b-2 px-4 py-4 text-sm font-semibold transition border-transparent text-slate-500 hover:text-slate-800 aria-selected:border-brand-600 aria-selected:text-brand-700">
             <?= icon($ic, 18) ?><?= $label ?>
-            <?php if ($id === 'packages'): ?><span class="rounded-full bg-accent-500 px-2 py-0.5 text-[10px] font-bold uppercase text-white">Save</span><?php endif; ?>
           </button>
         <?php endforeach; ?>
       </div>
@@ -63,7 +63,7 @@ require __DIR__ . '/includes/header.php';
 <section class="mx-auto max-w-7xl px-4 py-14 sm:px-6">
   <div class="grid gap-4 md:grid-cols-3">
     <?php foreach ([
-        ['packages.php', 'from-accent-400 to-accent-600', 'package', 'Packages', 'Flight + Hotel + Car', 'Save up to 40% when you bundle.', 'See promo packages →'],
+        ['packages.php', 'from-accent-400 to-accent-600', 'package', 'Packages', 'Flight + Hotel', 'Ready-made trips at one price per person.', 'See promo packages →'],
         ['flights.php', 'from-sky-500 to-brand-700', 'plane', 'Flights', 'Compare airlines', 'Real fares from airlines worldwide.', 'Search flights →'],
         ['register.php', 'from-emerald-500 to-teal-700', 'user', 'Members', $memberPct > 0 ? "Extra $memberPct% off" : 'Save your trips', $memberPct > 0 ? 'Free account, member-only prices.' : 'Free account, faster booking and price alerts.', 'Create free account →'],
     ] as [$href, $grad, $ic, $kicker, $heading, $text, $cta]): ?>
@@ -87,31 +87,34 @@ require __DIR__ . '/includes/header.php';
     <a href="<?= e(url('flights.php')) ?>" class="hidden text-sm font-semibold text-brand-700 hover:underline sm:block">Explore all flights →</a>
   </div>
   <div class="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
-    <?php foreach (POPULAR_DESTINATIONS as [$city, $country, $code, $grad]): ?>
+    <?php foreach (POPULAR_DESTINATIONS as [$city, $country, $code, $grad]): $photo = site_image("dest:$code"); ?>
       <a href="<?= e(url('flights.php', ['from' => 'JFK', 'to' => $code])) ?>" class="group relative flex aspect-[3/4] flex-col justify-end overflow-hidden rounded-2xl bg-gradient-to-br <?= $grad ?> p-4 text-white shadow-md transition hover:-translate-y-1 hover:shadow-xl">
+        <?php if ($photo): ?><img src="<?= e($photo) ?>" alt="<?= e($city) ?>" loading="lazy" class="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-105"><span class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent"></span><?php endif; ?>
         <span class="absolute right-3 top-3 rounded-md bg-black/20 px-2 py-0.5 font-mono text-xs font-semibold backdrop-blur"><?= $code ?></span>
-        <p class="text-xs font-medium text-white/80"><?= e($country) ?></p>
-        <p class="text-lg font-bold"><?= e($city) ?></p>
-        <p class="mt-1 text-sm font-semibold">See fares →</p>
+        <p class="relative text-xs font-medium text-white/80"><?= e($country) ?></p>
+        <p class="relative text-lg font-bold"><?= e($city) ?></p>
+        <p class="relative mt-1 text-sm font-semibold">See fares →</p>
       </a>
     <?php endforeach; ?>
   </div>
 </section>
 
+<?php if ($promos): ?>
 <section class="bg-white py-14">
   <div class="mx-auto max-w-7xl px-4 sm:px-6">
     <div class="mb-6 flex items-end justify-between gap-4">
       <div>
         <p class="text-sm font-semibold uppercase tracking-wider text-accent-600">Promo packages</p>
-        <h2 class="text-2xl font-bold text-slate-900 sm:text-3xl">This week's best bundles</h2>
+        <h2 class="text-2xl font-bold text-slate-900 sm:text-3xl">Current package deals</h2>
       </div>
       <a href="<?= e(url('packages.php')) ?>" class="text-sm font-semibold text-brand-700 hover:underline">View all packages →</a>
     </div>
     <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-      <?php foreach (array_slice(promo_packages(), 0, 4) as $p) echo package_card($p); ?>
+      <?php foreach (array_slice($promos, 0, 4) as $p) echo package_card($p); ?>
     </div>
   </div>
 </section>
+<?php endif; ?>
 
 <section id="why-us" class="mx-auto max-w-7xl scroll-mt-20 px-4 py-16 sm:px-6">
   <h2 class="text-center text-2xl font-bold text-slate-900 sm:text-3xl">Why travelers book with us</h2>

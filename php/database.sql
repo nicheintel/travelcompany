@@ -67,3 +67,34 @@ CREATE TABLE IF NOT EXISTS settings (
   value      TEXT        NOT NULL,
   updated_at DATETIME    NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Promo packages, created on Admin → Packages (prices set by the travel company).
+CREATE TABLE IF NOT EXISTS packages (
+  id           INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  slug         VARCHAR(80)  NOT NULL UNIQUE,
+  title        VARCHAR(120) NOT NULL,
+  from_code    CHAR(3)      NOT NULL,
+  to_code      CHAR(3)      NOT NULL,
+  nights       TINYINT UNSIGNED NOT NULL,
+  hotel        VARCHAR(120) NOT NULL,
+  stars        TINYINT UNSIGNED NULL,
+  includes_car TINYINT(1)   NOT NULL DEFAULT 0,
+  highlights   TEXT         NOT NULL,
+  price        INT UNSIGNED NOT NULL,
+  was_price    INT UNSIGNED NULL,
+  badge        VARCHAR(30)  NULL,
+  valid_from   DATE         NULL,
+  valid_to     DATE         NULL,
+  image        VARCHAR(100) NULL,
+  active       TINYINT(1)   NOT NULL DEFAULT 1,
+  sort         INT          NOT NULL DEFAULT 0,
+  created_at   DATETIME     NOT NULL,
+  updated_at   DATETIME     NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Uploaded photos for other parts of the site, e.g. 'dest:CDG' for the Paris destination card.
+CREATE TABLE IF NOT EXISTS site_images (
+  name       VARCHAR(40)  NOT NULL PRIMARY KEY,
+  path       VARCHAR(100) NOT NULL,
+  updated_at DATETIME     NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

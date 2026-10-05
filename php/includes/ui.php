@@ -124,24 +124,31 @@ function flight_search_form(array $d = []): string
         . '</div><p role="alert" class="hidden text-sm font-medium text-red-600" data-form-error></p></form>';
 }
 
+/** Destination picker for the promo packages created on Admin → Packages. */
 function package_search_form(array $d = []): string
 {
-    $car = $d['car'] ?? true;
+    $dests = [];
+    foreach (active_packages() as $p) $dests[$p['to_code']] = "{$p['destination']}, {$p['country']}";
+    asort($dests);
+    if (!$dests) {
+        return '<div class="flex flex-col gap-3 rounded-xl bg-slate-50 p-5 sm:flex-row sm:items-center sm:justify-between">'
+            . '<p class="text-slate-700"><strong class="text-slate-900">New promo packages are coming soon.</strong> Create a free account and our travel assistants can put together a flight + hotel trip for you.</p>'
+            . '<a href="' . e(url('register.php')) . '" class="shrink-0 rounded-xl bg-accent-500 px-5 py-3 text-center font-semibold text-white hover:bg-accent-600">Create free account</a></div>';
+    }
+    $options = '<option value="">All destinations</option>';
+    foreach ($dests as $code => $label) {
+        $options .= '<option value="' . e($code) . '"' . (($d['to'] ?? '') === $code ? ' selected' : '') . '>' . e($label) . '</option>';
+    }
     return '<form action="' . e(url('packages.php')) . '#results" method="get" class="space-y-4" data-search-form="package">'
         . '<div class="flex flex-wrap items-center gap-2 text-sm">'
         . '<span class="flex items-center gap-1.5 rounded-full bg-brand-50 px-3 py-1.5 font-medium text-brand-700">' . icon('plane', 14) . ' Flight</span><span class="text-slate-400">+</span>'
-        . '<span class="flex items-center gap-1.5 rounded-full bg-brand-50 px-3 py-1.5 font-medium text-brand-700">' . icon('bed', 14) . ' Hotel</span><span class="text-slate-400">+</span>'
-        . '<label class="flex cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1.5 font-medium transition border-dashed border-slate-300 bg-white text-slate-600 hover:border-slate-400 has-[:checked]:border-solid has-[:checked]:border-brand-600 has-[:checked]:bg-brand-600 has-[:checked]:text-white">'
-        . '<input type="checkbox" name="car" value="1"' . ($car ? ' checked' : '') . ' class="sr-only">' . icon('car', 14) . ' <span>Add a car</span></label>'
-        . '<span class="ml-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">Bundle &amp; save up to 40%</span></div>'
-        . '<div class="grid gap-3 lg:grid-cols-[1fr_1fr_0.8fr_0.8fr_1fr_auto]">'
-        . airport_field('from', 'Leaving from', 'City or airport', $d['from'] ?? 'JFK')
-        . airport_field('to', 'Going to', 'Destination', $d['to'] ?? null)
-        . date_field('depart', 'Check-in', $d['depart'] ?? '', 21)
-        . date_field('return', 'Check-out', $d['return'] ?? '', 26, 'depart', 5)
-        . travelers_field($d['adults'] ?? 2, 0, 1)
-        . search_button('Find deals')
-        . '</div><p role="alert" class="hidden text-sm font-medium text-red-600" data-form-error></p></form>';
+        . '<span class="flex items-center gap-1.5 rounded-full bg-brand-50 px-3 py-1.5 font-medium text-brand-700">' . icon('bed', 14) . ' Hotel</span>'
+        . '<span class="text-slate-500">· some packages include a car</span></div>'
+        . '<div class="grid gap-3 sm:grid-cols-[1fr_auto]">'
+        . '<label class="' . FIELD_BOX . '"><span class="' . FIELD_LABEL . '">Going to</span><span class="flex items-center gap-2">' . icon('pin', 16, 'shrink-0 text-brand-500')
+        . '<select name="to" class="' . FIELD_INPUT . '">' . $options . '</select></span></label>'
+        . search_button('See packages')
+        . '</div></form>';
 }
 
 function hotel_search_form(array $d = []): string
@@ -158,29 +165,31 @@ function hotel_search_form(array $d = []): string
 
 // ---------- Cards & summaries ----------
 
-function package_card(array $p, string $bookQuery = ''): string
+function package_card(array $p): string
 {
-    $save = $p['original'] - $p['price'];
-    $pct = (int) round($save / $p['original'] * 100);
+    $save = $p['was_price'] && $p['was_price'] > $p['price'] ? $p['was_price'] - $p['price'] : 0;
     $chip = fn($i, $t) => '<span class="flex items-center gap-1 rounded-md bg-brand-50 px-2 py-1 text-brand-700">' . icon($i, 12) . " $t</span>";
-    $perks = implode('', array_map(fn($x) => '<li class="flex items-center gap-2">' . icon('check', 14, 'text-emerald-500') . e($x) . '</li>', $p['perks']));
-    $href = url('book.php') . '?kind=package&id=' . rawurlencode($p['id']) . ($bookQuery ? '&' . $bookQuery : '');
-    return '<article id="' . e($p['id']) . '" class="group flex scroll-mt-24 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl"'
-        . ' data-item data-category="' . e($p['category']) . '" data-car="' . ($p['car'] ? '1' : '0') . '" data-price="' . $p['price'] . '" data-savings="' . $save . '">'
-        . '<div class="relative h-44 bg-gradient-to-br ' . $p['gradient'] . ' p-4 text-white">'
-        . '<svg class="absolute inset-0 h-full w-full opacity-20" viewBox="0 0 400 180" preserveAspectRatio="none" aria-hidden="true"><path d="M0 140 Q100 100 200 130 T400 120 V180 H0Z" fill="white"/><path d="M0 160 Q120 130 240 155 T400 150 V180 H0Z" fill="white"/></svg>'
+    $perks = implode('', array_map(fn($x) => '<li class="flex items-start gap-2">' . icon('check', 14, 'mt-0.5 shrink-0 text-emerald-500') . e($x) . '</li>', array_slice($p['highlights'], 0, 4)));
+    [$first, $last] = package_dates($p);
+    $photo = upload_url($p['image']);
+    $top = $photo
+        ? '<img src="' . e($photo) . '" alt="' . e($p['destination']) . '" loading="lazy" class="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-105"><div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-black/20"></div>'
+        : '<div class="absolute inset-0 bg-gradient-to-br ' . $p['gradient'] . '"></div><svg class="absolute inset-0 h-full w-full opacity-20" viewBox="0 0 400 180" preserveAspectRatio="none" aria-hidden="true"><path d="M0 140 Q100 100 200 130 T400 120 V180 H0Z" fill="white"/><path d="M0 160 Q120 130 240 155 T400 150 V180 H0Z" fill="white"/></svg>';
+    return '<article id="' . e($p['slug']) . '" class="group flex scroll-mt-24 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl">'
+        . '<div class="relative h-48 overflow-hidden p-4 text-white">' . $top
         . '<div class="relative flex items-start justify-between">' . ($p['badge'] ? '<span class="rounded-full bg-white/95 px-3 py-1 text-xs font-bold text-slate-900 shadow">' . e($p['badge']) . '</span>' : '<span></span>')
-        . '<span class="rounded-full bg-accent-500 px-3 py-1 text-xs font-bold shadow">-' . $pct . '%</span></div>'
+        . ($save ? '<span class="rounded-full bg-accent-500 px-3 py-1 text-xs font-bold shadow">-' . (int) round($save / $p['was_price'] * 100) . '%</span>' : '') . '</div>'
         . '<div class="absolute bottom-4 left-4 right-4"><p class="text-sm font-medium text-white/90">' . e($p['country']) . ' · ' . $p['nights'] . ' nights</p><h3 class="text-xl font-bold drop-shadow">' . e($p['destination']) . '</h3></div></div>'
         . '<div class="flex flex-1 flex-col p-5"><h4 class="font-semibold text-slate-900">' . e($p['title']) . '</h4>'
-        . '<div class="mt-1 flex items-center gap-2 text-sm text-slate-600"><span class="flex text-amber-400">' . star_icons($p['stars']) . '</span><span class="truncate">' . e($p['hotel']) . '</span></div>'
+        . '<div class="mt-1 flex items-center gap-2 text-sm text-slate-600">' . ($p['stars'] ? '<span class="flex text-amber-400">' . star_icons($p['stars']) . '</span>' : '') . '<span class="truncate">' . e($p['hotel']) . '</span></div>'
+        . '<p class="mt-1 text-xs text-slate-500">From ' . e($p['from_city']) . ' · travel ' . e(fmt_date($first)) . ' – ' . e(fmt_date($last)) . '</p>'
         . '<div class="mt-3 flex flex-wrap gap-1.5 text-xs font-medium">' . $chip('plane', 'Flight') . $chip('bed', 'Hotel') . ($p['car'] ? $chip('car', 'Car') : '') . '</div>'
-        . '<ul class="mt-3 space-y-1 text-sm text-slate-600">' . $perks . '</ul>'
+        . ($perks ? '<ul class="mt-3 space-y-1 text-sm text-slate-600">' . $perks . '</ul>' : '')
         . '<div class="mt-auto flex items-end justify-between gap-3 pt-5"><div>'
-        . '<p class="text-sm text-slate-400 line-through">' . money($p['original']) . '</p>'
+        . ($save ? '<p class="text-sm text-slate-400 line-through">' . money($p['was_price']) . '</p>' : '')
         . '<p class="text-2xl font-extrabold text-slate-900">' . money($p['price']) . '<span class="text-xs font-medium text-slate-500"> /person</span></p>'
-        . '<p class="text-xs font-semibold text-emerald-600">You save ' . money($save) . '</p></div>'
-        . '<a href="' . e($href) . '" class="shrink-0 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-700">Book deal</a></div></div></article>';
+        . ($save ? '<p class="text-xs font-semibold text-emerald-600">You save ' . money($save) . '</p>' : '') . '</div>'
+        . '<a href="' . e(url('book.php', ['kind' => 'package', 'id' => $p['slug']])) . '" class="shrink-0 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-700">Book deal</a></div></div></article>';
 }
 
 function leg_row(array $leg, string $label): string
@@ -338,7 +347,7 @@ function trip_card(array $b): string
 
 function admin_open(string $active): string
 {
-    $links = [['admin/', 'Overview', 'overview'], ['admin/bookings.php', 'Bookings', 'bookings'], ['admin/users.php', 'Users', 'users'], ['admin/settings.php', 'Site settings', 'settings'], ['admin/diagnostics.php', 'Diagnostics', 'diagnostics']];
+    $links = [['admin/', 'Overview', 'overview'], ['admin/bookings.php', 'Bookings', 'bookings'], ['admin/users.php', 'Users', 'users'], ['admin/packages.php', 'Packages', 'packages'], ['admin/settings.php', 'Site settings', 'settings'], ['admin/diagnostics.php', 'Diagnostics', 'diagnostics']];
     $nav = implode('', array_map(fn($l) => '<a href="' . e(url($l[0])) . '" class="shrink-0 rounded-lg px-4 py-2 text-sm font-semibold transition '
         . ($l[2] === $active ? 'bg-white text-brand-800 shadow-sm' : 'text-brand-100 hover:bg-white/10 hover:text-white') . '">' . $l[1] . '</a>', $links));
     return '<div class="min-h-full bg-slate-50"><div class="bg-brand-900"><div class="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">'

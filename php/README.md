@@ -65,17 +65,20 @@ supports environment variables you can use the same names in upper case instead
 
 | File | Page |
 | --- | --- |
-| `index.php` | Landing page with Flights / Flight+Hotel+Car / Hotels search |
-| `flights.php`, `hotels.php`, `packages.php` | Search results with filters and sorting; promo packages |
+| `index.php` | Landing page with Flights / Flight + Hotel / Hotels search |
+| `flights.php`, `hotels.php`, `packages.php` | Search results with filters and sorting; promo packages (created on Admin → Packages) |
 | `book.php` | Booking: traveler details, contact info, price summary (signed-in members) |
 | `account.php`, `trip.php`, `settings.php` | My trips, trip details (pay / cancel), account settings |
 | `register.php`, `signin.php`, `forgot-password.php`, `reset-password.php` | Accounts |
-| `admin/` | Staff dashboard: needs-a-call list, bookings, record payments, cancel, notes, users |
+| `admin/` | Staff dashboard: paid trips to ticket, needs-a-call list, bookings, payments, ticketing, notes, users, packages and photos |
 | `paypal-webhook.php`, `stripe-webhook.php` | Payment notifications from PayPal / Stripe |
 
 Code lives in `includes/` (blocked from the web by `.htaccess`): `search.php` (Duffel, LiteAPI,
 pricing), `quote.php` (booking prices, always recomputed on the server), `bookings.php`,
-`auth.php`, `email.php`, `payments.php`, `ui.php` (shared HTML pieces).
+`auth.php`, `email.php`, `payments.php`, `packages.php` (promo packages, photo uploads), `ui.php` (shared HTML pieces).
+
+Uploaded photos are saved in `uploads/` (the folder must be writable). Every photo is re-saved as
+a new JPEG, so only real images end up there, and `uploads/.htaccess` serves nothing else.
 
 ## Security built in
 
