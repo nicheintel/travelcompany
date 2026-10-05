@@ -5,7 +5,7 @@ $admin = require_admin();
 $ref = (string) ($_GET['ref'] ?? '');
 $booking = admin_booking($ref);
 if (!$booking) not_found();
-$methods = ['Bank transfer', 'Card over the phone', 'Cash at office', 'Other'];
+$methods = ['GCash', 'Bank transfer', 'Card over the phone', 'Cash at office', 'Other'];
 $self = url('admin/booking.php', ['ref' => $ref]);
 $error = null;
 
@@ -62,6 +62,13 @@ if (is_post()) {
         elseif (!preg_match('/^[A-Z0-9][A-Z0-9 ,\/-]{1,98}$/', $code)) $error = 'Enter the confirmation code from the airline or hotel (letters and numbers, e.g. ABC123).';
         elseif (!mark_ticketed($ref, $admin['id'], $code, $note, $boughtFrom, $boughtCost)) $error = 'Only paid bookings can be marked as ticketed.';
         else { notify_booking('ticketed', $ref); flash("Saved. {$booking['contact_email']} has been emailed the confirmation $code."); redirect($self); }
+    } elseif ($action === 'gcash_ok') {
+        if (!$booking['gcash_ref']) $error = 'There is no GCash payment to confirm.';
+        elseif (!mark_paid($ref, 'GCash', $admin['id'], "GCash payment confirmed — ₱" . number_format((int) $booking['gcash_php']) . ", reference {$booking['gcash_ref']}.", 'GCash ' . $booking['gcash_ref'])) $error = 'Only reserved (unpaid) bookings can be marked as paid.';
+        else { notify_booking('paid', $ref); flash('GCash payment confirmed. The customer has been emailed a receipt.'); redirect($self); }
+    } elseif ($action === 'gcash_missing') {
+        if (!reject_gcash($ref, $admin['id'])) $error = 'There is no GCash payment waiting on this booking.';
+        else { email_gcash_not_found($booking); flash('Done. The customer was asked to check the reference number.'); redirect($self); }
     } elseif ($action === 'delete') {
         if (strtoupper(post('confirm_ref')) !== $ref) $error = "To delete, type the reference $ref exactly.";
         elseif (!delete_booking($ref)) $error = 'This booking was already deleted.';
@@ -140,6 +147,21 @@ echo admin_open('bookings');
       </section>
     </div>
     <aside class="space-y-6">
+      <?php if ($booking['status'] === 'reserved' && $booking['gcash_ref']): ?>
+        <section class="rounded-xl border-2 border-sky-400 bg-white p-5 ring-4 ring-sky-100">
+          <h2 class="font-semibold text-slate-900">GCash payment to check</h2>
+          <dl class="mt-2 space-y-1 text-sm">
+            <div class="flex justify-between"><dt class="text-slate-500">Amount</dt><dd class="font-bold text-slate-900">₱<?= number_format((int) $booking['gcash_php']) ?></dd></div>
+            <div class="flex justify-between"><dt class="text-slate-500">GCash reference</dt><dd class="font-mono font-semibold text-slate-900"><?= e($booking['gcash_ref']) ?></dd></div>
+            <div class="flex justify-between"><dt class="text-slate-500">Sent</dt><dd class="text-slate-700"><?= local_time($booking['gcash_sent_at']) ?></dd></div>
+          </dl>
+          <p class="mt-3 rounded-lg bg-amber-50 p-3 text-xs text-amber-900 ring-1 ring-amber-200">Open <strong>your GCash app → Transactions</strong> and find this reference number and amount <strong>before</strong> confirming. Never confirm from a screenshot — they're easy to fake.</p>
+          <form method="post" class="mt-3"><?= csrf_field() ?><input type="hidden" name="action" value="gcash_ok">
+            <button type="submit" class="w-full rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">I received it — mark as paid</button></form>
+          <form method="post" class="mt-2"><?= csrf_field() ?><input type="hidden" name="action" value="gcash_missing">
+            <button type="submit" class="w-full rounded-lg px-4 py-2 text-sm font-semibold text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50">Not in my GCash — ask the customer to check</button></form>
+        </section>
+      <?php endif; ?>
       <?php if ($booking['status'] === 'reserved' && $booking['bag_status'] === 'pending'):
           $bagCount = count(array_filter($booking['travelers'], fn($t) => !empty($t['extra_bag'])));
           $from = $q['baggage']['checked_from'] ?? null; ?>

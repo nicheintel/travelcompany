@@ -34,7 +34,22 @@ function masked(string $v): string
 }
 
 $errors = [];
-if (is_post()) {
+// GCash QR code: its own small form (photo upload).
+if (is_post() && post('action') === 'gcash_qr') {
+    verify_csrf();
+    if (!empty($_POST['remove'])) {
+        set_site_image('gcash_qr', null);
+        flash('GCash QR code removed.');
+        redirect(url('admin/settings.php') . '#gcash');
+    }
+    [$file, $err] = save_photo($_FILES['qr'] ?? []);
+    if ($file) {
+        set_site_image('gcash_qr', $file);
+        flash('GCash QR code saved. Customers see it on their trip page.');
+        redirect(url('admin/settings.php') . '#gcash');
+    }
+    $errors['gcash_qr'] = $err ?? 'Choose your GCash QR code image first.';
+} elseif (is_post()) {
     verify_csrf();
     foreach (SECRET_FIELDS as $name => $_) {
         if (config_fixed($name)) continue;
@@ -65,6 +80,13 @@ if (is_post()) {
         } else {
             save_setting('app_url', $site);
         }
+    }
+    // GCash account customers send money to (a Philippine mobile number).
+    if (!config_fixed('gcash_name')) save_setting('gcash_name', mb_substr(trim(preg_replace('/\s+/', ' ', (string) ($_POST['gcash_name'] ?? ''))), 0, 80));
+    if (!config_fixed('gcash_number')) {
+        $gn = preg_replace('/[\s-]/', '', (string) ($_POST['gcash_number'] ?? ''));
+        if ($gn !== '' && !preg_match('/^(09\d{9}|\+639\d{9})$/', $gn)) $errors['gcash_number'] = 'Enter the GCash mobile number like 09171234567, or leave empty to turn GCash off.';
+        else save_setting('gcash_number', $gn);
     }
     if (!config_fixed('flight_supplier')) save_setting('flight_supplier', ($_POST['flight_supplier'] ?? '') === 'liteapi' ? 'liteapi' : 'duffel');
     if (!config_fixed('paypal_mode')) save_setting('paypal_mode', ($_POST['paypal_mode'] ?? '') === 'live' ? 'live' : 'sandbox');
@@ -264,6 +286,32 @@ $fixedNote = '<p class="mt-1 text-xs text-amber-700">Set in config.local.php or 
     </div>
   </section>
 
+  <section id="gcash" class="scroll-mt-24 rounded-xl border border-slate-200 bg-white p-6">
+    <h2 class="text-lg font-semibold text-slate-900">GCash payments</h2>
+    <p class="mt-1 text-sm text-slate-500">Customers in the Philippines can send the peso amount to your GCash and enter the reference number on their trip page. You check it in your GCash app and confirm. Leave the number empty to turn GCash off.</p>
+    <div class="mt-5 grid gap-4 sm:grid-cols-2">
+      <div><label for="s_gcash_name" class="block text-sm font-medium text-slate-700">Account name (as shown in GCash)</label>
+        <input id="s_gcash_name" name="gcash_name" maxlength="80" value="<?= e(is_post() ? (string) ($_POST['gcash_name'] ?? '') : (string) config('gcash_name')) ?>" placeholder="e.g. J. O." class="<?= $input ?> mt-1"<?= config_fixed('gcash_name') ? ' disabled' : '' ?>></div>
+      <div><label for="s_gcash_number" class="block text-sm font-medium text-slate-700">GCash number</label>
+        <input id="s_gcash_number" name="gcash_number" type="tel" value="<?= e(is_post() ? (string) ($_POST['gcash_number'] ?? '') : (string) config('gcash_number')) ?>" placeholder="09171234567" class="<?= $input ?> mt-1"<?= config_fixed('gcash_number') ? ' disabled' : '' ?>>
+        <?php if (isset($errors['gcash_number'])): ?><p class="mt-1 text-sm text-red-600"><?= e($errors['gcash_number']) ?></p><?php endif; ?></div>
+    </div>
+    <p class="mt-3 text-xs text-slate-500">Upload your GCash QR code below the Save button. <?= isset(fx_rates()['rates']['PHP']) ? '' : '<strong class="text-amber-700">GCash stays hidden until today\'s peso exchange rate is available (see Diagnostics).</strong>' ?></p>
+  </section>
+
   <button type="submit" class="rounded-xl bg-brand-600 px-6 py-3 font-semibold text-white hover:bg-brand-700">Save settings</button>
+</form>
+<form method="post" enctype="multipart/form-data" class="mt-6 max-w-3xl rounded-xl border border-slate-200 bg-white p-6"><?= csrf_field() ?><input type="hidden" name="action" value="gcash_qr">
+  <h2 class="text-lg font-semibold text-slate-900">GCash QR code</h2>
+  <p class="mt-1 text-sm text-slate-500">In the GCash app: <strong>QR → Generate QR</strong> (or "Receive money"), save the image, then upload it here. Customers can scan it to pay.</p>
+  <div class="mt-4 flex flex-wrap items-start gap-5">
+    <?php if ($qr = site_image('gcash_qr')): ?><img src="<?= e($qr) ?>" alt="Your GCash QR code" class="h-40 w-40 rounded-lg object-contain ring-1 ring-slate-200"><?php endif; ?>
+    <div class="space-y-2">
+      <input name="qr" type="file" accept="image/jpeg,image/png,image/webp" aria-label="GCash QR code image" class="block w-full text-sm text-slate-700 file:mr-3 file:rounded-lg file:border-0 file:bg-brand-50 file:px-4 file:py-2 file:font-semibold file:text-brand-700">
+      <?php if (isset($errors['gcash_qr'])): ?><p class="text-sm text-red-600"><?= e($errors['gcash_qr']) ?></p><?php endif; ?>
+      <div class="flex gap-2"><button type="submit" class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700">Upload QR code</button>
+        <?php if ($qr): ?><button type="submit" name="remove" value="1" class="rounded-lg px-4 py-2 text-sm font-semibold text-red-600 ring-1 ring-red-200 hover:bg-red-50">Remove</button><?php endif; ?></div>
+    </div>
+  </div>
 </form>
 <?php echo admin_close(); require dirname(__DIR__) . '/includes/footer.php';

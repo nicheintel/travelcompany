@@ -12,7 +12,7 @@ echo legal_page('Privacy policy', "This policy explains what personal informatio
     'collect' => ['Information we collect', '<ul>
         <li><strong>Account details:</strong> your name, email address and password. Passwords are stored only in a securely scrambled (hashed) form — we can\'t see them.</li>
         <li><strong>Booking details:</strong> each traveler\'s name, date of birth, gender and nationality as shown on their passport or ID; any frequent flyer number and baggage requests you give us; a contact name, email and phone number; and the trip you chose and its price. Airlines require these details to issue tickets.</li>
-        <li><strong>Payment details:</strong> payments are made on PayPal\'s (or Stripe\'s) own secure pages. We receive confirmation that you paid and a payment reference — <strong>never your card number</strong>.</li>
+        <li><strong>Payment details:</strong> payments are made on PayPal\'s (or Stripe\'s) own secure pages. We receive confirmation that you paid and a payment reference — <strong>never your card number</strong>. If you pay by GCash, we keep the GCash reference number and amount you send so we can match your payment.</li>
         <li><strong>Messages:</strong> anything you send us by email, WhatsApp or phone, and notes our travel assistants add to your booking to help you.</li>
         <li><strong>Technical information:</strong> your IP address, used briefly to protect the site against password guessing and abuse, and one cookie that keeps you signed in (see our <a href="' . e(url('cookies.php')) . '">Cookie policy</a>). We don\'t use advertising or tracking tools.</li>
     </ul>'],

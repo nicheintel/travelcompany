@@ -22,6 +22,13 @@ echo admin_open('overview');
     <?= $stat('Revenue (30 days)', money($stats['revenue_30d']), url('admin/bookings.php', ['status' => 'ticketed']), 'Paid bookings') ?>
     <?= $stat('New members (7 days)', (string) $stats['users_7d'], url('admin/users.php')) ?>
   </div>
+  <?php if ($gcashToCheck = admin_gcash_to_check()): ?>
+    <section class="rounded-2xl border-2 border-sky-300 bg-sky-50 p-5">
+      <div class="mb-3"><h2 class="text-lg font-bold text-sky-900">GCash payments to check (<?= count($gcashToCheck) ?>)</h2>
+        <p class="text-sm text-sky-800">These customers say they sent a GCash payment. Open each booking, find the reference in your GCash app, then confirm.</p></div>
+      <?= bookings_table($gcashToCheck, '') ?>
+    </section>
+  <?php endif; ?>
   <?php if ($toTicket): ?>
     <section class="rounded-2xl border-2 border-red-300 bg-red-50 p-5">
       <div class="mb-3"><h2 class="text-lg font-bold text-red-800">Paid — issue the tickets now (<?= count($toTicket) ?>)</h2>

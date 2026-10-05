@@ -15,6 +15,7 @@ const EDITABLE_SETTINGS = [
     'support_email', 'support_phone', 'support_whatsapp', 'business_name', 'business_address',
     'stripe_secret_key', 'stripe_webhook_secret',
     'paypal_client_id', 'paypal_secret', 'paypal_mode', 'paypal_webhook_id',
+    'gcash_name', 'gcash_number',
 ];
 
 function config(string $key, mixed $default = null): mixed
@@ -69,6 +70,9 @@ function config(string $key, mixed $default = null): mixed
             'smtp_pass' => '',
 
             // "Need help?" contact shown to customers. Email defaults to the sending mailbox.
+            // GCash (manual): the account customers send pesos to. Empty = GCash off.
+            'gcash_name' => '',
+            'gcash_number' => '',
             'support_email' => '',
             'support_phone' => '',
             'support_whatsapp' => '',

@@ -13,6 +13,19 @@ if (is_post()) {
         notify_booking('cancelled', $ref);
         redirect(url('trip.php', ['ref' => $ref]));
     }
+    if ($action === 'gcash' && $booking['status'] === 'reserved' && gcash_enabled() && ($booking['bag_status'] ?? null) !== 'pending') {
+        // GCash reference numbers are 13 digits; allow spaces and a little slack for other formats.
+        $gref = preg_replace('/[\s-]/', '', post('gcash_ref'));
+        $pesos = gcash_amount($booking['total']);
+        if (!preg_match('/^[0-9]{8,20}$/', $gref) || !$pesos) {
+            flash(t('Enter the reference number from your GCash receipt (numbers only).'), 'error');
+        } elseif (ip_throttled('gcash', 10, 3600)) {
+            flash(t('Too many requests. Please wait a few minutes and try again.'), 'error');
+        } elseif (submit_gcash($ref, $user['id'], $gref, $pesos)) {
+            flash(t("Thanks! We'll check your GCash payment and confirm by email, usually within a few hours."));
+        }
+        redirect(url('trip.php', ['ref' => $ref]) . '#gcash');
+    }
     if ($action === 'pay' && $booking['status'] === 'reserved' && payments_enabled() && ($booking['bag_status'] ?? null) !== 'pending') {
         try {
             if (payment_provider() === 'paypal') {
@@ -65,6 +78,7 @@ $justPaid = $returned && $status === 'paid';
 $payFailed = $returned && $status === 'reserved';
 $bagPending = $status === 'reserved' && ($booking['bag_status'] ?? null) === 'pending';
 $canPay = $status === 'reserved' && payments_enabled() && !$bagPending;
+$canGcash = $status === 'reserved' && !$bagPending && gcash_enabled();
 $provider = payment_provider();
 $title = t('Trip {ref}', ['ref' => $ref]);
 require __DIR__ . '/includes/header.php';
@@ -173,6 +187,45 @@ $check = '<span class="grid h-10 w-10 shrink-0 place-items-center rounded-full b
             <button type="submit" class="w-full rounded-xl bg-accent-500 py-3 font-bold text-white shadow-sm hover:bg-accent-600"><?= e($provider === 'paypal' ? t('Pay {total} with PayPal', ['total' => money($booking['total'])]) : t('Pay {total}', ['total' => money($booking['total'])])) ?></button>
           </form>
           <?php if (($hint = price_hint($booking['total'])) !== ''): ?><p class="mt-2 text-xs text-slate-500"><?= e($hint) ?><?php if (current_currency() !== 'USD'): ?> · <?= e(t('You will be charged in US dollars.')) ?><?php endif; ?></p><?php endif; ?>
+        </section>
+      <?php endif; ?>
+      <?php if ($canGcash): $pesos = gcash_amount($booking['total']); $qr = site_image('gcash_qr'); ?>
+        <section id="gcash" class="scroll-mt-24 rounded-2xl border border-slate-200 bg-white p-6">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <h2 class="text-lg font-semibold text-slate-900"><?= e($canPay ? t('Or pay with GCash') : t('Pay with GCash')) ?></h2>
+            <span class="rounded-full bg-sky-50 px-2.5 py-1 text-xs font-semibold text-sky-700 ring-1 ring-sky-200"><?= e(t('For payments from the Philippines')) ?></span>
+          </div>
+          <?php if ($booking['gcash_ref']): ?>
+            <div class="mt-4 rounded-xl bg-amber-50 p-4 text-sm text-amber-900 ring-1 ring-amber-200">
+              <p class="font-semibold"><?= e(t("We're checking your GCash payment")) ?></p>
+              <p class="mt-1"><?= e(t('Reference {ref} · ₱{amount}. A travel assistant will confirm it by email, usually within a few hours.', ['ref' => $booking['gcash_ref'], 'amount' => number_format((int) $booking['gcash_php'])])) ?></p>
+            </div>
+          <?php else: ?>
+            <div class="mt-4 grid gap-5 sm:grid-cols-[auto_1fr]">
+              <?php if ($qr): ?><img src="<?= e($qr) ?>" alt="<?= e(t('GCash QR code')) ?>" class="mx-auto h-44 w-44 rounded-xl object-contain ring-1 ring-slate-200 sm:mx-0"><?php endif; ?>
+              <div class="space-y-3 text-sm">
+                <div class="rounded-xl bg-slate-50 p-4">
+                  <p class="text-slate-500"><?= e(t('Send exactly')) ?></p>
+                  <p class="text-2xl font-extrabold text-slate-900">₱<?= number_format((int) $pesos) ?></p>
+                  <p class="mt-1 text-xs text-slate-500"><?= e(t("{usd} at today's exchange rate. If you pay on another day, refresh this page for the current amount.", ['usd' => money($booking['total'])])) ?></p>
+                </div>
+                <dl class="space-y-1.5">
+                  <div class="flex justify-between gap-4"><dt class="text-slate-500"><?= e(t('GCash number')) ?></dt><dd class="font-mono font-semibold text-slate-900"><?= e((string) config('gcash_number')) ?></dd></div>
+                  <?php if (config('gcash_name')): ?><div class="flex justify-between gap-4"><dt class="text-slate-500"><?= e(t('Account name')) ?></dt><dd class="font-semibold text-slate-900"><?= e((string) config('gcash_name')) ?></dd></div><?php endif; ?>
+                  <div class="flex justify-between gap-4"><dt class="text-slate-500"><?= e(t('Message / note')) ?></dt><dd class="font-mono font-semibold text-slate-900"><?= e($ref) ?></dd></div>
+                </dl>
+              </div>
+            </div>
+            <ol class="mt-4 list-decimal space-y-1 pl-5 text-sm text-slate-600">
+              <li><?= e($qr ? t('Scan the QR code in your GCash app, or send to the number above.') : t('In your GCash app, choose Send Money and send to the number above.')) ?></li>
+              <li><?= e(t('Add your trip reference {ref} as the message.', ['ref' => $ref])) ?></li>
+              <li><?= e(t('Enter the reference number from your GCash receipt below.')) ?></li>
+            </ol>
+            <form method="post" class="mt-4 flex flex-col gap-2 sm:flex-row"><?= csrf_field() ?><input type="hidden" name="action" value="gcash">
+              <input name="gcash_ref" inputmode="numeric" autocomplete="off" required placeholder="<?= e(t('GCash reference no., e.g. 1234 567 890123')) ?>" aria-label="<?= e(t('GCash reference number')) ?>" class="min-w-0 flex-1 rounded-xl border border-slate-300 px-4 py-3 text-slate-900 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100">
+              <button type="submit" class="rounded-xl bg-sky-600 px-5 py-3 font-bold text-white hover:bg-sky-700"><?= e(t("I've sent the payment")) ?></button>
+            </form>
+          <?php endif; ?>
         </section>
       <?php endif; ?>
       <?php if ($status === 'paid' || $status === 'ticketed'): ?>

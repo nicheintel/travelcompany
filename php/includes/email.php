@@ -215,9 +215,11 @@ function notify_booking_now(string $event, string $reference): void
         $rows = trip_rows($b);
         $title = "{$b['quote']['title']} ({$reference})";
         $mail = match ($event) {
-            'reserved' => payments_enabled()
+            'reserved' => payments_enabled() || gcash_enabled()
                 ? simple_email("Trip reserved: $title", 'Your trip is reserved!', $first, [
-                    'You can pay securely online now to confirm it — or a travel assistant will contact you within 24 hours.',
+                    payments_enabled()
+                        ? 'You can pay securely online now to confirm it' . (gcash_enabled() ? ' (PayPal, card or GCash)' : '') . ' — or a travel assistant will contact you within 24 hours.'
+                        : 'You can pay with GCash on your trip page to confirm it — or a travel assistant will contact you within 24 hours.',
                 ], $rows, pay_link($reference), 'Pay now — ' . money($b['total']))
                 : simple_email("Trip reserved: $title", 'Your trip is reserved!', $first, [
                     'A travel assistant will contact you within 24 hours to confirm availability and arrange payment.',

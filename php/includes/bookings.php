@@ -13,6 +13,7 @@ function to_booking(array $r): array
         'cancelled_at' => $r['cancelled_at'], 'payment_method' => $r['payment_method'],
         'ticketed_at' => $r['ticketed_at'] ?? null, 'supplier_ref' => $r['supplier_ref'] ?? null, 'ticket_note' => $r['ticket_note'] ?? null,
         // Admin-only: where the ticket was bought and what it cost (never shown to customers).
+        'gcash_ref' => $r['gcash_ref'] ?? null, 'gcash_php' => isset($r['gcash_php']) ? (int) $r['gcash_php'] : null, 'gcash_sent_at' => $r['gcash_sent_at'] ?? null,
         'bought_from' => $r['bought_from'] ?? null, 'bought_cost' => isset($r['bought_cost']) ? (float) $r['bought_cost'] : null,
         'customer_name' => $r['customer_name'] ?? null, 'customer_email' => $r['customer_email'] ?? null,
     ];
@@ -151,6 +152,12 @@ function admin_stats(): array
 }
 
 /** Paid trips whose tickets/rooms haven't been issued yet. Paid longest ago first. */
+/** Unpaid bookings where the customer says they sent a GCash payment. */
+function admin_gcash_to_check(): array
+{
+    return array_map('to_booking', db_all(ADMIN_SELECT . " WHERE b.status = 'reserved' AND b.gcash_ref IS NOT NULL ORDER BY b.gcash_sent_at ASC LIMIT 50"));
+}
+
 function admin_needs_ticket(): array
 {
     return array_map('to_booking', db_all(ADMIN_SELECT . " WHERE b.status = 'paid' ORDER BY b.paid_at ASC LIMIT 50"));

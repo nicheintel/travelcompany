@@ -87,6 +87,9 @@ $fx = fx_rates();
 $checks[] = ['Exchange rates', (bool) $fx, $fx
     ? count($fx['rates']) . ' currencies from ' . $fx['source'] . ', updated ' . gmdate('M j, H:i', (int) $fx['updated_at']) . ' UTC — customers can see prices in their currency (they always pay in USD)'
     : 'Not available right now — prices are shown in US dollars only. The site retries every 15 minutes.'];
+$checks[] = ['GCash', true, trim((string) config('gcash_number')) === '' ? 'Off — add your GCash number on Site settings to let customers pay with GCash'
+    : (gcash_enabled() ? 'On — customers see ' . ((string) config('gcash_number')) . (site_image('gcash_qr') ? ' and your QR code' : ' (no QR code uploaded yet)') . '; $100 = ₱' . number_format((int) gcash_amount(100)) . ' today'
+        : 'Number saved, but hidden until today\'s peso exchange rate is available')];
 $checks[] = ['Languages', is_file(dirname(__DIR__) . '/lang/fil.json'), count(array_filter(array_keys(LANGUAGES), fn($c) => $c === 'en' || is_file(dirname(__DIR__) . "/lang/$c.json"))) . ' of ' . count(LANGUAGES) . ' languages installed (machine-translated; admin pages and emails stay in English)'];
 $checks[] = ['Markup', true, 'Flights +' . round(markup_rate('flight') * 100) . '%, hotels +' . round(markup_rate('hotel') * 100) . '%, member discount ' . round(member_discount_rate() * 100) . '%'];
 
