@@ -2,31 +2,143 @@
 declare(strict_types=1);
 defined('TC_APP') || exit;
 
-/**
- * Sends through Resend (https://resend.com) when resend_api_key is set. Otherwise the email
- * is written to storage/emails.log.php — handy on XAMPP to see reset links. Never throws.
- */
+/** How emails go out: 'resend', 'smtp' (your own mailbox, e.g. Hostinger email) or 'log' (saved to a file). */
+function email_method(): string
+{
+    if ((string) config('resend_api_key') !== '') return 'resend';
+    if ((string) config('smtp_user') !== '' && (string) config('smtp_pass') !== '') return 'smtp';
+    return 'log';
+}
+
+/** Sends an email. Never throws: a failed email must not undo a booking or password change. */
 function send_email(string $to, array $mail): void
 {
-    $key = (string) config('resend_api_key');
-    if ($key === '') {
-        $entry = sprintf("[%s] To: %s\nSubject: %s\n%s\n\n", gmdate('c'), $to, $mail['subject'], $mail['text']);
-        // A .php file starting with exit, so it can't be read from the web even where .htaccess is ignored.
-        $file = dirname(__DIR__) . '/storage/emails.log.php';
-        clearstatcache(true, $file);
-        if (!is_file($file) || filesize($file) === 0) @file_put_contents($file, "<?php exit; ?>\n", LOCK_EX);
-        @file_put_contents($file, $entry, FILE_APPEND | LOCK_EX);
-        return;
-    }
+    $error = deliver_email($to, $mail);
+    if ($error !== null) error_log('[email] ' . $error);
+}
+
+/** Returns null when sent, otherwise what went wrong. */
+function deliver_email(string $to, array $mail): ?string
+{
     try {
-        $from = (string) config('email_from') ?: config('site_name') . ' <onboarding@resend.dev>';
-        $res = http_json('POST', 'https://api.resend.com/emails', ['Authorization: Bearer ' . $key], [
-            'from' => $from, 'to' => $to, 'subject' => $mail['subject'], 'text' => $mail['text'], 'html' => $mail['html'],
-        ], 20);
-        if ($res['status'] >= 300) error_log('[email] Resend error ' . $res['status']);
+        switch (email_method()) {
+            case 'resend':
+                $from = (string) config('email_from') ?: config('site_name') . ' <onboarding@resend.dev>';
+                $res = http_json('POST', 'https://api.resend.com/emails', ['Authorization: Bearer ' . config('resend_api_key')], [
+                    'from' => $from, 'to' => $to, 'subject' => $mail['subject'], 'text' => $mail['text'], 'html' => $mail['html'],
+                ], 20);
+                return $res['status'] < 300 ? null : 'Resend error ' . $res['status'] . ': ' . ($res['json']['message'] ?? 'request failed');
+            case 'smtp':
+                return smtp_send($to, $mail);
+            default:
+                $entry = sprintf("[%s] To: %s\nSubject: %s\n%s\n\n", gmdate('c'), $to, $mail['subject'], $mail['text']);
+                // A .php file starting with exit, so it can't be read from the web even where .htaccess is ignored.
+                $file = dirname(__DIR__) . '/storage/emails.log.php';
+                clearstatcache(true, $file);
+                if (!is_file($file) || filesize($file) === 0) @file_put_contents($file, "<?php exit; ?>\n", LOCK_EX);
+                @file_put_contents($file, $entry, FILE_APPEND | LOCK_EX);
+                return null;
+        }
     } catch (Throwable $err) {
-        error_log('[email] ' . $err->getMessage());
+        return $err->getMessage();
     }
+}
+
+// ---------- Sending through your own mailbox (SMTP) ----------
+
+/**
+ * Sends one email through a mailbox's SMTP server (e.g. smtp.hostinger.com, port 465).
+ * Port 465 uses SSL from the start, 587 switches to TLS (STARTTLS); a plain connection is only
+ * allowed to this computer (for tests). The certificate is always checked.
+ */
+function smtp_send(string $to, array $mail): ?string
+{
+    $host = (string) config('smtp_host');
+    $port = (int) config('smtp_port');
+    $user = (string) config('smtp_user');
+    $local = in_array($host, ['localhost', '127.0.0.1'], true);
+    if ($port !== 465 && $port !== 587 && !$local) return "Port $port isn't supported — use 465 (SSL) or 587 (TLS).";
+    if (!valid_email($user) || !valid_email($to) || preg_match('/[\r\n]/', $to . $user)) return 'Invalid email address.';
+
+    $ssl = ['verify_peer' => true, 'verify_peer_name' => true, 'peer_name' => $host];
+    if ($ca = ca_bundle()) $ssl['cafile'] = $ca;
+    $ctx = stream_context_create(['ssl' => $ssl]);
+    $errno = 0;
+    $errstr = '';
+    $fp = @stream_socket_client(($port === 465 ? 'ssl://' : 'tcp://') . "$host:$port", $errno, $errstr, 20, STREAM_CLIENT_CONNECT, $ctx);
+    if (!$fp) return "Can't connect to $host:$port — $errstr";
+    stream_set_timeout($fp, 20);
+
+    $read = function () use ($fp): array {
+        $text = '';
+        while (($line = fgets($fp, 1024)) !== false) {
+            $text .= $line;
+            if (strlen($line) < 4 || $line[3] === ' ') break;
+        }
+        return [(int) substr($text, 0, 3), trim($text)];
+    };
+    $cmd = function (string $line, array $ok, string $show = '') use ($fp, $read): void {
+        fwrite($fp, $line . "\r\n");
+        [$code, $reply] = $read();
+        if (!in_array($code, $ok, true)) throw new RuntimeException('Mail server said: ' . ($reply ?: 'no answer') . ($show ? " (after $show)" : ''));
+    };
+
+    try {
+        [$code, $hello] = $read();
+        if ($code !== 220) throw new RuntimeException("Mail server didn't greet us: $hello");
+        $me = parse_url(app_url_or_local(), PHP_URL_HOST) ?: 'localhost';
+        $cmd("EHLO $me", [250]);
+        if ($port === 587) {
+            $cmd('STARTTLS', [220]);
+            if (!stream_socket_enable_crypto($fp, true, STREAM_CRYPTO_METHOD_TLSv1_2_CLIENT | STREAM_CRYPTO_METHOD_TLSv1_3_CLIENT)) throw new RuntimeException('Could not start a secure connection.');
+            $cmd("EHLO $me", [250]);
+        }
+        $cmd('AUTH LOGIN', [334]);
+        $cmd(base64_encode($user), [334], 'the email address');
+        $cmd(base64_encode((string) config('smtp_pass')), [235], 'the password — check the email address and password');
+        $cmd("MAIL FROM:<$user>", [250]);
+        $cmd("RCPT TO:<$to>", [250, 251], 'the recipient');
+        $cmd('DATA', [354]);
+        fwrite($fp, smtp_message($user, $to, $mail) . "\r\n.\r\n");
+        [$code, $reply] = $read();
+        if ($code !== 250) throw new RuntimeException("Mail server refused the email: $reply");
+        fwrite($fp, "QUIT\r\n");
+        return null;
+    } catch (Throwable $err) {
+        return $err->getMessage();
+    } finally {
+        fclose($fp);
+    }
+}
+
+/** The site address if known, else localhost (only used to say hello to the mail server). */
+function app_url_or_local(): string
+{
+    try {
+        return app_url();
+    } catch (Throwable) {
+        return 'http://localhost';
+    }
+}
+
+/** Builds the email: plain text + HTML versions, UTF-8, lines dot-stuffed for SMTP. */
+function smtp_message(string $from, string $to, array $mail): string
+{
+    $boundary = 'b' . bin2hex(random_bytes(12));
+    $name = str_replace(['"', "\r", "\n"], '', (string) config('site_name'));
+    $domain = substr(strrchr($from, '@'), 1);
+    $headers = [
+        'From: =?UTF-8?B?' . base64_encode($name) . "?= <$from>",
+        "To: <$to>",
+        'Subject: =?UTF-8?B?' . base64_encode(str_replace(["\r", "\n"], ' ', $mail['subject'])) . '?=',
+        'Date: ' . date('r'),
+        'Message-ID: <' . bin2hex(random_bytes(16)) . "@$domain>",
+        'MIME-Version: 1.0',
+        "Content-Type: multipart/alternative; boundary=\"$boundary\"",
+    ];
+    $part = fn(string $type, string $body) => "--$boundary\r\nContent-Type: $type; charset=UTF-8\r\nContent-Transfer-Encoding: base64\r\n\r\n"
+        . rtrim(chunk_split(base64_encode($body), 76, "\r\n")) . "\r\n";
+    return implode("\r\n", $headers) . "\r\n\r\n" . $part('text/plain', $mail['text']) . $part('text/html', $mail['html']) . "--$boundary--";
 }
 
 function email_layout(string $heading, string $body): string

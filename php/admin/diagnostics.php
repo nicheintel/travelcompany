@@ -2,7 +2,20 @@
 /* Admin-only: checks the supplier connections and settings, showing the exact result. */
 require dirname(__DIR__) . '/includes/bootstrap.php';
 
-require_admin();
+$admin = require_admin();
+$testResult = null;
+if (is_post()) {
+    verify_csrf();
+    if (post('action') === 'test_email') {
+        $mail = simple_email('Test email from ' . config('site_name'), 'Your emails are working!', explode(' ', $admin['name'])[0], [
+            'This is a test from Admin → Diagnostics. Booking confirmations, payment links and password resets will be sent the same way.',
+        ], [], app_url_or_local() . '/admin/diagnostics.php', 'Open Diagnostics');
+        $error = deliver_email($admin['email'], $mail);
+        $testResult = $error === null
+            ? [true, email_method() === 'log' ? 'No email service is set up, so the test email was saved to storage/emails.log.php instead of being sent.' : "Test email sent to {$admin['email']} — check your inbox (and spam folder)."]
+            : [false, "The test email couldn't be sent: $error"];
+    }
+}
 
 /** Runs a small request and reports status, time and the supplier's own error message. */
 function probe(callable $request): array
@@ -38,7 +51,11 @@ if (liteapi_enabled()) {
 } else {
     $checks[] = ['LiteAPI (hotels)', false, 'No LiteAPI key yet — add it on the Site settings tab. Hotel search is off.'];
 }
-$checks[] = ['Emails', true, config('resend_api_key') ? 'Sent with Resend' : 'Not sent — written to storage/emails.log.php'];
+$checks[] = ['Emails', email_method() !== 'log', match (email_method()) {
+    'resend' => 'Sent with Resend',
+    'smtp' => 'Sent from ' . config('smtp_user') . ' (' . config('smtp_host') . ')',
+    default => 'NOT SENT — add your mailbox on Site settings → Sending emails. Until then emails are saved to storage/emails.log.php',
+}];
 
 // Security
 $site = (string) config('app_url');
@@ -68,6 +85,9 @@ echo admin_open('diagnostics');
     <h1 class="text-2xl font-bold text-slate-900">Diagnostics</h1>
     <p class="text-slate-600">Checks your settings and the connections to your suppliers. Keys are never shown here.</p>
   </div>
+  <?php if ($testResult): ?>
+    <div class="rounded-xl p-4 text-sm font-medium <?= $testResult[0] ? 'bg-emerald-50 text-emerald-800 ring-1 ring-emerald-200' : 'bg-red-50 text-red-700 ring-1 ring-red-200' ?>" role="status"><?= e($testResult[1]) ?></div>
+  <?php endif; ?>
   <div class="overflow-hidden rounded-xl border border-slate-200 bg-white">
     <table class="w-full text-left text-sm">
       <tbody class="divide-y divide-slate-100">
@@ -81,6 +101,10 @@ echo admin_open('diagnostics');
       </tbody>
     </table>
   </div>
+  <form method="post" class="flex flex-wrap items-center gap-3 rounded-xl border border-slate-200 bg-white p-4"><?= csrf_field() ?><input type="hidden" name="action" value="test_email">
+    <button type="submit" class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700">Send test email</button>
+    <span class="text-sm text-slate-600">Sends a test email to <?= e($admin['email']) ?>.</span>
+  </form>
   <p class="text-sm text-slate-500">After changing Site settings, refresh this page. Then try a real search:
     <a class="font-semibold text-brand-700 hover:underline" href="<?= e(url('flights.php', ['from' => 'JFK', 'to' => 'LHR'])) ?>">New York → London flights</a> ·
     <a class="font-semibold text-brand-700 hover:underline" href="<?= e(url('hotels.php', ['to' => 'BKK'])) ?>">Hotels in Bangkok</a></p>

@@ -40,7 +40,7 @@ You can also put settings in a file — values there override Site settings. Cop
 | `demo_mode` | `true` shows clearly-marked **made-up** sample flights and hotels when no key is set — for demos only, never for customers. Default `false`. |
 | `flight_markup_rate` / `hotel_markup_rate` | Your margin on supplier prices (default `0.20` = +20%). |
 | `member_discount_rate` | Discount for signed-in members (default `0.10`; `0` turns it off). |
-| `resend_api_key`, `email_from` | Send real emails via [Resend](https://resend.com). Without it, emails are written to `storage/emails.log.php` (handy for password-reset links on XAMPP). |
+| `smtp_user`, `smtp_pass` (+ `smtp_host`, `smtp_port`) | Send real emails from your own mailbox, e.g. Hostinger email (smtp.hostinger.com, port 465). Or `resend_api_key` + `email_from` for [Resend](https://resend.com). With neither, emails are written to `storage/emails.log.php` (handy for password-reset links on XAMPP). |
 | `paypal_client_id`, `paypal_secret`, `paypal_mode` | Online payments with **PayPal** (PayPal account or any card). Keys from developer.paypal.com → Apps & Credentials; `sandbox` while testing, `live` for real money. |
 | `paypal_webhook_id` | Optional, recommended live: webhook to `https://YOUR-SITE/paypal-webhook.php` for `CHECKOUT.ORDER.APPROVED` and `PAYMENT.CAPTURE.COMPLETED`. |
 | `stripe_secret_key`, `stripe_webhook_secret` | Alternative to PayPal (Stripe isn't available to Philippine-registered businesses). Webhook URL: `https://YOUR-SITE/stripe-webhook.php`. |

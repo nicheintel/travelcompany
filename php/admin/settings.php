@@ -7,7 +7,7 @@ $admin = require_admin();
 const SECRET_FIELDS = [
     'duffel_access_token' => ['Duffel access token', 'Flights. Starts with duffel_test_ (test) or duffel_live_ (real airlines).'],
     'liteapi_key' => ['LiteAPI key', 'Hotels. Use the sandbox key while testing.'],
-    'resend_api_key' => ['Resend API key', 'Optional. Sends real emails; without it emails go to storage/emails.log.php.'],
+    'resend_api_key' => ['Resend API key', 'Optional — only if you use Resend instead of your own mailbox (below).'],
     'paypal_client_id' => ['PayPal Client ID', 'Online payments with PayPal or card. From developer.paypal.com → Apps & Credentials.'],
     'paypal_secret' => ['PayPal Secret', 'The Secret shown next to the Client ID (Sandbox or Live, matching the mode below).'],
     'paypal_webhook_id' => ['PayPal Webhook ID', 'Optional, recommended on a live site. From your PayPal app → Webhooks (URL: your-site/paypal-webhook.php).'],
@@ -68,6 +68,30 @@ if (is_post()) {
     }
     if (!config_fixed('paypal_mode')) save_setting('paypal_mode', ($_POST['paypal_mode'] ?? '') === 'live' ? 'live' : 'sandbox');
     if (!config_fixed('email_from')) save_setting('email_from', mb_substr(trim((string) ($_POST['email_from'] ?? '')), 0, 200));
+    // Your own mailbox for sending emails
+    if (!config_fixed('smtp_user')) {
+        $mailbox = normalize_email((string) ($_POST['smtp_user'] ?? ''));
+        if ($mailbox !== '' && !valid_email($mailbox)) $errors['smtp_user'] = 'Enter the full email address, e.g. hello@farefinders.net.';
+        else save_setting('smtp_user', $mailbox);
+    }
+    if (!config_fixed('smtp_pass')) {
+        $pass = (string) ($_POST['smtp_pass'] ?? '');
+        if (!empty($_POST['clear_smtp_pass'])) save_setting('smtp_pass', '');
+        elseif ($pass !== '') {
+            if (strlen($pass) > 200) $errors['smtp_pass'] = 'That password is too long.';
+            else save_setting('smtp_pass', $pass);
+        }
+    }
+    if (!config_fixed('smtp_host')) {
+        $host = strtolower(trim((string) ($_POST['smtp_host'] ?? '')));
+        if (!preg_match('/^[a-z0-9.-]{3,100}$/', $host)) $errors['smtp_host'] = 'Enter the mail server, e.g. smtp.hostinger.com.';
+        else save_setting('smtp_host', $host);
+    }
+    if (!config_fixed('smtp_port')) {
+        $port = (string) ($_POST['smtp_port'] ?? '');
+        if (!in_array($port, ['465', '587'], true)) $errors['smtp_port'] = 'Choose 465 or 587.';
+        else save_setting('smtp_port', $port);
+    }
     if (!$errors) {
         flash('Settings saved. Check the Diagnostics tab to test your supplier connections.');
         redirect(url('admin/settings.php'));
@@ -154,7 +178,39 @@ $fixedNote = '<p class="mt-1 text-xs text-amber-700">Set in config.local.php or 
       <div>
         <label for="s_email_from" class="block text-sm font-medium text-slate-700">Send emails from</label>
         <input id="s_email_from" name="email_from" type="text" value="<?= e((string) config('email_from')) ?>" placeholder="FareFinders &lt;hello@farefinders.net&gt;" class="<?= $input ?> mt-1"<?= config_fixed('email_from') ? ' disabled' : '' ?>>
-        <p class="mt-1 text-xs text-slate-500">Used with Resend; the domain must be verified in Resend.</p>
+        <p class="mt-1 text-xs text-slate-500">Only used with Resend. With your own mailbox, emails come from that address.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="rounded-xl border border-slate-200 bg-white p-6">
+    <h2 class="text-lg font-semibold text-slate-900">Sending emails</h2>
+    <p class="mt-1 text-sm text-slate-500">Booking confirmations, payment links and password resets are sent from this mailbox — e.g. the free email in your Hostinger plan. Then use <strong>Diagnostics → Send test email</strong> to check it works.</p>
+    <div class="mt-5 grid gap-4 sm:grid-cols-2">
+      <div>
+        <label for="s_smtp_user" class="block text-sm font-medium text-slate-700">Email address</label>
+        <input id="s_smtp_user" name="smtp_user" type="email" autocomplete="off" value="<?= e(is_post() ? (string) ($_POST['smtp_user'] ?? '') : (string) config('smtp_user')) ?>" placeholder="hello@farefinders.net" class="<?= $input ?> mt-1"<?= config_fixed('smtp_user') ? ' disabled' : '' ?>>
+        <?php if (isset($errors['smtp_user'])): ?><p class="mt-1 text-sm text-red-600"><?= e($errors['smtp_user']) ?></p><?php endif; ?>
+      </div>
+      <div>
+        <label for="s_smtp_pass" class="block text-sm font-medium text-slate-700">Email password <span class="font-normal text-slate-400">· <?= (string) config('smtp_pass') !== '' ? 'Saved' : 'Not set' ?></span></label>
+        <input id="s_smtp_pass" name="smtp_pass" type="password" autocomplete="new-password" placeholder="<?= (string) config('smtp_pass') !== '' ? 'Leave empty to keep the saved password' : 'The mailbox password' ?>" class="<?= $input ?> mt-1"<?= config_fixed('smtp_pass') ? ' disabled' : '' ?>>
+        <?php if (isset($errors['smtp_pass'])): ?><p class="mt-1 text-sm text-red-600"><?= e($errors['smtp_pass']) ?></p><?php endif; ?>
+        <?php if ((string) config('smtp_pass') !== '' && !config_fixed('smtp_pass')): ?><label class="mt-1 inline-flex items-center gap-2 text-xs text-slate-600"><input type="checkbox" name="clear_smtp_pass" value="1" class="accent-red-600"> Remove saved password</label><?php endif; ?>
+      </div>
+      <div>
+        <label for="s_smtp_host" class="block text-sm font-medium text-slate-700">Mail server</label>
+        <input id="s_smtp_host" name="smtp_host" type="text" value="<?= e(is_post() ? (string) ($_POST['smtp_host'] ?? '') : (string) config('smtp_host')) ?>" class="<?= $input ?> mt-1"<?= config_fixed('smtp_host') ? ' disabled' : '' ?>>
+        <?php if (isset($errors['smtp_host'])): ?><p class="mt-1 text-sm text-red-600"><?= e($errors['smtp_host']) ?></p><?php endif; ?>
+        <p class="mt-1 text-xs text-slate-500">Hostinger: smtp.hostinger.com</p>
+      </div>
+      <div>
+        <label for="s_smtp_port" class="block text-sm font-medium text-slate-700">Port</label>
+        <select id="s_smtp_port" name="smtp_port" class="<?= $input ?> mt-1"<?= config_fixed('smtp_port') ? ' disabled' : '' ?>>
+          <option value="465"<?= (string) config('smtp_port') !== '587' ? ' selected' : '' ?>>465 — SSL (Hostinger)</option>
+          <option value="587"<?= (string) config('smtp_port') === '587' ? ' selected' : '' ?>>587 — TLS</option>
+        </select>
+        <?php if (isset($errors['smtp_port'])): ?><p class="mt-1 text-sm text-red-600"><?= e($errors['smtp_port']) ?></p><?php endif; ?>
       </div>
     </div>
   </section>
