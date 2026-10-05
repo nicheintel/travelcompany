@@ -24,6 +24,7 @@ if (is_post()) {
     }
     if ($val['name'] === '' || mb_strlen($val['name']) > 100) $errors[] = 'Please enter your full name.';
     if (!filter_var($val['email'], FILTER_VALIDATE_EMAIL)) $errors[] = 'Please enter a valid email address.';
+    elseif (($problem = email_signup_problem($val['email'])) !== '') $errors[] = $problem;
     if (!preg_match('/^[0-9+()\-. ]{7,25}$/', $val['phone'])) $errors[] = 'Please enter a valid phone number.';
     if (!isset(ACCOUNT_TYPES[$val['account_type']])) $errors[] = 'Please choose what describes you best.';
     if (strlen($pass) < 8) $errors[] = 'Your password needs at least 8 characters.';
@@ -40,8 +41,16 @@ if (is_post()) {
             [$val['name'], $val['email'], $val['phone'], password_hash($pass, PASSWORD_DEFAULT), $val['account_type'], $admin]);
         $user = db_one('SELECT * FROM users WHERE id = ?', [(int) db()->lastInsertId()]);
         login_user($user);
-        flash('success', 'Welcome to LamazonLoads, ' . $val['name'] . '!' . ($admin ? ' You are the site admin: open "Admin" in the menu to manage job posts and applicants.' : ' Complete your driver profile to get matched faster.'));
-        redirect($next === 'account.php' ? 'profile.php' : $next);
+        if ($admin) {
+            db_run('UPDATE users SET email_verified_at = NOW() WHERE id = ?', [$user['id']]); // staff don't need to confirm
+            flash('success', 'Welcome to LamazonLoads, ' . $val['name'] . '! You are staff: open "Admin" in the menu to manage job posts and applicants.');
+            redirect($next === 'account.php' ? 'admin/' : $next);
+        }
+        send_verification($user);
+        if ($next !== 'account.php') {
+            $_SESSION['after_verify'] = $next; // e.g. the job they were applying for
+        }
+        redirect('verify.php');
     }
 }
 

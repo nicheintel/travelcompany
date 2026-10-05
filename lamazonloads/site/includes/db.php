@@ -65,6 +65,13 @@ function migrate(PDO $pdo): void
     ]);
     // Room for ".docx" names and Word's long file type
     $pdo->exec('ALTER TABLE documents MODIFY stored_name VARCHAR(40) NOT NULL, MODIFY mime VARCHAR(100) NOT NULL');
+    // Email confirmation (added later): accounts that already existed count as confirmed
+    $userCols = $pdo->query("SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users'")->fetchAll(PDO::FETCH_COLUMN);
+    if (!in_array('email_verified_at', $userCols, true)) {
+        $pdo->exec('ALTER TABLE users ADD COLUMN email_verified_at DATETIME NULL AFTER session_version');
+        $pdo->exec('UPDATE users SET email_verified_at = created_at');
+    }
+    add_missing_columns($pdo, 'users', ['verify_token' => 'CHAR(64) NULL', 'verify_expires' => 'DATETIME NULL', 'verify_sent_at' => 'DATETIME NULL']);
     add_missing_columns($pdo, 'applications', [
         'resume_doc_id' => 'INT UNSIGNED NULL', 'reminded_at' => 'DATETIME NULL', 'auto_note' => "VARCHAR(255) NOT NULL DEFAULT ''",
     ]);

@@ -16,6 +16,12 @@ if (is_post()) {
         $make = !empty($_POST['make']) ? 1 : 0;
         db_run('UPDATE users SET is_admin = ?, session_version = session_version + 1 WHERE id = ?', [$make, $id]);
         flash('success', $make ? $u['name'] . ' is now staff.' : $u['name'] . ' is no longer staff.');
+    } elseif ($action === 'verify') {
+        db_run('UPDATE users SET email_verified_at = NOW(), verify_token = NULL, verify_expires = NULL WHERE id = ?', [$id]);
+        flash('success', $u['name'] . "'s email is now marked as confirmed.");
+    } elseif ($action === 'resend') {
+        $sent = send_verification($u);
+        flash($sent ? 'success' : 'error', $sent ? 'Confirmation email sent to ' . $u['email'] . '.' : "The email couldn't be sent. Check the email settings, or mark the email as confirmed by hand.");
     } elseif ($action === 'password') {
         // For members who forgot their password: staff set a temporary one and share it by phone.
         $temp = substr(strtr(base64_encode(random_bytes(9)), '+/', 'xy'), 0, 10);
@@ -45,7 +51,8 @@ admin_open('drivers');
 ?>
 <a href="<?= e(url('admin/drivers.php')) ?>">&larr; All members</a>
 <h1 class="mt-0" style="margin-top:10px"><?= e($u['name']) ?></h1>
-<p class="muted"><?= e(ACCOUNT_TYPES[$u['account_type']] ?? '') ?> · joined <?= e(fmt_date($u['created_at'])) ?> · onboarding <?= $done ?>/<?= count($steps) ?></p>
+<p class="muted"><?= e(ACCOUNT_TYPES[$u['account_type']] ?? '') ?> · joined <?= e(fmt_date($u['created_at'])) ?> · onboarding <?= $done ?>/<?= count($steps) ?>
+  · <?= is_verified($u) ? 'email confirmed' : '<span class="badge badge-reviewing">Email not confirmed</span>' ?></p>
 
 <div class="grid grid-2">
   <div class="card pad">
@@ -104,6 +111,10 @@ admin_open('drivers');
 <div class="card pad">
   <h3 class="mt-0">Account actions</h3>
   <div class="row-actions">
+    <?php if (!is_verified($u)): ?>
+      <form method="post" action="<?= e(url($self)) ?>" class="inline-form"><?= csrf_field() ?><input type="hidden" name="action" value="verify"><button class="btn btn-primary btn-sm" type="submit">Mark email as confirmed</button></form>
+      <form method="post" action="<?= e(url($self)) ?>" class="inline-form"><?= csrf_field() ?><input type="hidden" name="action" value="resend"><button class="btn btn-ghost btn-sm" type="submit">Resend confirmation email</button></form>
+    <?php endif; ?>
     <form method="post" action="<?= e(url($self)) ?>" class="inline-form" data-confirm="Create a new temporary password for this member?"><?= csrf_field() ?><input type="hidden" name="action" value="password"><button class="btn btn-ghost btn-sm" type="submit">Reset password</button></form>
     <?php if ($id !== (int) $me['id']): ?>
       <form method="post" action="<?= e(url($self)) ?>" class="inline-form"><?= csrf_field() ?><input type="hidden" name="action" value="admin"><input type="hidden" name="make" value="<?= $u['is_admin'] ? '' : '1' ?>"><button class="btn btn-ghost btn-sm" type="submit"><?= $u['is_admin'] ? 'Remove staff access' : 'Make staff (admin)' ?></button></form>

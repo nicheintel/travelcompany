@@ -22,6 +22,10 @@ function config(string $key): mixed
             'contact_email' => 'info@lamazonloads.com',
             'contact_phone' => '678-666-4334',
             'max_upload_mb' => 8,
+            // Sign-up email rules
+            'block_disposable_emails' => true,  // no temporary / disposable email addresses
+            'allowed_email_domains'   => '',    // always allow these domains (comma separated)
+            'blocked_email_domains'   => '',    // also block these domains (comma separated)
             // Email (chat notifications). With smtp_pass set, mail goes through your Hostinger mailbox;
             // otherwise PHP's mail(). 'file' saves emails in storage/mail/ instead of sending (testing).
             'app_url'        => 'https://lamazonloads.com',

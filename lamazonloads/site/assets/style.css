@@ -694,3 +694,15 @@ tr:last-child td { border-bottom: 0; }
 .contact-card { flex: 1; display: flex; margin-top: 8px; }
 .contact-card .checklist { align-content: space-evenly; width: 100%; }
 @media (max-width: 900px) { .contact-layout { grid-template-columns: 1fr; } }
+
+/* Email confirmation page */
+.verify-card { text-align: center; }
+.verify-card h1 { font-size: 2rem; margin-top: 6px; }
+.verify-ico { width: 64px; height: 64px; margin: 0 auto 8px; border-radius: 18px; display: grid; place-items: center; background: linear-gradient(135deg, var(--blue), var(--navy)); color: #fff; }
+.verify-ico .ic { width: 30px; height: 30px; }
+.verify-tips { text-align: left; background: var(--blue-50); border-radius: 12px; padding: 12px 16px; margin: 18px 0; }
+.verify-tips ul { margin: 6px 0 0; padding-left: 1.2em; color: var(--text); }
+.verify-change { margin-top: 18px; text-align: left; }
+.verify-change summary { cursor: pointer; color: var(--blue); font-weight: 600; text-align: center; }
+.verify-change-form { display: grid; gap: 8px; margin-top: 12px; }
+.verify-change-form label { margin: 0; }

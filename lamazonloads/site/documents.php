@@ -2,7 +2,7 @@
 declare(strict_types=1);
 require __DIR__ . '/includes/bootstrap.php';
 
-$u = require_login();
+$u = require_verified();
 $maxMb = (int) config('max_upload_mb');
 $errors = [];
 

@@ -23,7 +23,7 @@ $onFile = $user ? db_one("SELECT * FROM documents WHERE user_id = ? AND kind = '
 $errors = [];
 
 if (is_post() && !$external) {
-    $user = require_login();
+    $user = require_verified();
     csrf_check();
     $message = post('message', 3000);
     $resumeId = null;
@@ -120,6 +120,10 @@ $here = 'job.php?id=' . $id;
         <h3>Apply for this job</h3>
         <p class="muted">Applications for this job are taken on another website.</p>
         <a class="btn btn-accent btn-block" href="<?= e($job['apply_url']) ?>" target="_blank" rel="noopener nofollow">Apply on the company site <?= icon('arrow') ?></a>
+      <?php elseif ($user && !is_verified($user)): ?>
+        <h3>Confirm your email to apply</h3>
+        <p class="muted">We sent a link to <b><?= e($user['email']) ?></b>. Once you confirm, you can apply in one click.</p>
+        <a class="btn btn-accent btn-block" href="<?= e(url('verify.php')) ?>">Confirm my email</a>
       <?php elseif (!$user): ?>
         <h3>Apply in one click</h3>
         <p class="muted">Create a free account or sign in to apply. Your profile and documents are attached to every application.</p>

@@ -15,6 +15,10 @@ CREATE TABLE IF NOT EXISTS users (
   account_type VARCHAR(30) NOT NULL DEFAULT 'driver',
   is_admin TINYINT(1) NOT NULL DEFAULT 0,
   session_version INT UNSIGNED NOT NULL DEFAULT 1,
+  email_verified_at DATETIME NULL,
+  verify_token CHAR(64) NULL,
+  verify_expires DATETIME NULL,
+  verify_sent_at DATETIME NULL,
   created_at DATETIME NOT NULL,
   last_login_at DATETIME NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

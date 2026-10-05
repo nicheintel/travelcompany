@@ -28,7 +28,7 @@ admin_open('drivers');
     <thead><tr><th>Name</th><th>Type</th><th>Equipment</th><th>ZIP</th><th>Availability</th><th>Docs</th><th>Apps</th><th>Joined</th></tr></thead>
     <tbody><?php foreach ($rows as $r): ?>
       <tr>
-        <td><a href="<?= e(url('admin/driver.php?id=' . (int) $r['id'])) ?>"><b><?= e($r['name']) ?></b></a><?= $r['is_admin'] ? ' <span class="badge badge-draft">Staff</span>' : '' ?><br><span class="muted"><?= e($r['email']) ?> · <?= e($r['phone']) ?></span></td>
+        <td><a href="<?= e(url('admin/driver.php?id=' . (int) $r['id'])) ?>"><b><?= e($r['name']) ?></b></a><?= $r['is_admin'] ? ' <span class="badge badge-draft">Staff</span>' : '' ?><?= !$r['is_admin'] && empty($r['email_verified_at']) ? ' <span class="badge badge-reviewing">Email not confirmed</span>' : '' ?><br><span class="muted"><?= e($r['email']) ?> · <?= e($r['phone']) ?></span></td>
         <td><?= e(explode(' (', ACCOUNT_TYPES[$r['account_type']] ?? '')[0]) ?></td>
         <td><?= e(EQUIPMENT[$r['equipment'] ?? ''] ?? '—') ?></td>
         <td><?= e($r['home_zip'] ?? '') ?></td>

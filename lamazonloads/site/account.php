@@ -2,7 +2,7 @@
 declare(strict_types=1);
 require __DIR__ . '/includes/bootstrap.php';
 
-$u = require_login();
+$u = require_verified();
 $steps = onboarding_steps((int) $u['id']);
 $done = count(array_filter($steps, fn ($s) => $s[1]));
 $pct = (int) round($done / count($steps) * 100);

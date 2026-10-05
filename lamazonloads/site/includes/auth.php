@@ -120,3 +120,38 @@ function weak_password(string $pass, string $email = '', string $name = ''): boo
     }
     return false;
 }
+
+/* ---------- Email confirmation ---------- */
+
+const VERIFY_HOURS = 48; // the link in the email works this long
+
+/** Members must confirm their email before applying or uploading. Staff never need to (so nobody gets locked out). */
+function is_verified(?array $u): bool
+{
+    return $u && ($u['is_admin'] || !empty($u['email_verified_at']));
+}
+
+/** Like require_login(), but unconfirmed members are sent to the "Check your email" page. */
+function require_verified(): array
+{
+    $u = require_login();
+    if (!is_verified($u)) {
+        redirect('verify.php');
+    }
+    return $u;
+}
+
+/** Emails a fresh confirmation link. Returns false if the email couldn't be sent. */
+function send_verification(array $u): bool
+{
+    $raw = bin2hex(random_bytes(32));
+    db_run('UPDATE users SET verify_token = ?, verify_expires = NOW() + INTERVAL ' . VERIFY_HOURS . ' HOUR, verify_sent_at = NOW() WHERE id = ?',
+        [hash('sha256', $raw), $u['id']]);
+    $first = trim((string) strtok((string) $u['name'], ' ')) ?: 'there';
+    [$text, $html] = email_body('Confirm your email', [
+        "Hi $first,",
+        'Thanks for creating your LamazonLoads account. Please confirm your email address so we can reach you about loads, daily routes and job openings.',
+    ], 'Confirm my email', abs_url('verify.php?t=' . $raw),
+        'This link works for ' . VERIFY_HOURS . " hours. If you didn't create a LamazonLoads account, you can ignore this email.");
+    return send_mail((string) $u['email'], 'Confirm your email for LamazonLoads', $text, $html, support_email());
+}

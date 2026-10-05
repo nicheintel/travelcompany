@@ -2,7 +2,7 @@
 declare(strict_types=1);
 require __DIR__ . '/includes/bootstrap.php';
 
-$u = require_login();
+$u = require_verified();
 $fields = ['company_name' => 120, 'mc_number' => 20, 'dot_number' => 20, 'equipment' => 30, 'vehicle' => 120, 'home_zip' => 10,
     'service_radius' => 40, 'availability' => 30, 'years_experience' => 10, 'insurance_provider' => 120, 'insurance_expires' => 10, 'about' => 2000];
 $p = db_one('SELECT * FROM driver_profiles WHERE user_id = ?', [$u['id']]) ?? array_fill_keys(array_keys($fields), '');

@@ -181,6 +181,7 @@ function run_automations_if_due(): void
 function run_automations(): array
 {
     $done = ['reminded' => 0, 'declined' => 0, 'reviewed' => 0, 'closed' => 0];
+    refresh_disposable_list(); // weekly fresh list of disposable email domains
     // Remind applicants who haven't finished onboarding after N days (once)
     $rows = db_all("SELECT a.id, a.user_id, u.name, u.email, j.title FROM applications a JOIN users u ON u.id = a.user_id JOIN jobs j ON j.id = a.job_id
         WHERE j.auto_remind = 1 AND a.status IN ('new', 'reviewing') AND a.reminded_at IS NULL AND a.created_at <= NOW() - INTERVAL j.remind_days DAY");
