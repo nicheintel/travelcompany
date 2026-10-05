@@ -29,7 +29,7 @@ function finish_quote(array $q): array
 function flight_quote(array $params): ?array
 {
     $p = parse_flight_params($params);
-    if (!$p['search']) return null;
+    if (!$p['search'] || flights_on_hold()) return null;
     $offerId = (string) ($params['offer'] ?? '');
     $cabin = CABIN_LABELS[$p['cabin']];
     $cost = null;

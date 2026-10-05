@@ -128,6 +128,16 @@ function duffel_enabled(): bool
     return (string) config('duffel_access_token') !== '';
 }
 
+/**
+ * Safety rule: a Duffel TEST token only returns a fake airline. Once PayPal takes real money,
+ * those flights must not be sellable, so flight search shows "coming soon" until a live token is set.
+ */
+function flights_on_hold(): bool
+{
+    return duffel_enabled() && str_starts_with((string) config('duffel_access_token'), 'duffel_test_')
+        && function_exists('paypal_enabled') && paypal_enabled() && paypal_live();
+}
+
 function duffel(string $method, string $path, ?array $data = null): array
 {
     $res = http_json($method, rtrim((string) config('duffel_api_base'), '/') . $path, [
@@ -395,6 +405,7 @@ function live_search(string $kind, array $s, callable $fetch): array
 
 function search_flights(array $s): array
 {
+    if (flights_on_hold()) return not_connected() + ['on_hold' => true];
     if (!duffel_enabled()) return demo_mode() ? ['items' => sample_flights($s), 'live' => false, 'error' => null] : not_connected();
     try {
         return live_search('flights', $s, 'duffel_search');

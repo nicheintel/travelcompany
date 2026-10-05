@@ -278,6 +278,17 @@ function submit_button(string $label, string $pendingLabel, string $class = 'w-f
 
 function results_notice(array $result, string $what): string
 {
+    if (!empty($result['on_hold'])) {
+        $c = support_contacts();
+        $btn = (isset($c['whatsapp']) ? '<a href="https://wa.me/' . e(preg_replace('/\D/', '', $c['whatsapp'])) . '" target="_blank" rel="noopener" class="rounded-xl bg-emerald-600 px-5 py-3 font-semibold text-white hover:bg-emerald-700">WhatsApp us</a>' : '')
+            . (isset($c['email']) ? '<a href="mailto:' . e($c['email']) . '?subject=' . rawurlencode('Flight request') . '" class="rounded-xl bg-accent-500 px-5 py-3 font-semibold text-white hover:bg-accent-600">Ask for a flight quote</a>' : '');
+        return '<div class="mb-4 rounded-2xl border border-slate-200 bg-white p-8 text-center">'
+            . '<p class="text-lg font-semibold text-slate-900">Online flight booking is coming soon</p>'
+            . '<p class="mx-auto mt-1 max-w-xl text-slate-600">Tell us where and when you\'d like to fly, and our travel assistants will find you the best fare.</p>'
+            . ($btn ? '<div class="mt-5 flex flex-wrap justify-center gap-3">' . $btn . '</div>' : '')
+            . (is_admin() ? '<p class="mt-4 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800 ring-1 ring-amber-200">Admin: flights are hidden because Duffel uses a TEST token while PayPal takes real money. Add your <strong>duffel_live_</strong> token on <a class="font-semibold underline" href="' . e(url('admin/settings.php')) . '">Site settings</a> to show real flights.</p>' : '')
+            . '</div>';
+    }
     if (!empty($result['not_connected'])) {
         return '<div class="mb-4 rounded-2xl border border-slate-200 bg-white p-8 text-center">'
             . '<p class="text-lg font-semibold text-slate-900">Live ' . $what . ' search isn\'t available yet</p>'
