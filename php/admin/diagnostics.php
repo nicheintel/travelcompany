@@ -47,7 +47,8 @@ if (duffel_enabled()) {
 }
 if (liteapi_enabled()) {
     $r = probe(fn() => http_json('GET', rtrim((string) config('liteapi_api_base'), '/') . '/data/countries', ['X-API-Key: ' . config('liteapi_key')], null, 20));
-    $checks[] = ['LiteAPI (hotels)', $r['ok'], $r['text']];
+    $liteMode = str_starts_with((string) config('liteapi_key'), 'sand_') ? 'SANDBOX key — test hotels, no real bookings' : 'PRODUCTION key — real hotels';
+    $checks[] = ['LiteAPI (hotels)', $r['ok'], $liteMode . ' · ' . $r['text']];
 } else {
     $checks[] = ['LiteAPI (hotels)', false, 'No LiteAPI key yet — add it on the Site settings tab. Hotel search is off.'];
 }
