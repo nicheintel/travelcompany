@@ -13,7 +13,8 @@ function send_email(string $to, array $mail): void
         $entry = sprintf("[%s] To: %s\nSubject: %s\n%s\n\n", gmdate('c'), $to, $mail['subject'], $mail['text']);
         // A .php file starting with exit, so it can't be read from the web even where .htaccess is ignored.
         $file = dirname(__DIR__) . '/storage/emails.log.php';
-        if (!is_file($file)) @file_put_contents($file, "<?php exit; ?>\n", LOCK_EX);
+        clearstatcache(true, $file);
+        if (!is_file($file) || filesize($file) === 0) @file_put_contents($file, "<?php exit; ?>\n", LOCK_EX);
         @file_put_contents($file, $entry, FILE_APPEND | LOCK_EX);
         return;
     }

@@ -37,17 +37,26 @@
   }
 
   // ---------- Airport autocomplete ----------
-  const AIRPORTS = window.AIRPORTS || [];
+  // Every airport with scheduled flights (assets/airports.js), main airports first.
+  const fold = (s) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  const AIRPORTS = (window.AIRPORT_ROWS || []).map(([code, city, country, name, size, words = ""]) => ({ code, city, country, name, size, key: fold(`${city} ${name} ${country} ${words}`) }));
   function searchAirports(q) {
-    q = q.trim().toLowerCase();
+    q = fold(q.trim());
     if (!q) return AIRPORTS.slice(0, 8);
-    return AIRPORTS.filter(
-      (a) =>
-        a.code.toLowerCase().startsWith(q) ||
-        a.city.toLowerCase().includes(q) ||
-        a.country.toLowerCase().includes(q) ||
-        a.name.toLowerCase().includes(q),
-    ).slice(0, 8);
+    const score = (a) => {
+      if (a.code.toLowerCase() === q) return 0;
+      const city = fold(a.city);
+      if (city.startsWith(q)) return 1 + a.size + city.length / 100;
+      if (a.key.split(/[\s,()/-]+/).some((w) => w.startsWith(q))) return 4 + a.size;
+      if (q.length > 2 && a.key.includes(q)) return 7 + a.size;
+      return -1;
+    };
+    const out = [];
+    for (const a of AIRPORTS) {
+      const s = score(a);
+      if (s >= 0) out.push([s, a]);
+    }
+    return out.sort((x, y) => x[0] - y[0]).slice(0, 8).map((x) => x[1]);
   }
   const label = (a) => `${a.city} (${a.code})`;
 

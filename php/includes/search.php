@@ -268,8 +268,13 @@ function liteapi_city_hotels(array $city): array
     if (is_file($file) && filemtime($file) > time() - 43200) {
         return json_decode((string) file_get_contents($file), true) ?: [];
     }
-    $plain = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $city['city']) ?: $city['city'];
+    $name = trim(preg_replace('/\s*\(.*\)$/', '', $city['city'])); // "Bohol (Panglao)" -> "Bohol"
+    $plain = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $name) ?: $name;
     $data = liteapi('GET', '/data/hotels?' . http_build_query(['countryCode' => $city['cc'], 'cityName' => $plain, 'limit' => 60]))['data'] ?? [];
+    if (!$data) {
+        // Smaller places: hotels within 40 km of the airport instead.
+        $data = liteapi('GET', '/data/hotels?' . http_build_query(['latitude' => $city['lat'], 'longitude' => $city['lon'], 'radius' => 40000, 'limit' => 60]))['data'] ?? [];
+    }
     @file_put_contents($file, json_encode($data));
     return $data;
 }

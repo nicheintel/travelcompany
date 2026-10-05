@@ -32,7 +32,7 @@ $columns = [
     </div>
   </div>
 </footer>
-<script nonce="<?= e(csp_nonce()) ?>">window.AIRPORTS = <?= airports_json() ?>;</script>
+<script src="<?= e(asset('airports.js')) ?>" defer></script>
 <script src="<?= e(asset('app.js')) ?>" defer></script>
 </body>
 </html>

@@ -2,58 +2,22 @@
 declare(strict_types=1);
 defined('TC_APP') || exit;
 
-/** code => [city, country, airport name, lat, lon, ISO country code] */
-const AIRPORTS = [
-    'JFK' => ['New York', 'United States', 'John F. Kennedy Intl', 40.64, -73.78, 'US'],
-    'LAX' => ['Los Angeles', 'United States', 'Los Angeles Intl', 33.94, -118.41, 'US'],
-    'ORD' => ['Chicago', 'United States', "O'Hare Intl", 41.98, -87.9, 'US'],
-    'MIA' => ['Miami', 'United States', 'Miami Intl', 25.79, -80.29, 'US'],
-    'SFO' => ['San Francisco', 'United States', 'San Francisco Intl', 37.62, -122.38, 'US'],
-    'LAS' => ['Las Vegas', 'United States', 'Harry Reid Intl', 36.08, -115.15, 'US'],
-    'MCO' => ['Orlando', 'United States', 'Orlando Intl', 28.43, -81.31, 'US'],
-    'HNL' => ['Honolulu', 'United States', 'Daniel K. Inouye Intl', 21.32, -157.92, 'US'],
-    'YYZ' => ['Toronto', 'Canada', 'Toronto Pearson Intl', 43.68, -79.63, 'CA'],
-    'CUN' => ['Cancún', 'Mexico', 'Cancún Intl', 21.04, -86.87, 'MX'],
-    'LHR' => ['London', 'United Kingdom', 'Heathrow', 51.47, -0.45, 'GB'],
-    'CDG' => ['Paris', 'France', 'Charles de Gaulle', 49.01, 2.55, 'FR'],
-    'FCO' => ['Rome', 'Italy', 'Leonardo da Vinci–Fiumicino', 41.8, 12.25, 'IT'],
-    'BCN' => ['Barcelona', 'Spain', 'Barcelona–El Prat', 41.3, 2.08, 'ES'],
-    'AMS' => ['Amsterdam', 'Netherlands', 'Schiphol', 52.31, 4.76, 'NL'],
-    'IST' => ['Istanbul', 'Türkiye', 'Istanbul Airport', 41.26, 28.74, 'TR'],
-    'DXB' => ['Dubai', 'United Arab Emirates', 'Dubai Intl', 25.25, 55.36, 'AE'],
-    'DOH' => ['Doha', 'Qatar', 'Hamad Intl', 25.27, 51.61, 'QA'],
-    'SIN' => ['Singapore', 'Singapore', 'Changi', 1.36, 103.99, 'SG'],
-    'BKK' => ['Bangkok', 'Thailand', 'Suvarnabhumi', 13.69, 100.75, 'TH'],
-    'DPS' => ['Bali', 'Indonesia', 'Ngurah Rai Intl', -8.75, 115.17, 'ID'],
-    'KUL' => ['Kuala Lumpur', 'Malaysia', 'Kuala Lumpur Intl', 2.74, 101.7, 'MY'],
-    'MNL' => ['Manila', 'Philippines', 'Ninoy Aquino Intl', 14.51, 121.02, 'PH'],
-    'CEB' => ['Cebu', 'Philippines', 'Mactan–Cebu Intl', 10.31, 123.98, 'PH'],
-    'HKG' => ['Hong Kong', 'Hong Kong', 'Hong Kong Intl', 22.31, 113.91, 'HK'],
-    'NRT' => ['Tokyo', 'Japan', 'Narita Intl', 35.77, 140.39, 'JP'],
-    'ICN' => ['Seoul', 'South Korea', 'Incheon Intl', 37.46, 126.44, 'KR'],
-    'DEL' => ['New Delhi', 'India', 'Indira Gandhi Intl', 28.56, 77.1, 'IN'],
-    'SYD' => ['Sydney', 'Australia', 'Kingsford Smith', -33.94, 151.18, 'AU'],
-    'GRU' => ['São Paulo', 'Brazil', 'Guarulhos Intl', -23.43, -46.47, 'BR'],
-];
+/** Every airport with scheduled passenger flights (includes/airports.php, from OurAirports). */
+function airports(): array
+{
+    static $all = null;
+    return $all ??= require __DIR__ . '/airports.php';
+}
 
 function airport(?string $code): ?array
 {
     $code = strtoupper(trim((string) $code));
-    if (!isset(AIRPORTS[$code])) {
+    $all = airports();
+    if (!isset($all[$code])) {
         return null;
     }
-    [$city, $country, $name, $lat, $lon, $cc] = AIRPORTS[$code];
+    [$city, $country, $name, $lat, $lon, $cc] = $all[$code];
     return compact('code', 'city', 'country', 'name', 'lat', 'lon', 'cc');
-}
-
-/** Airports as JSON for the search boxes' autocomplete. */
-function airports_json(): string
-{
-    $list = [];
-    foreach (AIRPORTS as $code => [$city, $country, $name]) {
-        $list[] = ['code' => $code, 'city' => $city, 'country' => $country, 'name' => $name];
-    }
-    return json_encode($list, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG);
 }
 
 function distance_km(array $a, array $b): float
