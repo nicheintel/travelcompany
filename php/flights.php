@@ -42,7 +42,7 @@ require __DIR__ . '/includes/header.php';
       <?php endif; ?>
     </div>
     <div class="rounded-2xl bg-white p-4 shadow-xl sm:p-6">
-      <?= flight_search_form(['from' => $p['from']['code'] ?? 'JFK', 'to' => $p['to']['code'] ?? null, 'depart' => $s ? $p['depart'] : '', 'return' => $s ? (string) $p['return'] : '', 'trip' => $p['trip'], 'adults' => $p['adults'], 'children' => $p['children'], 'cabin' => $p['cabin']]) ?>
+      <?= flight_search_form(['from' => $p['from']['code'] ?? null, 'to' => $p['to']['code'] ?? null, 'depart' => $s ? $p['depart'] : '', 'return' => $s ? (string) $p['return'] : '', 'trip' => $p['trip'], 'adults' => $p['adults'], 'children' => $p['children'], 'cabin' => $p['cabin']]) ?>
     </div>
   </div>
 </section>

@@ -115,7 +115,7 @@ function flight_search_form(array $d = []): string
         . '<div class="flex flex-wrap items-center gap-2">' . $pill('roundtrip', 'Round trip') . $pill('oneway', 'One way') . '</div>'
         . '<div class="grid gap-3 lg:grid-cols-[1fr_1fr_0.8fr_0.8fr_1fr_auto]">'
         . '<div class="relative grid gap-3 sm:grid-cols-2 lg:col-span-2">'
-        . airport_field('from', 'From', 'City or airport', $d['from'] ?? 'JFK')
+        . airport_field('from', 'From', 'City or airport', $d['from'] ?? null)
         . '<button type="button" class="absolute left-1/2 top-1/2 z-10 hidden h-9 w-9 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border border-slate-200 bg-white text-brand-600 shadow-sm hover:bg-brand-50 sm:grid" aria-label="Swap origin and destination" data-swap>' . icon('swap', 16) . '</button>'
         . airport_field('to', 'To', 'Where to?', $d['to'] ?? null)
         . '</div>'

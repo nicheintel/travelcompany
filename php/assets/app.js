@@ -17,10 +17,8 @@
 
   function initDates(form) {
     const dates = $$("input[data-date]", form);
-    dates.forEach((input) => {
-      input.min = today;
-      if (!input.value) input.value = addDays(today, Number(input.dataset.offset || 14));
-    });
+    // Dates start empty: the visitor picks them (no guessed dates).
+    dates.forEach((input) => (input.min = today));
     // Keep "return"/"check-out" after the first date
     dates.filter((i) => i.dataset.after).forEach((later) => {
       const earlier = $(`input[name="${later.dataset.after}"]`, form);
@@ -29,7 +27,8 @@
       const sync = () => {
         const min = earlier.value ? addDays(earlier.value, later.dataset.after === "depart" && form.dataset.searchForm === "flight" ? 0 : 1) : today;
         later.min = min;
-        if (!later.value || later.value < min) later.value = addDays(earlier.value || today, gap);
+        // Once the first date is chosen, suggest the second one (unless it's already valid).
+        if (earlier.value && (!later.value || later.value < min)) later.value = addDays(earlier.value, gap);
       };
       earlier.addEventListener("change", sync);
       sync();
