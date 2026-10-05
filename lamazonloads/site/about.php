@@ -6,7 +6,7 @@ page_header('About us', 'about', "LamazonLoads was created from a driver's persp
 page_hero('About LamazonLoads', "Created from the driver's seat", 'LamazonLoads is a transportation and logistics company focused on helping independent drivers and owner-operators stay moving and get access to freight opportunities.');
 ?>
 <section class="section">
-  <div class="container story" style="align-items:start">
+  <div class="container story level">
     <div class="reveal prose">
       <span class="eyebrow">Our story</span>
       <h2>We understand the wait. That's why we built this.</h2>
@@ -14,7 +14,7 @@ page_hero('About LamazonLoads', "Created from the driver's seat", 'LamazonLoads 
       <p>LamazonLoads was built to change that. It's more than a dispatch service: it's a driver-support and logistics network that connects drivers with available loads, daily routes, dispatchers and other opportunities.</p>
       <p>We're building a serious logistics operation, with strong driver recruiting, organized dispatch and support teams, daily-route contracts and freight booking, and we're growing it with drivers at the center.</p>
     </div>
-    <div class="card pad reveal" style="background:linear-gradient(160deg,#0A2463,#071A4A);color:#C9D6F5;border:0">
+    <div class="card pad reveal motto-card">
       <span class="logo-badge" style="margin-bottom:20px"><?= logo_html() ?></span>
       <span class="eyebrow">Our motto</span>
       <p class="quote" style="margin-top:0">Why wait?<br>Let's freight.</p>

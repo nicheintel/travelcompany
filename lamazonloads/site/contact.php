@@ -35,15 +35,18 @@ $email = (string) config('contact_email');
 $phone = (string) config('contact_phone');
 ?>
 <section class="section">
-  <div class="container story" style="align-items:start;grid-template-columns:1fr 1.3fr">
-    <div class="reveal">
+  <div class="container story level contact-layout">
+    <div class="reveal level-col">
       <span class="eyebrow">Reach us</span>
       <h2>We're here to keep you moving</h2>
-      <ul class="checklist mt">
+      <div class="card pad contact-card">
+      <ul class="checklist">
         <?php if ($email !== ''): ?><li><span class="tick"><?= icon('mail') ?></span><span><b>Email</b><br><a href="mailto:<?= e($email) ?>"><?= e($email) ?></a></span></li><?php endif; ?>
         <?php if ($phone !== ''): ?><li><span class="tick"><?= icon('phone') ?></span><span><b>Phone</b><br><a href="<?= e(tel_href($phone)) ?>"><?= e($phone) ?></a></span></li><?php endif; ?>
         <li><span class="tick"><?= icon('users') ?></span><span><b>Already a member?</b><br>Your dedicated support group details are shared after onboarding.</span></li>
+        <li><span class="tick"><?= icon('chat') ?></span><span><b>Prefer to chat?</b><br>Tap the Chat button in the corner. We answer there too.</span></li>
       </ul>
+      </div>
     </div>
     <div class="card form-card reveal">
       <?php if (isset($_GET['sent'])): ?>
