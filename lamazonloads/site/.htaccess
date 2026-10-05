@@ -1,0 +1,5 @@
+# Keep code, settings and database files private
+Options -Indexes
+<FilesMatch "(^\.|^config\.local.*\.php$|\.(sql|md|log|txt|json|ini|sh|bat)$)">
+    Require all denied
+</FilesMatch>

@@ -53,3 +53,10 @@ next-env.d.ts
 /php/uploads/*
 !/php/uploads/.htaccess
 !/php/uploads/.gitkeep
+
+# LamazonLoads (XAMPP) site: local settings and runtime files
+/lamazonloads/site/config.local.php
+/lamazonloads/site/storage/schema-*
+/lamazonloads/site/uploads/*
+!/lamazonloads/site/uploads/.htaccess
+!/lamazonloads/site/uploads/.gitkeep

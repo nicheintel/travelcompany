@@ -1,0 +1,3 @@
+# Driver documents are private: they are only served through doc.php after sign-in.
+Options -Indexes -ExecCGI
+Require all denied

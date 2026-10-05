@@ -1,0 +1,130 @@
+<?php
+declare(strict_types=1);
+require __DIR__ . '/includes/bootstrap.php';
+
+$jobs = db_all("SELECT * FROM jobs WHERE status = 'open' ORDER BY created_at DESC, id DESC LIMIT 3");
+page_header('', 'home');
+?>
+<section class="hero">
+  <div class="container hero-grid">
+    <div>
+      <span class="pill"><span class="dot"><?= icon('truck') ?></span>Built by drivers, for drivers</span>
+      <h1>Why wait?<span class="accent">Let's freight.</span></h1>
+      <p class="lead">Freight dispatching, daily route opportunities and real driver support for cargo vans, Sprinter vans and box trucks. We keep independent drivers and owner-operators moving, and loaded.</p>
+      <div class="hero-actions">
+        <a class="btn btn-accent btn-lg" href="<?= e(url(current_user() ? 'account.php' : 'register.php')) ?>">Get loaded today <?= icon('arrow') ?></a>
+        <a class="btn btn-outline-light btn-lg" href="<?= e(url('careers.php')) ?>">See open opportunities</a>
+      </div>
+      <div class="hero-trust">
+        <span><?= icon('check') ?>Loads searched &amp; negotiated for you</span>
+        <span><?= icon('check') ?>Daily &amp; dedicated routes</span>
+        <span><?= icon('check') ?>Real people on support</span>
+      </div>
+    </div>
+    <div class="dispatch-card" aria-label="How LamazonLoads dispatch works">
+      <div class="dc-head"><h3>Your dispatch desk</h3><span class="live">Working for you</span></div>
+      <ul class="dc-steps">
+        <li><span class="ico"><?= icon('search') ?></span><div><b>We find the freight</b><small>Load boards, brokers &amp; contracts worked daily</small></div></li>
+        <li><span class="ico"><?= icon('handshake') ?></span><div><b>We negotiate the rate</b><small>No more losing bids or hauling cheap freight</small></div></li>
+        <li><span class="ico"><?= icon('clipboard') ?></span><div><b>You get the details</b><small>Rate con, pickup &amp; drop-off sent to your phone</small></div></li>
+        <li><span class="ico"><?= icon('dollar') ?></span><div><b>We follow up on pay</b><small>Payment tracking until the money lands</small></div></li>
+      </ul>
+      <div class="dc-foot"><span>Cargo Van · Sprinter · Box Truck</span><b style="color:var(--blue)">Stay loaded</b></div>
+    </div>
+  </div>
+  <div class="road" aria-hidden="true"></div>
+</section>
+
+<section class="equip-strip">
+  <div class="container equip-row">
+    <span class="label">We dispatch</span>
+    <span class="equip"><?= icon('van') ?>Cargo Vans</span>
+    <span class="equip"><?= icon('van') ?>Sprinter Vans</span>
+    <span class="equip"><?= icon('truck') ?>Box Trucks</span>
+    <span class="equip"><?= icon('route') ?>Other qualified equipment</span>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow">More than dispatching</span>
+      <h2>A driver-support &amp; logistics network</h2>
+      <p class="lead">Everything you need to stay on the road and profitable, under one roof.</p>
+    </div>
+    <div class="grid grid-3">
+      <?php foreach ([
+          ['truck', 'Freight dispatching', 'We search, negotiate and book loads for Cargo Vans, Sprinter Vans, Box Trucks and other qualified equipment.'],
+          ['route', 'Daily route opportunities', 'Dedicated and local delivery routes when contracts are available, matched by ZIP code and equipment.'],
+          ['clipboard', 'Driver onboarding', 'One simple onboarding: documents, vehicle info, ZIP code, availability, insurance and W-9, all in your dashboard.'],
+          ['headset', 'Driver support', 'Dedicated support groups where you talk directly with LamazonLoads management and support representatives.'],
+          ['calendar', 'Load coordination', 'Pickup and drop-off details, scheduling, route assignments, payment tracking and follow-ups handled for you.'],
+          ['users', 'Community', 'Drivers, dispatchers and entrepreneurs helping each other find opportunities and stay productive on the road.'],
+      ] as [$ic, $t, $d]): ?>
+        <div class="card feature reveal"><div class="ico"><?= icon($ic) ?></div><h3><?= e($t) ?></h3><p><?= e($d) ?></p></div>
+      <?php endforeach; ?>
+    </div>
+  </div>
+</section>
+
+<section class="section section-dark">
+  <div class="container story">
+    <div class="reveal">
+      <span class="eyebrow">Built from the driver's seat</span>
+      <h2>We know what it feels like to sit and wait for freight.</h2>
+      <p>LamazonLoads was created from a driver's perspective. We've deadheaded the empty miles, lost the bids and watched the day go by without a load. So we built a company that works the way drivers need it to.</p>
+      <p class="quote">"Our job is simple: advocate for drivers and keep them loaded."</p>
+      <a class="btn btn-accent" href="<?= e(url('about.php')) ?>">Our story <?= icon('arrow') ?></a>
+    </div>
+    <div class="pain-list reveal">
+      <div class="pain"><span class="ico-sm"><?= icon('clock') ?></span><div><b>No more waiting on freight</b><span>We're working the boards and our broker network while you drive.</span></div></div>
+      <div class="pain"><span class="ico-sm"><?= icon('route') ?></span><div><b>Less deadhead</b><span>We plan your next load around where your last one drops.</span></div></div>
+      <div class="pain"><span class="ico-sm"><?= icon('handshake') ?></span><div><b>Stop losing bids</b><span>Experienced dispatchers negotiate so you don't haul for less than you're worth.</span></div></div>
+      <div class="pain"><span class="ico-sm"><?= icon('chart') ?></span><div><b>Stay profitable</b><span>Rates, routes and payment follow-ups focused on what you actually take home.</span></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="section section-white">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow">How it works</span>
+      <h2>From sign-up to rolling in four steps</h2>
+    </div>
+    <div class="steps">
+      <div class="card step reveal"><h3>Create your account</h3><p>Free sign-up in under a minute. Tell us if you're an owner-operator, driver or dispatcher.</p></div>
+      <div class="card step reveal"><h3>Finish onboarding</h3><p>Add your equipment, home ZIP code and availability, then upload your W-9, insurance and license.</p></div>
+      <div class="card step reveal"><h3>Get matched</h3><p>We match you with loads, daily routes and job openings that fit your truck and your schedule.</p></div>
+      <div class="card step reveal"><h3>Stay loaded</h3><p>Dispatch and support stay with you on the road, from pickup to payment.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="section-head left reveal" style="display:flex;justify-content:space-between;align-items:end;gap:20px;max-width:none;flex-wrap:wrap">
+      <div><span class="eyebrow">Now hiring &amp; onboarding</span><h2 class="mb-0">Open opportunities</h2></div>
+      <a class="btn btn-ghost" href="<?= e(url('careers.php')) ?>">All openings <?= icon('arrow') ?></a>
+    </div>
+    <?php if ($jobs): ?>
+      <div class="grid grid-3"><?php foreach ($jobs as $j) echo job_card($j); ?></div>
+    <?php else: ?>
+      <div class="card empty">New openings are posted here first. <a href="<?= e(url('register.php')) ?>">Create an account</a> to be ready when they open.</div>
+    <?php endif; ?>
+  </div>
+</section>
+
+<section class="section section-white">
+  <div class="container narrow">
+    <div class="section-head reveal"><span class="eyebrow">Questions</span><h2>Frequently asked</h2></div>
+    <div class="faq reveal">
+      <details><summary>What equipment do you dispatch?</summary><p>Cargo vans, Sprinter vans, box trucks (16 to 26 ft) and other qualified equipment. Tell us what you drive in your profile and we'll match you accordingly.</p></details>
+      <details><summary>Do I need my own MC / DOT authority?</summary><p>For freight dispatching, owner-operators usually run under their own authority. If you don't have one yet, contact us. Some daily routes and contracts have different requirements.</p></details>
+      <details><summary>What documents do I need for onboarding?</summary><p>Typically a W-9, certificate of insurance, driver's license and vehicle registration, plus MC / DOT authority if you have it. You can upload everything securely from your dashboard.</p></details>
+      <details><summary>How do daily routes work?</summary><p>When a dedicated or local delivery contract opens, we fill it from drivers who have completed onboarding in that area. Keeping your ZIP code and availability up to date puts you first in line.</p></details>
+      <details><summary>Is creating an account free?</summary><p>Yes. Creating an account and applying for openings is free.</p></details>
+    </div>
+  </div>
+</section>
+
+<?php cta_band(); page_footer();

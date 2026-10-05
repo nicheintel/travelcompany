@@ -6,6 +6,8 @@ A travel assistant website for finding affordable flights, hotels and Flight + H
 > - **`php/` — PHP + MySQL, runs on XAMPP and any Hostinger plan.** See [`php/README.md`](php/README.md).
 > - The root folder — the original Next.js version (needs Node.js), documented below.
 >
+> **`lamazonloads/`** is a separate website (LamazonLoads freight dispatch & driver network, PHP + MySQL on XAMPP). See [`lamazonloads/README.md`](lamazonloads/README.md).
+>
 > Both have the same features and design.
 
 Built with [Next.js](https://nextjs.org) (App Router), TypeScript and Tailwind CSS.

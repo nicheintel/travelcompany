@@ -1,0 +1,33 @@
+LamazonLoads - how to test the website on your Windows computer
+================================================================
+
+You need XAMPP installed (https://www.apachefriends.org) - PHP 8.1 or newer.
+
+1. Download / extract this folder anywhere (for example your Desktop).
+2. Open the "lamazonloads" folder.
+3. Double-click  START-LamazonLoads.bat
+
+That's it. The website opens in your browser at:
+   http://localhost/lamazonloads/
+
+FIRST THING TO DO: click "Get loaded" and create your own account.
+The first account created on your computer becomes the ADMIN.
+You'll then see "Admin" in the top menu, where you can:
+  - add, edit, close or delete job posts
+  - see every applicant, their driver profile and documents
+  - change application status (Received / In review / Approved / Not selected)
+  - read messages sent from the Contact page
+  - make other team members admins, or reset a member's password
+
+To start it again later, double-click START-LamazonLoads.bat again.
+To stop it, double-click STOP-LamazonLoads.bat.
+
+If Windows shows "Windows protected your PC", click "More info" and then
+"Run anyway". You can open the .bat file in Notepad to see exactly what it does.
+
+Your contact email / phone (shown on the website) go in:
+   C:\xampp\htdocs\lamazonloads\config.local.php
+Open it in Notepad, remove the // in front of a line and fill it in.
+
+Logo files (for social media, business cards, email signatures) are in
+the "brand" folder.
