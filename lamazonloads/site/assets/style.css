@@ -118,7 +118,7 @@ p { margin: 0 0 1em; }
 .road { position: absolute; left: 0; right: 0; bottom: 0; height: 56px; background: #061538; border-top: 3px solid #12307A; overflow: hidden; }
 .road::before { content: ""; position: absolute; left: 0; top: 50%; width: 200%; height: 4px; margin-top: -2px; background: repeating-linear-gradient(90deg, #fff 0 48px, transparent 48px 96px); animation: drive 2.4s linear infinite; }
 @keyframes drive { to { transform: translateX(-96px); } }
-@media (prefers-reduced-motion: reduce) { .road::before, .live::before { animation: none; } html { scroll-behavior: auto; } }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 @media (max-width: 900px) { .hero-grid { grid-template-columns: 1fr; padding: 56px 0 100px; gap: 40px; } }
 
 /* ---------- Sections ---------- */
@@ -309,7 +309,7 @@ tr:last-child td { border-bottom: 0; }
 /* Scroll reveal */
 .reveal { opacity: 0; transform: translateY(18px); transition: opacity .6s ease, transform .6s ease; }
 .reveal.in { opacity: 1; transform: none; }
-@media (prefers-reduced-motion: reduce) { .reveal { opacity: 1; transform: none; transition: none; } }
+@media (prefers-reduced-motion: reduce) { .reveal { transform: none; } }
 
 /* =========================================================
    Animations
@@ -423,10 +423,15 @@ tr:last-child td { border-bottom: 0; }
 @keyframes stripe { to { background-position: 70px 0; } }
 .auth-side .road::before { animation-duration: 3s; }
 
-/* Respect "reduce motion" settings */
+/* Computers with animations turned down (e.g. Windows "Animation effects" off): keep the site
+   alive but calmer: things fade instead of sliding or zooming, and the truck drives slower. */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation: none !important; transition: none !important; }
-  .road-truck { display: none; }
-  .route-truck { left: 100%; }
-  .route-line { transform: none; }
+  .hero-copy > *, .hero h1 .accent, .dispatch-card { animation-name: fade-in; }
+  .dc-steps li.is-active { transform: none; }
+  .route-wrap.go .step { animation-name: step-lit-calm; }
+  .road-truck { animation-duration: 18s; }
+  .marquee-track { animation-duration: 48s; }
+  .btn:hover, .feature:hover, .job-card:hover { transform: none; }
 }
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes step-lit-calm { to { border-color: var(--blue); box-shadow: 0 14px 30px rgba(30, 99, 233, .16); } }

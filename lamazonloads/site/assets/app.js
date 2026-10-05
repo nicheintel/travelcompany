@@ -1,7 +1,5 @@
 // LamazonLoads — small enhancements and animations (the site works without JavaScript too).
 (function () {
-  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
   var toggle = document.querySelector('.nav-toggle');
   var nav = document.getElementById('site-nav');
   if (toggle && nav) {
@@ -32,7 +30,7 @@
   document.querySelectorAll('.reveal').forEach(function (el) {
     var sibs = el.parentElement ? Array.prototype.filter.call(el.parentElement.children, function (c) { return c.classList.contains('reveal'); }) : [];
     var i = sibs.indexOf(el);
-    if (i > 0 && !reduce) el.style.transitionDelay = (i % 4) * 110 + 'ms';
+    if (i > 0) el.style.transitionDelay = (i % 4) * 110 + 'ms';
     whenVisible(el, function (t) { t.classList.add('in'); });
   });
 
@@ -48,7 +46,7 @@
   var list = document.querySelector('[data-dispatch]');
   var live = document.querySelector('[data-live]');
   var bar = document.querySelector('.dc-bar span');
-  if (list && live && !reduce) {
+  if (list && live) {
     var steps = list.querySelectorAll('li');
     var idle = live.textContent;
     var n = -1;
