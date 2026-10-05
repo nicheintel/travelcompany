@@ -189,11 +189,15 @@ function rows_text(array $rows): string
     return implode("\n", array_map(fn($k, $v) => "$k: $v", array_keys($rows), $rows));
 }
 
-function simple_email(string $subject, string $heading, string $firstName, array $paragraphs, array $rows, string $link, string $button): array
+/** $formal: "Dear …" and a "Kind regards" sign-off instead of "Hi …". */
+function simple_email(string $subject, string $heading, string $firstName, array $paragraphs, array $rows, string $link, string $button, bool $formal = false): array
 {
     $site = config('site_name');
-    $text = "Hi $firstName,\n\n" . implode("\n\n", $paragraphs) . ($rows ? "\n\n" . rows_text($rows) : '') . "\n\n$button: $link\n\nThe $site team";
-    $html = email_p('Hi ' . e($firstName) . ',') . implode('', array_map(fn($p) => email_p(nl2br(e($p))), $paragraphs)) . ($rows ? rows_html($rows) : '') . email_button($link, $button);
+    $hello = ($formal ? 'Dear ' : 'Hi ') . $firstName . ',';
+    $text = "$hello\n\n" . implode("\n\n", $paragraphs) . ($rows ? "\n\n" . rows_text($rows) : '') . "\n\n$button: $link\n\n"
+        . ($formal ? "Kind regards,\nThe $site Team" : "The $site team");
+    $html = email_p(e($hello)) . implode('', array_map(fn($p) => email_p(nl2br(e($p))), $paragraphs)) . ($rows ? rows_html($rows) : '') . email_button($link, $button)
+        . ($formal ? email_p('Kind regards,<br>The ' . e($site) . ' Team') : '');
     return ['subject' => $subject, 'text' => $text, 'html' => email_layout($heading, $html)];
 }
 
@@ -217,10 +221,11 @@ function notify_booking_now(string $event, string $reference): void
         $mail = match ($event) {
             // A checked bag was requested: payment waits until the bag price is added (no "Pay now" yet).
             'reserved' => ($b['bag_status'] ?? null) === 'pending'
-                ? simple_email("Trip reserved: $title", 'Your trip is reserved!', $first, [
-                    'You asked for a checked bag. Bag prices are set by the airline, so a travel assistant will confirm the exact price, add it to your total and email you a payment link, usually within a few hours.',
-                    "You don't pay anything for the bag without seeing the price first.",
-                ], array_diff_key($rows, ['Total' => true]) + ['Checked bag' => 'Requested (price to be confirmed)', 'Total so far' => money($b['total']) . ' + checked bag'], $link, 'View my trip')
+                ? simple_email("Trip reserved: $title", 'Your trip is reserved', $first, [
+                    'Thank you for choosing ' . config('site_name') . '. We have received your reservation.',
+                    'Since you added a checked bag, our team is confirming the baggage fee with the airline. You will receive an email shortly with your final total and a secure link to complete your payment.',
+                    'You will only be charged once you have seen and approved the final price.',
+                ], array_diff_key($rows, ['Total' => true]) + ['Checked bag' => 'Requested (price to be confirmed)', 'Total so far' => money($b['total']) . ' + checked bag'], $link, 'View my trip', true)
                 : (payments_enabled() || gcash_enabled()
                 ? simple_email("Trip reserved: $title", 'Your trip is reserved!', $first, [
                     payments_enabled()
