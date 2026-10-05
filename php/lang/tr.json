@@ -642,7 +642,6 @@
  "Add your trip reference {ref} as the message.": "Mesaj olarak seyahat referansınızı ({ref}) yazın.",
  "Enter the reference number from your GCash receipt (numbers only).": "GCash makbuzunuzdaki referans numarasını girin (yalnızca rakam).",
  "Enter the reference number from your GCash receipt below.": "GCash makbuzunuzdaki referans numarasını aşağıya girin.",
- "For payments from the Philippines": "Filipinler'den yapılan ödemeler için",
  "GCash QR code": "GCash QR kodu",
  "GCash number": "GCash numarası",
  "GCash reference no., e.g. 1234 567 890123": "GCash referans no., örn. 1234 567 890123",
@@ -650,12 +649,16 @@
  "I've sent the payment": "Ödemeyi gönderdim",
  "In your GCash app, choose Send Money and send to the number above.": "GCash uygulamanızda Send Money'yi seçin ve yukarıdaki numaraya gönderin.",
  "Message / note": "Mesaj / not",
- "Or pay with GCash": "Veya GCash ile ödeyin",
- "Pay with GCash": "GCash ile öde",
  "Reference {ref} · ₱{amount}. A travel assistant will confirm it by email, usually within a few hours.": "Referans {ref} · ₱{amount}. Bir seyahat asistanı bunu genellikle birkaç saat içinde e-postayla onaylayacaktır.",
  "Scan the QR code in your GCash app, or send to the number above.": "GCash uygulamanızda QR kodu tarayın veya yukarıdaki numaraya gönderin.",
  "Send exactly": "Tam olarak şu tutarı gönderin",
  "Thanks! We'll check your GCash payment and confirm by email, usually within a few hours.": "Teşekkürler! GCash ödemenizi kontrol edip genellikle birkaç saat içinde e-postayla onaylayacağız.",
  "We're checking your GCash payment": "GCash ödemenizi kontrol ediyoruz",
- "{usd} at today's exchange rate. If you pay on another day, refresh this page for the current amount.": "Bugünkü döviz kuruyla {usd}. Başka bir gün ödeme yaparsanız güncel tutar için bu sayfayı yenileyin."
+ "{usd} at today's exchange rate. If you pay on another day, refresh this page for the current amount.": "Bugünkü döviz kuruyla {usd}. Başka bir gün ödeme yaparsanız güncel tutar için bu sayfayı yenileyin.",
+ "Card": "Kart",
+ "Choose how to pay": "Ödeme yöntemini seçin",
+ "Pay in US dollars · confirmed instantly": "ABD doları ile ödeme · anında onay",
+ "Pay in pesos · confirmed within a few hours": "Peso ile ödeme · birkaç saat içinde onay",
+ "PayPal or card": "PayPal veya kart",
+ "Total: {total}": "Toplam: {total}"
 }

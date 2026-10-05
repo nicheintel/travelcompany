@@ -675,7 +675,6 @@
  "Add your trip reference {ref} as the message.": "Укажите номер вашей поездки {ref} в сообщении.",
  "Enter the reference number from your GCash receipt (numbers only).": "Введите номер операции из квитанции GCash (только цифры).",
  "Enter the reference number from your GCash receipt below.": "Введите ниже номер операции из квитанции GCash.",
- "For payments from the Philippines": "Для платежей из Филиппин",
  "GCash QR code": "QR-код GCash",
  "GCash number": "Номер GCash",
  "GCash reference no., e.g. 1234 567 890123": "Номер операции GCash, например 1234 567 890123",
@@ -683,12 +682,16 @@
  "I've sent the payment": "Я отправил(а) платёж",
  "In your GCash app, choose Send Money and send to the number above.": "В приложении GCash выберите Send Money и отправьте сумму на указанный выше номер.",
  "Message / note": "Сообщение / примечание",
- "Or pay with GCash": "Или оплатите через GCash",
- "Pay with GCash": "Оплатить через GCash",
  "Reference {ref} · ₱{amount}. A travel assistant will confirm it by email, usually within a few hours.": "Номер {ref} · ₱{amount}. Сотрудник турагентства подтвердит платёж по электронной почте, обычно в течение нескольких часов.",
  "Scan the QR code in your GCash app, or send to the number above.": "Отсканируйте QR-код в приложении GCash или отправьте сумму на указанный выше номер.",
  "Send exactly": "Отправьте ровно",
  "Thanks! We'll check your GCash payment and confirm by email, usually within a few hours.": "Спасибо! Мы проверим ваш платёж через GCash и подтвердим его по электронной почте, обычно в течение нескольких часов.",
  "We're checking your GCash payment": "Мы проверяем ваш платёж через GCash",
- "{usd} at today's exchange rate. If you pay on another day, refresh this page for the current amount.": "{usd} по сегодняшнему курсу. Если вы будете платить в другой день, обновите эту страницу, чтобы увидеть актуальную сумму."
+ "{usd} at today's exchange rate. If you pay on another day, refresh this page for the current amount.": "{usd} по сегодняшнему курсу. Если вы будете платить в другой день, обновите эту страницу, чтобы увидеть актуальную сумму.",
+ "Card": "Карта",
+ "Choose how to pay": "Выберите способ оплаты",
+ "Pay in US dollars · confirmed instantly": "Оплата в долларах США · подтверждение сразу",
+ "Pay in pesos · confirmed within a few hours": "Оплата в песо · подтверждение в течение нескольких часов",
+ "PayPal or card": "PayPal или карта",
+ "Total: {total}": "Итого: {total}"
 }

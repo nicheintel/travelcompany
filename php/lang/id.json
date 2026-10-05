@@ -642,7 +642,6 @@
  "Add your trip reference {ref} as the message.": "Tulis referensi perjalanan Anda {ref} sebagai pesan.",
  "Enter the reference number from your GCash receipt (numbers only).": "Masukkan nomor referensi dari struk GCash Anda (hanya angka).",
  "Enter the reference number from your GCash receipt below.": "Masukkan nomor referensi dari struk GCash Anda di bawah.",
- "For payments from the Philippines": "Untuk pembayaran dari Filipina",
  "GCash QR code": "Kode QR GCash",
  "GCash number": "Nomor GCash",
  "GCash reference no., e.g. 1234 567 890123": "No. referensi GCash, mis. 1234 567 890123",
@@ -650,12 +649,16 @@
  "I've sent the payment": "Saya sudah mengirim pembayaran",
  "In your GCash app, choose Send Money and send to the number above.": "Di aplikasi GCash Anda, pilih Send Money lalu kirim ke nomor di atas.",
  "Message / note": "Pesan / catatan",
- "Or pay with GCash": "Atau bayar dengan GCash",
- "Pay with GCash": "Bayar dengan GCash",
  "Reference {ref} · ₱{amount}. A travel assistant will confirm it by email, usually within a few hours.": "Referensi {ref} · ₱{amount}. Asisten perjalanan akan mengonfirmasinya melalui email, biasanya dalam beberapa jam.",
  "Scan the QR code in your GCash app, or send to the number above.": "Pindai kode QR di aplikasi GCash Anda, atau kirim ke nomor di atas.",
  "Send exactly": "Kirim tepat sebesar",
  "Thanks! We'll check your GCash payment and confirm by email, usually within a few hours.": "Terima kasih! Kami akan memeriksa pembayaran GCash Anda dan mengonfirmasinya melalui email, biasanya dalam beberapa jam.",
  "We're checking your GCash payment": "Kami sedang memeriksa pembayaran GCash Anda",
- "{usd} at today's exchange rate. If you pay on another day, refresh this page for the current amount.": "{usd} dengan kurs hari ini. Jika Anda membayar di hari lain, muat ulang halaman ini untuk melihat jumlah terbaru."
+ "{usd} at today's exchange rate. If you pay on another day, refresh this page for the current amount.": "{usd} dengan kurs hari ini. Jika Anda membayar di hari lain, muat ulang halaman ini untuk melihat jumlah terbaru.",
+ "Card": "Kartu",
+ "Choose how to pay": "Pilih cara membayar",
+ "Pay in US dollars · confirmed instantly": "Bayar dalam dolar AS · langsung dikonfirmasi",
+ "Pay in pesos · confirmed within a few hours": "Bayar dalam peso · dikonfirmasi dalam beberapa jam",
+ "PayPal or card": "PayPal atau kartu",
+ "Total: {total}": "Total: {total}"
 }

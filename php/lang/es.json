@@ -642,7 +642,6 @@
  "Add your trip reference {ref} as the message.": "Añada su referencia de viaje {ref} como mensaje.",
  "Enter the reference number from your GCash receipt (numbers only).": "Introduzca el número de referencia de su recibo de GCash (solo números).",
  "Enter the reference number from your GCash receipt below.": "Introduzca abajo el número de referencia de su recibo de GCash.",
- "For payments from the Philippines": "Para pagos desde Filipinas",
  "GCash QR code": "Código QR de GCash",
  "GCash number": "Número de GCash",
  "GCash reference no., e.g. 1234 567 890123": "N.º de referencia de GCash, p. ej. 1234 567 890123",
@@ -650,12 +649,16 @@
  "I've sent the payment": "Ya he enviado el pago",
  "In your GCash app, choose Send Money and send to the number above.": "En su app de GCash, elija Send Money y envíe el pago al número indicado arriba.",
  "Message / note": "Mensaje / nota",
- "Or pay with GCash": "O pague con GCash",
- "Pay with GCash": "Pagar con GCash",
  "Reference {ref} · ₱{amount}. A travel assistant will confirm it by email, usually within a few hours.": "Referencia {ref} · ₱{amount}. Un asistente de viajes lo confirmará por correo electrónico, normalmente en unas horas.",
  "Scan the QR code in your GCash app, or send to the number above.": "Escanee el código QR con su app de GCash o envíe el pago al número indicado arriba.",
  "Send exactly": "Envíe exactamente",
  "Thanks! We'll check your GCash payment and confirm by email, usually within a few hours.": "¡Gracias! Comprobaremos su pago con GCash y se lo confirmaremos por correo electrónico, normalmente en unas horas.",
  "We're checking your GCash payment": "Estamos comprobando su pago con GCash",
- "{usd} at today's exchange rate. If you pay on another day, refresh this page for the current amount.": "{usd} al tipo de cambio de hoy. Si paga otro día, actualice esta página para ver el importe vigente."
+ "{usd} at today's exchange rate. If you pay on another day, refresh this page for the current amount.": "{usd} al tipo de cambio de hoy. Si paga otro día, actualice esta página para ver el importe vigente.",
+ "Card": "Tarjeta",
+ "Choose how to pay": "Elija cómo pagar",
+ "Pay in US dollars · confirmed instantly": "Pago en dólares estadounidenses · confirmación inmediata",
+ "Pay in pesos · confirmed within a few hours": "Pago en pesos · confirmación en pocas horas",
+ "PayPal or card": "PayPal o tarjeta",
+ "Total: {total}": "Total: {total}"
 }

@@ -642,7 +642,6 @@
  "Add your trip reference {ref} as the message.": "Ghi mã chuyến đi {ref} của bạn vào phần lời nhắn.",
  "Enter the reference number from your GCash receipt (numbers only).": "Nhập mã tham chiếu trên biên nhận GCash của bạn (chỉ nhập số).",
  "Enter the reference number from your GCash receipt below.": "Nhập mã tham chiếu trên biên nhận GCash của bạn vào bên dưới.",
- "For payments from the Philippines": "Dành cho thanh toán từ Philippines",
  "GCash QR code": "Mã QR GCash",
  "GCash number": "Số GCash",
  "GCash reference no., e.g. 1234 567 890123": "Mã tham chiếu GCash, ví dụ 1234 567 890123",
@@ -650,12 +649,16 @@
  "I've sent the payment": "Tôi đã gửi tiền",
  "In your GCash app, choose Send Money and send to the number above.": "Trong ứng dụng GCash, chọn Send Money và gửi đến số ở trên.",
  "Message / note": "Lời nhắn / ghi chú",
- "Or pay with GCash": "Hoặc thanh toán bằng GCash",
- "Pay with GCash": "Thanh toán bằng GCash",
  "Reference {ref} · ₱{amount}. A travel assistant will confirm it by email, usually within a few hours.": "Mã {ref} · ₱{amount}. Nhân viên hỗ trợ du lịch sẽ xác nhận qua email, thường trong vòng vài giờ.",
  "Scan the QR code in your GCash app, or send to the number above.": "Quét mã QR trong ứng dụng GCash, hoặc gửi đến số ở trên.",
  "Send exactly": "Gửi chính xác",
  "Thanks! We'll check your GCash payment and confirm by email, usually within a few hours.": "Cảm ơn bạn! Chúng tôi sẽ kiểm tra khoản thanh toán GCash của bạn và xác nhận qua email, thường trong vòng vài giờ.",
  "We're checking your GCash payment": "Chúng tôi đang kiểm tra khoản thanh toán GCash của bạn",
- "{usd} at today's exchange rate. If you pay on another day, refresh this page for the current amount.": "{usd} theo tỷ giá hôm nay. Nếu bạn thanh toán vào ngày khác, hãy tải lại trang này để xem số tiền hiện tại."
+ "{usd} at today's exchange rate. If you pay on another day, refresh this page for the current amount.": "{usd} theo tỷ giá hôm nay. Nếu bạn thanh toán vào ngày khác, hãy tải lại trang này để xem số tiền hiện tại.",
+ "Card": "Thẻ",
+ "Choose how to pay": "Chọn cách thanh toán",
+ "Pay in US dollars · confirmed instantly": "Thanh toán bằng đô la Mỹ · xác nhận ngay",
+ "Pay in pesos · confirmed within a few hours": "Thanh toán bằng peso · xác nhận trong vài giờ",
+ "PayPal or card": "PayPal hoặc thẻ",
+ "Total: {total}": "Tổng cộng: {total}"
 }

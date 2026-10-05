@@ -642,7 +642,6 @@
  "Add your trip reference {ref} as the message.": "请在留言中填写您的行程编号 {ref}。",
  "Enter the reference number from your GCash receipt (numbers only).": "请输入 GCash 收据上的参考号（仅数字）。",
  "Enter the reference number from your GCash receipt below.": "请在下方输入 GCash 收据上的参考号。",
- "For payments from the Philippines": "适用于从菲律宾付款",
  "GCash QR code": "GCash 二维码",
  "GCash number": "GCash 号码",
  "GCash reference no., e.g. 1234 567 890123": "GCash 参考号，例如 1234 567 890123",
@@ -650,12 +649,16 @@
  "I've sent the payment": "我已付款",
  "In your GCash app, choose Send Money and send to the number above.": "在 GCash 应用中选择 Send Money，并转账至上方号码。",
  "Message / note": "留言 / 备注",
- "Or pay with GCash": "或使用 GCash 付款",
- "Pay with GCash": "使用 GCash 付款",
  "Reference {ref} · ₱{amount}. A travel assistant will confirm it by email, usually within a few hours.": "编号 {ref} · ₱{amount}。旅行顾问将通过电子邮件确认，通常在几小时内完成。",
  "Scan the QR code in your GCash app, or send to the number above.": "在 GCash 应用中扫描二维码，或转账至上方号码。",
  "Send exactly": "请准确转账",
  "Thanks! We'll check your GCash payment and confirm by email, usually within a few hours.": "谢谢！我们将核实您的 GCash 付款，并通过电子邮件确认，通常在几小时内完成。",
  "We're checking your GCash payment": "我们正在核实您的 GCash 付款",
- "{usd} at today's exchange rate. If you pay on another day, refresh this page for the current amount.": "按今日汇率约合 {usd}。如果您在其他日期付款，请刷新此页面查看最新金额。"
+ "{usd} at today's exchange rate. If you pay on another day, refresh this page for the current amount.": "按今日汇率约合 {usd}。如果您在其他日期付款，请刷新此页面查看最新金额。",
+ "Card": "银行卡",
+ "Choose how to pay": "选择付款方式",
+ "Pay in US dollars · confirmed instantly": "以美元付款 · 即时确认",
+ "Pay in pesos · confirmed within a few hours": "以比索付款 · 几小时内确认",
+ "PayPal or card": "PayPal 或银行卡",
+ "Total: {total}": "总计：{total}"
 }

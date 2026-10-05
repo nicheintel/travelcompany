@@ -642,7 +642,6 @@
  "Add your trip reference {ref} as the message.": "संदेश में अपना ट्रिप रेफ़रेंस {ref} डालें।",
  "Enter the reference number from your GCash receipt (numbers only).": "अपनी GCash रसीद से रेफ़रेंस नंबर दर्ज करें (केवल अंक)।",
  "Enter the reference number from your GCash receipt below.": "नीचे अपनी GCash रसीद से रेफ़रेंस नंबर दर्ज करें।",
- "For payments from the Philippines": "फ़िलीपींस से भुगतान के लिए",
  "GCash QR code": "GCash QR कोड",
  "GCash number": "GCash नंबर",
  "GCash reference no., e.g. 1234 567 890123": "GCash रेफ़रेंस नंबर, जैसे 1234 567 890123",
@@ -650,12 +649,16 @@
  "I've sent the payment": "मैंने भुगतान भेज दिया है",
  "In your GCash app, choose Send Money and send to the number above.": "अपने GCash ऐप में Send Money चुनें और ऊपर दिए गए नंबर पर भेजें।",
  "Message / note": "संदेश / नोट",
- "Or pay with GCash": "या GCash से भुगतान करें",
- "Pay with GCash": "GCash से भुगतान करें",
  "Reference {ref} · ₱{amount}. A travel assistant will confirm it by email, usually within a few hours.": "रेफ़रेंस {ref} · ₱{amount}। एक ट्रैवल असिस्टेंट आमतौर पर कुछ घंटों में ईमेल से इसकी पुष्टि करेगा।",
  "Scan the QR code in your GCash app, or send to the number above.": "अपने GCash ऐप में QR कोड स्कैन करें, या ऊपर दिए गए नंबर पर भेजें।",
  "Send exactly": "ठीक इतनी राशि भेजें",
  "Thanks! We'll check your GCash payment and confirm by email, usually within a few hours.": "धन्यवाद! हम आपके GCash भुगतान की जाँच करेंगे और आमतौर पर कुछ घंटों में ईमेल से पुष्टि करेंगे।",
  "We're checking your GCash payment": "हम आपके GCash भुगतान की जाँच कर रहे हैं",
- "{usd} at today's exchange rate. If you pay on another day, refresh this page for the current amount.": "आज की विनिमय दर पर {usd}। अगर आप किसी और दिन भुगतान करते हैं, तो मौजूदा राशि के लिए यह पेज रीफ़्रेश करें।"
+ "{usd} at today's exchange rate. If you pay on another day, refresh this page for the current amount.": "आज की विनिमय दर पर {usd}। अगर आप किसी और दिन भुगतान करते हैं, तो मौजूदा राशि के लिए यह पेज रीफ़्रेश करें।",
+ "Card": "कार्ड",
+ "Choose how to pay": "भुगतान का तरीका चुनें",
+ "Pay in US dollars · confirmed instantly": "अमेरिकी डॉलर में भुगतान · तुरंत पुष्टि",
+ "Pay in pesos · confirmed within a few hours": "पेसो में भुगतान · कुछ घंटों में पुष्टि",
+ "PayPal or card": "PayPal या कार्ड",
+ "Total: {total}": "कुल: {total}"
 }

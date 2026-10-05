@@ -642,7 +642,6 @@
  "Add your trip reference {ref} as the message.": "メッセージ欄に旅行の予約番号 {ref} を入力してください。",
  "Enter the reference number from your GCash receipt (numbers only).": "GCash の受領書に記載された参照番号を入力してください（数字のみ）。",
  "Enter the reference number from your GCash receipt below.": "GCash の受領書に記載された参照番号を下に入力してください。",
- "For payments from the Philippines": "フィリピンからのお支払い用",
  "GCash QR code": "GCash QR コード",
  "GCash number": "GCash 番号",
  "GCash reference no., e.g. 1234 567 890123": "GCash 参照番号（例：1234 567 890123）",
@@ -650,12 +649,16 @@
  "I've sent the payment": "送金しました",
  "In your GCash app, choose Send Money and send to the number above.": "GCash アプリで Send Money を選び、上記の番号へ送金してください。",
  "Message / note": "メッセージ / メモ",
- "Or pay with GCash": "または GCash で支払う",
- "Pay with GCash": "GCash で支払う",
  "Reference {ref} · ₱{amount}. A travel assistant will confirm it by email, usually within a few hours.": "予約番号 {ref} · ₱{amount}。通常数時間以内に、旅行アシスタントがメールで確認のご連絡をいたします。",
  "Scan the QR code in your GCash app, or send to the number above.": "GCash アプリで QR コードを読み取るか、上記の番号へ送金してください。",
  "Send exactly": "送金額（正確に）",
  "Thanks! We'll check your GCash payment and confirm by email, usually within a few hours.": "ありがとうございます！GCash でのお支払いを確認し、通常数時間以内にメールでご連絡いたします。",
  "We're checking your GCash payment": "GCash でのお支払いを確認しています",
- "{usd} at today's exchange rate. If you pay on another day, refresh this page for the current amount.": "本日の為替レートで {usd}。別の日にお支払いになる場合は、このページを再読み込みして最新の金額をご確認ください。"
+ "{usd} at today's exchange rate. If you pay on another day, refresh this page for the current amount.": "本日の為替レートで {usd}。別の日にお支払いになる場合は、このページを再読み込みして最新の金額をご確認ください。",
+ "Card": "カード",
+ "Choose how to pay": "お支払い方法を選択",
+ "Pay in US dollars · confirmed instantly": "米ドルでのお支払い · すぐに確定",
+ "Pay in pesos · confirmed within a few hours": "ペソでのお支払い · 数時間以内に確定",
+ "PayPal or card": "PayPal またはカード",
+ "Total: {total}": "合計：{total}"
 }
