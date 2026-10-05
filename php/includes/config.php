@@ -12,7 +12,7 @@ const EDITABLE_SETTINGS = [
     'app_url', 'admin_emails', 'flight_markup_rate', 'hotel_markup_rate', 'member_discount_rate',
     'duffel_access_token', 'liteapi_key', 'resend_api_key', 'email_from',
     'smtp_host', 'smtp_port', 'smtp_user', 'smtp_pass',
-    'support_email', 'support_phone', 'support_whatsapp',
+    'support_email', 'support_phone', 'support_whatsapp', 'business_name', 'business_address',
     'stripe_secret_key', 'stripe_webhook_secret',
     'paypal_client_id', 'paypal_secret', 'paypal_mode', 'paypal_webhook_id',
 ];
@@ -68,6 +68,10 @@ function config(string $key, mixed $default = null): mixed
             'support_email' => '',
             'support_phone' => '',
             'support_whatsapp' => '',
+
+            // Shown on the Terms and Privacy pages once filled in (Admin → Site settings).
+            'business_name' => '',
+            'business_address' => '',
 
             // PayPal (PayPal account or card via PayPal). Get the Client ID and Secret from
             // developer.paypal.com → Apps & Credentials. Used instead of Stripe when set.

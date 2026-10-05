@@ -4,3 +4,4 @@ Disallow: /account.php
 Disallow: /trip.php
 Disallow: /book.php
 Disallow: /settings.php
+Disallow: /verify-email.php

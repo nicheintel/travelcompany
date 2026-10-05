@@ -68,6 +68,9 @@ if (is_post()) {
     }
     if (!config_fixed('paypal_mode')) save_setting('paypal_mode', ($_POST['paypal_mode'] ?? '') === 'live' ? 'live' : 'sandbox');
     if (!config_fixed('email_from')) save_setting('email_from', mb_substr(trim((string) ($_POST['email_from'] ?? '')), 0, 200));
+    foreach (['business_name' => 120, 'business_address' => 250] as $f => $max) {
+        if (!config_fixed($f)) save_setting($f, mb_substr(trim(preg_replace('/\s+/', ' ', (string) ($_POST[$f] ?? ''))), 0, $max));
+    }
     // "Need help?" contact for customers
     if (!config_fixed('support_email')) {
         $se = normalize_email((string) ($_POST['support_email'] ?? ''));
@@ -192,6 +195,17 @@ $fixedNote = '<p class="mt-1 text-xs text-amber-700">Set in config.local.php or 
         <input id="s_email_from" name="email_from" type="text" value="<?= e((string) config('email_from')) ?>" placeholder="FareFinders &lt;hello@farefinders.net&gt;" class="<?= $input ?> mt-1"<?= config_fixed('email_from') ? ' disabled' : '' ?>>
         <p class="mt-1 text-xs text-slate-500">Only used with Resend. With your own mailbox, emails come from that address.</p>
       </div>
+    </div>
+  </section>
+
+  <section class="rounded-xl border border-slate-200 bg-white p-6">
+    <h2 class="text-lg font-semibold text-slate-900">Business details</h2>
+    <p class="mt-1 text-sm text-slate-500">Shown on your Terms of use and Privacy policy pages. Fill these in once your business is registered.</p>
+    <div class="mt-5 grid gap-4 sm:grid-cols-2">
+      <div><label for="s_business_name" class="block text-sm font-medium text-slate-700">Registered business name</label>
+        <input id="s_business_name" name="business_name" maxlength="120" value="<?= e(is_post() ? (string) ($_POST['business_name'] ?? '') : (string) config('business_name')) ?>" placeholder="e.g. FareFinders Travel Services" class="<?= $input ?> mt-1"<?= config_fixed('business_name') ? ' disabled' : '' ?>></div>
+      <div><label for="s_business_address" class="block text-sm font-medium text-slate-700">Business address</label>
+        <input id="s_business_address" name="business_address" maxlength="250" value="<?= e(is_post() ? (string) ($_POST['business_address'] ?? '') : (string) config('business_address')) ?>" placeholder="Street, city, country" class="<?= $input ?> mt-1"<?= config_fixed('business_address') ? ' disabled' : '' ?>></div>
     </div>
   </section>
 

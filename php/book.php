@@ -135,6 +135,7 @@ parse_str($quote['query'], $qp);
               ? 'Nothing is charged yet. Next you can pay online' . (payment_provider() === 'paypal' ? ' with PayPal or a card' : ' by card') . ' to confirm right away — or pay later with help from a travel assistant.'
               : 'No payment is taken today. A travel assistant will contact you within 24 hours to confirm availability and arrange payment.' ?></p>
         </div>
+        <p class="text-xs text-slate-500">By reserving you agree to our <a class="font-semibold text-brand-700 hover:underline" href="<?= e(url('terms.php')) ?>#bookings">booking terms</a>, including the airline and hotel rules for changes and refunds.</p>
         <?php if ($user['verified']): ?>
           <?= submit_button('Reserve trip · ' . money($quote['total']), 'Reserving…') ?>
         <?php else: ?>

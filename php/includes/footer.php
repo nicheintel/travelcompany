@@ -6,7 +6,7 @@ $columns = [
     'Account' => current_user()
         ? [['account.php', 'My trips'], ['settings.php', 'Account settings']]
         : [['signin.php', 'Sign in'], ['register.php', 'Create account'], ['account.php', 'My trips']],
-    'Support' => [['index.php#faq', 'FAQ'], ['index.php#why-us', 'Why book with us'], ['index.php#newsletter', 'Deal alerts']],
+    'Help & legal' => [['help.php', 'Help center'], ['help.php#faq', 'FAQs'], ['privacy.php', 'Privacy policy'], ['cookies.php', 'Cookie policy'], ['terms.php', 'Terms of use']],
 ];
 ?>
 <footer class="mt-auto bg-brand-950 text-slate-300">

@@ -13,12 +13,7 @@ $steps = [
     ['tag', 'Compare', 'Filter by price, stops, airline or hotel rating and pick what fits.'],
     ['user', 'Book with your account', 'Sign in to save trips, get price alerts and check out in seconds.'],
 ];
-$faq = [
-    ['How do you find affordable flights?', 'We search many airlines and booking sources at once and sort the results so the best-value options appear first. Flexible dates usually unlock even lower fares.'],
-    ['What is included in a promo package?', 'Every package includes round-trip flights and a hotel stay. Some also include a rental car or extras like breakfast or tours — each package lists exactly what is included.'],
-    ['Do I need an account to book?', "You can search without an account. To book, save trips and receive member-only deals, you'll sign in or create a free account."],
-    ['Can I change or cancel my booking?', 'It depends on the fare or hotel rules. Refundable options are clearly marked, and our assistants can help with changes.'],
-];
+$faq = array_slice(faq_items(), 0, 5);
 $tabs = [['flights', 'Flights', 'plane'], ['packages', 'Flight + Hotel', 'package'], ['hotels', 'Hotels', 'bed']];
 $promos = active_packages();
 require __DIR__ . '/includes/header.php';
@@ -155,6 +150,7 @@ require __DIR__ . '/includes/header.php';
       </details>
     <?php endforeach; ?>
   </div>
+  <p class="mt-6 text-center text-sm"><a href="<?= e(url('help.php#faq')) ?>" class="font-semibold text-brand-700 hover:underline">More questions? Visit our Help center →</a></p>
 </section>
 
 <section id="newsletter" class="scroll-mt-20 px-4 pb-16 sm:px-6">
@@ -163,7 +159,7 @@ require __DIR__ . '/includes/header.php';
     <div class="relative grid items-center gap-8 lg:grid-cols-2">
       <div>
         <h2 class="text-3xl font-bold">Get member-only deals</h2>
-        <p class="mt-2 text-brand-100">Create a free account to save searches, track prices and unlock secret fares.</p>
+        <p class="mt-2 text-brand-100">Create a free account to book faster, keep all your trips in one place and get member prices.</p>
       </div>
       <div class="flex flex-col gap-3 sm:flex-row lg:justify-end">
         <a href="<?= e(url('register.php')) ?>" class="rounded-xl bg-accent-500 px-6 py-3 text-center font-bold text-white shadow-lg hover:bg-accent-600">Create free account</a>

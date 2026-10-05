@@ -48,8 +48,8 @@ echo auth_shell_open('Create your free account', 'It takes less than a minute. N
     </ul>
   </div>
   <?= text_field('confirm', 'Confirm password', '', 'password', $errors['confirm'] ?? null, ['autocomplete' => 'new-password']) ?>
+  <p class="text-xs text-slate-500">By creating an account you agree to our <a class="font-semibold text-brand-700 hover:underline" href="<?= e(url('terms.php')) ?>">Terms of use</a> and <a class="font-semibold text-brand-700 hover:underline" href="<?= e(url('privacy.php')) ?>">Privacy policy</a>.</p>
   <?= submit_button('Create account', 'Creating account…') ?>
-  <p class="text-center text-xs text-slate-500">By creating an account you agree to our Terms of Service and Privacy Policy.</p>
   <p class="text-center text-sm text-slate-600">Already have an account? <a href="<?= e(url('signin.php', ['next' => $next ?: null])) ?>" class="font-semibold text-brand-700 hover:underline">Sign in</a></p>
 </form>
 <?php

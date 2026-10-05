@@ -473,3 +473,43 @@ function no_packages_box(): string
         . 'Or search live <a class="font-semibold text-brand-700 hover:underline" href="' . e(url('flights.php')) . '">flights</a> and <a class="font-semibold text-brand-700 hover:underline" href="' . e(url('hotels.php')) . '">hotels</a> yourself.</p></div>'
         . ($buttons ? '<div class="flex shrink-0 flex-col gap-2 sm:flex-row">' . $buttons . '</div>' : '') . '</div>';
 }
+
+// ---------- Help & legal pages ----------
+
+/** "FareFinders (operated by X, address)" — only the details the owner has filled in. */
+function business_identity(): string
+{
+    $site = e((string) config('site_name'));
+    $name = trim((string) config('business_name'));
+    $addr = trim((string) config('business_address'));
+    if ($name === '' && $addr === '') return $site;
+    return $site . ' (operated by ' . e($name !== '' ? $name : (string) config('site_name')) . ($addr !== '' ? ', ' . e($addr) : '') . ')';
+}
+
+function contact_email_link(): string
+{
+    $email = support_contacts()['email'] ?? '';
+    return $email ? '<a href="mailto:' . e($email) . '">' . e($email) . '</a>' : 'the contact details on our <a href="' . e(url('help.php')) . '">Help center</a>';
+}
+
+/** Page with a side table of contents. $sections: id => [heading, html]. */
+function legal_page(string $title, string $intro, string $updated, array $sections): string
+{
+    $toc = '';
+    $body = '';
+    foreach ($sections as $id => [$heading, $html]) {
+        $toc .= '<li><a href="#' . e($id) . '" class="block rounded-lg px-3 py-1.5 text-sm text-slate-600 hover:bg-white hover:text-brand-700">' . e($heading) . '</a></li>';
+        $body .= '<h2 id="' . e($id) . '">' . e($heading) . '</h2>' . $html;
+    }
+    $links = '';
+    foreach ([['help.php', 'Help center'], ['privacy.php', 'Privacy policy'], ['cookies.php', 'Cookie policy'], ['terms.php', 'Terms of use']] as [$href, $label]) {
+        $here = basename((string) ($_SERVER['SCRIPT_NAME'] ?? '')) === $href;
+        $links .= '<a href="' . e(url($href)) . '" class="rounded-full px-3 py-1 text-sm font-medium ' . ($here ? 'bg-brand-600 text-white' : 'bg-white text-slate-700 ring-1 ring-slate-200 hover:ring-brand-300') . '">' . $label . '</a>';
+    }
+    return '<div class="mx-auto max-w-6xl px-4 py-10 sm:px-6"><div class="flex flex-wrap gap-2">' . $links . '</div>'
+        . '<h1 class="mt-6 text-3xl font-bold text-slate-900 sm:text-4xl">' . e($title) . '</h1>'
+        . ($updated ? '<p class="mt-1 text-sm text-slate-500">Last updated ' . e($updated) . '</p>' : '')
+        . '<div class="mt-8 grid gap-10 lg:grid-cols-[220px_1fr]">'
+        . '<nav class="hidden lg:block"><ul class="sticky top-24 space-y-0.5">' . $toc . '</ul></nav>'
+        . '<article class="legal min-w-0 rounded-2xl border border-slate-200 bg-white p-6 sm:p-10"><p class="text-lg !text-slate-700">' . $intro . '</p>' . $body . '</article></div></div>';
+}

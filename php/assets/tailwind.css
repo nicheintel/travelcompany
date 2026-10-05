@@ -32,3 +32,15 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   cursor: pointer;
   opacity: 0.6;
 }
+
+/* Help, privacy, cookie and terms pages */
+.legal h2 { margin-top: 2.25rem; font-size: 1.25rem; font-weight: 700; color: #0f172a; scroll-margin-top: 6rem; }
+.legal h3 { margin-top: 1.25rem; font-weight: 600; color: #0f172a; }
+.legal p, .legal ul { margin-top: 0.75rem; line-height: 1.7; color: #334155; }
+.legal ul { list-style: disc; padding-left: 1.25rem; }
+.legal li + li { margin-top: 0.35rem; }
+.legal a { color: #1640d9; font-weight: 600; }
+.legal a:hover { text-decoration: underline; }
+.legal table { margin-top: 1rem; width: 100%; font-size: 0.875rem; border-collapse: collapse; }
+.legal th, .legal td { border: 1px solid #e2e8f0; padding: 0.5rem 0.75rem; text-align: left; vertical-align: top; }
+.legal th { background: #f8fafc; }
