@@ -211,6 +211,13 @@ function leg_row(array $leg, string $label): string
 }
 
 /** Itinerary + price breakdown, on the booking page and trip pages. */
+/** One label/value line in a summary card: label on the left, value right-aligned and wrapping neatly. */
+function summary_row(string $labelHtml, string $valueHtml): string
+{
+    return '<div class="grid grid-cols-[minmax(6rem,auto)_1fr] items-start gap-x-4"><dt class="text-slate-500">' . $labelHtml . '</dt>'
+        . '<dd class="text-right font-medium text-slate-900 [overflow-wrap:anywhere]">' . $valueHtml . '</dd></div>';
+}
+
 function trip_summary(array $q): string
 {
     $kinds = ['flight' => ['plane', t('Flight')], 'package' => ['package', t('Flight + Hotel package')], 'hotel' => ['bed', t('Hotel')]];
@@ -222,13 +229,42 @@ function trip_summary(array $q): string
         $html .= '<div class="space-y-4 border-b border-slate-100 p-5">' . leg_row($q['flight']['outbound'], 'Depart')
             . ($q['flight']['inbound'] ? leg_row($q['flight']['inbound'], 'Return') : '') . '</div>';
     }
-    $html .= '<dl class="space-y-2 border-b border-slate-100 p-5 text-sm">';
+    $html .= '<dl class="space-y-2.5 border-b border-slate-100 p-5 text-sm">';
     // Fact labels are stored English (from quote.php); translated at display time.
     // i18n-keys: 'Depart', 'Return', 'Travelers', 'Cabin', 'Fare', 'Baggage', 'Fare rules', 'Leaving from', 'Dates', 'Hotel', 'Includes', 'Check-in', 'Check-out', 'Room', 'Guests', 'Cancellation'
     foreach ($q['facts'] as [$k, $v]) {
-        $html .= '<div class="flex justify-between gap-4"><dt class="text-slate-500">' . e(t($k)) . '</dt><dd class="text-right font-medium text-slate-900">' . e(quote_text($v, $q['start_date'] ?? null)) . '</dd></div>';
+        if ($k === 'Fare rules' && !empty($q['policy'])) continue; // shown tidied up below
+        $html .= summary_row(e(t($k)), e(quote_text($v, $q['start_date'] ?? null)));
     }
-    $html .= '</dl><dl class="space-y-2 p-5 text-sm">';
+    $html .= '</dl>';
+    if (!empty($q['baggage'])) {
+        $b = $q['baggage'];
+        $yes = fn() => '<span class="font-medium text-emerald-700">✓ ' . e(t('Included')) . '</span>';
+        $no = fn(?float $from) => '<span class="font-medium text-slate-700">' . e(t('Not included')) . '</span>'
+            . ($from !== null ? '<span class="block text-xs text-slate-500">' . e(t('from {price}', ['price' => price((int) ceil($from))])) . '</span>' : '');
+        $html .= '<div class="border-b border-slate-100 p-5 text-sm"><h3 class="mb-2.5 text-xs font-semibold uppercase tracking-wide text-slate-500">' . e(t('Baggage')) . '</h3><dl class="space-y-2.5">'
+            . summary_row(e(t('Carry-on bag')), $b['carry_on'] ? $yes() : $no(null))
+            . summary_row(e(t('Checked bag')), $b['checked'] ? $yes() : $no($b['checked_from'] ?? null))
+            . '</dl></div>';
+    }
+    if (!empty($q['policy'])) {
+        $pol = $q['policy'];
+        // Airline wording we translate when it appears (anything else is shown as the airline wrote it).
+        // i18n-keys: 'Refundable with penalty', 'Changes allowed with penalty', 'Change fee (before departure)', 'Change fee (after departure)', 'Cancellation fee', 'Cancellation fee (before departure)', 'Cancellation fee (after departure)', 'Changes allowed', 'Changes not allowed', 'Non-refundable', 'Refundable'
+        $html .= '<div class="border-b border-slate-100 p-5 text-sm"><h3 class="mb-2.5 text-xs font-semibold uppercase tracking-wide text-slate-500">' . e(t('Changes & cancellation')) . '</h3>';
+        if ($pol['notes']) {
+            $html .= '<ul class="mb-3 flex flex-wrap gap-1.5">';
+            foreach ($pol['notes'] as $n) $html .= '<li class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700">' . e(t($n)) . '</li>';
+            $html .= '</ul>';
+        }
+        if ($pol['fees']) {
+            $html .= '<dl class="space-y-2.5">';
+            foreach ($pol['fees'] as $f) $html .= summary_row(e(t($f['label'])), e(t('from {price}', ['price' => price($f['from'])])));
+            $html .= '</dl><p class="mt-2.5 text-xs leading-relaxed text-slate-500">' . e(t("Airline fees per traveler, plus any fare difference. We'll confirm the exact amount before making a change.")) . '</p>';
+        }
+        $html .= '</div>';
+    }
+    $html .= '<dl class="space-y-2 p-5 text-sm">';
     foreach ($q['lines'] as $l) {
         $html .= '<div class="flex justify-between"><dt class="text-slate-600">' . e(quote_text($l['label'])) . '</dt><dd class="text-slate-900">' . money($l['amount']) . '</dd></div>';
     }

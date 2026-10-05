@@ -26,6 +26,32 @@ function finish_quote(array $q): array
     return $q + ['subtotal' => $subtotal, 'discount' => $discount, 'discount_rate' => $rate, 'total' => $subtotal - $discount];
 }
 
+/**
+ * Turns the airline's fare-rule messages ("Change fee (before departure): 193 PLN", "Refundable with penalty", …)
+ * into short notes plus one line per kind of fee, showing the lowest fee converted to US dollars.
+ */
+function fare_policy(array $messages): ?array
+{
+    $notes = [];
+    $fees = [];
+    foreach ($messages as $msg) {
+        $msg = trim((string) $msg);
+        if ($msg === '') continue;
+        if (preg_match('/^(.+?):\s*([\d.,]+)\s*([A-Z]{3})$/', $msg, $m)) {
+            $usd = to_usd((float) str_replace(',', '', $m[2]), $m[3]);
+            $label = trim($m[1]);
+            if ($usd === null) { $notes[$msg] = true; continue; } // unknown currency: show as the airline wrote it
+            $fees[$label] = isset($fees[$label]) ? min($fees[$label], $usd) : $usd;
+        } else {
+            $notes[$msg] = true;
+        }
+    }
+    if (!$notes && !$fees) return null;
+    $rows = [];
+    foreach ($fees as $label => $usd) $rows[] = ['label' => $label, 'from' => (int) ceil($usd)];
+    return ['notes' => array_keys($notes), 'fees' => $rows];
+}
+
 function flight_quote(array $params): ?array
 {
     $p = parse_flight_params($params);
@@ -48,8 +74,7 @@ function flight_quote(array $params): ?array
         $cost = $o['cost'];
         $note = "Live airline fare. Fares can change until your ticket is issued — we'll confirm before charging any difference.";
         $bag = $o['baggage'];
-        $extraFacts[] = ['Baggage', ($bag['carry_on'] ? 'Carry-on included' : 'No carry-on included') . ' · ' . ($bag['checked'] ? 'checked bag included' : 'checked bag ' . ($bag['checked_from'] !== null ? 'from ' . money((int) ceil($bag['checked_from'])) : 'not included'))];
-        if ($o['terms']) $extraFacts[] = ['Fare rules', implode(' · ', $o['terms'])];
+        $policy = fare_policy($o['terms']);
     } elseif (duffel_enabled()) {
         // Trust the airline offer itself (route, passengers, price) rather than the URL.
         $o = duffel_offer($offerId);
@@ -97,6 +122,8 @@ function flight_quote(array $params): ?array
         'supplier' => $cost,
         // Real allowance from the supplier (LiteAPI); null when the supplier doesn't say.
         'baggage' => $bag ?? null,
+        // The airline's change/cancellation rules, tidied up (fees converted to USD).
+        'policy' => $policy ?? null,
     ]);
 }
 
