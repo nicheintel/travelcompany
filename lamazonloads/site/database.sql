@@ -179,3 +179,12 @@ CREATE TABLE IF NOT EXISTS rate_hits (
   created_at INT UNSIGNED NOT NULL,
   KEY idx_hits (kind, k, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Jobs a member saved with the heart on Careers
+CREATE TABLE IF NOT EXISTS saved_jobs (
+  user_id INT UNSIGNED NOT NULL,
+  job_id INT UNSIGNED NOT NULL,
+  created_at DATETIME NOT NULL,
+  PRIMARY KEY (user_id, job_id),
+  CONSTRAINT fk_saved_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

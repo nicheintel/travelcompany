@@ -111,7 +111,7 @@ page_header('', 'home');
       <a class="btn btn-ghost" href="<?= e(url('careers.php')) ?>">All openings <?= icon('arrow') ?></a>
     </div>
     <?php if ($jobs): ?>
-      <div class="grid grid-3"><?php foreach ($jobs as $j) echo job_card($j); ?></div>
+      <div class="jc-grid"><?php foreach ($jobs as $j) echo job_card($j); ?></div>
     <?php else: ?>
       <div class="card empty">New openings are posted here first. <a href="<?= e(url('register.php')) ?>">Create an account</a> to be ready when they open.</div>
     <?php endif; ?>

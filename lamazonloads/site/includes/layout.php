@@ -183,23 +183,43 @@ function page_hero(string $eyebrow, string $title, string $lead = ''): void
         . ($lead !== '' ? '<p class="lead">' . e($lead) . '</p>' : '') . '</div></section>';
 }
 
+/** Saved and applied job ids for the signed-in member (for the hearts and "Applied" on job cards). */
+function member_job_marks(): array
+{
+    static $marks = null;
+    if ($marks === null) {
+        $u = current_user();
+        $marks = ['saved' => [], 'applied' => []];
+        if ($u) {
+            $marks['saved'] = array_map('intval', array_column(db_all('SELECT job_id FROM saved_jobs WHERE user_id = ?', [$u['id']]), 'job_id'));
+            $marks['applied'] = array_map('intval', array_column(db_all('SELECT job_id FROM applications WHERE user_id = ?', [$u['id']]), 'job_id'));
+        }
+    }
+    return $marks;
+}
+
+/** Job box: title, "LamazonLoads – location", Apply Now and a heart to save it. */
 function job_card(array $job): string
 {
-    $href = e(url('job.php?id=' . (int) $job['id']));
-    $tags = '';
-    foreach (job_type_labels($job) as $t) {
-        $tags .= '<span class="tag">' . e($t) . '</span>';
-    }
-    return '<article class="card job-card reveal">'
-        . '<div class="tags"><span class="tag tag-solid">' . e(JOB_CATEGORIES[$job['category']] ?? 'Opportunity') . '</span>'
-        . (($job['hiring_timeline'] ?? '') === '1-3d' ? '<span class="tag tag-urgent">⚡ Urgently hiring</span>' : '')
-        . ($job['location'] !== '' ? '<span class="tag">' . icon('pin') . e($job['location']) . '</span>' : '') . '</div>'
-        . '<h3><a href="' . $href . '">' . e($job['title']) . '</a></h3>'
-        . '<p>' . e(job_excerpt($job)) . '</p>'
-        . '<div class="tags">' . $tags . '<span class="tag">' . icon('users') . e(job_hiring_label($job)) . '</span>'
-        . ((int) ($job['fair_chance'] ?? 0) ? '<span class="tag tag-fair">Fair chance</span>' : '') . '</div>'
-        . '<a class="btn btn-ghost btn-sm" href="' . $href . '">View &amp; apply ' . icon('arrow') . '</a>'
-        . '</article>';
+    $id = (int) $job['id'];
+    $href = e(url('job.php?id=' . $id));
+    $marks = member_job_marks();
+    $saved = in_array($id, $marks['saved'], true);
+    $applied = in_array($id, $marks['applied'], true);
+    $where = trim((string) $job['location']) !== '' ? (string) $job['location'] : 'United States';
+    return '<article class="card jc reveal">'
+        . '<h3 class="jc-title"><a href="' . $href . '">' . e($job['title']) . '</a></h3>'
+        . '<p class="jc-where">LamazonLoads &ndash; ' . e($where) . '</p>'
+        . '<div class="jc-actions">'
+        . ($applied
+            ? '<a class="btn jc-apply is-applied" href="' . $href . '">Applied ' . icon('check') . '</a>'
+            : '<a class="btn jc-apply" href="' . $href . '#apply">Apply Now</a>')
+        . '<form method="post" action="' . e(url('save.php')) . '" class="jc-save-form" data-save>'
+        . csrf_field() . '<input type="hidden" name="job" value="' . $id . '">'
+        . '<button type="submit" class="jc-save' . ($saved ? ' on' : '') . '" aria-pressed="' . ($saved ? 'true' : 'false') . '" aria-label="' . ($saved ? 'Saved. Remove from saved jobs' : 'Save this job') . '" title="' . ($saved ? 'Saved' : 'Save job') . '">'
+        . '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-7.5-10.3A4.2 4.2 0 0 1 12 7.6a4.2 4.2 0 0 1 7.5 2.6c0 5.7-7.5 10.3-7.5 10.3z"/></svg>'
+        . '</button></form>'
+        . '</div></article>';
 }
 
 /** The closing call-to-action shown at the bottom of most pages. */

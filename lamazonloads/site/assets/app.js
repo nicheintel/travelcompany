@@ -90,7 +90,28 @@
     }
   }
 
-  // Ask before destructive actions.
+  // Hearts on job boxes: save / unsave without reloading the page.
+  document.addEventListener('submit', function (ev) {
+    var form = ev.target;
+    if (!form.hasAttribute || !form.hasAttribute('data-save') || !window.fetch) return;
+    ev.preventDefault();
+    var btn = form.querySelector('.jc-save');
+    fetch(form.action, { method: 'POST', body: new FormData(form), credentials: 'same-origin', headers: { Accept: 'application/json' } })
+      .then(function (r) { return r.json().then(function (d) { return { status: r.status, d: d }; }); })
+      .then(function (res) {
+        if (res.status === 401 && res.d.login) { window.location.href = res.d.login; return; }
+        var on = !!res.d.saved;
+        document.querySelectorAll('form[data-save] input[name=job][value="' + form.querySelector('input[name=job]').value + '"]').forEach(function (i) {
+          var b = i.form.querySelector('.jc-save');
+          b.classList.toggle('on', on); b.setAttribute('aria-pressed', on ? 'true' : 'false');
+          b.setAttribute('aria-label', on ? 'Saved. Remove from saved jobs' : 'Save this job'); b.title = on ? 'Saved' : 'Save job';
+        });
+        btn.classList.remove('pop'); void btn.offsetWidth; if (on) btn.classList.add('pop');
+      })
+      .catch(function () { form.submit(); });
+  });
+
+
   document.addEventListener('submit', function (ev) {
     var msg = ev.target.getAttribute('data-confirm');
     if (msg && !window.confirm(msg)) ev.preventDefault();

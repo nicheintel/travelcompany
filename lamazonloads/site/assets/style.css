@@ -631,3 +631,31 @@ tr:last-child td { border-bottom: 0; }
 /* Dashboards: wide tables scroll inside their card instead of stretching the page on phones */
 .dash-main { min-width: 0; }
 @media (max-width: 860px) { .dash { grid-template-columns: minmax(0, 1fr); } }
+
+/* Job boxes (Careers, home page, saved jobs): title, company – location, Apply Now + heart */
+.jc-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+.jc-grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (max-width: 1000px) { .jc-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 640px) { .jc-grid, .jc-grid-2 { grid-template-columns: minmax(0, 1fr); } }
+.jc { display: flex; flex-direction: column; padding: 18px 20px; border-radius: 12px; box-shadow: 0 1px 2px rgba(10, 36, 99, .05); transition: border-color .2s, box-shadow .2s; }
+.jc:hover { border-color: #C9DAFF; box-shadow: 0 8px 22px rgba(10, 36, 99, .1); }
+.jc-title { margin: 0; font-family: var(--font); font-size: 1.12rem; font-weight: 700; line-height: 1.35; color: var(--ink);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: calc(1.35em * 2); }
+.jc-title a { color: inherit; }
+.jc-title a:hover { color: var(--blue); text-decoration: none; }
+.jc-where { margin: 4px 0 16px; font-size: .9rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.jc-actions { margin-top: auto; display: flex; align-items: center; gap: 10px; }
+.jc-apply { padding: 10px 20px; border-radius: 10px; background: var(--blue); color: #fff; font-size: .95rem; box-shadow: none; }
+.jc-apply:hover { background: #1554d1; transform: none; }
+.jc-apply.is-applied { background: #E8F8EF; color: #0B6B35; }
+.jc-apply.is-applied .ic { width: 16px; height: 16px; }
+.jc-save-form { margin: 0; }
+.jc-save { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 10px; border: 1.5px solid var(--line); background: #fff; cursor: pointer; color: var(--muted); transition: color .15s, border-color .15s, background .15s; }
+.jc-save svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linejoin: round; }
+.jc-save:hover { color: #E5383B; border-color: #F3C4C4; }
+.jc-save.on { color: #E5383B; border-color: #F3C4C4; background: #FFF1F1; }
+.jc-save.on svg { fill: currentColor; }
+.jc-save:focus-visible { outline: none; box-shadow: 0 0 0 4px rgba(30, 99, 233, .2); }
+@keyframes heart-pop { 50% { transform: scale(1.25); } }
+.jc-save.pop svg { animation: heart-pop .3s ease; }
+@media (max-width: 640px) { .jc-title { min-height: 0; } .jc-where { margin-bottom: 14px; } }

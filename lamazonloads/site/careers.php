@@ -6,9 +6,16 @@ $cat = (string) ($_GET['category'] ?? '');
 if (!isset(JOB_CATEGORIES[$cat])) {
     $cat = '';
 }
+$me = current_user();
+$savedOnly = $me && isset($_GET['saved']);
+$savedIds = member_job_marks()['saved'];
 $jobs = $cat === ''
     ? db_all("SELECT * FROM jobs WHERE status = 'open' ORDER BY created_at DESC, id DESC")
     : db_all("SELECT * FROM jobs WHERE status = 'open' AND category = ? ORDER BY created_at DESC, id DESC", [$cat]);
+if ($savedOnly) {
+    $jobs = array_values(array_filter($jobs, fn ($j) => in_array((int) $j['id'], $savedIds, true)));
+}
+$showNetwork = $cat === '' && (!$savedOnly || in_array(0, $savedIds, true));
 $used = array_column(db_all("SELECT DISTINCT category FROM jobs WHERE status = 'open'"), 'category');
 
 page_header('Careers & opportunities', 'careers', 'Open opportunities at LamazonLoads: owner-operator dispatch, daily routes, dispatch team and driver support jobs.');
@@ -17,21 +24,19 @@ page_hero('Careers & opportunities', 'Open opportunities', 'Create a free accoun
 <section class="section">
   <div class="container">
     <div class="filters" role="navigation" aria-label="Filter openings">
-      <a href="<?= e(url('careers.php')) ?>"<?= $cat === '' ? ' class="on"' : '' ?>>All openings</a>
+      <a href="<?= e(url('careers.php')) ?>"<?= $cat === '' && !$savedOnly ? ' class="on"' : '' ?>>All openings</a>
       <?php foreach (JOB_CATEGORIES as $k => $label): if (!in_array($k, $used, true)) continue; ?>
         <a href="<?= e(url('careers.php?category=' . $k)) ?>"<?= $cat === $k ? ' class="on"' : '' ?>><?= e($label) ?></a>
       <?php endforeach; ?>
+      <?php if ($me): ?><a href="<?= e(url('careers.php?saved=1')) ?>"<?= $savedOnly ? ' class="on"' : '' ?>>♥ Saved (<?= count($savedIds) ?>)</a><?php endif; ?>
     </div>
-    <div class="grid grid-3">
+    <div class="jc-grid">
       <?php foreach ($jobs as $j) echo job_card($j); ?>
-      <article class="card job-card reveal" style="border:2px dashed #C9DAFF;background:#FAFCFF">
-        <div class="tags"><span class="tag tag-solid">Always open</span></div>
-        <h3><a href="<?= e(url('job.php?id=0')) ?>">Join the LamazonLoads driver network</a></h3>
-        <p>Don't see the right fit? Apply once to join our network and we'll reach out when loads, routes or openings match your equipment and area.</p>
-        <a class="btn btn-primary btn-sm" href="<?= e(url('job.php?id=0')) ?>">Apply to the network <?= icon('arrow') ?></a>
-      </article>
+      <?php if ($showNetwork) echo job_card(network_job()); ?>
     </div>
-    <?php if (!$jobs && $cat !== ''): ?><p class="muted mt">No openings in this category right now. <a href="<?= e(url('careers.php')) ?>">See all openings</a>.</p><?php endif; ?>
+    <?php if (!$jobs && !$showNetwork): ?>
+      <div class="card empty"><?= $savedOnly ? 'No saved jobs yet. Tap the ♡ on a job to save it for later.' : 'No openings in this category right now.' ?> <a href="<?= e(url('careers.php')) ?>">See all openings</a></div>
+    <?php endif; ?>
   </div>
 </section>
 <?php cta_band(); page_footer();
