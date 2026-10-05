@@ -344,6 +344,12 @@
   }
 
   document.addEventListener("DOMContentLoaded", () => {
+    // Default photos from another website: if one can't load, show the colour background instead.
+    $$("img[data-fallback]").forEach((img) => {
+      const drop = () => { img.nextElementSibling?.hasAttribute("data-photo-shade") && img.nextElementSibling.remove(); img.remove(); };
+      if (img.complete && img.naturalWidth === 0) drop();
+      else img.addEventListener("error", drop);
+    });
     $$("form[data-search-form]").forEach(initSearchForm);
     // Airport/date fields outside search forms (e.g. package options on the booking page)
     $$("form:not([data-search-form])").forEach((f) => {

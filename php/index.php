@@ -87,9 +87,9 @@ require __DIR__ . '/includes/header.php';
     <a href="<?= e(url('flights.php')) ?>" class="hidden text-sm font-semibold text-brand-700 hover:underline sm:block">Explore all flights →</a>
   </div>
   <div class="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
-    <?php foreach (POPULAR_DESTINATIONS as [$city, $country, $code, $grad]): $photo = site_image("dest:$code"); ?>
+    <?php foreach (POPULAR_DESTINATIONS as [$city, $country, $code, $grad, $unsplash]): [$photo, $isDefault] = destination_photo($code, $unsplash); ?>
       <a href="<?= e(url('flights.php', ['from' => 'JFK', 'to' => $code])) ?>" class="group relative flex aspect-[3/4] flex-col justify-end overflow-hidden rounded-2xl bg-gradient-to-br <?= $grad ?> p-4 text-white shadow-md transition hover:-translate-y-1 hover:shadow-xl">
-        <?php if ($photo): ?><img src="<?= e($photo) ?>" alt="<?= e($city) ?>" loading="lazy" class="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-105"><span class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent"></span><?php endif; ?>
+        <img src="<?= e($photo) ?>" alt="<?= e($city) ?>" loading="lazy"<?= $isDefault ? ' referrerpolicy="no-referrer" data-fallback' : '' ?> class="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-105"><span class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" data-photo-shade></span>
         <span class="absolute right-3 top-3 rounded-md bg-black/20 px-2 py-0.5 font-mono text-xs font-semibold backdrop-blur"><?= $code ?></span>
         <p class="relative text-xs font-medium text-white/80"><?= e($country) ?></p>
         <p class="relative text-lg font-bold"><?= e($city) ?></p>

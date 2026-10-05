@@ -218,13 +218,14 @@ $label = 'block text-sm font-medium text-slate-700';
 
     <section id="destinations" class="scroll-mt-24">
       <h2 class="text-lg font-semibold text-slate-900">Homepage destination photos</h2>
-      <p class="mb-4 text-sm text-slate-600">The "Popular destinations" cards on your homepage. Without a photo they show a colour background.</p>
+      <p class="mb-4 text-sm text-slate-600">The "Popular destinations" cards on your homepage. Each has a free default photo from Unsplash; upload your own to replace it.</p>
       <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <?php foreach (POPULAR_DESTINATIONS as [$city, $country, $code, $grad]): $photo = site_image("dest:$code"); ?>
+        <?php foreach (POPULAR_DESTINATIONS as [$city, $country, $code, $grad, $unsplash]): [$shown, $isDefault] = destination_photo($code, $unsplash); $photo = $isDefault ? null : $shown; ?>
           <form method="post" enctype="multipart/form-data" class="overflow-hidden rounded-xl border border-slate-200 bg-white">
             <?= csrf_field() ?><input type="hidden" name="action" value="dest_photo"><input type="hidden" name="code" value="<?= e($code) ?>">
-            <div class="relative h-32 bg-gradient-to-br <?= $grad ?>"><?php if ($photo): ?><img src="<?= e($photo) ?>" alt="" class="h-full w-full object-cover"><?php endif; ?>
-              <span class="absolute bottom-2 left-3 font-bold text-white drop-shadow"><?= e($city) ?></span></div>
+            <div class="relative h-32 bg-gradient-to-br <?= $grad ?>"><img src="<?= e($shown) ?>" alt=""<?= $isDefault ? ' referrerpolicy="no-referrer" data-fallback' : '' ?> class="h-full w-full object-cover">
+              <span class="absolute bottom-2 left-3 font-bold text-white drop-shadow"><?= e($city) ?></span>
+              <span class="absolute right-2 top-2 rounded bg-black/50 px-2 py-0.5 text-xs font-semibold text-white"><?= $isDefault ? 'Default photo' : 'Your photo' ?></span></div>
             <div class="space-y-2 p-4">
               <input name="photo" type="file" accept="image/jpeg,image/png,image/webp" aria-label="Photo for <?= e($city) ?>" class="block w-full text-xs text-slate-700 file:mr-2 file:rounded-lg file:border-0 file:bg-brand-50 file:px-3 file:py-1.5 file:font-semibold file:text-brand-700">
               <?= $err("dest_$code") ?>
