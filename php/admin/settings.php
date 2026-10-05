@@ -153,7 +153,7 @@ $fixedNote = '<p class="mt-1 text-xs text-amber-700">Set in config.local.php or 
       </div>
       <div>
         <label for="s_email_from" class="block text-sm font-medium text-slate-700">Send emails from</label>
-        <input id="s_email_from" name="email_from" type="text" value="<?= e((string) config('email_from')) ?>" placeholder="TravelCompany &lt;hello@yourdomain.com&gt;" class="<?= $input ?> mt-1"<?= config_fixed('email_from') ? ' disabled' : '' ?>>
+        <input id="s_email_from" name="email_from" type="text" value="<?= e((string) config('email_from')) ?>" placeholder="FareFinders &lt;hello@farefinders.net&gt;" class="<?= $input ?> mt-1"<?= config_fixed('email_from') ? ' disabled' : '' ?>>
         <p class="mt-1 text-xs text-slate-500">Used with Resend; the domain must be verified in Resend.</p>
       </div>
     </div>

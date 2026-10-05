@@ -16,7 +16,7 @@ return [
     // 'demo_mode' => true,
 
     // 'resend_api_key' => 're_...',
-    // 'email_from' => 'TravelCompany <hello@yourdomain.com>',
+    // 'email_from' => 'FareFinders <hello@farefinders.net>',
 
     // 'stripe_secret_key' => 'sk_test_...',
     // 'stripe_webhook_secret' => 'whsec_...',

@@ -28,7 +28,7 @@ $flashMessage = take_flash();
   <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
     <a href="<?= e(url()) ?>" class="flex items-center gap-2 text-xl font-bold tracking-tight">
       <span class="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 text-white shadow-md"><?= icon('plane', 18) ?></span>
-      <span class="text-slate-900">Travel<span class="text-accent-500">Company</span></span>
+      <span class="text-slate-900">Fare<span class="text-accent-500">Finders</span></span>
     </a>
     <nav class="hidden items-center gap-1 md:flex">
       <?php foreach ($nav as [$href, $label, $ic]): $active = $current === $href; ?>

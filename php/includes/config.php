@@ -38,7 +38,7 @@ function config(string $key, mixed $default = null): mixed
             // admin opens the dashboard (or set it on Admin → Site settings).
             'app_url' => '',
 
-            'site_name' => 'TravelCompany',
+            'site_name' => 'FareFinders',
 
             // Comma-separated emails that are always admins.
             'admin_emails' => '',

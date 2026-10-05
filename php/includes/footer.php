@@ -12,7 +12,7 @@ $columns = [
     <div class="space-y-4">
       <a href="<?= e(url()) ?>" class="flex items-center gap-2 text-xl font-bold tracking-tight">
         <span class="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 text-white shadow-md"><?= icon('plane', 18) ?></span>
-        <span class="text-white">Travel<span class="text-accent-500">Company</span></span>
+        <span class="text-white">Fare<span class="text-accent-500">Finders</span></span>
       </a>
       <p class="max-w-xs text-sm leading-relaxed text-slate-400">Your travel assistant for affordable flights, hotels and holiday packages.</p>
     </div>
