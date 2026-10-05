@@ -48,7 +48,7 @@ $here = 'job.php?id=' . $id;
 ?>
 <section class="page-hero"><div class="container">
   <a href="<?= e(url('careers.php')) ?>" style="color:#9DB4E8">&larr; All openings</a>
-  <div class="tags" style="margin:16px 0 10px"><span class="tag tag-amber"><?= e($id === 0 ? 'Always open' : (JOB_CATEGORIES[$job['category']] ?? 'Opportunity')) ?></span><?php if ($job['status'] !== 'open'): ?><span class="tag">Closed (staff view)</span><?php endif; ?></div>
+  <div class="tags" style="margin:16px 0 10px"><span class="tag tag-solid"><?= e($id === 0 ? 'Always open' : (JOB_CATEGORIES[$job['category']] ?? 'Opportunity')) ?></span><?php if ($job['status'] !== 'open'): ?><span class="tag">Closed (staff view)</span><?php endif; ?></div>
   <h1><?= e($job['title']) ?></h1>
   <p class="lead"><?= e($job['summary']) ?></p>
 </div></section>

@@ -41,7 +41,7 @@ page_header('Create your account');
 ?>
 <div class="auth-wrap">
   <aside class="auth-side">
-    <?= logo_html('logo-light') ?>
+    <span class="logo-badge"><?= logo_html() ?></span>
     <h2 class="mt">Join the network that keeps you loaded.</h2>
     <ul class="checklist" style="color:#E3EBFF">
       <li><span class="tick"><?= icon('check') ?></span>Apply to job posts and daily routes in one click</li>

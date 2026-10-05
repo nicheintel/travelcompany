@@ -41,8 +41,7 @@ function icon(string $name, string $class = 'ic'): string
 
 function logo_html(string $class = ''): string
 {
-    return '<span class="logo ' . e($class) . '"><img src="' . e(asset('brand/mark.svg')) . '" alt="" width="40" height="40">'
-        . '<span class="logo-text"><span class="logo-word">Lamazon<b>Loads</b></span><span class="logo-tag">Why wait? Let\'s freight.</span></span></span>';
+    return '<img class="logo ' . e($class) . '" src="' . e(asset('brand/logo.png')) . '" alt="LamazonLoads: Why wait? Let\'s freight." width="364" height="204">';
 }
 
 function page_header(string $title, string $active = '', string $description = ''): void
@@ -67,7 +66,7 @@ function page_header(string $title, string $active = '', string $description = '
 <meta name="theme-color" content="#0A2463">
 <meta property="og:title" content="<?= e($title ?: 'LamazonLoads') ?>">
 <meta property="og:description" content="<?= e($desc) ?>">
-<link rel="icon" href="<?= e(asset('favicon.svg')) ?>" type="image/svg+xml">
+<link rel="icon" href="<?= e(asset('favicon.png')) ?>" type="image/png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,600;0,700;0,800;0,900;1,800;1,900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -119,7 +118,7 @@ function page_footer(): void
 <footer class="site-footer">
   <div class="container footer-grid">
     <div class="footer-brand">
-      <?= logo_html('logo-light') ?>
+      <?= logo_html('logo-footer') ?>
       <p>Freight dispatching, daily routes and driver support for independent drivers and owner-operators. Built from the driver's seat.</p>
     </div>
     <div>
@@ -149,10 +148,10 @@ function page_footer(): void
       </ul>
     </div>
   </div>
-  <div class="container footer-bottom">
+  <div class="footer-bottom-wrap"><div class="container footer-bottom">
     <span>&copy; <?= date('Y') ?> LamazonLoads. All rights reserved.</span>
     <span class="motto">Why wait? <b>Let's freight.</b></span>
-  </div>
+  </div></div>
 </footer>
 </body>
 </html>
@@ -176,7 +175,7 @@ function job_card(array $job): string
 {
     $href = e(url('job.php?id=' . (int) $job['id']));
     return '<article class="card job-card reveal">'
-        . '<div class="tags"><span class="tag tag-amber">' . e(JOB_CATEGORIES[$job['category']] ?? 'Opportunity') . '</span>'
+        . '<div class="tags"><span class="tag tag-solid">' . e(JOB_CATEGORIES[$job['category']] ?? 'Opportunity') . '</span>'
         . ($job['location'] !== '' ? '<span class="tag">' . icon('pin') . e($job['location']) . '</span>' : '') . '</div>'
         . '<h3><a href="' . $href . '">' . e($job['title']) . '</a></h3>'
         . '<p>' . e($job['summary']) . '</p>'

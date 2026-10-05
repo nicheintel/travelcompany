@@ -33,7 +33,7 @@ page_header('Sign in');
 ?>
 <div class="auth-wrap">
   <aside class="auth-side">
-    <?= logo_html('logo-light') ?>
+    <span class="logo-badge"><?= logo_html() ?></span>
     <h2 class="mt">Welcome back, driver.</h2>
     <p>Check your applications, update your availability and keep your documents current, so we can keep you loaded.</p>
     <p class="quote">Why wait? Let's freight.</p>

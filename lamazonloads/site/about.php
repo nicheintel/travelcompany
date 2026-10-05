@@ -15,7 +15,7 @@ page_hero('About LamazonLoads', "Created from the driver's seat", 'LamazonLoads 
       <p>We're building a serious logistics operation, with strong driver recruiting, organized dispatch and support teams, daily-route contracts and freight booking, and we're growing it with drivers at the center.</p>
     </div>
     <div class="card pad reveal" style="background:linear-gradient(160deg,#0A2463,#071A4A);color:#C9D6F5;border:0">
-      <img src="<?= e(asset('brand/mark.svg')) ?>" alt="" width="72" height="72" style="border-radius:18px;margin-bottom:20px">
+      <span class="logo-badge" style="margin-bottom:20px"><?= logo_html() ?></span>
       <span class="eyebrow">Our motto</span>
       <p class="quote" style="margin-top:0">Why wait?<br>Let's freight.</p>
       <p class="mb-0">One word, one mission: <b style="color:#fff">LamazonLoads</b> keeps drivers moving.</p>

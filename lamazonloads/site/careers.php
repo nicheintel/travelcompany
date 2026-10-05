@@ -25,7 +25,7 @@ page_hero('Careers & opportunities', 'Open opportunities', 'Create a free accoun
     <div class="grid grid-3">
       <?php foreach ($jobs as $j) echo job_card($j); ?>
       <article class="card job-card reveal" style="border:2px dashed #C9DAFF;background:#FAFCFF">
-        <div class="tags"><span class="tag tag-amber">Always open</span></div>
+        <div class="tags"><span class="tag tag-solid">Always open</span></div>
         <h3><a href="<?= e(url('job.php?id=0')) ?>">Join the LamazonLoads driver network</a></h3>
         <p>Don't see the right fit? Apply once to join our network and we'll reach out when loads, routes or openings match your equipment and area.</p>
         <a class="btn btn-primary btn-sm" href="<?= e(url('job.php?id=0')) ?>">Apply to the network <?= icon('arrow') ?></a>

@@ -54,7 +54,9 @@ uploaded documents are checked by content (not file name), stored under random n
 
 ## Brand
 
-`brand/` has the logo: `lamazonloads-logo.png` (light backgrounds), `lamazonloads-logo-dark.png`
-(dark backgrounds), `lamazonloads-social-1080.png` (profile picture / posts) and the app icon
-(`lamazonloads-icon.svg`, `lamazonloads-icon-512.png`). Colors: navy `#0A2463`, blue `#1E63E9`,
-amber `#FFB21E`. Fonts: Montserrat (headings, italic 900 for the wordmark) and Inter (text).
+The site uses the LamazonLoads logo (`site/assets/brand/logo.png`, trimmed from
+`brand/lamazonloads-logo-original.png`) with a blue and white theme: navy `#0A2463`, blue `#1E63E9`,
+light blue `#8EC2FF`, white. Fonts: Montserrat (headings) and Inter (text).
+To swap the logo later, replace `site/assets/brand/logo.png` (and `site/assets/favicon.png`).
+
+The other files in `brand/` are optional alternative logo designs, not used by the site.
