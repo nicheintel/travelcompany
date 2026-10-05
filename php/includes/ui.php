@@ -286,7 +286,7 @@ function results_notice(array $result, string $what): string
             . '<p class="text-lg font-semibold text-slate-900">Online flight booking is coming soon</p>'
             . '<p class="mx-auto mt-1 max-w-xl text-slate-600">Tell us where and when you\'d like to fly, and our travel assistants will find you the best fare.</p>'
             . ($btn ? '<div class="mt-5 flex flex-wrap justify-center gap-3">' . $btn . '</div>' : '')
-            . (is_admin() ? '<p class="mt-4 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800 ring-1 ring-amber-200">Admin: flights are hidden because Duffel uses a TEST token while PayPal takes real money. Add your <strong>duffel_live_</strong> token on <a class="font-semibold underline" href="' . e(url('admin/settings.php')) . '">Site settings</a> to show real flights.</p>' : '')
+            . (is_admin() ? '<p class="mt-4 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800 ring-1 ring-amber-200">Admin: flights are hidden because Duffel uses a TEST token while PayPal takes real money. To show real flights, open <a class="font-semibold underline" href="' . e(url('admin/settings.php')) . '">Site settings</a> and set <strong>Flights come from</strong> to <strong>LiteAPI</strong> (or add a <strong>duffel_live_</strong> token).</p>' : '')
             . '</div>';
     }
     if (!empty($result['not_connected'])) {

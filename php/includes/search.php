@@ -418,7 +418,7 @@ function search_flights(array $s): array
     try {
         return $supplier === 'liteapi' ? live_search('flights-liteapi', $s, 'liteapi_flight_search') : live_search('flights', $s, 'duffel_search');
     } catch (Throwable $e) {
-        error_log('[duffel] search failed: ' . $e->getMessage());
+        error_log('[' . $supplier . '] flight search failed: ' . $e->getMessage());
         return ['items' => [], 'live' => true, 'error' => "We couldn't load live fares just now. Please try again in a moment."];
     }
 }
