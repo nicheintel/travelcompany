@@ -278,3 +278,60 @@ function js_strings(): array
     foreach ($keys as $k) $out[$k] = t($k);
     return $out;
 }
+
+/**
+ * Shows text from a saved quote (always stored in English) in the visitor's language:
+ * known labels and patterns are translated; supplier text (airline, hotel, fare rules) stays as it is.
+ * $startIso: the trip's first date, used to put stored dates like "Mon, Oct 5" back into the right year.
+ */
+function quote_text(?string $s, ?string $startIso = null): string
+{
+    $s = (string) $s;
+    if ($s === '' || current_lang() === 'en') return $s;
+    // i18n-keys: 'Refundable', 'Non-refundable', 'Free cancellation', 'Economy', 'Premium Economy', 'Business', 'First', 'Round trip', 'One way', 'Taxes & fees', 'Carry-on included', 'No carry-on included', 'checked bag included', 'checked bag not included', 'Round-trip flights', 'Hotel', 'Rental car', "Live airline fare. Fares can change until your ticket is issued — we'll confirm before charging any difference.", 'Live hotel rate. Some cities charge a local tourist tax, payable at the hotel.'
+    $whole = t($s);
+    if ($whole !== $s) return $whole;
+    $m = [];
+    if (preg_match('/^Flight for (\d+) travelers?$/', $s, $m)) return tn((int) $m[1], 'Flight for {n} traveler', 'Flight for {n} travelers');
+    if (preg_match('/^(\d+) × (adult fare|child fare|infant fare \(on lap\))$/', $s, $m)) {
+        // i18n-keys: '{n} × adult fare', '{n} × child fare', '{n} × infant fare (on lap)'
+        return t('{n} × ' . $m[2], ['n' => $m[1]]);
+    }
+    if (preg_match('/^(\d+) × (\S+) per person$/u', $s, $m)) return t('{n} × {price} per person', ['n' => $m[1], 'price' => $m[2]]);
+    if (preg_match('/^(\d+) nights? × (\d+) rooms?( \(taxes included\))?$/', $s, $m)) {
+        $stay = t('{nights} × {rooms}', ['nights' => tn((int) $m[1], '{n} night', '{n} nights'), 'rooms' => tn((int) $m[2], '{n} room', '{n} rooms')]);
+        return !empty($m[3]) ? t('{stay} (taxes included)', ['stay' => $stay]) : $stay;
+    }
+    if (preg_match('/^(\d+) \(incl\. (\d+) infants?\)$/', $s, $m)) return t('{n} (incl. {infants})', ['n' => $m[1], 'infants' => tn((int) $m[2], '{n} infant', '{n} infants')]);
+    if (preg_match('/^(\d+) \((\d+) adults?(?:, (\d+) child(?:ren)?)?\)$/', $s, $m)) {
+        $who = tn((int) $m[2], '{n} adult', '{n} adults') . (!empty($m[3]) ? ', ' . tn((int) $m[3], '{n} child', '{n} children') : '');
+        return $m[1] . ' (' . $who . ')';
+    }
+    if (preg_match('/^checked bag from (\S+)$/u', $s, $m)) return t('checked bag from {price}', ['price' => $m[1]]);
+    if (preg_match('/^(?:[A-Z][a-z]{2}, )?[A-Z][a-z]{2} \d{1,2}$/', $s)) return quote_date($s, $startIso);
+    if (preg_match('/^((?:[A-Z][a-z]{2}, )?[A-Z][a-z]{2} \d{1,2}) – ((?:[A-Z][a-z]{2}, )?[A-Z][a-z]{2} \d{1,2})$/u', $s, $m)) {
+        return quote_date($m[1], $startIso) . ' – ' . quote_date($m[2], $startIso);
+    }
+    // Joined parts ("Carry-on included · checked bag from $25", "Hotel, Rental car, …", subtitles)
+    foreach ([' · ', ', '] as $sep) {
+        if (str_contains($s, $sep)) {
+            $parts = explode($sep, $s);
+            $out = array_map(fn($p) => quote_text($p, $startIso), $parts);
+            if ($out !== $parts) return implode($sep, $out);
+        }
+    }
+    return $s;
+}
+
+/** A stored English date ("Mon, Oct 5") shown in the visitor's language. */
+function quote_date(string $s, ?string $startIso): string
+{
+    if (!$startIso || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $startIso)) return $s;
+    $md = preg_replace('/^[A-Z][a-z]{2}, /', '', $s);
+    $year = (int) substr($startIso, 0, 4);
+    foreach ([$year, $year + 1] as $y) {
+        $d = DateTimeImmutable::createFromFormat('!M j Y', "$md $y", new DateTimeZone('UTC'));
+        if ($d && $d->format('Y-m-d') >= add_days($startIso, -1)) return fmt_date($d->format('Y-m-d'));
+    }
+    return $s;
+}

@@ -181,10 +181,12 @@ function hotel_quote(array $params): ?array
 
 function build_quote(string $kind, array $params): ?array
 {
-    return match ($kind) {
+    // Quotes are saved with the booking and used in emails and the admin area, so they're always
+    // written in English; customer pages translate them when showing them (quote_text()).
+    return in_english(fn() => match ($kind) {
         'flight' => flight_quote($params),
         'package' => package_quote($params),
         'hotel' => hotel_quote($params),
         default => null,
-    };
+    });
 }

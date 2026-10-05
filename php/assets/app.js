@@ -5,7 +5,7 @@
   const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
   // Translations for the visitor's language (from the page), with {name} placeholders.
   let STR = {};
-  try { STR = JSON.parse(document.getElementById("tc-i18n")?.textContent || "{}"); } catch { STR = {}; }
+  try { STR = JSON.parse(document.querySelector("[data-i18n]")?.dataset.i18n || "{}"); } catch { STR = {}; }
   const tr = (s, v = {}) => (STR[s] || s).replace(/\{(\w+)\}/g, (m, k) => (k in v ? v[k] : m));
   const LOCALE = document.documentElement.lang || "en";
 

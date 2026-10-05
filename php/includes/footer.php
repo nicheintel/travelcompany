@@ -40,7 +40,7 @@ $columns = [
     </div>
   </div>
 </footer>
-<script type="application/json" id="tc-i18n"><?= json_encode(js_strings(), JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE) ?></script>
+<?php if ($jsStrings = js_strings()): ?><div hidden data-i18n="<?= e(json_encode($jsStrings, JSON_UNESCAPED_UNICODE)) ?>"></div><?php endif; ?>
 <script src="<?= e(asset('airports.js')) ?>" defer></script>
 <script src="<?= e(asset('app.js')) ?>" defer></script>
 </body>

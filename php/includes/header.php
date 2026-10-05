@@ -6,10 +6,10 @@ $user = current_user();
 $site = (string) config('site_name');
 $current = basename((string) ($_SERVER['SCRIPT_NAME'] ?? ''));
 $nav = [['flights.php', t('Flights'), 'plane'], ['hotels.php', t('Hotels'), 'bed'], ['packages.php', t('Packages'), 'package']];
-$here = current_path_with_query();
-$lang = current_lang();
-$cur = current_currency();
-$fxOn = (bool) fx_rates();
+$pkHere = current_path_with_query();
+$pkLang = current_lang();
+$pkCur = current_currency();
+$pkFxOn = (bool) fx_rates();
 $initials = $user ? implode('', array_map(fn($p) => mb_strtoupper(mb_substr($p, 0, 1)), array_slice(preg_split('/\s+/', trim($user['name'])), 0, 2))) : '';
 $flashMessage = take_flash();
 ?><!doctype html>
@@ -57,24 +57,24 @@ $flashMessage = take_flash();
     <div class="hidden items-center gap-2 md:flex">
       <div class="relative" data-menu>
         <button type="button" aria-expanded="false" aria-haspopup="menu" aria-label="<?= e(t('Language and currency')) ?>" class="flex items-center gap-2 rounded-full px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100" data-menu-toggle data-prefs-toggle>
-          <?= lang_flag($lang) ?><span><?= e($cur === 'USD' ? '$ USD' : CURRENCIES[$cur][0]) ?></span>
+          <?= lang_flag($pkLang) ?><span><?= e($pkCur === 'USD' ? '$ USD' : CURRENCIES[$pkCur][0]) ?></span>
         </button>
         <div role="menu" class="absolute right-0 top-full mt-2 hidden w-[36rem] max-w-[calc(100vw-2rem)] rounded-xl border border-slate-200 bg-white p-4 shadow-xl" data-menu-panel>
           <div class="grid grid-cols-2 gap-4">
             <div>
               <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500"><?= e(t('Language')) ?></p>
               <div class="max-h-80 overflow-y-auto pr-1">
-                <?php foreach (LANGUAGES as $code => [$name]): ?>
-                  <a role="menuitem" lang="<?= e(LANGUAGES[$code][2]) ?>" href="<?= e(url('prefs.php', ['lang' => $code, 'next' => $here])) ?>" class="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm <?= $code === $lang ? 'bg-brand-50 font-semibold text-brand-700' : 'text-slate-700 hover:bg-slate-50' ?>"><?= lang_flag($code) ?><?= e($name) ?></a>
+                <?php foreach (LANGUAGES as $pkCode => [$pkName]): ?>
+                  <a role="menuitem" lang="<?= e(LANGUAGES[$pkCode][2]) ?>" href="<?= e(url('prefs.php', ['lang' => $pkCode, 'next' => $pkHere])) ?>" class="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm <?= $pkCode === $pkLang ? 'bg-brand-50 font-semibold text-brand-700' : 'text-slate-700 hover:bg-slate-50' ?>"><?= lang_flag($pkCode) ?><?= e($pkName) ?></a>
                 <?php endforeach; ?>
               </div>
             </div>
             <div>
               <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500"><?= e(t('Currency')) ?></p>
-              <?php if ($fxOn): ?>
+              <?php if ($pkFxOn): ?>
                 <div class="max-h-80 overflow-y-auto pr-1">
-                  <?php foreach (CURRENCIES as $code => [$symbol, $cname]): if ($code !== 'USD' && !isset(fx_rates()['rates'][$code])) continue; ?>
-                    <a role="menuitem" href="<?= e(url('prefs.php', ['cur' => $code, 'next' => $here])) ?>" class="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm <?= $code === $cur ? 'bg-brand-50 font-semibold text-brand-700' : 'text-slate-700 hover:bg-slate-50' ?>"><span class="w-9 shrink-0 font-semibold"><?= e($code) ?></span><span class="truncate"><?= e(t($cname)) ?></span><span class="ml-auto text-slate-400"><?= e($symbol) ?></span></a>
+                  <?php foreach (CURRENCIES as $pkCode => [$pkSymbol, $pkCurName]): if ($pkCode !== 'USD' && !isset(fx_rates()['rates'][$pkCode])) continue; ?>
+                    <a role="menuitem" href="<?= e(url('prefs.php', ['cur' => $pkCode, 'next' => $pkHere])) ?>" class="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm <?= $pkCode === $pkCur ? 'bg-brand-50 font-semibold text-brand-700' : 'text-slate-700 hover:bg-slate-50' ?>"><span class="w-9 shrink-0 font-semibold"><?= e($pkCode) ?></span><span class="truncate"><?= e(t($pkCurName)) ?></span><span class="ml-auto text-slate-400"><?= e($pkSymbol) ?></span></a>
                   <?php endforeach; ?>
                 </div>
               <?php else: ?>
@@ -115,14 +115,14 @@ $flashMessage = take_flash();
   </div>
   <div class="hidden border-t border-slate-200 bg-white px-4 pb-4 md:hidden" data-mobile-menu>
     <form method="get" action="<?= e(url('prefs.php')) ?>" class="grid grid-cols-[1fr_1fr_auto] items-end gap-2 border-b border-slate-100 py-3">
-      <input type="hidden" name="next" value="<?= e($here) ?>">
+      <input type="hidden" name="next" value="<?= e($pkHere) ?>">
       <label class="text-xs font-semibold text-slate-500"><?= e(t('Language')) ?>
         <select name="lang" class="mt-1 w-full rounded-lg border border-slate-300 bg-white px-2 py-2 text-sm text-slate-800">
-          <?php foreach (LANGUAGES as $code => [$name]): ?><option value="<?= e($code) ?>"<?= $code === $lang ? ' selected' : '' ?>><?= e($name) ?></option><?php endforeach; ?>
+          <?php foreach (LANGUAGES as $pkCode => [$pkName]): ?><option value="<?= e($pkCode) ?>"<?= $pkCode === $pkLang ? ' selected' : '' ?>><?= e($pkName) ?></option><?php endforeach; ?>
         </select></label>
       <label class="text-xs font-semibold text-slate-500"><?= e(t('Currency')) ?>
         <select name="cur" class="mt-1 w-full rounded-lg border border-slate-300 bg-white px-2 py-2 text-sm text-slate-800">
-          <?php foreach (CURRENCIES as $code => [$symbol]): if ($code !== 'USD' && !isset(fx_rates()['rates'][$code])) continue; ?><option value="<?= e($code) ?>"<?= $code === $cur ? ' selected' : '' ?>><?= e("$code $symbol") ?></option><?php endforeach; ?>
+          <?php foreach (CURRENCIES as $pkCode => [$pkSymbol]): if ($pkCode !== 'USD' && !isset(fx_rates()['rates'][$pkCode])) continue; ?><option value="<?= e($pkCode) ?>"<?= $pkCode === $pkCur ? ' selected' : '' ?>><?= e("$pkCode $pkSymbol") ?></option><?php endforeach; ?>
         </select></label>
       <button type="submit" class="rounded-lg bg-slate-900 px-3 py-2 text-sm font-semibold text-white"><?= e(t('Apply')) ?></button>
     </form>

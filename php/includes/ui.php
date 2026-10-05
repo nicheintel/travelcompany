@@ -217,7 +217,7 @@ function trip_summary(array $q): string
     [$ic, $label] = $kinds[$q['kind']];
     $html = '<div class="overflow-hidden rounded-2xl border border-slate-200 bg-white">'
         . '<div class="bg-gradient-to-br from-brand-800 to-brand-600 p-5 text-white"><p class="flex items-center gap-2 text-sm font-medium text-brand-100">' . icon($ic, 16) . ' ' . e($label) . '</p>'
-        . '<h2 class="mt-1 text-xl font-bold">' . e($q['title']) . '</h2><p class="mt-1 text-sm text-brand-100">' . e($q['subtitle']) . '</p></div>';
+        . '<h2 class="mt-1 text-xl font-bold">' . e($q['title']) . '</h2><p class="mt-1 text-sm text-brand-100">' . e(quote_text($q['subtitle'])) . '</p></div>';
     if (!empty($q['flight'])) {
         $html .= '<div class="space-y-4 border-b border-slate-100 p-5">' . leg_row($q['flight']['outbound'], 'Depart')
             . ($q['flight']['inbound'] ? leg_row($q['flight']['inbound'], 'Return') : '') . '</div>';
@@ -226,11 +226,11 @@ function trip_summary(array $q): string
     // Fact labels are stored English (from quote.php); translated at display time.
     // i18n-keys: 'Depart', 'Return', 'Travelers', 'Cabin', 'Fare', 'Baggage', 'Fare rules', 'Leaving from', 'Dates', 'Hotel', 'Includes', 'Check-in', 'Check-out', 'Room', 'Guests', 'Cancellation'
     foreach ($q['facts'] as [$k, $v]) {
-        $html .= '<div class="flex justify-between gap-4"><dt class="text-slate-500">' . e(t($k)) . '</dt><dd class="text-right font-medium text-slate-900">' . e($v) . '</dd></div>';
+        $html .= '<div class="flex justify-between gap-4"><dt class="text-slate-500">' . e(t($k)) . '</dt><dd class="text-right font-medium text-slate-900">' . e(quote_text($v, $q['start_date'] ?? null)) . '</dd></div>';
     }
     $html .= '</dl><dl class="space-y-2 p-5 text-sm">';
     foreach ($q['lines'] as $l) {
-        $html .= '<div class="flex justify-between"><dt class="text-slate-600">' . e($l['label']) . '</dt><dd class="text-slate-900">' . money($l['amount']) . '</dd></div>';
+        $html .= '<div class="flex justify-between"><dt class="text-slate-600">' . e(quote_text($l['label'])) . '</dt><dd class="text-slate-900">' . money($l['amount']) . '</dd></div>';
     }
     if ($q['discount'] > 0) {
         $html .= '<div class="flex justify-between text-emerald-700"><dt>' . e(t('Member discount ({pct}%)', ['pct' => round($q['discount_rate'] * 100)])) . '</dt><dd>−' . money($q['discount']) . '</dd></div>';
@@ -238,8 +238,7 @@ function trip_summary(array $q): string
     $html .= '<div class="flex items-end justify-between border-t border-slate-100 pt-3"><dt class="font-semibold text-slate-900">' . e(t('Total')) . '</dt><dd class="text-right"><span class="text-2xl font-extrabold text-slate-900">' . money($q['total']) . '</span>'
         . (($hint = price_hint($q['total'])) !== '' ? '<span class="block text-xs font-medium text-slate-500">' . e($hint) . '</span>' : '') . '</dd></div>'
         . '<p class="text-right text-xs text-slate-500">' . e(t('Taxes and fees included')) . '</p>'
-        . (current_currency() !== 'USD' ? '<p class="text-right text-xs text-slate-500">' . e(t('You will be charged in US dollars.')) . '</p>' : '')
-        . (!empty($q['note']) ? '<p class="pt-2 text-xs leading-relaxed text-slate-500">' . e($q['note']) . '</p>' : '')
+        . (!empty($q['note']) ? '<p class="pt-2 text-xs leading-relaxed text-slate-500">' . e(quote_text($q['note'])) . '</p>' : '')
         . '</dl></div>';
     return $html;
 }
