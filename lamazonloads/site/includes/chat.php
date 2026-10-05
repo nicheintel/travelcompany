@@ -94,7 +94,7 @@ function chat_admin_name(): string
     static $name = null;
     if ($name === null) {
         $n = (string) db_val('SELECT name FROM users WHERE is_admin = 1 ORDER BY id LIMIT 1');
-        $name = $n !== '' ? chat_first_name($n) : 'Our team';
+        $name = $n !== '' ? chat_first_name($n) : '';
     }
     return $name;
 }

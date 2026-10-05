@@ -30,7 +30,7 @@
   /* ---------- the Chat bubble ---------- */
   var box = document.querySelector('[data-chat]');
   if (box) (function () {
-    var csrf = box.getAttribute('data-csrf'), member = box.getAttribute('data-member') === '1', has = box.getAttribute('data-has') === '1', admin = box.getAttribute('data-admin') || 'We';
+    var csrf = box.getAttribute('data-csrf'), member = box.getAttribute('data-member') === '1', has = box.getAttribute('data-has') === '1', admin = box.getAttribute('data-admin') || '';
     var fab = box.querySelector('[data-chat-open]'), dot = box.querySelector('[data-chat-dot]');
     var panel, list, ta, who, err, status, sendBtn, typing, chatForm, endBtn, endCard = null, inThread = false, last = 0, timer = 0, isOpen = false, busy = false, typedAt = 0;
 
@@ -49,10 +49,10 @@
       head.appendChild(title); head.appendChild(acts); panel.appendChild(head);
       list = el('div', 'chat-msgs'); list.setAttribute('aria-live', 'polite');
       var hi = el('div', 'cm cm-them cm-hi');
-      hi.appendChild(el('p', null, 'Hi! 👋 Ask anything about LamazonLoads: loads, daily routes, onboarding or open jobs. ' + admin + ' from our team answers here, and by email if you’ve left.'));
+      hi.appendChild(el('p', null, 'Hi! 👋 Ask anything about LamazonLoads: loads, daily routes, onboarding or open jobs. ' + (admin ? admin + ' from our team answers' : 'Our team answers') + ' here, and by email if you’ve left.'));
       var help = el('a', 'chat-help', 'Quick answers: our FAQ'); help.href = box.getAttribute('data-help'); hi.appendChild(help);
       list.appendChild(hi); panel.appendChild(list);
-      typing = el('p', 'chat-typing'); typing.appendChild(document.createTextNode(admin + ' is typing'));
+      typing = el('p', 'chat-typing'); typing.appendChild(document.createTextNode((admin || 'Support') + ' is typing'));
       var dots = el('span', 'dots'); dots.appendChild(el('i')); dots.appendChild(el('i')); dots.appendChild(el('i')); typing.appendChild(dots);
       typing.hidden = true; panel.appendChild(typing);
       var form = el('form', 'chat-form'); form.noValidate = true; chatForm = form;
@@ -93,7 +93,7 @@
       if (endCard) return;
       inThread = false; endBtn.hidden = true; chatForm.hidden = true; typing.hidden = true;
       endCard = el('div', 'chat-rate');
-      endCard.appendChild(el('p', 'chat-rate-note', by === 'admin' ? admin + ' marked this chat as done.' : 'You ended the chat.'));
+      endCard.appendChild(el('p', 'chat-rate-note', by === 'admin' ? (admin ? admin + ' marked this chat as done.' : 'We marked this chat as done.') : 'You ended the chat.'));
       endCard.appendChild(el('b', null, 'How was your chat?'));
       var stars = el('div', 'chat-stars'), pick = 0, sendFb, comment;
       stars.setAttribute('role', 'radiogroup'); stars.setAttribute('aria-label', 'Rating');
