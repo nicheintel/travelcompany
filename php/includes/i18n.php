@@ -111,7 +111,26 @@ function th(string $en, array $vars = [], array $html = []): string
 /** "1 traveler" / "3 travelers", translated. */
 function tn(int $n, string $one, string $many): string
 {
+    // Languages with more plural forms (Polish, Russian) can add "<key>|one", "<key>|few" and "<key>|many".
+    $form = plural_form(current_lang(), $n);
+    if ($form !== null) {
+        $tr = translations(current_lang())[$many . '|' . $form] ?? null;
+        if (is_string($tr) && $tr !== '') return str_replace('{n}', (string) $n, $tr);
+    }
     return t($n === 1 ? $one : $many, ['n' => $n]);
+}
+
+/** CLDR plural category for languages that need more than "1 / other". */
+function plural_form(string $lang, int $n): ?string
+{
+    $n = abs($n);
+    $d = $n % 10;
+    $h = $n % 100;
+    return match ($lang) {
+        'ru' => $d === 1 && $h !== 11 ? 'one' : ($d >= 2 && $d <= 4 && ($h < 12 || $h > 14) ? 'few' : 'many'),
+        'pl' => $n === 1 ? 'one' : ($d >= 2 && $d <= 4 && ($h < 12 || $h > 14) ? 'few' : 'many'),
+        default => null,
+    };
 }
 
 /** Development aid: lists English text that has no translation yet (only when I18N_RECORD is set). */
