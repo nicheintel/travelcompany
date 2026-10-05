@@ -98,3 +98,25 @@ function onboarding_steps(int $userId): array
         ['Applied to the network or a job post', $apps > 0, 'careers.php'],
     ];
 }
+
+/** Passwords that are on every attacker's list, or that contain the person's own email or name. */
+function weak_password(string $pass, string $email = '', string $name = ''): bool
+{
+    $p = strtolower($pass);
+    $common = ['password', 'password1', 'password123', '12345678', '123456789', '1234567890', '11111111', '00000000', 'qwerty123',
+        'qwertyuiop', 'iloveyou', 'sunshine', 'princess', 'football', 'baseball', 'welcome1', 'abc12345', 'letmein1', 'trustno1',
+        'lamazonloads', 'lamazon123', 'truck123', 'trucking', 'dispatch', 'freight1', 'password!', 'admin123', 'changeme'];
+    if (in_array($p, $common, true) || preg_match('/^(.)\1+$/', $p) || preg_match('/^(0123456789|123456789|abcdefgh)/', $p)) {
+        return true;
+    }
+    $local = strtolower((string) strtok($email, '@'));
+    if (strlen($local) >= 4 && str_contains($p, $local)) {
+        return true;
+    }
+    foreach (preg_split('/\s+/', strtolower($name)) ?: [] as $part) {
+        if (strlen($part) >= 4 && $p === $part . preg_replace('/\D/', '', $p) && $p !== $part) {
+            return true; // name + digits, e.g. marcus2024
+        }
+    }
+    return false;
+}

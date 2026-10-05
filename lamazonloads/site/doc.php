@@ -13,10 +13,12 @@ if (!$doc || ((int) $doc['user_id'] !== (int) $u['id'] && !$u['is_admin']) || !i
 $download = isset($_GET['download']) || $doc['mime'] !== 'application/pdf' && !str_starts_with($doc['mime'], 'image/');
 header('Content-Type: ' . $doc['mime']);
 header('Content-Length: ' . filesize($path));
+header_remove('Content-Security-Policy');
 if ($doc['mime'] !== 'application/pdf') {
     // (No CSP on PDFs: some browsers refuse to show a PDF under a strict policy.)
     header("Content-Security-Policy: default-src 'none'; img-src 'self'; style-src 'unsafe-inline'; sandbox");
 }
 header('Cache-Control: private, no-store');
+header('X-Robots-Tag: noindex');
 header('Content-Disposition: ' . ($download ? 'attachment' : 'inline') . '; filename="' . str_replace('"', '', $doc['original_name']) . '"');
 readfile($path);

@@ -24,6 +24,9 @@ if (is_post()) {
             login_user($user);
             redirect($next);
         }
+        if (!$user) {
+            password_verify($pass, '$2y$10$kqYpP4Np/p9Z.kb4cGH3WOaFyA1zfZr26Qe3UXuJ0Uf844QpE7hZW'); // same delay as a real check (a random password nobody knows)
+        }
         record_failed_login($email);
         $error = 'That email and password don\'t match. Please try again.';
     }

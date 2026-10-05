@@ -74,3 +74,16 @@ These two addresses must show **403 Forbidden** (not a download):
 - **Google:** in Google Search Console, add lamazonloads.com and submit `https://lamazonloads.com/sitemap.php`.
 - **"Can't connect to the database"** after step 6 means a typo in `config.local.php`: check the
   full `u123456789_…` names and the password.
+
+## Keep it secure (accounts and hosting)
+The website protects itself (see README → Security). These settings are yours to keep safe:
+- **Two-step login (2FA)** on your **Hostinger** account (hPanel → profile → Security) and your **GoDaddy** account
+  (Account settings → Login & PIN → 2-step verification). Whoever controls these controls your website and domain.
+- **GoDaddy domain protection:** keep the domain **locked** (Domain → Registration Settings → Domain lock: On).
+- **Strong, unique passwords** for Hostinger, GoDaddy, the database, the info@ mailbox and your admin account
+  on the website. Never reuse them. A password manager helps.
+- **Only real staff in `admin_emails`.** Remove people who leave, and remove their staff access in Admin → Drivers & members.
+- **Delete update zips** from `public_html` after extracting them (the site blocks them anyway).
+- **Backups:** hPanel → Files → Backups. Hostinger makes daily backups; download one now and then.
+- **PHP version:** keep it on a supported version (8.2 or newer) in hPanel → Advanced → PHP Configuration.
+- **Malware scanner:** leave it on (Security → Malware scanner).

@@ -1,6 +1,7 @@
-# Keep code, settings and database files private
+# Keep code, settings, database files and leftovers (old zips, backups) private
 Options -Indexes
-<FilesMatch "(^\.|^config\.local.*\.php$|\.(sql|md|log|txt|json|ini|sh|bat)$)">
+ServerSignature Off
+<FilesMatch "(^\.|^config\.local.*\.php$|\.(sql|md|log|txt|json|ini|sh|bat|zip|tar|gz|tgz|rar|7z|bak|old|orig|save|swp|tmp|dist|env|lock|yml|yaml)$|~$)">
     Require all denied
 </FilesMatch>
 <FilesMatch "^robots\.txt$">
@@ -13,4 +14,7 @@ Options -Indexes
     RewriteCond %{HTTPS} off
     RewriteCond %{HTTP:X-Forwarded-Proto} !https
     RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+    # Only normal page requests: block odd methods (TRACE etc.)
+    RewriteCond %{REQUEST_METHOD} !^(GET|POST|HEAD)$
+    RewriteRule ^ - [F]
 </IfModule>

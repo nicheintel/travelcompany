@@ -45,10 +45,18 @@ The tables and four starter job posts are created automatically on the first vis
 
 ## Security
 
-Passwords are hashed with `password_hash`; every form has a CSRF token; sign-in is rate-limited;
-uploaded documents are checked by content (not file name), stored under random names in `uploads/`
-(blocked from the web) and only served to their owner and staff through `doc.php`. `includes/`,
-`storage/`, `database.sql` and `config.local.php` are blocked by `.htaccess`.
+- **Passwords:** stored only as bcrypt hashes; easy-to-guess passwords are refused; sign-in is paused for 15 minutes after too many
+  wrong passwords (8 for one email or 25 from one connection) and takes the same time whether or not the email exists.
+- **Every form** has a CSRF token; staff pages check for an admin account; all database queries are parameterised;
+  everything people type is shown as text (never as HTML), including chat messages and emails.
+- **Spam limits:** 5 new accounts per hour per connection, contact form and chat limits, hidden "honeypot" fields.
+- **Uploads** are checked by their content (not their name), saved under random names in `uploads/` (blocked from the
+  web, nothing there can run as code) and only served to their owner and staff through `doc.php`.
+- **Browser protections:** Content Security Policy (only our own scripts run), no framing (clickjacking), HSTS
+  (https only), no camera/microphone/location access, secure, HttpOnly, SameSite session cookies.
+- **Private files** are blocked by `.htaccess`: `includes/`, `storage/`, `uploads/`, `config.local.php`, `database.sql`,
+  and leftovers such as `.zip`, `.bak` or `.sql` files. Error details go to the log, never to visitors.
+- Account-level security (2FA, domain lock, backups): see the checklist at the end of `HOSTINGER.md`.
 
 ## Brand
 

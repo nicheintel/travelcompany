@@ -16,17 +16,25 @@ if (is_post()) {
     }
     $val['email'] = strtolower($val['email']);
     $pass = (string) ($_POST['password'] ?? '');
+    if (post('website') !== '') { // a field only bots fill in
+        redirect('');
+    }
+    if (rate_limited('register', client_ip(), 5, 3600)) {
+        $errors[] = 'Too many new accounts from your connection. Please try again in an hour.';
+    }
     if ($val['name'] === '' || mb_strlen($val['name']) > 100) $errors[] = 'Please enter your full name.';
     if (!filter_var($val['email'], FILTER_VALIDATE_EMAIL)) $errors[] = 'Please enter a valid email address.';
     if (!preg_match('/^[0-9+()\-. ]{7,25}$/', $val['phone'])) $errors[] = 'Please enter a valid phone number.';
     if (!isset(ACCOUNT_TYPES[$val['account_type']])) $errors[] = 'Please choose what describes you best.';
     if (strlen($pass) < 8) $errors[] = 'Your password needs at least 8 characters.';
+    elseif (weak_password($pass, $val['email'], $val['name'])) $errors[] = 'That password is too easy to guess. Please choose a stronger one.';
     if (strlen($pass) > 200) $errors[] = 'That password is too long.';
     if (empty($_POST['agree'])) $errors[] = 'Please confirm the information is accurate.';
     if (!$errors && db_val('SELECT id FROM users WHERE email = ?', [$val['email']])) {
         $errors[] = 'An account with this email already exists. Please sign in instead.';
     }
     if (!$errors) {
+        record_hit('register', client_ip());
         $admin = should_be_admin($val['email']) ? 1 : 0;
         db_run('INSERT INTO users (name, email, phone, password_hash, account_type, is_admin, created_at) VALUES (?, ?, ?, ?, ?, ?, NOW())',
             [$val['name'], $val['email'], $val['phone'], password_hash($pass, PASSWORD_DEFAULT), $val['account_type'], $admin]);
@@ -59,6 +67,7 @@ page_header('Create your account', '', '', 'page-auth');
       <form method="post" action="<?= e(url('register.php')) ?>" class="form-grid" novalidate>
         <?= csrf_field() ?>
         <input type="hidden" name="next" value="<?= e($next) ?>">
+        <div class="hp-field" aria-hidden="true"><label>Website <input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
         <div class="full"><label for="name">Full name</label><input id="name" name="name" type="text" required maxlength="100" autocomplete="name" value="<?= e($val['name']) ?>"></div>
         <div><label for="email">Email</label><input id="email" name="email" type="email" required maxlength="190" autocomplete="email" value="<?= e($val['email']) ?>"></div>
         <div><label for="phone">Mobile phone</label><input id="phone" name="phone" type="tel" required maxlength="25" autocomplete="tel" placeholder="(555) 123-4567" value="<?= e($val['phone']) ?>"></div>

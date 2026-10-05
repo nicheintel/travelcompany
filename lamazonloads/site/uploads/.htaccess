@@ -1,3 +1,7 @@
 # Driver documents are private: they are only served through doc.php after sign-in.
 Options -Indexes -ExecCGI
 Require all denied
+# Belt and braces: nothing in here may ever run as code
+<FilesMatch "\.(php|phtml|php\d|phar|pl|py|cgi|sh|shtml)$">
+    Require all denied
+</FilesMatch>
