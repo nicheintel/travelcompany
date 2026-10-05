@@ -625,5 +625,17 @@
  "Airline price from {price} — confirmed before you pay": "Giá của hãng từ {price} — được xác nhận trước khi bạn thanh toán",
  "Checked bag added": "Đã thêm hành lý ký gửi",
  "Good news: a checked bag is already included in your fare, so there's nothing extra to pay.": "Tin vui: giá vé của bạn đã bao gồm hành lý ký gửi, nên bạn không phải trả thêm gì.",
- "Your travel assistant will confirm what this fare includes. Need a checked bag? Add it below and we'll confirm the airline's price.": "Trợ lý du lịch của bạn sẽ xác nhận giá vé này bao gồm những gì. Cần hành lý ký gửi? Hãy thêm bên dưới và chúng tôi sẽ xác nhận giá của hãng."
+ "Your travel assistant will confirm what this fare includes. Need a checked bag? Add it below and we'll confirm the airline's price.": "Trợ lý du lịch của bạn sẽ xác nhận giá vé này bao gồm những gì. Cần hành lý ký gửi? Hãy thêm bên dưới và chúng tôi sẽ xác nhận giá của hãng.",
+ "Airline fees per traveler, plus any fare difference. We'll confirm the exact amount before making a change.": "Phí của hãng cho mỗi hành khách, cộng với chênh lệch giá vé (nếu có). Chúng tôi sẽ xác nhận số tiền chính xác trước khi thực hiện thay đổi.",
+ "Cancellation fee": "Phí hủy",
+ "Cancellation fee (after departure)": "Phí hủy (sau khi khởi hành)",
+ "Cancellation fee (before departure)": "Phí hủy (trước khi khởi hành)",
+ "Change fee (after departure)": "Phí đổi (sau khi khởi hành)",
+ "Change fee (before departure)": "Phí đổi (trước khi khởi hành)",
+ "Changes & cancellation": "Thay đổi & hủy",
+ "Changes allowed": "Được phép thay đổi",
+ "Changes allowed with penalty": "Được thay đổi có tính phí phạt",
+ "Changes not allowed": "Không được thay đổi",
+ "Refundable with penalty": "Được hoàn tiền có tính phí phạt",
+ "from {price}": "từ {price}"
 }

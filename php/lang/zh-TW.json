@@ -625,5 +625,17 @@
  "Airline price from {price} — confirmed before you pay": "航空公司價格 {price} 起——付款前確認",
  "Checked bag added": "已加購託運行李",
  "Good news: a checked bag is already included in your fare, so there's nothing extra to pay.": "好消息：您的票價已包含託運行李，無需額外付費。",
- "Your travel assistant will confirm what this fare includes. Need a checked bag? Add it below and we'll confirm the airline's price.": "您的旅遊顧問會確認此票價包含的內容。需要託運行李嗎？請在下方加購，我們會為您確認航空公司價格。"
+ "Your travel assistant will confirm what this fare includes. Need a checked bag? Add it below and we'll confirm the airline's price.": "您的旅遊顧問會確認此票價包含的內容。需要託運行李嗎？請在下方加購，我們會為您確認航空公司價格。",
+ "Airline fees per traveler, plus any fare difference. We'll confirm the exact amount before making a change.": "每位旅客的航空公司費用，另加任何票價差額。在進行變更之前，我們會向您確認確切金額。",
+ "Cancellation fee": "取消費",
+ "Cancellation fee (after departure)": "取消費（起飛後）",
+ "Cancellation fee (before departure)": "取消費（起飛前）",
+ "Change fee (after departure)": "變更費（起飛後）",
+ "Change fee (before departure)": "變更費（起飛前）",
+ "Changes & cancellation": "變更與取消",
+ "Changes allowed": "可變更",
+ "Changes allowed with penalty": "可變更，需支付罰金",
+ "Changes not allowed": "不可變更",
+ "Refundable with penalty": "可退款，需支付罰金",
+ "from {price}": "{price} 起"
 }

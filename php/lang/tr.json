@@ -625,5 +625,17 @@
  "Airline price from {price} — confirmed before you pay": "Havayolu fiyatı {price} ve üzeri — ödemeden önce onaylanır",
  "Checked bag added": "Kayıtlı bagaj eklendi",
  "Good news: a checked bag is already included in your fare, so there's nothing extra to pay.": "İyi haber: Ücretinize zaten kayıtlı bagaj dahil, bu yüzden ek bir ödeme yapmanız gerekmez.",
- "Your travel assistant will confirm what this fare includes. Need a checked bag? Add it below and we'll confirm the airline's price.": "Seyahat asistanınız bu ücrete neyin dahil olduğunu onaylayacak. Kayıtlı bagaja mı ihtiyacınız var? Aşağıdan ekleyin, havayolu fiyatını onaylayalım."
+ "Your travel assistant will confirm what this fare includes. Need a checked bag? Add it below and we'll confirm the airline's price.": "Seyahat asistanınız bu ücrete neyin dahil olduğunu onaylayacak. Kayıtlı bagaja mı ihtiyacınız var? Aşağıdan ekleyin, havayolu fiyatını onaylayalım.",
+ "Airline fees per traveler, plus any fare difference. We'll confirm the exact amount before making a change.": "Yolcu başına havayolu ücretleri ve varsa tarife farkı. Bir değişiklik yapmadan önce tam tutarı size onaylayacağız.",
+ "Cancellation fee": "İptal ücreti",
+ "Cancellation fee (after departure)": "İptal ücreti (kalkıştan sonra)",
+ "Cancellation fee (before departure)": "İptal ücreti (kalkıştan önce)",
+ "Change fee (after departure)": "Değişiklik ücreti (kalkıştan sonra)",
+ "Change fee (before departure)": "Değişiklik ücreti (kalkıştan önce)",
+ "Changes & cancellation": "Değişiklik ve iptal",
+ "Changes allowed": "Değişiklik yapılabilir",
+ "Changes allowed with penalty": "Cezalı değişiklik yapılabilir",
+ "Changes not allowed": "Değişiklik yapılamaz",
+ "Refundable with penalty": "Cezalı iade edilebilir",
+ "from {price}": "{price} itibarıyla"
 }

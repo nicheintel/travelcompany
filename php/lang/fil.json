@@ -625,5 +625,17 @@
  "Airline price from {price} — confirmed before you pay": "Presyo ng airline mula {price} — kukumpirmahin bago ka magbayad",
  "Checked bag added": "Naidagdag ang checked bag",
  "Good news: a checked bag is already included in your fare, so there's nothing extra to pay.": "Magandang balita: kasama na sa iyong pamasahe ang checked bag, kaya wala kang dagdag na babayaran.",
- "Your travel assistant will confirm what this fare includes. Need a checked bag? Add it below and we'll confirm the airline's price.": "Kukumpirmahin ng iyong travel assistant kung ano ang kasama sa pamasaheng ito. Kailangan mo ng checked bag? Idagdag ito sa ibaba at kukumpirmahin namin ang presyo ng airline."
+ "Your travel assistant will confirm what this fare includes. Need a checked bag? Add it below and we'll confirm the airline's price.": "Kukumpirmahin ng iyong travel assistant kung ano ang kasama sa pamasaheng ito. Kailangan mo ng checked bag? Idagdag ito sa ibaba at kukumpirmahin namin ang presyo ng airline.",
+ "Airline fees per traveler, plus any fare difference. We'll confirm the exact amount before making a change.": "Bayarin ng airline bawat biyahero, kasama ang anumang diperensya sa pamasahe. Kukumpirmahin namin ang eksaktong halaga bago gumawa ng pagbabago.",
+ "Cancellation fee": "Bayad sa pagkansela",
+ "Cancellation fee (after departure)": "Bayad sa pagkansela (pagkatapos ng alis)",
+ "Cancellation fee (before departure)": "Bayad sa pagkansela (bago ang alis)",
+ "Change fee (after departure)": "Bayad sa pagbabago (pagkatapos ng alis)",
+ "Change fee (before departure)": "Bayad sa pagbabago (bago ang alis)",
+ "Changes & cancellation": "Pagbabago at pagkansela",
+ "Changes allowed": "Puwedeng magbago",
+ "Changes allowed with penalty": "Puwedeng magbago nang may multa",
+ "Changes not allowed": "Hindi puwedeng magbago",
+ "Refundable with penalty": "Refundable nang may multa",
+ "from {price}": "mula {price}"
 }

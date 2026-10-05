@@ -658,5 +658,17 @@
  "Airline price from {price} — confirmed before you pay": "Цена авиакомпании от {price} — подтверждается до оплаты",
  "Checked bag added": "Багаж добавлен",
  "Good news: a checked bag is already included in your fare, so there's nothing extra to pay.": "Хорошая новость: зарегистрированный багаж уже включён в ваш тариф, доплачивать ничего не нужно.",
- "Your travel assistant will confirm what this fare includes. Need a checked bag? Add it below and we'll confirm the airline's price.": "Ваш турагент уточнит, что входит в этот тариф. Нужен багаж? Добавьте его ниже, и мы подтвердим цену авиакомпании."
+ "Your travel assistant will confirm what this fare includes. Need a checked bag? Add it below and we'll confirm the airline's price.": "Ваш турагент уточнит, что входит в этот тариф. Нужен багаж? Добавьте его ниже, и мы подтвердим цену авиакомпании.",
+ "Airline fees per traveler, plus any fare difference. We'll confirm the exact amount before making a change.": "Сборы авиакомпании за путешественника, плюс возможная разница в тарифе. Мы подтвердим точную сумму до внесения изменений.",
+ "Cancellation fee": "Сбор за отмену",
+ "Cancellation fee (after departure)": "Сбор за отмену (после вылета)",
+ "Cancellation fee (before departure)": "Сбор за отмену (до вылета)",
+ "Change fee (after departure)": "Сбор за изменение (после вылета)",
+ "Change fee (before departure)": "Сбор за изменение (до вылета)",
+ "Changes & cancellation": "Изменения и отмена",
+ "Changes allowed": "Изменения разрешены",
+ "Changes allowed with penalty": "Изменения разрешены со штрафом",
+ "Changes not allowed": "Изменения не разрешены",
+ "Refundable with penalty": "Возвратный со штрафом",
+ "from {price}": "от {price}"
 }

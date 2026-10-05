@@ -625,5 +625,17 @@
  "Airline price from {price} — confirmed before you pay": "Prijs luchtvaartmaatschappij vanaf {price} — bevestigd voordat u betaalt",
  "Checked bag added": "Ruimbagage toegevoegd",
  "Good news: a checked bag is already included in your fare, so there's nothing extra to pay.": "Goed nieuws: ruimbagage is al inbegrepen in uw tarief, dus u betaalt niets extra.",
- "Your travel assistant will confirm what this fare includes. Need a checked bag? Add it below and we'll confirm the airline's price.": "Uw reisassistent bevestigt wat dit tarief omvat. Ruimbagage nodig? Voeg die hieronder toe en wij bevestigen de prijs van de luchtvaartmaatschappij."
+ "Your travel assistant will confirm what this fare includes. Need a checked bag? Add it below and we'll confirm the airline's price.": "Uw reisassistent bevestigt wat dit tarief omvat. Ruimbagage nodig? Voeg die hieronder toe en wij bevestigen de prijs van de luchtvaartmaatschappij.",
+ "Airline fees per traveler, plus any fare difference. We'll confirm the exact amount before making a change.": "Kosten van de luchtvaartmaatschappij per reiziger, plus een eventueel tariefverschil. We bevestigen het exacte bedrag voordat we een wijziging doorvoeren.",
+ "Cancellation fee": "Annuleringskosten",
+ "Cancellation fee (after departure)": "Annuleringskosten (na vertrek)",
+ "Cancellation fee (before departure)": "Annuleringskosten (vóór vertrek)",
+ "Change fee (after departure)": "Wijzigingskosten (na vertrek)",
+ "Change fee (before departure)": "Wijzigingskosten (vóór vertrek)",
+ "Changes & cancellation": "Wijzigingen en annulering",
+ "Changes allowed": "Wijzigen toegestaan",
+ "Changes allowed with penalty": "Wijzigen toegestaan tegen kosten",
+ "Changes not allowed": "Wijzigen niet toegestaan",
+ "Refundable with penalty": "Restitueerbaar tegen kosten",
+ "from {price}": "vanaf {price}"
 }

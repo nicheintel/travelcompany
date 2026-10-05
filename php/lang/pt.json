@@ -625,5 +625,17 @@
  "Airline price from {price} — confirmed before you pay": "Preço da companhia a partir de {price} — confirmado antes de pagar",
  "Checked bag added": "Bagagem de porão adicionada",
  "Good news: a checked bag is already included in your fare, so there's nothing extra to pay.": "Boas notícias: a sua tarifa já inclui bagagem de porão, por isso não tem nada a pagar a mais.",
- "Your travel assistant will confirm what this fare includes. Need a checked bag? Add it below and we'll confirm the airline's price.": "O seu assistente de viagem confirmará o que esta tarifa inclui. Precisa de bagagem de porão? Adicione-a abaixo e confirmaremos o preço da companhia."
+ "Your travel assistant will confirm what this fare includes. Need a checked bag? Add it below and we'll confirm the airline's price.": "O seu assistente de viagem confirmará o que esta tarifa inclui. Precisa de bagagem de porão? Adicione-a abaixo e confirmaremos o preço da companhia.",
+ "Airline fees per traveler, plus any fare difference. We'll confirm the exact amount before making a change.": "Taxas da companhia por viajante, mais qualquer diferença tarifária. Confirmaremos o valor exato antes de efetuar uma alteração.",
+ "Cancellation fee": "Taxa de cancelamento",
+ "Cancellation fee (after departure)": "Taxa de cancelamento (após a partida)",
+ "Cancellation fee (before departure)": "Taxa de cancelamento (antes da partida)",
+ "Change fee (after departure)": "Taxa de alteração (após a partida)",
+ "Change fee (before departure)": "Taxa de alteração (antes da partida)",
+ "Changes & cancellation": "Alterações e cancelamento",
+ "Changes allowed": "Alterações permitidas",
+ "Changes allowed with penalty": "Alterações permitidas com penalização",
+ "Changes not allowed": "Alterações não permitidas",
+ "Refundable with penalty": "Reembolsável com penalização",
+ "from {price}": "a partir de {price}"
 }

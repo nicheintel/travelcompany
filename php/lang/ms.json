@@ -625,5 +625,17 @@
  "Airline price from {price} — confirmed before you pay": "Harga syarikat penerbangan dari {price} — disahkan sebelum anda membayar",
  "Checked bag added": "Beg daftar masuk ditambah",
  "Good news: a checked bag is already included in your fare, so there's nothing extra to pay.": "Berita baik: tambang anda sudah termasuk beg daftar masuk, jadi tiada bayaran tambahan.",
- "Your travel assistant will confirm what this fare includes. Need a checked bag? Add it below and we'll confirm the airline's price.": "Pembantu perjalanan anda akan mengesahkan apa yang termasuk dalam tambang ini. Perlukan beg daftar masuk? Tambahkannya di bawah dan kami akan mengesahkan harga syarikat penerbangan."
+ "Your travel assistant will confirm what this fare includes. Need a checked bag? Add it below and we'll confirm the airline's price.": "Pembantu perjalanan anda akan mengesahkan apa yang termasuk dalam tambang ini. Perlukan beg daftar masuk? Tambahkannya di bawah dan kami akan mengesahkan harga syarikat penerbangan.",
+ "Airline fees per traveler, plus any fare difference. We'll confirm the exact amount before making a change.": "Caj syarikat penerbangan setiap pengembara, serta sebarang perbezaan tambang. Kami akan mengesahkan jumlah tepat sebelum membuat perubahan.",
+ "Cancellation fee": "Caj pembatalan",
+ "Cancellation fee (after departure)": "Caj pembatalan (selepas berlepas)",
+ "Cancellation fee (before departure)": "Caj pembatalan (sebelum berlepas)",
+ "Change fee (after departure)": "Caj perubahan (selepas berlepas)",
+ "Change fee (before departure)": "Caj perubahan (sebelum berlepas)",
+ "Changes & cancellation": "Perubahan & pembatalan",
+ "Changes allowed": "Perubahan dibenarkan",
+ "Changes allowed with penalty": "Perubahan dibenarkan dengan penalti",
+ "Changes not allowed": "Perubahan tidak dibenarkan",
+ "Refundable with penalty": "Boleh dikembalikan dengan penalti",
+ "from {price}": "dari {price}"
 }

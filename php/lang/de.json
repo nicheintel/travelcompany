@@ -625,5 +625,17 @@
  "Airline price from {price} — confirmed before you pay": "Preis der Airline ab {price} – wird vor der Zahlung bestätigt",
  "Checked bag added": "Aufgabegepäck hinzugefügt",
  "Good news: a checked bag is already included in your fare, so there's nothing extra to pay.": "Gute Nachricht: Aufgabegepäck ist bereits in Ihrem Tarif enthalten, Sie zahlen also nichts extra.",
- "Your travel assistant will confirm what this fare includes. Need a checked bag? Add it below and we'll confirm the airline's price.": "Ihr Reiseberater bestätigt, was in diesem Tarif enthalten ist. Sie brauchen Aufgabegepäck? Fügen Sie es unten hinzu, und wir bestätigen den Preis der Airline."
+ "Your travel assistant will confirm what this fare includes. Need a checked bag? Add it below and we'll confirm the airline's price.": "Ihr Reiseberater bestätigt, was in diesem Tarif enthalten ist. Sie brauchen Aufgabegepäck? Fügen Sie es unten hinzu, und wir bestätigen den Preis der Airline.",
+ "Airline fees per traveler, plus any fare difference. We'll confirm the exact amount before making a change.": "Gebühren der Airline pro Reisendem, zuzüglich einer eventuellen Tarifdifferenz. Wir bestätigen Ihnen den genauen Betrag, bevor wir eine Änderung vornehmen.",
+ "Cancellation fee": "Stornogebühr",
+ "Cancellation fee (after departure)": "Stornogebühr (nach Abflug)",
+ "Cancellation fee (before departure)": "Stornogebühr (vor Abflug)",
+ "Change fee (after departure)": "Umbuchungsgebühr (nach Abflug)",
+ "Change fee (before departure)": "Umbuchungsgebühr (vor Abflug)",
+ "Changes & cancellation": "Änderungen & Stornierung",
+ "Changes allowed": "Änderungen möglich",
+ "Changes allowed with penalty": "Änderungen gegen Gebühr möglich",
+ "Changes not allowed": "Änderungen nicht möglich",
+ "Refundable with penalty": "Erstattungsfähig gegen Gebühr",
+ "from {price}": "ab {price}"
 }

@@ -625,5 +625,17 @@
  "Airline price from {price} — confirmed before you pay": "ราคาสายการบินเริ่มต้น {price} — ยืนยันก่อนชำระเงิน",
  "Checked bag added": "เพิ่มกระเป๋าโหลดแล้ว",
  "Good news: a checked bag is already included in your fare, so there's nothing extra to pay.": "ข่าวดี: ค่าโดยสารของคุณรวมกระเป๋าโหลดแล้ว จึงไม่มีค่าใช้จ่ายเพิ่มเติม",
- "Your travel assistant will confirm what this fare includes. Need a checked bag? Add it below and we'll confirm the airline's price.": "ผู้ช่วยการเดินทางของคุณจะยืนยันว่าค่าโดยสารนี้รวมอะไรบ้าง ต้องการกระเป๋าโหลดไหม? เพิ่มได้ด้านล่าง แล้วเราจะยืนยันราคาของสายการบินให้"
+ "Your travel assistant will confirm what this fare includes. Need a checked bag? Add it below and we'll confirm the airline's price.": "ผู้ช่วยการเดินทางของคุณจะยืนยันว่าค่าโดยสารนี้รวมอะไรบ้าง ต้องการกระเป๋าโหลดไหม? เพิ่มได้ด้านล่าง แล้วเราจะยืนยันราคาของสายการบินให้",
+ "Airline fees per traveler, plus any fare difference. We'll confirm the exact amount before making a change.": "ค่าธรรมเนียมของสายการบินต่อผู้เดินทาง รวมกับส่วนต่างค่าโดยสาร (ถ้ามี) เราจะยืนยันจำนวนเงินที่แน่นอนก่อนทำการเปลี่ยนแปลง",
+ "Cancellation fee": "ค่าธรรมเนียมการยกเลิก",
+ "Cancellation fee (after departure)": "ค่าธรรมเนียมการยกเลิก (หลังออกเดินทาง)",
+ "Cancellation fee (before departure)": "ค่าธรรมเนียมการยกเลิก (ก่อนออกเดินทาง)",
+ "Change fee (after departure)": "ค่าธรรมเนียมการเปลี่ยนแปลง (หลังออกเดินทาง)",
+ "Change fee (before departure)": "ค่าธรรมเนียมการเปลี่ยนแปลง (ก่อนออกเดินทาง)",
+ "Changes & cancellation": "การเปลี่ยนแปลงและการยกเลิก",
+ "Changes allowed": "เปลี่ยนแปลงได้",
+ "Changes allowed with penalty": "เปลี่ยนแปลงได้โดยมีค่าปรับ",
+ "Changes not allowed": "เปลี่ยนแปลงไม่ได้",
+ "Refundable with penalty": "ขอคืนเงินได้โดยมีค่าปรับ",
+ "from {price}": "เริ่มต้น {price}"
 }

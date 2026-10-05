@@ -625,5 +625,17 @@
  "Airline price from {price} — confirmed before you pay": "Harga maskapai mulai {price} — dikonfirmasi sebelum Anda membayar",
  "Checked bag added": "Bagasi terdaftar ditambahkan",
  "Good news: a checked bag is already included in your fare, so there's nothing extra to pay.": "Kabar baik: tarif Anda sudah termasuk bagasi terdaftar, jadi tidak ada biaya tambahan.",
- "Your travel assistant will confirm what this fare includes. Need a checked bag? Add it below and we'll confirm the airline's price.": "Asisten perjalanan Anda akan mengonfirmasi apa saja yang termasuk dalam tarif ini. Perlu bagasi terdaftar? Tambahkan di bawah dan kami akan mengonfirmasi harga maskapai."
+ "Your travel assistant will confirm what this fare includes. Need a checked bag? Add it below and we'll confirm the airline's price.": "Asisten perjalanan Anda akan mengonfirmasi apa saja yang termasuk dalam tarif ini. Perlu bagasi terdaftar? Tambahkan di bawah dan kami akan mengonfirmasi harga maskapai.",
+ "Airline fees per traveler, plus any fare difference. We'll confirm the exact amount before making a change.": "Biaya maskapai per pelancong, ditambah selisih tarif jika ada. Kami akan mengonfirmasi jumlah pastinya sebelum melakukan perubahan.",
+ "Cancellation fee": "Biaya pembatalan",
+ "Cancellation fee (after departure)": "Biaya pembatalan (setelah keberangkatan)",
+ "Cancellation fee (before departure)": "Biaya pembatalan (sebelum keberangkatan)",
+ "Change fee (after departure)": "Biaya perubahan (setelah keberangkatan)",
+ "Change fee (before departure)": "Biaya perubahan (sebelum keberangkatan)",
+ "Changes & cancellation": "Perubahan & pembatalan",
+ "Changes allowed": "Perubahan diizinkan",
+ "Changes allowed with penalty": "Perubahan diizinkan dengan penalti",
+ "Changes not allowed": "Perubahan tidak diizinkan",
+ "Refundable with penalty": "Dapat dikembalikan dengan penalti",
+ "from {price}": "mulai {price}"
 }
