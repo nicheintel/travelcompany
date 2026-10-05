@@ -59,11 +59,12 @@ function sample_flights(array $s): array
         $pp = $base * (1.15 - $out['stops'] * 0.12) * (0.75 + rnd() * 0.6) * CABIN_MULTIPLIER[$s['cabin']];
         $pp = (int) round($in ? $pp * 1.85 : $pp);
         $child = (int) round($pp * 0.75);
+        $infant = (int) round($pp * 0.1);
         $seats = 1 + (int) floor(rnd() * 9);
         $offers[] = [
             'id' => "$code-$i", 'airline' => $airline, 'outbound' => $out, 'inbound' => $in,
-            'per_adult' => $pp, 'per_child' => $child,
-            'total' => $pp * $s['adults'] + $child * $s['children'],
+            'per_adult' => $pp, 'per_child' => $child, 'per_infant' => $infant,
+            'total' => $pp * $s['adults'] + $child * $s['children'] + $infant * ($s['infants'] ?? 0),
             'seats_left' => $seats, 'refundable' => rnd() > 0.6,
         ];
     }

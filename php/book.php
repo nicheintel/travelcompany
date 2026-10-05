@@ -37,6 +37,7 @@ if ($quote && is_post()) {
                 if ($age < 0 || $age > 120) $errors["t{$i}_dob"] = 'Enter a valid date of birth.';
                 elseif (str_starts_with($slot['label'], 'Child') && ($age < 2 || $age > 11)) $errors["t{$i}_dob"] = 'Children must be 2–11 years old on the travel date.';
                 elseif (str_starts_with($slot['label'], 'Adult') && $age < 12) $errors["t{$i}_dob"] = 'Adults must be 12 or older on the travel date.';
+                elseif (str_starts_with($slot['label'], 'Infant') && $d->diff(new DateTimeImmutable($quote['end_date'] ?? $quote['start_date']))->y >= 2) $errors["t{$i}_dob"] = 'Infants must be under 2 for the whole trip — book them as a child instead.';
             }
             $travelers[] = ['first' => $first, 'last' => $last] + ($slot['dob'] ? ['dob' => $dob] : []);
         }

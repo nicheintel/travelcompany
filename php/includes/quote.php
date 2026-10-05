@@ -9,11 +9,12 @@ defined('TC_APP') || exit;
 
 const BOOKING_KINDS = ['flight', 'hotel', 'package'];
 
-function slots(int $adults, int $children): array
+function slots(int $adults, int $children, int $infants = 0): array
 {
     $out = [];
     for ($i = 1; $i <= $adults; $i++) $out[] = ['label' => "Adult $i", 'dob' => true];
     for ($i = 1; $i <= $children; $i++) $out[] = ['label' => "Child $i", 'dob' => true];
+    for ($i = 1; $i <= $infants; $i++) $out[] = ['label' => "Infant $i", 'dob' => true];
     return $out;
 }
 
@@ -40,8 +41,9 @@ function flight_quote(array $params): ?array
         if (!$o) return null;
         $adults = $o['adults'];
         $children = $o['children'];
+        $infants = $o['infants'];
         $title = "{$o['origin_city']} → {$o['destination_city']}";
-        $people = $adults + $children;
+        $people = $adults + $children + $infants;
         $lines = [['label' => 'Flight for ' . plural($people, 'traveler'), 'amount' => $o['total']]];
         $cost = $o['cost'];
         $note = "Live airline fare. Fares can change until your ticket is issued — we'll confirm before charging any difference.";
@@ -54,14 +56,16 @@ function flight_quote(array $params): ?array
         if (!$o) return null;
         $adults = $p['adults'];
         $children = $p['children'];
+        $infants = $p['infants'];
         $title = "{$p['from']['city']} → {$p['to']['city']}";
         $lines = [['label' => "$adults × adult fare", 'amount' => $o['per_adult'] * $adults]];
         if ($children) $lines[] = ['label' => "$children × child fare", 'amount' => $o['per_child'] * $children];
+        if ($infants) $lines[] = ['label' => "$infants × infant fare (on lap)", 'amount' => $o['per_infant'] * $infants];
     }
 
     $facts = [['Depart', fmt_date($o['outbound']['date'])]];
     if ($o['inbound']) $facts[] = ['Return', fmt_date($o['inbound']['date'])];
-    array_push($facts, ['Travelers', (string) ($adults + $children)], ['Cabin', $cabin], ['Fare', $o['refundable'] ? 'Refundable' : 'Non-refundable']);
+    array_push($facts, ['Travelers', (string) ($adults + $children + $infants) . ($infants ? ' (incl. ' . plural($infants, 'infant') . ')' : '')], ['Cabin', $cabin], ['Fare', $o['refundable'] ? 'Refundable' : 'Non-refundable']);
 
     return finish_quote([
         'kind' => 'flight',
@@ -69,7 +73,7 @@ function flight_quote(array $params): ?array
         'subtitle' => "{$o['airline']['name']} · " . ($o['inbound'] ? 'Round trip' : 'One way') . " · $cabin",
         'start_date' => $o['outbound']['date'],
         'end_date' => $o['inbound']['date'] ?? null,
-        'slots' => slots($adults, $children),
+        'slots' => slots($adults, $children, $infants),
         'lines' => $lines,
         'facts' => $facts,
         'flight' => ['airline' => $o['airline'], 'outbound' => $o['outbound'], 'inbound' => $o['inbound']],

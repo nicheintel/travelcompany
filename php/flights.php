@@ -5,7 +5,7 @@ $p = parse_flight_params($_GET);
 $s = $p['search'];
 $result = $s ? search_flights($s) : null;
 $offers = $result['items'] ?? [];
-$people = $p['adults'] + $p['children'];
+$people = $p['adults'] + $p['children'] + $p['infants'];
 $dur = fn($o) => $o['outbound']['duration'] + ($o['inbound']['duration'] ?? 0);
 
 $summary = null;
@@ -42,7 +42,7 @@ require __DIR__ . '/includes/header.php';
       <?php endif; ?>
     </div>
     <div class="rounded-2xl bg-white p-4 shadow-xl sm:p-6">
-      <?= flight_search_form(['from' => $p['from']['code'] ?? null, 'to' => $p['to']['code'] ?? null, 'depart' => $s ? $p['depart'] : '', 'return' => $s ? (string) $p['return'] : '', 'trip' => $p['trip'], 'adults' => $p['adults'], 'children' => $p['children'], 'cabin' => $p['cabin']]) ?>
+      <?= flight_search_form(['from' => $p['from']['code'] ?? null, 'to' => $p['to']['code'] ?? null, 'depart' => $s ? $p['depart'] : '', 'return' => $s ? (string) $p['return'] : '', 'trip' => $p['trip'], 'adults' => $p['adults'], 'children' => $p['children'], 'infants' => $p['infants'], 'cabin' => $p['cabin']]) ?>
     </div>
   </div>
 </section>

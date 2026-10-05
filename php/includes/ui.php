@@ -70,11 +70,11 @@ function date_field(string $name, string $label, string $value = '', int $defaul
 }
 
 /** Travelers popover with counters (app.js). */
-function travelers_field(int $adults, int $children, ?int $rooms = null, ?string $cabin = null): string
+function travelers_field(int $adults, int $children, ?int $rooms = null, ?string $cabin = null, ?int $infants = null): string
 {
-    $counter = fn(string $key, string $label, string $hint, int $v, int $min, int $max) =>
+    $counter = fn(string $key, string $label, string $hint, int $v, int $min, int $max, string $maxOf = '') =>
         '<div class="flex items-center justify-between py-2"><div><p class="font-medium text-slate-900">' . $label . '</p><p class="text-xs text-slate-500">' . $hint . '</p></div>'
-        . '<div class="flex items-center gap-3" data-counter="' . $key . '" data-min="' . $min . '" data-max="' . $max . '">'
+        . '<div class="flex items-center gap-3" data-counter="' . $key . '" data-min="' . $min . '" data-max="' . $max . '"' . ($maxOf ? ' data-max-of="' . $maxOf . '"' : '') . '>'
         . '<button type="button" data-step="-1" class="grid h-8 w-8 place-items-center rounded-full border border-slate-300 text-lg text-slate-700 hover:border-brand-500 hover:text-brand-600 disabled:opacity-30" aria-label="Fewer ' . strtolower($label) . '">−</button>'
         . '<span class="w-4 text-center font-semibold" data-count>' . $v . '</span>'
         . '<button type="button" data-step="1" class="grid h-8 w-8 place-items-center rounded-full border border-slate-300 text-lg text-slate-700 hover:border-brand-500 hover:text-brand-600 disabled:opacity-30" aria-label="More ' . strtolower($label) . '">+</button></div></div>';
@@ -84,11 +84,13 @@ function travelers_field(int $adults, int $children, ?int $rooms = null, ?string
         . '<span class="' . FIELD_LABEL . '">' . ($rooms !== null ? 'Travelers &amp; rooms' : 'Travelers &amp; class') . '</span>'
         . '<span class="flex items-center gap-2">' . icon('user', 16, 'shrink-0 text-brand-500') . '<span class="truncate text-base font-semibold text-slate-900" data-travelers-summary></span></span></button>'
         . '<input type="hidden" name="adults" value="' . $adults . '"><input type="hidden" name="children" value="' . $children . '">'
+        . ($infants !== null ? '<input type="hidden" name="infants" value="' . $infants . '">' : '')
         . ($rooms !== null ? '<input type="hidden" name="rooms" value="' . $rooms . '">' : '')
         . ($cabin !== null ? '<input type="hidden" name="cabin" value="' . e($cabin) . '">' : '')
         . '<div class="absolute right-0 top-full z-30 mt-2 hidden w-full min-w-72 rounded-xl border border-slate-200 bg-white p-4 shadow-xl" data-travelers-panel>'
         . $counter('adults', 'Adults', 'Age 12+', $adults, 1, 9)
         . $counter('children', 'Children', 'Age 2–11', $children, 0, 8)
+        . ($infants !== null ? $counter('infants', 'Infants', 'Under 2, on an adult\'s lap', $infants, 0, 4, 'adults') : '')
         . ($rooms !== null ? $counter('rooms', 'Rooms', 'Max 4 per booking', $rooms, 1, 4) : '');
     if ($cabin !== null) {
         $html .= '<div class="mt-2 border-t border-slate-100 pt-3"><p class="mb-2 text-sm font-medium text-slate-900">Cabin class</p><div class="grid grid-cols-2 gap-2">';
@@ -121,7 +123,7 @@ function flight_search_form(array $d = []): string
         . '</div>'
         . date_field('depart', 'Depart', $d['depart'] ?? '', 14)
         . '<div data-return-box>' . date_field('return', 'Return', $d['return'] ?? '', 21, 'depart', 7) . '</div>'
-        . travelers_field($d['adults'] ?? 1, $d['children'] ?? 0, null, $d['cabin'] ?? 'economy')
+        . travelers_field($d['adults'] ?? 1, $d['children'] ?? 0, null, $d['cabin'] ?? 'economy', $d['infants'] ?? 0)
         . search_button('Search')
         . '</div><p role="alert" class="hidden text-sm font-medium text-red-600" data-form-error></p></form>';
 }

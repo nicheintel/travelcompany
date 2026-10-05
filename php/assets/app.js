@@ -133,7 +133,12 @@
     const hidden = (n) => $(`input[name="${n}"]`, box);
     const cabinNames = { economy: "Economy", premium: "Premium Economy", business: "Business", first: "First" };
     const update = () => {
-      const people = Number(hidden("adults").value) + Number(hidden("children").value);
+      // One lap infant per adult: fewer adults means fewer infants.
+      $$("[data-counter][data-max-of]", box).forEach((c) => {
+        const input = hidden(c.dataset.counter);
+        input.value = String(Math.min(Number(input.value), Number(hidden(c.dataset.maxOf).value)));
+      });
+      const people = ["adults", "children", "infants"].reduce((n, k) => n + Number(hidden(k)?.value || 0), 0);
       const parts = [`${people} traveler${people === 1 ? "" : "s"}`];
       if (hidden("rooms")) parts.push(`${hidden("rooms").value} room${hidden("rooms").value === "1" ? "" : "s"}`);
       if (hidden("cabin")) parts.push(cabinNames[hidden("cabin").value]);
@@ -142,7 +147,8 @@
         const v = Number(hidden(c.dataset.counter).value);
         $("[data-count]", c).textContent = v;
         $('[data-step="-1"]', c).disabled = v <= Number(c.dataset.min);
-        $('[data-step="1"]', c).disabled = v >= Number(c.dataset.max);
+        const max = Math.min(Number(c.dataset.max), c.dataset.maxOf ? Number(hidden(c.dataset.maxOf).value) : Infinity);
+        $('[data-step="1"]', c).disabled = v >= max;
       });
       $$("[data-cabin]", box).forEach((b) => {
         const on = hidden("cabin") && b.dataset.cabin === hidden("cabin").value;
@@ -156,7 +162,8 @@
       $$("[data-step]", c).forEach((btn) =>
         btn.addEventListener("click", () => {
           const input = hidden(c.dataset.counter);
-          input.value = String(Math.min(Number(c.dataset.max), Math.max(Number(c.dataset.min), Number(input.value) + Number(btn.dataset.step))));
+          const max = Math.min(Number(c.dataset.max), c.dataset.maxOf ? Number(hidden(c.dataset.maxOf).value) : Infinity);
+          input.value = String(Math.min(max, Math.max(Number(c.dataset.min), Number(input.value) + Number(btn.dataset.step))));
           update();
         }),
       );

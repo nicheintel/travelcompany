@@ -14,15 +14,16 @@ function parse_flight_params(array $q): array
     $return = $trip === 'oneway' ? null : (date_param((string) ($q['return'] ?? ''), $depart) ?? add_days($depart, 7));
     $adults = max(1, min(9, (int) ($q['adults'] ?? 1) ?: 1));
     $children = max(0, min(8, (int) ($q['children'] ?? 0)));
+    $infants = max(0, min($adults, 4, (int) ($q['infants'] ?? 0))); // airlines: one lap infant per adult
     $cabin = isset(CABIN_LABELS[$q['cabin'] ?? '']) ? $q['cabin'] : 'economy';
     $search = $from && $to && $from['code'] !== $to['code']
-        ? compact('from', 'to', 'depart', 'adults', 'children', 'cabin') + ['return' => $return]
+        ? compact('from', 'to', 'depart', 'adults', 'children', 'infants', 'cabin') + ['return' => $return]
         : null;
     $query = http_build_query(array_filter([
         'from' => $from['code'] ?? '', 'to' => $to['code'] ?? '', 'depart' => $depart, 'return' => $return,
-        'trip' => $trip, 'adults' => $adults, 'children' => $children, 'cabin' => $cabin,
+        'trip' => $trip, 'adults' => $adults, 'children' => $children, 'infants' => $infants ?: null, 'cabin' => $cabin,
     ], fn($v) => $v !== null && $v !== ''));
-    return compact('from', 'to', 'depart', 'return', 'trip', 'adults', 'children', 'cabin', 'search', 'query');
+    return compact('from', 'to', 'depart', 'return', 'trip', 'adults', 'children', 'infants', 'cabin', 'search', 'query');
 }
 
 function parse_hotel_params(array $q): array
@@ -179,7 +180,8 @@ function duffel_map(array $o): ?array
     $markup = markup_rate('flight');
     $total = sell_price($netUsd, $markup);
     $pax = $o['passengers'] ?? [];
-    $adults = count(array_filter($pax, fn($p) => ($p['type'] ?? null) === 'adult' || ($p['age'] ?? 99) >= 12));
+    $adults = count(array_filter($pax, fn($p) => ($p['type'] ?? null) === 'adult' || ($p['age'] ?? 0) >= 12));
+    $infants = count(array_filter($pax, fn($p) => ($p['type'] ?? null) === 'infant_without_seat' || (isset($p['age']) && $p['age'] < 2)));
     $code = (string) ($o['owner']['iata_code'] ?? '');
     $palette = ['#1c54f0', '#0f766e', '#7c3aed', '#f06c06', '#be123c', '#0369a1', '#15803d', '#a16207'];
     return [
@@ -191,7 +193,8 @@ function duffel_map(array $o): ?array
         'refundable' => (bool) ($o['conditions']['refund_before_departure']['allowed'] ?? false),
         'seats_left' => null,
         'adults' => $adults,
-        'children' => count($pax) - $adults,
+        'children' => count($pax) - $adults - $infants,
+        'infants' => $infants,
         'origin_city' => $o['slices'][0]['origin']['city_name'] ?? $o['slices'][0]['origin']['name'],
         'destination_city' => $o['slices'][0]['destination']['city_name'] ?? $o['slices'][0]['destination']['name'],
         'cost' => ['provider' => 'duffel', 'offer_id' => $o['id'], 'net_amount' => $net, 'net_currency' => $o['total_currency'], 'net_usd' => $netUsd, 'markup_rate' => $markup],
@@ -207,6 +210,7 @@ function duffel_search(array $s): array
     $passengers = array_merge(
         array_fill(0, $s['adults'], ['type' => 'adult']),
         array_fill(0, $s['children'], ['age' => 8]), // the form doesn't ask children's ages
+        array_fill(0, $s['infants'] ?? 0, ['type' => 'infant_without_seat']), // under 2, on an adult's lap
     );
     $cabin = ['economy' => 'economy', 'premium' => 'premium_economy', 'business' => 'business', 'first' => 'first'][$s['cabin']];
     $req = duffel('POST', '/air/offer_requests?return_offers=true&supplier_timeout=20000', compact('slices', 'passengers') + ['cabin_class' => $cabin]);
