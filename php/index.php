@@ -2,6 +2,7 @@
 require __DIR__ . '/includes/bootstrap.php';
 
 $memberPct = (int) round(member_discount_rate() * 100);
+$me = current_user();
 $whyUs = [
     ['tag', 'Low fares, no surprises', 'We compare hundreds of airlines and hotels so you see the real price up front — taxes and fees included.'],
     ['package', 'Ready-made packages', 'Flights and hotel in one booking at one price per person, put together by our travel assistants.'],
@@ -11,7 +12,7 @@ $whyUs = [
 $steps = [
     ['search', 'Search', 'Tell us where and when. We find the cheapest flights, stays and bundles.'],
     ['tag', 'Compare', 'Filter by price, stops, airline or hotel rating and pick what fits.'],
-    ['user', 'Book with your account', 'Sign in to save trips, get price alerts and check out in seconds.'],
+    ['user', 'Book with your account', 'Your trips, confirmations and tickets stay together in one place — and checkout takes seconds.'],
 ];
 $faq = array_slice(faq_items(), 0, 5);
 $tabs = [['flights', 'Flights', 'plane'], ['packages', 'Flight + Hotel', 'package'], ['hotels', 'Hotels', 'bed']];
@@ -60,7 +61,9 @@ require __DIR__ . '/includes/header.php';
     <?php foreach ([
         ['packages.php', 'from-accent-400 to-accent-600', 'package', 'Packages', 'Flight + Hotel', 'Ready-made trips at one price per person.', 'See promo packages →'],
         ['flights.php', 'from-sky-500 to-brand-700', 'plane', 'Flights', 'Compare airlines', 'Real fares from airlines worldwide.', 'Search flights →'],
-        ['register.php', 'from-emerald-500 to-teal-700', 'user', 'Members', $memberPct > 0 ? "Extra $memberPct% off" : 'Save your trips', $memberPct > 0 ? 'Free account, member-only prices.' : 'Free account, faster booking and price alerts.', 'Create free account →'],
+        $me
+            ? ['account.php', 'from-emerald-500 to-teal-700', 'user', 'Your account', 'Hi, ' . explode(' ', $me['name'])[0] . '!', $memberPct > 0 ? "Your $memberPct% member discount is applied automatically on flights and hotels." : 'Your trips, confirmations and tickets in one place.', 'My trips →']
+            : ['register.php', 'from-emerald-500 to-teal-700', 'user', 'Members', $memberPct > 0 ? "Extra $memberPct% off" : 'Save your trips', $memberPct > 0 ? 'Free account, member-only prices.' : 'Free account, faster booking.', 'Create free account →'],
     ] as [$href, $grad, $ic, $kicker, $heading, $text, $cta]): ?>
       <a href="<?= e(url($href)) ?>" class="group relative overflow-hidden rounded-2xl bg-gradient-to-br <?= $grad ?> p-6 text-white shadow-lg">
         <?= icon($ic, 120, 'absolute -bottom-4 -right-4 text-white/20') ?>
@@ -157,14 +160,25 @@ require __DIR__ . '/includes/header.php';
   <div class="relative mx-auto max-w-7xl overflow-hidden rounded-3xl bg-gradient-to-r from-brand-700 to-brand-500 px-6 py-12 text-white sm:px-12">
     <?= icon('car', 200, 'absolute -right-6 -top-6 text-white/10') ?>
     <div class="relative grid items-center gap-8 lg:grid-cols-2">
-      <div>
-        <h2 class="text-3xl font-bold">Get member-only deals</h2>
-        <p class="mt-2 text-brand-100">Create a free account to book faster, keep all your trips in one place and get member prices.</p>
-      </div>
-      <div class="flex flex-col gap-3 sm:flex-row lg:justify-end">
-        <a href="<?= e(url('register.php')) ?>" class="rounded-xl bg-accent-500 px-6 py-3 text-center font-bold text-white shadow-lg hover:bg-accent-600">Create free account</a>
-        <a href="<?= e(url('signin.php')) ?>" class="rounded-xl bg-white/10 px-6 py-3 text-center font-semibold text-white ring-1 ring-white/30 hover:bg-white/20">I already have an account</a>
-      </div>
+      <?php if ($me): ?>
+        <div>
+          <h2 class="text-3xl font-bold">Welcome back, <?= e(explode(' ', $me['name'])[0]) ?>!</h2>
+          <p class="mt-2 text-brand-100"><?= $memberPct > 0 ? "Your $memberPct% member discount is applied automatically when you book flights and hotels." : 'Ready for your next trip? Your bookings and tickets are waiting in My trips.' ?></p>
+        </div>
+        <div class="flex flex-col gap-3 sm:flex-row lg:justify-end">
+          <a href="<?= e(url('flights.php')) ?>" class="rounded-xl bg-accent-500 px-6 py-3 text-center font-bold text-white shadow-lg hover:bg-accent-600">Search flights</a>
+          <a href="<?= e(url('account.php')) ?>" class="rounded-xl bg-white/10 px-6 py-3 text-center font-semibold text-white ring-1 ring-white/30 hover:bg-white/20">My trips</a>
+        </div>
+      <?php else: ?>
+        <div>
+          <h2 class="text-3xl font-bold">Get member-only deals</h2>
+          <p class="mt-2 text-brand-100">Create a free account to book faster, keep all your trips in one place and get member prices.</p>
+        </div>
+        <div class="flex flex-col gap-3 sm:flex-row lg:justify-end">
+          <a href="<?= e(url('register.php')) ?>" class="rounded-xl bg-accent-500 px-6 py-3 text-center font-bold text-white shadow-lg hover:bg-accent-600">Create free account</a>
+          <a href="<?= e(url('signin.php')) ?>" class="rounded-xl bg-white/10 px-6 py-3 text-center font-semibold text-white ring-1 ring-white/30 hover:bg-white/20">I already have an account</a>
+        </div>
+      <?php endif; ?>
     </div>
   </div>
 </section>
