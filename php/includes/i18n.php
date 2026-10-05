@@ -225,7 +225,7 @@ function fx_download(): ?array
     foreach ($sources as $url => $read) {
         if ($url === '') continue;
         try {
-            $res = http_json('GET', $url, [], null, 6);
+            $res = http_json('GET', $url, [], null, 4);
             $got = $res['status'] === 200 ? $read($res['json']) : null;
             if (!$got) continue;
             [$all, $source, $updated] = $got;
