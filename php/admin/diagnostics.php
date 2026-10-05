@@ -72,6 +72,9 @@ if (paypal_enabled()) {
 } else {
     $checks[] = ['Online payments', true, stripe_enabled() ? 'Stripe on' : 'Off — pay later only (add PayPal on Site settings)'];
 }
+if ($pe = last_payment_error()) {
+    $checks[] = ['Last payment problem', false, gmdate('M j, g:i A', strtotime($pe['at'] . ' UTC')) . ' UTC' . " · trip {$pe['ref']} · {$pe['message']}"];
+}
 $checks[] = ['Demo mode', !demo_mode(), demo_mode() ? 'ON — made-up flights/hotels are shown. Turn off for customers!' : 'Off'];
 $checks[] = ['Markup', true, 'Flights +' . round(markup_rate('flight') * 100) . '%, hotels +' . round(markup_rate('hotel') * 100) . '%, member discount ' . round(member_discount_rate() * 100) . '%'];
 

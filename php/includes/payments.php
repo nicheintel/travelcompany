@@ -49,7 +49,7 @@ function paypal_token(): string
         'Authorization: Basic ' . base64_encode(config('paypal_client_id') . ':' . config('paypal_secret')),
     ], ['grant_type' => 'client_credentials'], 20, true);
     if ($res['status'] >= 300 || empty($res['json']['access_token'])) {
-        throw new RuntimeException('PayPal ' . $res['status'] . ': ' . ($res['json']['error_description'] ?? $res['json']['error'] ?? 'could not sign in with your Client ID and Secret'));
+        throw new RuntimeException('PayPal ' . $res['status'] . ': ' . paypal_error_text($res['json'] ?? [], 'could not sign in with your Client ID and Secret') . ' — check the Client ID, Secret and Sandbox/Live mode');
     }
     return $token = $res['json']['access_token'];
 }
@@ -58,6 +58,33 @@ function paypal_token(): string
 function paypal(string $method, string $path, ?array $body = null, array $headers = []): array
 {
     return http_json($method, paypal_base() . $path, array_merge(['Authorization: Bearer ' . paypal_token()], $headers), $body, 30);
+}
+
+/** PayPal's own explanation, including the specific issue (e.g. "PAYEE_ACCOUNT_RESTRICTED"). */
+function paypal_error_text(array $json, string $fallback): string
+{
+    $d = $json['details'][0] ?? [];
+    $parts = array_filter([
+        $json['name'] ?? null,
+        $json['message'] ?? ($json['error_description'] ?? null),
+        isset($d['issue']) ? $d['issue'] . (isset($d['field']) ? " ({$d['field']})" : '') . (isset($d['description']) ? ': ' . $d['description'] : '') : null,
+        $json['debug_id'] ?? null ? 'debug id ' . $json['debug_id'] : null,
+    ]);
+    return $parts ? implode(' — ', $parts) : $fallback;
+}
+
+/** Remembers the last payment problem so admins can see it (trip page and Diagnostics). */
+function record_payment_error(string $ref, string $message): void
+{
+    error_log("[payments] checkout for $ref failed: $message");
+    $value = json_encode(['ref' => $ref, 'message' => mb_substr($message, 0, 500), 'at' => now_utc()]);
+    db_run('INSERT INTO settings (name, value, updated_at) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE value = VALUES(value), updated_at = VALUES(updated_at)', ['last_payment_error', $value, now_utc()]);
+}
+
+function last_payment_error(): ?array
+{
+    $row = db_one("SELECT value FROM settings WHERE name = 'last_payment_error'");
+    return $row ? json_decode($row['value'], true) : null;
 }
 
 function paypal_amount(int $total): string
@@ -86,7 +113,7 @@ function paypal_create_order(array $b): array
         ]]],
     ], ['PayPal-Request-Id: create-' . $b['reference'] . '-' . $b['total'] . '-' . bin2hex(random_bytes(4))]);
     if ($res['status'] >= 300) {
-        throw new RuntimeException('PayPal ' . $res['status'] . ': ' . ($res['json']['message'] ?? 'could not create order'));
+        throw new RuntimeException('PayPal ' . $res['status'] . ': ' . paypal_error_text($res['json'] ?? [], 'could not create order'));
     }
     foreach ($res['json']['links'] ?? [] as $link) {
         if (in_array($link['rel'], ['payer-action', 'approve'], true)) return [$res['json']['id'], $link['href']];

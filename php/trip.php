@@ -17,6 +17,7 @@ if (is_post()) {
         try {
             if (payment_provider() === 'paypal') {
                 [$orderId, $approveUrl] = paypal_create_order($booking);
+                db_run("DELETE FROM settings WHERE name = 'last_payment_error'"); // working again
                 db_run('UPDATE bookings SET payment_ref = ? WHERE reference = ?', [$orderId, $ref]);
                 redirect($approveUrl);
             }
@@ -24,7 +25,7 @@ if (is_post()) {
             db_run('UPDATE bookings SET payment_ref = ? WHERE reference = ?', [$session['id'], $ref]);
             redirect($session['url']);
         } catch (Throwable $e) {
-            error_log("[payments] checkout for $ref failed: " . $e->getMessage());
+            record_payment_error($ref, $e->getMessage());
             redirect(url('trip.php', ['ref' => $ref, 'payment' => 'error']));
         }
     }
@@ -83,7 +84,10 @@ $check = '<span class="grid h-10 w-10 shrink-0 place-items-center rounded-full b
     </div>
   <?php endif; ?>
   <?php if (($_GET['payment'] ?? '') === 'error' && $status === 'reserved'): ?>
-    <div class="mb-6"><?= alert_box("We couldn't start the payment just now. Please try again in a moment.") ?></div>
+    <div class="mb-6"><?= alert_box("We couldn't start the payment just now. Please try again in a moment.") ?>
+      <?php if (is_admin() && ($pe = last_payment_error()) && $pe['ref'] === $ref): ?>
+        <p class="mt-2 rounded-xl bg-amber-50 p-3 text-sm text-amber-900 ring-1 ring-amber-200"><strong>Admin only — what PayPal said:</strong> <?= e($pe['message']) ?></p>
+      <?php endif; ?></div>
   <?php elseif (($_GET['payment'] ?? '') === 'cancelled' && $status === 'reserved'): ?>
     <div class="mb-6"><?= alert_box("Payment cancelled — you haven't been charged. You can pay whenever you're ready.") ?></div>
   <?php elseif ($payFailed): ?>
