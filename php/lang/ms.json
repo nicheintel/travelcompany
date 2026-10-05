@@ -621,9 +621,6 @@
  "{visible} of {total} properties · prices for {nights}, {rooms}": "{visible} daripada {total} hartanah · harga untuk {nights}, {rooms}",
  "Add a checked bag for {traveler}": "Tambah beg daftar masuk untuk {traveler}",
  "Add checked bag": "Tambah beg daftar masuk",
- "Airline price confirmed before you pay": "Harga syarikat penerbangan disahkan sebelum anda membayar",
- "Airline price from {price} — confirmed before you pay": "Harga syarikat penerbangan dari {price} — disahkan sebelum anda membayar",
- "Checked bag added": "Beg daftar masuk ditambah",
  "Good news: a checked bag is already included in your fare, so there's nothing extra to pay.": "Berita baik: tambang anda sudah termasuk beg daftar masuk, jadi tiada bayaran tambahan.",
  "Your travel assistant will confirm what this fare includes. Need a checked bag? Add it below and we'll confirm the airline's price.": "Pembantu perjalanan anda akan mengesahkan apa yang termasuk dalam tambang ini. Perlukan beg daftar masuk? Tambahkannya di bawah dan kami akan mengesahkan harga syarikat penerbangan.",
  "Airline fees per traveler, plus any fare difference. We'll confirm the exact amount before making a change.": "Caj syarikat penerbangan setiap pengembara, serta sebarang perbezaan tambang. Kami akan mengesahkan jumlah tepat sebelum membuat perubahan.",
@@ -661,5 +658,13 @@
  "Pay in pesos · confirmed within a few hours": "Bayar dalam peso · disahkan dalam beberapa jam",
  "PayPal or card": "PayPal atau kad",
  "Total: {total}": "Jumlah: {total}",
- "Change fee": "Yuran perubahan"
+ "Change fee": "Yuran perubahan",
+ "Add one and we'll confirm the airline's price": "Tambah dan kami akan mengesahkan harga syarikat penerbangan",
+ "Airline price from {price} if you add one": "Harga syarikat penerbangan dari {price} jika anda menambahnya",
+ "Not confirmed yet": "Belum disahkan",
+ "Price confirmed before you pay": "Harga disahkan sebelum anda membayar",
+ "Remove": "Buang",
+ "Requested": "Diminta",
+ "We'll confirm the airline's price (from {price}) and add it to your total before you pay.": "Kami akan mengesahkan harga syarikat penerbangan (dari {price}) dan menambahnya pada jumlah anda sebelum anda membayar.",
+ "We'll confirm the airline's price and add it to your total before you pay.": "Kami akan mengesahkan harga syarikat penerbangan dan menambahnya pada jumlah anda sebelum anda membayar."
 }

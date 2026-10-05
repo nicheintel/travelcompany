@@ -621,9 +621,6 @@
  "What the airline includes in this fare, for each traveler.": "Havayolunun bu tarifeye her yolcu için dahil ettikleri.",
  "Add a checked bag for {traveler}": "{traveler} için kayıtlı bagaj ekle",
  "Add checked bag": "Kayıtlı bagaj ekle",
- "Airline price confirmed before you pay": "Havayolu fiyatı ödemeden önce onaylanır",
- "Airline price from {price} — confirmed before you pay": "Havayolu fiyatı {price} ve üzeri — ödemeden önce onaylanır",
- "Checked bag added": "Kayıtlı bagaj eklendi",
  "Good news: a checked bag is already included in your fare, so there's nothing extra to pay.": "İyi haber: Ücretinize zaten kayıtlı bagaj dahil, bu yüzden ek bir ödeme yapmanız gerekmez.",
  "Your travel assistant will confirm what this fare includes. Need a checked bag? Add it below and we'll confirm the airline's price.": "Seyahat asistanınız bu ücrete neyin dahil olduğunu onaylayacak. Kayıtlı bagaja mı ihtiyacınız var? Aşağıdan ekleyin, havayolu fiyatını onaylayalım.",
  "Airline fees per traveler, plus any fare difference. We'll confirm the exact amount before making a change.": "Yolcu başına havayolu ücretleri ve varsa tarife farkı. Bir değişiklik yapmadan önce tam tutarı size onaylayacağız.",
@@ -661,5 +658,13 @@
  "Pay in pesos · confirmed within a few hours": "Peso ile ödeme · birkaç saat içinde onay",
  "PayPal or card": "PayPal veya kart",
  "Total: {total}": "Toplam: {total}",
- "Change fee": "Değişiklik ücreti"
+ "Change fee": "Değişiklik ücreti",
+ "Add one and we'll confirm the airline's price": "Ekleyin, havayolu fiyatını onaylayalım",
+ "Airline price from {price} if you add one": "Eklerseniz havayolu fiyatı {price} ve üzeri",
+ "Not confirmed yet": "Henüz onaylanmadı",
+ "Price confirmed before you pay": "Fiyat ödemeden önce onaylanır",
+ "Remove": "Kaldır",
+ "Requested": "Talep edildi",
+ "We'll confirm the airline's price (from {price}) and add it to your total before you pay.": "Havayolu fiyatını ({price} ve üzeri) onaylayıp ödemeden önce toplam tutarınıza ekleyeceğiz.",
+ "We'll confirm the airline's price and add it to your total before you pay.": "Havayolu fiyatını onaylayıp ödemeden önce toplam tutarınıza ekleyeceğiz."
 }

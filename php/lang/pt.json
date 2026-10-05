@@ -621,9 +621,6 @@
  "What the airline includes in this fare, for each traveler.": "O que a companhia aérea inclui nesta tarifa, por viajante.",
  "Add a checked bag for {traveler}": "Adicionar bagagem de porão para {traveler}",
  "Add checked bag": "Adicionar bagagem de porão",
- "Airline price confirmed before you pay": "Preço da companhia confirmado antes de pagar",
- "Airline price from {price} — confirmed before you pay": "Preço da companhia a partir de {price} — confirmado antes de pagar",
- "Checked bag added": "Bagagem de porão adicionada",
  "Good news: a checked bag is already included in your fare, so there's nothing extra to pay.": "Boas notícias: a sua tarifa já inclui bagagem de porão, por isso não tem nada a pagar a mais.",
  "Your travel assistant will confirm what this fare includes. Need a checked bag? Add it below and we'll confirm the airline's price.": "O seu assistente de viagem confirmará o que esta tarifa inclui. Precisa de bagagem de porão? Adicione-a abaixo e confirmaremos o preço da companhia.",
  "Airline fees per traveler, plus any fare difference. We'll confirm the exact amount before making a change.": "Taxas da companhia por viajante, mais qualquer diferença tarifária. Confirmaremos o valor exato antes de efetuar uma alteração.",
@@ -661,5 +658,13 @@
  "Pay in pesos · confirmed within a few hours": "Pague em pesos · confirmado em poucas horas",
  "PayPal or card": "PayPal ou cartão",
  "Total: {total}": "Total: {total}",
- "Change fee": "Taxa de alteração"
+ "Change fee": "Taxa de alteração",
+ "Add one and we'll confirm the airline's price": "Adicione e confirmaremos o preço da companhia",
+ "Airline price from {price} if you add one": "Preço da companhia a partir de {price} se adicionar",
+ "Not confirmed yet": "Ainda não confirmado",
+ "Price confirmed before you pay": "Preço confirmado antes de pagar",
+ "Remove": "Remover",
+ "Requested": "Solicitada",
+ "We'll confirm the airline's price (from {price}) and add it to your total before you pay.": "Confirmaremos o preço da companhia (a partir de {price}) e o somaremos ao seu total antes de pagar.",
+ "We'll confirm the airline's price and add it to your total before you pay.": "Confirmaremos o preço da companhia e o somaremos ao seu total antes de pagar."
 }

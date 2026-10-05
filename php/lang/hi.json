@@ -621,9 +621,6 @@
  "{visible} of {total} properties · prices for {nights}, {rooms}": "{total} में से {visible} प्रॉपर्टी · {nights}, {rooms} के लिए कीमतें",
  "Add a checked bag for {traveler}": "{traveler} के लिए चेक्ड बैग जोड़ें",
  "Add checked bag": "चेक्ड बैग जोड़ें",
- "Airline price confirmed before you pay": "एयरलाइन कीमत की पुष्टि भुगतान से पहले होगी",
- "Airline price from {price} — confirmed before you pay": "एयरलाइन कीमत {price} से — भुगतान से पहले पुष्टि होगी",
- "Checked bag added": "चेक्ड बैग जोड़ा गया",
  "Good news: a checked bag is already included in your fare, so there's nothing extra to pay.": "अच्छी खबर: आपके किराए में चेक्ड बैग पहले से शामिल है, इसलिए आपको कुछ भी अतिरिक्त नहीं देना है।",
  "Your travel assistant will confirm what this fare includes. Need a checked bag? Add it below and we'll confirm the airline's price.": "आपका ट्रैवल असिस्टेंट पुष्टि करेगा कि इस किराए में क्या शामिल है। चेक्ड बैग चाहिए? उसे नीचे जोड़ें और हम एयरलाइन की कीमत की पुष्टि करेंगे।",
  "Airline fees per traveler, plus any fare difference. We'll confirm the exact amount before making a change.": "प्रति यात्री एयरलाइन शुल्क, साथ ही किराए में कोई भी अंतर। कोई भी बदलाव करने से पहले हम सटीक राशि की पुष्टि करेंगे।",
@@ -661,5 +658,13 @@
  "Pay in pesos · confirmed within a few hours": "पेसो में भुगतान · कुछ घंटों में पुष्टि",
  "PayPal or card": "PayPal या कार्ड",
  "Total: {total}": "कुल: {total}",
- "Change fee": "बदलाव शुल्क"
+ "Change fee": "बदलाव शुल्क",
+ "Add one and we'll confirm the airline's price": "जोड़ें और हम एयरलाइन कीमत की पुष्टि करेंगे",
+ "Airline price from {price} if you add one": "जोड़ने पर एयरलाइन कीमत {price} से",
+ "Not confirmed yet": "अभी पुष्टि नहीं हुई",
+ "Price confirmed before you pay": "कीमत की पुष्टि भुगतान से पहले होगी",
+ "Remove": "हटाएँ",
+ "Requested": "अनुरोध किया गया",
+ "We'll confirm the airline's price (from {price}) and add it to your total before you pay.": "हम एयरलाइन कीमत ({price} से) की पुष्टि करेंगे और भुगतान से पहले इसे आपके कुल में जोड़ देंगे।",
+ "We'll confirm the airline's price and add it to your total before you pay.": "हम एयरलाइन कीमत की पुष्टि करेंगे और भुगतान से पहले इसे आपके कुल में जोड़ देंगे।"
 }

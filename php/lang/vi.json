@@ -621,9 +621,6 @@
  "{visible} of {total} properties · prices for {nights}, {rooms}": "{visible}/{total} chỗ nghỉ · giá cho {nights}, {rooms}",
  "Add a checked bag for {traveler}": "Thêm hành lý ký gửi cho {traveler}",
  "Add checked bag": "Thêm hành lý ký gửi",
- "Airline price confirmed before you pay": "Giá của hãng được xác nhận trước khi bạn thanh toán",
- "Airline price from {price} — confirmed before you pay": "Giá của hãng từ {price} — được xác nhận trước khi bạn thanh toán",
- "Checked bag added": "Đã thêm hành lý ký gửi",
  "Good news: a checked bag is already included in your fare, so there's nothing extra to pay.": "Tin vui: giá vé của bạn đã bao gồm hành lý ký gửi, nên bạn không phải trả thêm gì.",
  "Your travel assistant will confirm what this fare includes. Need a checked bag? Add it below and we'll confirm the airline's price.": "Trợ lý du lịch của bạn sẽ xác nhận giá vé này bao gồm những gì. Cần hành lý ký gửi? Hãy thêm bên dưới và chúng tôi sẽ xác nhận giá của hãng.",
  "Airline fees per traveler, plus any fare difference. We'll confirm the exact amount before making a change.": "Phí của hãng cho mỗi hành khách, cộng với chênh lệch giá vé (nếu có). Chúng tôi sẽ xác nhận số tiền chính xác trước khi thực hiện thay đổi.",
@@ -661,5 +658,13 @@
  "Pay in pesos · confirmed within a few hours": "Thanh toán bằng peso · xác nhận trong vài giờ",
  "PayPal or card": "PayPal hoặc thẻ",
  "Total: {total}": "Tổng cộng: {total}",
- "Change fee": "Phí thay đổi"
+ "Change fee": "Phí thay đổi",
+ "Add one and we'll confirm the airline's price": "Thêm vào và chúng tôi sẽ xác nhận giá của hãng",
+ "Airline price from {price} if you add one": "Giá của hãng từ {price} nếu bạn thêm",
+ "Not confirmed yet": "Chưa xác nhận",
+ "Price confirmed before you pay": "Giá được xác nhận trước khi bạn thanh toán",
+ "Remove": "Xóa",
+ "Requested": "Đã yêu cầu",
+ "We'll confirm the airline's price (from {price}) and add it to your total before you pay.": "Chúng tôi sẽ xác nhận giá của hãng (từ {price}) và cộng vào tổng tiền của bạn trước khi bạn thanh toán.",
+ "We'll confirm the airline's price and add it to your total before you pay.": "Chúng tôi sẽ xác nhận giá của hãng và cộng vào tổng tiền của bạn trước khi bạn thanh toán."
 }

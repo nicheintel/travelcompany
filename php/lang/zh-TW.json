@@ -621,9 +621,6 @@
  "{visible} of {total} properties · prices for {nights}, {rooms}": "{total} 間住宿中的 {visible} 間 · 價格適用於 {nights}、{rooms}",
  "Add a checked bag for {traveler}": "為{traveler}加購託運行李",
  "Add checked bag": "加購託運行李",
- "Airline price confirmed before you pay": "航空公司價格將於付款前確認",
- "Airline price from {price} — confirmed before you pay": "航空公司價格 {price} 起——付款前確認",
- "Checked bag added": "已加購託運行李",
  "Good news: a checked bag is already included in your fare, so there's nothing extra to pay.": "好消息：您的票價已包含託運行李，無需額外付費。",
  "Your travel assistant will confirm what this fare includes. Need a checked bag? Add it below and we'll confirm the airline's price.": "您的旅遊顧問會確認此票價包含的內容。需要託運行李嗎？請在下方加購，我們會為您確認航空公司價格。",
  "Airline fees per traveler, plus any fare difference. We'll confirm the exact amount before making a change.": "每位旅客的航空公司費用，另加任何票價差額。在進行變更之前，我們會向您確認確切金額。",
@@ -661,5 +658,13 @@
  "Pay in pesos · confirmed within a few hours": "以披索付款 · 數小時內確認",
  "PayPal or card": "PayPal 或信用卡",
  "Total: {total}": "總計：{total}",
- "Change fee": "變更手續費"
+ "Change fee": "變更手續費",
+ "Add one and we'll confirm the airline's price": "加購後我們將確認航空公司價格",
+ "Airline price from {price} if you add one": "加購需航空公司價格 {price} 起",
+ "Not confirmed yet": "尚未確認",
+ "Price confirmed before you pay": "價格將於付款前確認",
+ "Remove": "移除",
+ "Requested": "已申請",
+ "We'll confirm the airline's price (from {price}) and add it to your total before you pay.": "我們將確認航空公司價格（{price} 起），並於您付款前計入總價。",
+ "We'll confirm the airline's price and add it to your total before you pay.": "我們將確認航空公司價格，並於您付款前計入總價。"
 }

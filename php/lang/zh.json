@@ -621,9 +621,6 @@
  "{visible} of {total} properties · prices for {nights}, {rooms}": "{visible}/{total} 家住宿 · {nights}、{rooms}的价格",
  "Add a checked bag for {traveler}": "为{traveler}添加托运行李",
  "Add checked bag": "添加托运行李",
- "Airline price confirmed before you pay": "航空公司价格将在付款前确认",
- "Airline price from {price} — confirmed before you pay": "航空公司价格 {price} 起——付款前确认",
- "Checked bag added": "已添加托运行李",
  "Good news: a checked bag is already included in your fare, so there's nothing extra to pay.": "好消息：您的票价已包含托运行李，无需额外付费。",
  "Your travel assistant will confirm what this fare includes. Need a checked bag? Add it below and we'll confirm the airline's price.": "您的旅行顾问会确认此票价包含的内容。需要托运行李？请在下方添加，我们会为您确认航空公司价格。",
  "Airline fees per traveler, plus any fare difference. We'll confirm the exact amount before making a change.": "每位旅客的航空公司费用，另加任何票价差额。在进行更改之前，我们会向您确认确切金额。",
@@ -661,5 +658,13 @@
  "Pay in pesos · confirmed within a few hours": "以比索付款 · 几小时内确认",
  "PayPal or card": "PayPal 或银行卡",
  "Total: {total}": "总计：{total}",
- "Change fee": "改签费"
+ "Change fee": "改签费",
+ "Add one and we'll confirm the airline's price": "添加后我们将确认航空公司价格",
+ "Airline price from {price} if you add one": "添加需航空公司价格 {price} 起",
+ "Not confirmed yet": "尚未确认",
+ "Price confirmed before you pay": "价格将在付款前确认",
+ "Remove": "移除",
+ "Requested": "已申请",
+ "We'll confirm the airline's price (from {price}) and add it to your total before you pay.": "我们将确认航空公司价格（{price} 起），并在您付款前计入总价。",
+ "We'll confirm the airline's price and add it to your total before you pay.": "我们将确认航空公司价格，并在您付款前计入总价。"
 }

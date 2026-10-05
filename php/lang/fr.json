@@ -621,9 +621,6 @@
  "What the airline includes in this fare, for each traveler.": "Ce que la compagnie aérienne inclut dans ce tarif, pour chaque voyageur.",
  "Add a checked bag for {traveler}": "Ajouter un bagage en soute pour {traveler}",
  "Add checked bag": "Ajouter un bagage en soute",
- "Airline price confirmed before you pay": "Prix de la compagnie confirmé avant le paiement",
- "Airline price from {price} — confirmed before you pay": "Prix de la compagnie à partir de {price} — confirmé avant le paiement",
- "Checked bag added": "Bagage en soute ajouté",
  "Good news: a checked bag is already included in your fare, so there's nothing extra to pay.": "Bonne nouvelle : un bagage en soute est déjà inclus dans votre tarif, vous n'avez donc rien à payer en plus.",
  "Your travel assistant will confirm what this fare includes. Need a checked bag? Add it below and we'll confirm the airline's price.": "Votre conseiller voyage vous confirmera ce que comprend ce tarif. Besoin d'un bagage en soute ? Ajoutez-le ci-dessous et nous vous confirmerons le prix de la compagnie.",
  "Airline fees per traveler, plus any fare difference. We'll confirm the exact amount before making a change.": "Frais de la compagnie par voyageur, plus toute différence tarifaire. Nous vous confirmerons le montant exact avant toute modification.",
@@ -661,5 +658,13 @@
  "Pay in pesos · confirmed within a few hours": "Paiement en pesos · confirmé sous quelques heures",
  "PayPal or card": "PayPal ou carte",
  "Total: {total}": "Total : {total}",
- "Change fee": "Frais de modification"
+ "Change fee": "Frais de modification",
+ "Add one and we'll confirm the airline's price": "Ajoutez-en un et nous confirmerons le prix de la compagnie",
+ "Airline price from {price} if you add one": "Prix de la compagnie à partir de {price} si vous en ajoutez un",
+ "Not confirmed yet": "Pas encore confirmé",
+ "Price confirmed before you pay": "Prix confirmé avant le paiement",
+ "Remove": "Retirer",
+ "Requested": "Demandé",
+ "We'll confirm the airline's price (from {price}) and add it to your total before you pay.": "Nous confirmerons le prix de la compagnie (à partir de {price}) et l'ajouterons à votre total avant le paiement.",
+ "We'll confirm the airline's price and add it to your total before you pay.": "Nous confirmerons le prix de la compagnie et l'ajouterons à votre total avant le paiement."
 }

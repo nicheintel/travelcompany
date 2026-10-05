@@ -621,9 +621,6 @@
  "What the airline includes in this fare, for each traveler.": "Wat de luchtvaartmaatschappij in dit tarief inbegrijpt, per reiziger.",
  "Add a checked bag for {traveler}": "Ruimbagage toevoegen voor {traveler}",
  "Add checked bag": "Ruimbagage toevoegen",
- "Airline price confirmed before you pay": "Prijs luchtvaartmaatschappij bevestigd voordat u betaalt",
- "Airline price from {price} — confirmed before you pay": "Prijs luchtvaartmaatschappij vanaf {price} — bevestigd voordat u betaalt",
- "Checked bag added": "Ruimbagage toegevoegd",
  "Good news: a checked bag is already included in your fare, so there's nothing extra to pay.": "Goed nieuws: ruimbagage is al inbegrepen in uw tarief, dus u betaalt niets extra.",
  "Your travel assistant will confirm what this fare includes. Need a checked bag? Add it below and we'll confirm the airline's price.": "Uw reisassistent bevestigt wat dit tarief omvat. Ruimbagage nodig? Voeg die hieronder toe en wij bevestigen de prijs van de luchtvaartmaatschappij.",
  "Airline fees per traveler, plus any fare difference. We'll confirm the exact amount before making a change.": "Kosten van de luchtvaartmaatschappij per reiziger, plus een eventueel tariefverschil. We bevestigen het exacte bedrag voordat we een wijziging doorvoeren.",
@@ -661,5 +658,13 @@
  "Pay in pesos · confirmed within a few hours": "Betalen in pesos · binnen enkele uren bevestigd",
  "PayPal or card": "PayPal of kaart",
  "Total: {total}": "Totaal: {total}",
- "Change fee": "Wijzigingskosten"
+ "Change fee": "Wijzigingskosten",
+ "Add one and we'll confirm the airline's price": "Voeg het toe en wij bevestigen de prijs van de luchtvaartmaatschappij",
+ "Airline price from {price} if you add one": "Prijs luchtvaartmaatschappij vanaf {price} als u het toevoegt",
+ "Not confirmed yet": "Nog niet bevestigd",
+ "Price confirmed before you pay": "Prijs bevestigd voordat u betaalt",
+ "Remove": "Verwijderen",
+ "Requested": "Aangevraagd",
+ "We'll confirm the airline's price (from {price}) and add it to your total before you pay.": "Wij bevestigen de prijs van de luchtvaartmaatschappij (vanaf {price}) en tellen die op bij uw totaal voordat u betaalt.",
+ "We'll confirm the airline's price and add it to your total before you pay.": "Wij bevestigen de prijs van de luchtvaartmaatschappij en tellen die op bij uw totaal voordat u betaalt."
 }

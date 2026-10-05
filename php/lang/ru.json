@@ -654,9 +654,6 @@
  "What the airline includes in this fare, for each traveler.": "Что авиакомпания включает в этот тариф для каждого путешественника.",
  "Add a checked bag for {traveler}": "Добавить багаж для пассажира {traveler}",
  "Add checked bag": "Добавить багаж",
- "Airline price confirmed before you pay": "Цена авиакомпании подтверждается до оплаты",
- "Airline price from {price} — confirmed before you pay": "Цена авиакомпании от {price} — подтверждается до оплаты",
- "Checked bag added": "Багаж добавлен",
  "Good news: a checked bag is already included in your fare, so there's nothing extra to pay.": "Хорошая новость: зарегистрированный багаж уже включён в ваш тариф, доплачивать ничего не нужно.",
  "Your travel assistant will confirm what this fare includes. Need a checked bag? Add it below and we'll confirm the airline's price.": "Ваш турагент уточнит, что входит в этот тариф. Нужен багаж? Добавьте его ниже, и мы подтвердим цену авиакомпании.",
  "Airline fees per traveler, plus any fare difference. We'll confirm the exact amount before making a change.": "Сборы авиакомпании за путешественника, плюс возможная разница в тарифе. Мы подтвердим точную сумму до внесения изменений.",
@@ -694,5 +691,13 @@
  "Pay in pesos · confirmed within a few hours": "Оплата в песо · подтверждение в течение нескольких часов",
  "PayPal or card": "PayPal или карта",
  "Total: {total}": "Итого: {total}",
- "Change fee": "Сбор за изменение"
+ "Change fee": "Сбор за изменение",
+ "Add one and we'll confirm the airline's price": "Добавьте его, и мы подтвердим цену авиакомпании",
+ "Airline price from {price} if you add one": "Цена авиакомпании от {price}, если вы его добавите",
+ "Not confirmed yet": "Пока не подтверждено",
+ "Price confirmed before you pay": "Цена подтверждается до оплаты",
+ "Remove": "Убрать",
+ "Requested": "Запрошен",
+ "We'll confirm the airline's price (from {price}) and add it to your total before you pay.": "Мы подтвердим цену авиакомпании (от {price}) и добавим её к итоговой сумме до оплаты.",
+ "We'll confirm the airline's price and add it to your total before you pay.": "Мы подтвердим цену авиакомпании и добавим её к итоговой сумме до оплаты."
 }

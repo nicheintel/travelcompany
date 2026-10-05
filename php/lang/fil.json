@@ -621,9 +621,6 @@
  "What the airline includes in this fare, for each traveler.": "Ang kasama ng airline sa pamasaheng ito, para sa bawat biyahero.",
  "Add a checked bag for {traveler}": "Magdagdag ng checked bag para kay {traveler}",
  "Add checked bag": "Magdagdag ng checked bag",
- "Airline price confirmed before you pay": "Kukumpirmahin ang presyo ng airline bago ka magbayad",
- "Airline price from {price} — confirmed before you pay": "Presyo ng airline mula {price} — kukumpirmahin bago ka magbayad",
- "Checked bag added": "Naidagdag ang checked bag",
  "Good news: a checked bag is already included in your fare, so there's nothing extra to pay.": "Magandang balita: kasama na sa iyong pamasahe ang checked bag, kaya wala kang dagdag na babayaran.",
  "Your travel assistant will confirm what this fare includes. Need a checked bag? Add it below and we'll confirm the airline's price.": "Kukumpirmahin ng iyong travel assistant kung ano ang kasama sa pamasaheng ito. Kailangan mo ng checked bag? Idagdag ito sa ibaba at kukumpirmahin namin ang presyo ng airline.",
  "Airline fees per traveler, plus any fare difference. We'll confirm the exact amount before making a change.": "Bayarin ng airline bawat biyahero, kasama ang anumang diperensya sa pamasahe. Kukumpirmahin namin ang eksaktong halaga bago gumawa ng pagbabago.",
@@ -661,5 +658,13 @@
  "Pay in pesos · confirmed within a few hours": "Magbayad sa piso · kumpirmado sa loob ng ilang oras",
  "PayPal or card": "PayPal o card",
  "Total: {total}": "Kabuuan: {total}",
- "Change fee": "Bayad sa pagpapalit"
+ "Change fee": "Bayad sa pagpapalit",
+ "Add one and we'll confirm the airline's price": "Magdagdag at kukumpirmahin namin ang presyo ng airline",
+ "Airline price from {price} if you add one": "Presyo ng airline mula {price} kung magdadagdag ka",
+ "Not confirmed yet": "Hindi pa kumpirmado",
+ "Price confirmed before you pay": "Kukumpirmahin ang presyo bago ka magbayad",
+ "Remove": "Alisin",
+ "Requested": "Hiniling",
+ "We'll confirm the airline's price (from {price}) and add it to your total before you pay.": "Kukumpirmahin namin ang presyo ng airline (mula {price}) at idadagdag ito sa iyong kabuuan bago ka magbayad.",
+ "We'll confirm the airline's price and add it to your total before you pay.": "Kukumpirmahin namin ang presyo ng airline at idadagdag ito sa iyong kabuuan bago ka magbayad."
 }

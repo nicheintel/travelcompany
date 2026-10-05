@@ -621,9 +621,6 @@
  "{visible} of {total} properties · prices for {nights}, {rooms}": "{total}件中{visible}件の宿泊施設 · {nights}、{rooms}の料金",
  "Add a checked bag for {traveler}": "{traveler}の受託手荷物を追加",
  "Add checked bag": "受託手荷物を追加",
- "Airline price confirmed before you pay": "航空会社料金はお支払い前に確定します",
- "Airline price from {price} — confirmed before you pay": "航空会社料金 {price}～ — お支払い前に確定します",
- "Checked bag added": "受託手荷物を追加済み",
  "Good news: a checked bag is already included in your fare, so there's nothing extra to pay.": "朗報です：受託手荷物はすでに運賃に含まれているため、追加料金はかかりません。",
  "Your travel assistant will confirm what this fare includes. Need a checked bag? Add it below and we'll confirm the airline's price.": "この運賃に含まれる内容はトラベルアシスタントが確認します。受託手荷物が必要な場合は、下で追加してください。航空会社の料金を確認いたします。",
  "Airline fees per traveler, plus any fare difference. We'll confirm the exact amount before making a change.": "旅行者1名あたりの航空会社手数料に加え、運賃差額がかかる場合があります。変更を行う前に正確な金額をご確認いたします。",
@@ -661,5 +658,13 @@
  "Pay in pesos · confirmed within a few hours": "ペソでのお支払い · 数時間以内に確定",
  "PayPal or card": "PayPal またはカード",
  "Total: {total}": "合計：{total}",
- "Change fee": "変更手数料"
+ "Change fee": "変更手数料",
+ "Add one and we'll confirm the airline's price": "追加すると航空会社料金を確認いたします",
+ "Airline price from {price} if you add one": "追加する場合の航空会社料金 {price}～",
+ "Not confirmed yet": "未確定",
+ "Price confirmed before you pay": "料金はお支払い前に確定します",
+ "Remove": "削除",
+ "Requested": "リクエスト済み",
+ "We'll confirm the airline's price (from {price}) and add it to your total before you pay.": "航空会社料金（{price}～）を確認し、お支払い前に合計金額に加算します。",
+ "We'll confirm the airline's price and add it to your total before you pay.": "航空会社料金を確認し、お支払い前に合計金額に加算します。"
 }

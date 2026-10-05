@@ -621,9 +621,6 @@
  "{visible} of {total} properties · prices for {nights}, {rooms}": "{visible} dari {total} properti · harga untuk {nights}, {rooms}",
  "Add a checked bag for {traveler}": "Tambahkan bagasi terdaftar untuk {traveler}",
  "Add checked bag": "Tambahkan bagasi terdaftar",
- "Airline price confirmed before you pay": "Harga maskapai dikonfirmasi sebelum Anda membayar",
- "Airline price from {price} — confirmed before you pay": "Harga maskapai mulai {price} — dikonfirmasi sebelum Anda membayar",
- "Checked bag added": "Bagasi terdaftar ditambahkan",
  "Good news: a checked bag is already included in your fare, so there's nothing extra to pay.": "Kabar baik: tarif Anda sudah termasuk bagasi terdaftar, jadi tidak ada biaya tambahan.",
  "Your travel assistant will confirm what this fare includes. Need a checked bag? Add it below and we'll confirm the airline's price.": "Asisten perjalanan Anda akan mengonfirmasi apa saja yang termasuk dalam tarif ini. Perlu bagasi terdaftar? Tambahkan di bawah dan kami akan mengonfirmasi harga maskapai.",
  "Airline fees per traveler, plus any fare difference. We'll confirm the exact amount before making a change.": "Biaya maskapai per pelancong, ditambah selisih tarif jika ada. Kami akan mengonfirmasi jumlah pastinya sebelum melakukan perubahan.",
@@ -661,5 +658,13 @@
  "Pay in pesos · confirmed within a few hours": "Bayar dalam peso · dikonfirmasi dalam beberapa jam",
  "PayPal or card": "PayPal atau kartu",
  "Total: {total}": "Total: {total}",
- "Change fee": "Biaya perubahan"
+ "Change fee": "Biaya perubahan",
+ "Add one and we'll confirm the airline's price": "Tambahkan dan kami akan mengonfirmasi harga maskapai",
+ "Airline price from {price} if you add one": "Harga maskapai mulai {price} jika Anda menambahkannya",
+ "Not confirmed yet": "Belum dikonfirmasi",
+ "Price confirmed before you pay": "Harga dikonfirmasi sebelum Anda membayar",
+ "Remove": "Hapus",
+ "Requested": "Diminta",
+ "We'll confirm the airline's price (from {price}) and add it to your total before you pay.": "Kami akan mengonfirmasi harga maskapai (mulai {price}) dan menambahkannya ke total Anda sebelum Anda membayar.",
+ "We'll confirm the airline's price and add it to your total before you pay.": "Kami akan mengonfirmasi harga maskapai dan menambahkannya ke total Anda sebelum Anda membayar."
 }
