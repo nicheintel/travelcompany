@@ -733,3 +733,5 @@ tr:last-child td { border-bottom: 0; }
   .steps-bar li:not(.current) { font-size: 0; gap: 0; } /* only the current step keeps its label on phones */
   .steps-bar li:not(.current) span { font-size: .8rem; }
 }
+table.kv th { width: 230px; text-transform: none; letter-spacing: 0; font-size: .9rem; color: var(--ink); background: #FAFBFE; }
+table.kv code { font-size: .82rem; overflow-wrap: anywhere; }

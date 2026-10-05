@@ -18,15 +18,32 @@ function mail_from(): string
     return filter_var($from, FILTER_VALIDATE_EMAIL) ? $from : 'info@lamazonloads.com';
 }
 
+/** Which way email goes out: 'smtp' (mailbox password set), 'mail' (PHP mail()) or 'file' (testing). */
+function mail_transport(): string
+{
+    $pass = (string) config('smtp_pass');
+    return (string) config('mail_transport') ?: ($pass !== '' && !str_starts_with($pass, 'PUT_') ? 'smtp' : 'mail');
+}
+
+/** The reason the last email failed ('' if it was sent), for Admin -> Email check. */
+function mail_last_error(?string $set = null): string
+{
+    static $err = '';
+    if ($set !== null) {
+        $err = $set;
+    }
+    return $err;
+}
+
 function send_mail(string $to, string $subject, string $text, string $html, string $replyTo = ''): bool
 {
+    mail_last_error('');
     if (!filter_var($to, FILTER_VALIDATE_EMAIL)) {
         return false;
     }
     $subject = str_replace(["\r", "\n"], ' ', $subject);
     $replyTo = filter_var($replyTo, FILTER_VALIDATE_EMAIL) ? $replyTo : '';
-    $pass = (string) config('smtp_pass');
-    $transport = (string) config('mail_transport') ?: ($pass !== '' && !str_starts_with($pass, 'PUT_') ? 'smtp' : 'mail');
+    $transport = mail_transport();
     try {
         [$headers, $body] = build_message($to, $subject, $text, $html, $replyTo);
         if ($transport === 'file') {
@@ -46,6 +63,7 @@ function send_mail(string $to, string $subject, string $text, string $html, stri
         return true;
     } catch (Throwable $ex) {
         error_log('[mail] could not send to ' . $to . ': ' . $ex->getMessage());
+        mail_last_error($ex->getMessage());
         return false;
     }
 }
