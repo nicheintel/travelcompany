@@ -72,34 +72,35 @@ function date_field(string $name, string $label, string $value = '', int $defaul
 /** Travelers popover with counters (app.js). */
 function travelers_field(int $adults, int $children, ?int $rooms = null, ?string $cabin = null, ?int $infants = null): string
 {
-    $counter = fn(string $key, string $label, string $hint, int $v, int $min, int $max, string $maxOf = '') =>
-        '<div class="flex items-center justify-between py-2"><div><p class="font-medium text-slate-900">' . $label . '</p><p class="text-xs text-slate-500">' . $hint . '</p></div>'
+    $counter = fn(string $key, string $label, string $hint, string $fewer, string $more, int $v, int $min, int $max, string $maxOf = '') =>
+        '<div class="flex items-center justify-between py-2"><div><p class="font-medium text-slate-900">' . e($label) . '</p><p class="text-xs text-slate-500">' . e($hint) . '</p></div>'
         . '<div class="flex items-center gap-3" data-counter="' . $key . '" data-min="' . $min . '" data-max="' . $max . '"' . ($maxOf ? ' data-max-of="' . $maxOf . '"' : '') . '>'
-        . '<button type="button" data-step="-1" class="grid h-8 w-8 place-items-center rounded-full border border-slate-300 text-lg text-slate-700 hover:border-brand-500 hover:text-brand-600 disabled:opacity-30" aria-label="Fewer ' . strtolower($label) . '">−</button>'
+        . '<button type="button" data-step="-1" class="grid h-8 w-8 place-items-center rounded-full border border-slate-300 text-lg text-slate-700 hover:border-brand-500 hover:text-brand-600 disabled:opacity-30" aria-label="' . e($fewer) . '">−</button>'
         . '<span class="w-4 text-center font-semibold" data-count>' . $v . '</span>'
-        . '<button type="button" data-step="1" class="grid h-8 w-8 place-items-center rounded-full border border-slate-300 text-lg text-slate-700 hover:border-brand-500 hover:text-brand-600 disabled:opacity-30" aria-label="More ' . strtolower($label) . '">+</button></div></div>';
+        . '<button type="button" data-step="1" class="grid h-8 w-8 place-items-center rounded-full border border-slate-300 text-lg text-slate-700 hover:border-brand-500 hover:text-brand-600 disabled:opacity-30" aria-label="' . e($more) . '">+</button></div></div>';
 
     $html = '<div class="relative" data-travelers>'
         . '<button type="button" aria-expanded="false" class="flex w-full flex-col rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-left transition hover:border-slate-300 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100" data-travelers-toggle>'
-        . '<span class="' . FIELD_LABEL . '">' . ($rooms !== null ? 'Travelers &amp; rooms' : 'Travelers &amp; class') . '</span>'
+        . '<span class="' . FIELD_LABEL . '">' . e($rooms !== null ? t('Travelers & rooms') : t('Travelers & class')) . '</span>'
         . '<span class="flex items-center gap-2">' . icon('user', 16, 'shrink-0 text-brand-500') . '<span class="truncate text-base font-semibold text-slate-900" data-travelers-summary></span></span></button>'
         . '<input type="hidden" name="adults" value="' . $adults . '"><input type="hidden" name="children" value="' . $children . '">'
         . ($infants !== null ? '<input type="hidden" name="infants" value="' . $infants . '">' : '')
         . ($rooms !== null ? '<input type="hidden" name="rooms" value="' . $rooms . '">' : '')
         . ($cabin !== null ? '<input type="hidden" name="cabin" value="' . e($cabin) . '">' : '')
         . '<div class="absolute right-0 top-full z-30 mt-2 hidden w-full min-w-72 rounded-xl border border-slate-200 bg-white p-4 shadow-xl" data-travelers-panel>'
-        . $counter('adults', 'Adults', 'Age 12+', $adults, 1, 9)
-        . $counter('children', 'Children', 'Age 2–11', $children, 0, 8)
-        . ($infants !== null ? $counter('infants', 'Infants', 'Under 2, on an adult\'s lap', $infants, 0, 4, 'adults') : '')
-        . ($rooms !== null ? $counter('rooms', 'Rooms', 'Max 4 per booking', $rooms, 1, 4) : '');
+        . $counter('adults', t('Adults'), t('Age 12+'), t('Fewer adults'), t('More adults'), $adults, 1, 9)
+        . $counter('children', t('Children'), t('Age 2–11'), t('Fewer children'), t('More children'), $children, 0, 8)
+        . ($infants !== null ? $counter('infants', t('Infants'), t('Under 2, on an adult\'s lap'), t('Fewer infants'), t('More infants'), $infants, 0, 4, 'adults') : '')
+        . ($rooms !== null ? $counter('rooms', t('Rooms'), t('Max 4 per booking'), t('Fewer rooms'), t('More rooms'), $rooms, 1, 4) : '');
     if ($cabin !== null) {
-        $html .= '<div class="mt-2 border-t border-slate-100 pt-3"><p class="mb-2 text-sm font-medium text-slate-900">Cabin class</p><div class="grid grid-cols-2 gap-2">';
+        $html .= '<div class="mt-2 border-t border-slate-100 pt-3"><p class="mb-2 text-sm font-medium text-slate-900">' . e(t('Cabin class')) . '</p><div class="grid grid-cols-2 gap-2">';
+        // i18n-keys: 'Economy', 'Premium Economy', 'Business', 'First'
         foreach (CABIN_LABELS as $key => $label) {
-            $html .= '<button type="button" data-cabin="' . $key . '" class="rounded-lg border px-3 py-2 text-sm border-slate-200 text-slate-700 hover:border-slate-300">' . $label . '</button>';
+            $html .= '<button type="button" data-cabin="' . $key . '" class="rounded-lg border px-3 py-2 text-sm border-slate-200 text-slate-700 hover:border-slate-300">' . e(t($label)) . '</button>';
         }
         $html .= '</div></div>';
     }
-    return $html . '<button type="button" class="mt-4 w-full rounded-lg bg-brand-600 py-2 text-sm font-semibold text-white hover:bg-brand-700" data-travelers-done>Done</button></div></div>';
+    return $html . '<button type="button" class="mt-4 w-full rounded-lg bg-brand-600 py-2 text-sm font-semibold text-white hover:bg-brand-700" data-travelers-done>' . e(t('Done')) . '</button></div></div>';
 }
 
 function search_button(string $label): string
@@ -112,19 +113,19 @@ function flight_search_form(array $d = []): string
 {
     $trip = $d['trip'] ?? 'roundtrip';
     $pill = fn($value, $label) => '<label class="cursor-pointer rounded-full border px-4 py-1.5 text-sm font-medium transition border-slate-200 bg-white text-slate-700 hover:border-slate-300 has-[:checked]:border-brand-600 has-[:checked]:bg-brand-600 has-[:checked]:text-white">'
-        . '<input type="radio" name="trip" value="' . $value . '"' . ($trip === $value ? ' checked' : '') . ' class="sr-only" data-trip>' . $label . '</label>';
+        . '<input type="radio" name="trip" value="' . $value . '"' . ($trip === $value ? ' checked' : '') . ' class="sr-only" data-trip>' . e($label) . '</label>';
     return '<form action="' . e(url('flights.php')) . '" method="get" class="space-y-4" data-search-form="flight">'
-        . '<div class="flex flex-wrap items-center gap-2">' . $pill('roundtrip', 'Round trip') . $pill('oneway', 'One way') . '</div>'
+        . '<div class="flex flex-wrap items-center gap-2">' . $pill('roundtrip', t('Round trip')) . $pill('oneway', t('One way')) . '</div>'
         . '<div class="grid gap-3 lg:grid-cols-[1fr_1fr_0.8fr_0.8fr_1fr_auto]">'
         . '<div class="relative grid gap-3 sm:grid-cols-2 lg:col-span-2">'
-        . airport_field('from', 'From', 'City or airport', $d['from'] ?? null)
-        . '<button type="button" class="absolute left-1/2 top-1/2 z-10 hidden h-9 w-9 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border border-slate-200 bg-white text-brand-600 shadow-sm hover:bg-brand-50 sm:grid" aria-label="Swap origin and destination" data-swap>' . icon('swap', 16) . '</button>'
-        . airport_field('to', 'To', 'Where to?', $d['to'] ?? null)
+        . airport_field('from', t('From'), t('City or airport'), $d['from'] ?? null)
+        . '<button type="button" class="absolute left-1/2 top-1/2 z-10 hidden h-9 w-9 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border border-slate-200 bg-white text-brand-600 shadow-sm hover:bg-brand-50 sm:grid" aria-label="' . e(t('Swap origin and destination')) . '" data-swap>' . icon('swap', 16) . '</button>'
+        . airport_field('to', t('To'), t('Where to?'), $d['to'] ?? null)
         . '</div>'
-        . date_field('depart', 'Depart', $d['depart'] ?? '', 14)
-        . '<div data-return-box>' . date_field('return', 'Return', $d['return'] ?? '', 21, 'depart', 7) . '</div>'
+        . date_field('depart', t('Depart'), $d['depart'] ?? '', 14)
+        . '<div data-return-box>' . date_field('return', t('Return'), $d['return'] ?? '', 21, 'depart', 7) . '</div>'
         . travelers_field($d['adults'] ?? 1, $d['children'] ?? 0, null, $d['cabin'] ?? 'economy', $d['infants'] ?? 0)
-        . search_button('Search')
+        . search_button(t('Search'))
         . '</div><p role="alert" class="hidden text-sm font-medium text-red-600" data-form-error></p></form>';
 }
 
@@ -135,19 +136,19 @@ function package_search_form(array $d = []): string
     foreach (active_packages() as $p) $dests[$p['to_code']] = "{$p['destination']}, {$p['country']}";
     asort($dests);
     if (!$dests) return no_packages_box();
-    $options = '<option value="">All destinations</option>';
+    $options = '<option value="">' . e(t('All destinations')) . '</option>';
     foreach ($dests as $code => $label) {
         $options .= '<option value="' . e($code) . '"' . (($d['to'] ?? '') === $code ? ' selected' : '') . '>' . e($label) . '</option>';
     }
     return '<form action="' . e(url('packages.php')) . '#results" method="get" class="space-y-4" data-search-form="package">'
         . '<div class="flex flex-wrap items-center gap-2 text-sm">'
-        . '<span class="flex items-center gap-1.5 rounded-full bg-brand-50 px-3 py-1.5 font-medium text-brand-700">' . icon('plane', 14) . ' Flight</span><span class="text-slate-400">+</span>'
-        . '<span class="flex items-center gap-1.5 rounded-full bg-brand-50 px-3 py-1.5 font-medium text-brand-700">' . icon('bed', 14) . ' Hotel</span>'
-        . '<span class="text-slate-500">· some packages include a car</span></div>'
+        . '<span class="flex items-center gap-1.5 rounded-full bg-brand-50 px-3 py-1.5 font-medium text-brand-700">' . icon('plane', 14) . ' ' . e(t('Flight')) . '</span><span class="text-slate-400">+</span>'
+        . '<span class="flex items-center gap-1.5 rounded-full bg-brand-50 px-3 py-1.5 font-medium text-brand-700">' . icon('bed', 14) . ' ' . e(t('Hotel')) . '</span>'
+        . '<span class="text-slate-500">· ' . e(t('some packages include a car')) . '</span></div>'
         . '<div class="grid gap-3 sm:grid-cols-[1fr_auto]">'
         . '<label class="' . FIELD_BOX . '"><span class="' . FIELD_LABEL . '">Going to</span><span class="flex items-center gap-2">' . icon('pin', 16, 'shrink-0 text-brand-500')
         . '<select name="to" class="' . FIELD_INPUT . '">' . $options . '</select></span></label>'
-        . search_button('See packages')
+        . search_button(t('See packages'))
         . '</div></form>';
 }
 
@@ -155,11 +156,11 @@ function hotel_search_form(array $d = []): string
 {
     return '<form action="' . e(url('hotels.php')) . '" method="get" class="space-y-3" data-search-form="hotel">'
         . '<div class="grid gap-3 lg:grid-cols-[2fr_0.8fr_0.8fr_1fr_auto]">'
-        . airport_field('to', 'Destination', 'City, e.g. Bangkok', $d['to'] ?? null)
-        . date_field('checkin', 'Check-in', $d['checkin'] ?? '', 14)
-        . date_field('checkout', 'Check-out', $d['checkout'] ?? '', 17, 'checkin', 3)
+        . airport_field('to', t('Destination'), t('City, e.g. Bangkok'), $d['to'] ?? null)
+        . date_field('checkin', t('Check-in'), $d['checkin'] ?? '', 14)
+        . date_field('checkout', t('Check-out'), $d['checkout'] ?? '', 17, 'checkin', 3)
         . travelers_field($d['adults'] ?? 2, $d['children'] ?? 0, $d['rooms'] ?? 1)
-        . search_button('Search')
+        . search_button(t('Search'))
         . '</div><p role="alert" class="hidden text-sm font-medium text-red-600" data-form-error></p></form>';
 }
 
@@ -168,7 +169,7 @@ function hotel_search_form(array $d = []): string
 function package_card(array $p): string
 {
     $save = $p['was_price'] && $p['was_price'] > $p['price'] ? $p['was_price'] - $p['price'] : 0;
-    $chip = fn($i, $t) => '<span class="flex items-center gap-1 rounded-md bg-brand-50 px-2 py-1 text-brand-700">' . icon($i, 12) . " $t</span>";
+    $chip = fn($i, $t) => '<span class="flex items-center gap-1 rounded-md bg-brand-50 px-2 py-1 text-brand-700">' . icon($i, 12) . ' ' . e($t) . '</span>';
     $perks = implode('', array_map(fn($x) => '<li class="flex items-start gap-2">' . icon('check', 14, 'mt-0.5 shrink-0 text-emerald-500') . e($x) . '</li>', array_slice($p['highlights'], 0, 4)));
     [$first, $last] = package_dates($p);
     $photo = upload_url($p['image']);
@@ -179,25 +180,27 @@ function package_card(array $p): string
         . '<div class="relative h-48 overflow-hidden p-4 text-white">' . $top
         . '<div class="relative flex items-start justify-between">' . ($p['badge'] ? '<span class="rounded-full bg-white/95 px-3 py-1 text-xs font-bold text-slate-900 shadow">' . e($p['badge']) . '</span>' : '<span></span>')
         . ($save ? '<span class="rounded-full bg-accent-500 px-3 py-1 text-xs font-bold shadow">-' . (int) round($save / $p['was_price'] * 100) . '%</span>' : '') . '</div>'
-        . '<div class="absolute bottom-4 left-4 right-4"><p class="text-sm font-medium text-white/90">' . e($p['country']) . ' · ' . $p['nights'] . ' nights</p><h3 class="text-xl font-bold drop-shadow">' . e($p['destination']) . '</h3></div></div>'
+        . '<div class="absolute bottom-4 left-4 right-4"><p class="text-sm font-medium text-white/90">' . e($p['country']) . ' · ' . e(tn((int) $p['nights'], '{n} night', '{n} nights')) . '</p><h3 class="text-xl font-bold drop-shadow">' . e($p['destination']) . '</h3></div></div>'
         . '<div class="flex flex-1 flex-col p-5"><h4 class="font-semibold text-slate-900">' . e($p['title']) . '</h4>'
         . '<div class="mt-1 flex items-center gap-2 text-sm text-slate-600">' . ($p['stars'] ? '<span class="flex text-amber-400">' . star_icons($p['stars']) . '</span>' : '') . '<span class="truncate">' . e($p['hotel']) . '</span></div>'
-        . '<p class="mt-1 text-xs text-slate-500">From ' . e($p['from_city']) . ' · travel ' . e(fmt_date($first)) . ' – ' . e(fmt_date($last)) . '</p>'
-        . '<div class="mt-3 flex flex-wrap gap-1.5 text-xs font-medium">' . $chip('plane', 'Flight') . $chip('bed', 'Hotel') . ($p['car'] ? $chip('car', 'Car') : '') . '</div>'
+        . '<p class="mt-1 text-xs text-slate-500">' . e(t('From {city} · travel {start} – {end}', ['city' => $p['from_city'], 'start' => fmt_date($first), 'end' => fmt_date($last)])) . '</p>'
+        . '<div class="mt-3 flex flex-wrap gap-1.5 text-xs font-medium">' . $chip('plane', t('Flight')) . $chip('bed', t('Hotel')) . ($p['car'] ? $chip('car', t('Car')) : '') . '</div>'
         . ($perks ? '<ul class="mt-3 space-y-1 text-sm text-slate-600">' . $perks . '</ul>' : '')
         . '<div class="mt-auto flex flex-wrap items-end justify-between gap-3 pt-5"><div>'
-        . ($save ? '<p class="text-sm text-slate-400 line-through">' . money($p['was_price']) . '</p>' : '')
-        . '<p class="whitespace-nowrap text-2xl font-extrabold text-slate-900">' . money($p['price']) . '<span class="text-xs font-medium text-slate-500"> /person</span></p>'
-        . ($save ? '<p class="text-xs font-semibold text-emerald-600">You save ' . money($save) . '</p>' : '') . '</div>'
-        . '<a href="' . e(url('book.php', ['kind' => 'package', 'id' => $p['slug']])) . '" class="shrink-0 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-700">Book deal</a></div></div></article>';
+        . ($save ? '<p class="text-sm text-slate-400 line-through">' . price($p['was_price']) . '</p>' : '')
+        . '<p class="whitespace-nowrap text-2xl font-extrabold text-slate-900">' . price($p['price']) . '<span class="text-xs font-medium text-slate-500"> ' . e(t('/person')) . '</span></p>'
+        . ($save ? '<p class="text-xs font-semibold text-emerald-600">' . e(t('You save {amount}', ['amount' => price($save)])) . '</p>' : '') . '</div>'
+        . '<a href="' . e(url('book.php', ['kind' => 'package', 'id' => $p['slug']])) . '" class="shrink-0 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-700">' . e(t('Book deal')) . '</a></div></div></article>';
 }
 
+/** $label is 'Depart' or 'Return' (English; translated here). */
 function leg_row(array $leg, string $label): string
 {
-    $stopText = $leg['stops'] === 0 ? 'Nonstop' : plural($leg['stops'], 'stop') . ' · ' . implode(', ', $leg['stop_cities']);
+    // i18n-keys: 'Depart', 'Return'
+    $stopText = $leg['stops'] === 0 ? t('Nonstop') : tn((int) $leg['stops'], '{n} stop', '{n} stops') . ' · ' . implode(', ', $leg['stop_cities']);
     $dots = str_repeat('<span class="mx-1 h-2 w-2 rounded-full border-2 border-accent-500 bg-white"></span>', count($leg['stop_cities']));
     return '<div class="grid grid-cols-[auto_1fr_auto] items-center gap-3 sm:gap-6">'
-        . '<div><p class="text-xs font-medium uppercase text-slate-400">' . e($label) . ' · ' . e(fmt_date($leg['date'])) . '</p>'
+        . '<div><p class="text-xs font-medium uppercase text-slate-400">' . e(t($label)) . ' · ' . e(fmt_date($leg['date'])) . '</p>'
         . '<p class="text-lg font-bold text-slate-900">' . fmt_time($leg['depart']) . '</p><p class="text-sm text-slate-500">' . e($leg['from']) . '</p></div>'
         . '<div class="text-center"><p class="text-xs text-slate-500">' . fmt_duration($leg['duration']) . '</p>'
         . '<div class="relative my-1 flex items-center"><span class="h-px flex-1 bg-slate-300"></span>' . $dots . icon('plane', 14, 'ml-1 rotate-45 text-slate-400') . '</div>'
@@ -210,28 +213,32 @@ function leg_row(array $leg, string $label): string
 /** Itinerary + price breakdown, on the booking page and trip pages. */
 function trip_summary(array $q): string
 {
-    $kinds = ['flight' => ['plane', 'Flight'], 'package' => ['package', 'Flight + Hotel package'], 'hotel' => ['bed', 'Hotel']];
+    $kinds = ['flight' => ['plane', t('Flight')], 'package' => ['package', t('Flight + Hotel package')], 'hotel' => ['bed', t('Hotel')]];
     [$ic, $label] = $kinds[$q['kind']];
     $html = '<div class="overflow-hidden rounded-2xl border border-slate-200 bg-white">'
-        . '<div class="bg-gradient-to-br from-brand-800 to-brand-600 p-5 text-white"><p class="flex items-center gap-2 text-sm font-medium text-brand-100">' . icon($ic, 16) . ' ' . $label . '</p>'
+        . '<div class="bg-gradient-to-br from-brand-800 to-brand-600 p-5 text-white"><p class="flex items-center gap-2 text-sm font-medium text-brand-100">' . icon($ic, 16) . ' ' . e($label) . '</p>'
         . '<h2 class="mt-1 text-xl font-bold">' . e($q['title']) . '</h2><p class="mt-1 text-sm text-brand-100">' . e($q['subtitle']) . '</p></div>';
     if (!empty($q['flight'])) {
         $html .= '<div class="space-y-4 border-b border-slate-100 p-5">' . leg_row($q['flight']['outbound'], 'Depart')
             . ($q['flight']['inbound'] ? leg_row($q['flight']['inbound'], 'Return') : '') . '</div>';
     }
     $html .= '<dl class="space-y-2 border-b border-slate-100 p-5 text-sm">';
+    // Fact labels are stored English (from quote.php); translated at display time.
+    // i18n-keys: 'Depart', 'Return', 'Travelers', 'Cabin', 'Fare', 'Baggage', 'Fare rules', 'Leaving from', 'Dates', 'Hotel', 'Includes', 'Check-in', 'Check-out', 'Room', 'Guests', 'Cancellation'
     foreach ($q['facts'] as [$k, $v]) {
-        $html .= '<div class="flex justify-between gap-4"><dt class="text-slate-500">' . e($k) . '</dt><dd class="text-right font-medium text-slate-900">' . e($v) . '</dd></div>';
+        $html .= '<div class="flex justify-between gap-4"><dt class="text-slate-500">' . e(t($k)) . '</dt><dd class="text-right font-medium text-slate-900">' . e($v) . '</dd></div>';
     }
     $html .= '</dl><dl class="space-y-2 p-5 text-sm">';
     foreach ($q['lines'] as $l) {
         $html .= '<div class="flex justify-between"><dt class="text-slate-600">' . e($l['label']) . '</dt><dd class="text-slate-900">' . money($l['amount']) . '</dd></div>';
     }
     if ($q['discount'] > 0) {
-        $html .= '<div class="flex justify-between text-emerald-700"><dt>Member discount (' . round($q['discount_rate'] * 100) . '%)</dt><dd>−' . money($q['discount']) . '</dd></div>';
+        $html .= '<div class="flex justify-between text-emerald-700"><dt>' . e(t('Member discount ({pct}%)', ['pct' => round($q['discount_rate'] * 100)])) . '</dt><dd>−' . money($q['discount']) . '</dd></div>';
     }
-    $html .= '<div class="flex items-end justify-between border-t border-slate-100 pt-3"><dt class="font-semibold text-slate-900">Total</dt><dd class="text-2xl font-extrabold text-slate-900">' . money($q['total']) . '</dd></div>'
-        . '<p class="text-right text-xs text-slate-500">Taxes and fees included</p>'
+    $html .= '<div class="flex items-end justify-between border-t border-slate-100 pt-3"><dt class="font-semibold text-slate-900">' . e(t('Total')) . '</dt><dd class="text-right"><span class="text-2xl font-extrabold text-slate-900">' . money($q['total']) . '</span>'
+        . (($hint = price_hint($q['total'])) !== '' ? '<span class="block text-xs font-medium text-slate-500">' . e($hint) . '</span>' : '') . '</dd></div>'
+        . '<p class="text-right text-xs text-slate-500">' . e(t('Taxes and fees included')) . '</p>'
+        . (current_currency() !== 'USD' ? '<p class="text-right text-xs text-slate-500">' . e(t('You will be charged in US dollars.')) . '</p>' : '')
         . (!empty($q['note']) ? '<p class="pt-2 text-xs leading-relaxed text-slate-500">' . e($q['note']) . '</p>' : '')
         . '</dl></div>';
     return $html;
@@ -239,6 +246,7 @@ function trip_summary(array $q): string
 
 function status_badge(string $status): string
 {
+    // Admin-only (bookings table): stays English.
     $map = ['reserved' => ['bg-amber-100 text-amber-800', 'Unpaid'], 'paid' => ['bg-red-100 text-red-700', 'Paid · to ticket'], 'ticketed' => ['bg-emerald-100 text-emerald-800', 'Ticketed'], 'cancelled' => ['bg-slate-200 text-slate-600', 'Cancelled']];
     [$cls, $label] = $map[$status] ?? $map['reserved'];
     return '<span class="inline-block rounded-full px-2.5 py-0.5 text-xs font-bold ' . $cls . '">' . $label . '</span>';
@@ -258,7 +266,7 @@ function text_field(string $name, string $label, string $value = '', string $typ
         . '<input id="' . $id . '" name="' . e($name) . '" type="' . e($type) . '"' . ($pw ? '' : ' value="' . e($value) . '"')
         . ($error ? ' aria-invalid="true" aria-describedby="' . $id . '_err"' : '') . $extra
         . ' class="w-full rounded-xl border bg-white px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:ring-2 ' . ($pw ? 'pr-16 ' : '') . $border . '">'
-        . ($pw ? '<button type="button" class="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg px-2 py-1 text-xs font-semibold text-brand-700 hover:bg-brand-50" data-toggle-password aria-label="Show password">Show</button>' : '')
+        . ($pw ? '<button type="button" class="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg px-2 py-1 text-xs font-semibold text-brand-700 hover:bg-brand-50" data-toggle-password aria-label="' . e(t('Show password')) . '">' . e(t('Show')) . '</button>' : '')
         . '</div>'
         . ($error ? '<p id="' . $id . '_err" class="mt-1.5 text-sm text-red-600">' . e($error) . '</p>' : ($hint ? '<p class="mt-1.5 text-xs text-slate-500">' . e($hint) . '</p>' : ''))
         . '</div>';
@@ -280,25 +288,26 @@ function results_notice(array $result, string $what): string
 {
     if (!empty($result['on_hold'])) {
         $c = support_contacts();
-        $btn = (isset($c['whatsapp']) ? '<a href="https://wa.me/' . e(preg_replace('/\D/', '', $c['whatsapp'])) . '" target="_blank" rel="noopener" class="rounded-xl bg-emerald-600 px-5 py-3 font-semibold text-white hover:bg-emerald-700">WhatsApp us</a>' : '')
-            . (isset($c['email']) ? '<a href="mailto:' . e($c['email']) . '?subject=' . rawurlencode('Flight request') . '" class="rounded-xl bg-accent-500 px-5 py-3 font-semibold text-white hover:bg-accent-600">Ask for a flight quote</a>' : '');
+        $btn = (isset($c['whatsapp']) ? '<a href="https://wa.me/' . e(preg_replace('/\D/', '', $c['whatsapp'])) . '" target="_blank" rel="noopener" class="rounded-xl bg-emerald-600 px-5 py-3 font-semibold text-white hover:bg-emerald-700">' . e(t('WhatsApp us')) . '</a>' : '')
+            . (isset($c['email']) ? '<a href="mailto:' . e($c['email']) . '?subject=' . rawurlencode('Flight request') . '" class="rounded-xl bg-accent-500 px-5 py-3 font-semibold text-white hover:bg-accent-600">' . e(t('Ask for a flight quote')) . '</a>' : '');
         return '<div class="mb-4 rounded-2xl border border-slate-200 bg-white p-8 text-center">'
-            . '<p class="text-lg font-semibold text-slate-900">Online flight booking is coming soon</p>'
-            . '<p class="mx-auto mt-1 max-w-xl text-slate-600">Tell us where and when you\'d like to fly, and our travel assistants will find you the best fare.</p>'
+            . '<p class="text-lg font-semibold text-slate-900">' . e(t('Online flight booking is coming soon')) . '</p>'
+            . '<p class="mx-auto mt-1 max-w-xl text-slate-600">' . e(t('Tell us where and when you\'d like to fly, and our travel assistants will find you the best fare.')) . '</p>'
             . ($btn ? '<div class="mt-5 flex flex-wrap justify-center gap-3">' . $btn . '</div>' : '')
             . (is_admin() ? '<p class="mt-4 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800 ring-1 ring-amber-200">Admin: flights are hidden because Duffel uses a TEST token while PayPal takes real money. To show real flights, open <a class="font-semibold underline" href="' . e(url('admin/settings.php')) . '">Site settings</a> and set <strong>Flights come from</strong> to <strong>LiteAPI</strong> (or add a <strong>duffel_live_</strong> token).</p>' : '')
             . '</div>';
     }
     if (!empty($result['not_connected'])) {
         return '<div class="mb-4 rounded-2xl border border-slate-200 bg-white p-8 text-center">'
-            . '<p class="text-lg font-semibold text-slate-900">Live ' . $what . ' search isn\'t available yet</p>'
-            . '<p class="mt-1 text-slate-600">Please contact our travel assistants and we\'ll find the best ' . $what . ' for you.</p>'
+            . '<p class="text-lg font-semibold text-slate-900">' . e($what === 'flights' ? t('Live flight search isn\'t available yet') : t('Live hotel search isn\'t available yet')) . '</p>'
+            . '<p class="mt-1 text-slate-600">' . e($what === 'flights' ? t('Please contact our travel assistants and we\'ll find the best flights for you.') : t('Please contact our travel assistants and we\'ll find the best hotels for you.')) . '</p>'
             . (is_admin() ? '<p class="mt-4 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800 ring-1 ring-amber-200">Admin: add your ' . ($what === 'flights' ? 'Duffel' : 'LiteAPI') . ' key on <a class="font-semibold underline" href="' . e(url('admin/settings.php')) . '">Admin → Site settings</a> to show real ' . $what . '.</p>' : '')
             . '</div>';
     }
     if ($result['error']) return '<div class="mb-4">' . alert_box($result['error']) . '</div>';
     if (!$result['items']) {
-        return '<p class="mb-4 rounded-xl border border-dashed border-slate-300 bg-white p-8 text-center text-slate-600">No ' . $what . ' available for these dates. Try different dates or a nearby airport.</p>';
+        return '<p class="mb-4 rounded-xl border border-dashed border-slate-300 bg-white p-8 text-center text-slate-600">'
+            . e($what === 'flights' ? t('No flights available for these dates. Try different dates or a nearby airport.') : t('No hotels available for these dates. Try different dates or a nearby airport.')) . '</p>';
     }
     if (!$result['live']) {
         return '<p class="mb-4 rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-700 ring-1 ring-red-200">DEMO MODE — these ' . $what . ' are made up for testing, not real. Turn off demo_mode before showing the site to customers.</p>';
@@ -310,13 +319,13 @@ function results_notice(array $result, string $what): string
 
 function auth_shell_open(string $heading, string $subtitle, ?string $notice = null): string
 {
-    $perks = ['Member-only prices — extra savings on flights & packages', 'Save trips and pick up where you left off', 'Price alerts when fares to your destination drop', 'Faster checkout with your saved traveler details'];
+    $perks = [t('Member-only prices — extra savings on flights & packages'), t('Save trips and pick up where you left off'), t('Price alerts when fares to your destination drop'), t('Faster checkout with your saved traveler details')];
     $li = implode('', array_map(fn($p) => '<li class="flex items-start gap-3 text-brand-50"><span class="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-white/15">' . icon('check', 14) . '</span>' . e($p) . '</li>', $perks));
     return '<section class="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[1fr_1.1fr] lg:py-16">'
         . '<div class="relative hidden overflow-hidden rounded-3xl bg-gradient-to-br from-brand-900 via-brand-700 to-brand-500 p-10 text-white lg:block">'
         . icon('plane', 220, 'absolute -right-6 top-10 rotate-12 text-white/10', 1)
-        . '<div class="relative"><p class="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-sm font-medium ring-1 ring-white/20"><span class="h-2 w-2 rounded-full bg-accent-400"></span>Free membership</p>'
-        . '<h2 class="mt-6 text-3xl font-extrabold leading-tight">Travel smarter with your <span class="text-accent-400">free account</span></h2><ul class="mt-8 space-y-4">' . $li . '</ul></div></div>'
+        . '<div class="relative"><p class="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-sm font-medium ring-1 ring-white/20"><span class="h-2 w-2 rounded-full bg-accent-400"></span>' . e(t('Free membership')) . '</p>'
+        . '<h2 class="mt-6 text-3xl font-extrabold leading-tight">' . th('Travel smarter with your {free_account}', [], ['free_account' => '<span class="text-accent-400">' . e(t('free account')) . '</span>']) . '</h2><ul class="mt-8 space-y-4">' . $li . '</ul></div></div>'
         . '<div class="mx-auto w-full max-w-md self-center">'
         . ($notice ? '<p class="mb-5 rounded-xl bg-accent-500/10 px-4 py-3 text-sm font-medium text-accent-600 ring-1 ring-accent-500/30">' . e($notice) . '</p>' : '')
         . '<h1 class="text-3xl font-bold text-slate-900">' . e($heading) . '</h1><p class="mt-2 text-slate-600">' . e($subtitle) . '</p><div class="mt-8">';
@@ -332,8 +341,8 @@ function notice_for(?string $next): ?string
 {
     if (!$next) return null;
     $path = substr($next, strlen(base_path()));
-    if (str_starts_with($path, '/book.php')) return 'Sign in or create a free account to complete your booking.';
-    if (str_starts_with($path, '/account') || str_starts_with($path, '/trip')) return 'Please sign in to view your account.';
+    if (str_starts_with($path, '/book.php')) return t('Sign in or create a free account to complete your booking.');
+    if (str_starts_with($path, '/account') || str_starts_with($path, '/trip')) return t('Please sign in to view your account.');
     return null;
 }
 
@@ -342,16 +351,18 @@ function trip_card(array $b): string
     $icons = ['flight' => 'plane', 'package' => 'package', 'hotel' => 'bed'];
     $q = $b['quote'];
     [$cls, $label] = match ($b['status']) {
-        'paid' => ['text-emerald-700', 'Paid · issuing tickets'],
-        'ticketed' => ['text-emerald-700', 'Confirmed'],
-        'cancelled' => ['text-slate-500', 'Cancelled'],
-        default => ['text-amber-700', 'Reserved · unpaid'],
+        'paid' => ['text-emerald-700', t('Paid · issuing tickets')],
+        'ticketed' => ['text-emerald-700', t('Confirmed')],
+        'cancelled' => ['text-slate-500', t('Cancelled')],
+        default => ['text-amber-700', t('Reserved · unpaid')],
     };
     return '<a href="' . e(url('trip.php', ['ref' => $b['reference']])) . '" class="flex items-center gap-4 rounded-xl border border-slate-200 p-4 transition hover:border-brand-300 hover:shadow-md' . ($b['status'] === 'cancelled' ? ' opacity-60' : '') . '">'
         . '<span class="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand-600">' . icon($icons[$b['kind']], 22) . '</span>'
         . '<div class="min-w-0 flex-1"><p class="truncate font-semibold text-slate-900">' . e($q['title']) . '</p>'
         . '<p class="truncate text-sm text-slate-500">' . e(fmt_date($q['start_date'])) . ($q['end_date'] ? ' – ' . e(fmt_date($q['end_date'])) : '') . ' · ' . e($b['reference']) . '</p></div>'
-        . '<div class="text-right"><p class="font-bold text-slate-900">' . money($b['total']) . '</p><p class="text-xs font-semibold ' . $cls . '">' . $label . '</p></div></a>';
+        . '<div class="text-right"><p class="font-bold text-slate-900">' . money($b['total']) . '</p>'
+        . (($hint = price_hint($b['total'])) !== '' ? '<p class="text-xs text-slate-500">' . e($hint) . '</p>' : '')
+        . '<p class="text-xs font-semibold ' . $cls . '">' . e($label) . '</p></div></a>';
 }
 
 // ---------- Admin ----------
@@ -455,11 +466,11 @@ function support_card(): string
     $row = fn(string $href, string $icon, string $label, string $value, bool $external = false) => '<a href="' . e($href) . '"' . ($external ? ' target="_blank" rel="noopener"' : '')
         . ' class="flex items-center gap-3 rounded-xl px-3 py-2.5 transition hover:bg-slate-50"><span class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-brand-50 text-brand-600">' . icon($icon, 16) . '</span>'
         . '<span class="min-w-0"><span class="block text-xs text-slate-500">' . e($label) . '</span><span class="block truncate text-sm font-semibold text-slate-900">' . e($value) . '</span></span></a>';
-    $html = '<section class="rounded-2xl border border-slate-200 bg-white p-6"><h2 class="font-semibold text-slate-900">Need help?</h2>'
-        . '<p class="mt-1 text-sm text-slate-600">Our travel assistants are happy to help with bookings, changes and questions.</p><div class="-mx-3 mt-3 space-y-1">';
-    if (isset($c['email'])) $html .= $row('mailto:' . $c['email'], 'mail', 'Email', $c['email']);
+    $html = '<section class="rounded-2xl border border-slate-200 bg-white p-6"><h2 class="font-semibold text-slate-900">' . e(t('Need help?')) . '</h2>'
+        . '<p class="mt-1 text-sm text-slate-600">' . e(t('Our travel assistants are happy to help with bookings, changes and questions.')) . '</p><div class="-mx-3 mt-3 space-y-1">';
+    if (isset($c['email'])) $html .= $row('mailto:' . $c['email'], 'mail', t('Email'), $c['email']);
     if (isset($c['whatsapp'])) $html .= $row('https://wa.me/' . preg_replace('/\D/', '', $c['whatsapp']), 'chat', 'WhatsApp', $c['whatsapp'], true);
-    if (isset($c['phone'])) $html .= $row('tel:' . preg_replace('/[^\d+]/', '', $c['phone']), 'headset', 'Phone', $c['phone']);
+    if (isset($c['phone'])) $html .= $row('tel:' . preg_replace('/[^\d+]/', '', $c['phone']), 'headset', t('Phone'), $c['phone']);
     return $html . '</div></section>';
 }
 
@@ -472,18 +483,21 @@ function no_packages_box(): string
     $c = support_contacts();
     $buttons = '';
     if (isset($c['whatsapp'])) {
-        $buttons .= '<a href="https://wa.me/' . e(preg_replace('/\D/', '', $c['whatsapp'])) . '" target="_blank" rel="noopener" class="flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 font-semibold text-white hover:bg-emerald-700">' . icon('chat', 18) . ' WhatsApp us</a>';
+        $buttons .= '<a href="https://wa.me/' . e(preg_replace('/\D/', '', $c['whatsapp'])) . '" target="_blank" rel="noopener" class="flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 font-semibold text-white hover:bg-emerald-700">' . icon('chat', 18) . ' ' . e(t('WhatsApp us')) . '</a>';
     }
     if (isset($c['email'])) {
-        $buttons .= '<a href="mailto:' . e($c['email']) . '?subject=' . rawurlencode('Custom flight + hotel trip') . '" class="flex items-center justify-center gap-2 rounded-xl bg-accent-500 px-5 py-3 font-semibold text-white hover:bg-accent-600">' . icon('mail', 18) . ' Ask for a custom trip</a>';
+        $buttons .= '<a href="mailto:' . e($c['email']) . '?subject=' . rawurlencode('Custom flight + hotel trip') . '" class="flex items-center justify-center gap-2 rounded-xl bg-accent-500 px-5 py-3 font-semibold text-white hover:bg-accent-600">' . icon('mail', 18) . ' ' . e(t('Ask for a custom trip')) . '</a>';
     }
     if (!current_user()) {
-        $buttons .= '<a href="' . e(url('register.php')) . '" class="flex items-center justify-center rounded-xl px-5 py-3 font-semibold text-brand-700 ring-1 ring-brand-200 hover:bg-brand-50">Create free account</a>';
+        $buttons .= '<a href="' . e(url('register.php')) . '" class="flex items-center justify-center rounded-xl px-5 py-3 font-semibold text-brand-700 ring-1 ring-brand-200 hover:bg-brand-50">' . e(t('Create free account')) . '</a>';
     }
     return '<div class="flex flex-col gap-4 rounded-xl bg-slate-50 p-5 lg:flex-row lg:items-center lg:justify-between">'
-        . '<div><p class="font-semibold text-slate-900">New promo packages are coming soon.</p>'
-        . '<p class="mt-1 text-slate-700">Tell us where and when you\'d like to go, and our travel assistants will put together a flight + hotel trip for you. '
-        . 'Or search live <a class="font-semibold text-brand-700 hover:underline" href="' . e(url('flights.php')) . '">flights</a> and <a class="font-semibold text-brand-700 hover:underline" href="' . e(url('hotels.php')) . '">hotels</a> yourself.</p></div>'
+        . '<div><p class="font-semibold text-slate-900">' . e(t('New promo packages are coming soon.')) . '</p>'
+        . '<p class="mt-1 text-slate-700">' . e(t('Tell us where and when you\'d like to go, and our travel assistants will put together a flight + hotel trip for you.')) . ' '
+        . th('Or search live {flights} and {hotels} yourself.', [], [
+            'flights' => '<a class="font-semibold text-brand-700 hover:underline" href="' . e(url('flights.php')) . '">' . e(t('flights')) . '</a>',
+            'hotels' => '<a class="font-semibold text-brand-700 hover:underline" href="' . e(url('hotels.php')) . '">' . e(t('hotels')) . '</a>',
+        ]) . '</p></div>'
         . ($buttons ? '<div class="flex shrink-0 flex-col gap-2 sm:flex-row">' . $buttons . '</div>' : '') . '</div>';
 }
 
@@ -515,11 +529,12 @@ function legal_page(string $title, string $intro, string $updated, array $sectio
         $body .= '<h2 id="' . e($id) . '">' . e($heading) . '</h2>' . $html;
     }
     $links = '';
-    foreach ([['help.php', 'Help center'], ['privacy.php', 'Privacy policy'], ['cookies.php', 'Cookie policy'], ['terms.php', 'Terms of use']] as [$href, $label]) {
+    foreach ([['help.php', t('Help center')], ['privacy.php', t('Privacy policy')], ['cookies.php', t('Cookie policy')], ['terms.php', t('Terms of use')]] as [$href, $label]) {
         $here = basename((string) ($_SERVER['SCRIPT_NAME'] ?? '')) === $href;
-        $links .= '<a href="' . e(url($href)) . '" class="rounded-full px-3 py-1 text-sm font-medium ' . ($here ? 'bg-brand-600 text-white' : 'bg-white text-slate-700 ring-1 ring-slate-200 hover:ring-brand-300') . '">' . $label . '</a>';
+        $links .= '<a href="' . e(url($href)) . '" class="rounded-full px-3 py-1 text-sm font-medium ' . ($here ? 'bg-brand-600 text-white' : 'bg-white text-slate-700 ring-1 ring-slate-200 hover:ring-brand-300') . '">' . e($label) . '</a>';
     }
     return '<div class="mx-auto max-w-6xl px-4 py-10 sm:px-6"><div class="flex flex-wrap gap-2">' . $links . '</div>'
+        . (current_lang() !== 'en' ? '<p class="mt-6 rounded-xl bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800 ring-1 ring-amber-200">' . e(t('This page is available in English only. The English version applies.')) . '</p>' : '')
         . '<h1 class="mt-6 text-3xl font-bold text-slate-900 sm:text-4xl">' . e($title) . '</h1>'
         . ($updated ? '<p class="mt-1 text-sm text-slate-500">Last updated ' . e($updated) . '</p>' : '')
         . '<div class="mt-8 grid gap-10 lg:grid-cols-[220px_1fr]">'

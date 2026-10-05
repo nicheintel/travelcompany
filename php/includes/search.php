@@ -407,7 +407,7 @@ function live_search(string $kind, array $s, callable $fetch): array
     $cache = array_filter((array) $cache, fn($c) => $c['at'] > time() - 180);
     if (isset($cache[$key])) return $cache[$key]['result'];
     if (ip_throttled('search', 40, 600)) {
-        return ['items' => [], 'live' => true, 'error' => "You've searched a lot in a short time. Please wait a few minutes and try again."];
+        return ['items' => [], 'live' => true, 'error' => t("You've searched a lot in a short time. Please wait a few minutes and try again.")];
     }
     $result = ['items' => $fetch($s), 'live' => true, 'error' => null];
     $cache = array_slice($cache, -2, null, true) + [$key => ['at' => time(), 'result' => $result]];
@@ -423,7 +423,7 @@ function search_flights(array $s): array
         return $supplier === 'liteapi' ? live_search('flights-liteapi', $s, 'liteapi_flight_search') : live_search('flights', $s, 'duffel_search');
     } catch (Throwable $e) {
         error_log('[' . $supplier . '] flight search failed: ' . $e->getMessage());
-        return ['items' => [], 'live' => true, 'error' => "We couldn't load live fares just now. Please try again in a moment."];
+        return ['items' => [], 'live' => true, 'error' => t("We couldn't load live fares just now. Please try again in a moment.")];
     }
 }
 
@@ -434,7 +434,7 @@ function search_hotels(array $s): array
         return live_search('hotels', $s, 'liteapi_search');
     } catch (Throwable $e) {
         error_log('[liteapi] search failed: ' . $e->getMessage());
-        return ['items' => [], 'live' => true, 'error' => "We couldn't load live hotel prices just now. Please try again in a moment."];
+        return ['items' => [], 'live' => true, 'error' => t("We couldn't load live hotel prices just now. Please try again in a moment.")];
     }
 }
 
