@@ -151,7 +151,7 @@ parse_str($quote['query'], $qp);
                 <?php if ($airTravel): ?>
                   <div class="grid gap-4 sm:grid-cols-3">
                     <?= select_field("t{$i}_gender", t('Gender on passport/ID'), ['M' => t('Male'), 'F' => t('Female')], $v("t{$i}_gender"), $errors["t{$i}_gender"] ?? null, t('Choose…')) ?>
-                    <?= text_field("t{$i}_dob", t('Date of birth'), $v("t{$i}_dob"), 'date', $errors["t{$i}_dob"] ?? null) ?>
+                    <?= text_field("t{$i}_dob", t('Date of birth'), $v("t{$i}_dob"), 'date', $errors["t{$i}_dob"] ?? null, ['min' => '1900-01-01', 'max' => today()]) ?>
                     <?= select_field("t{$i}_nationality", t('Nationality'), country_list(), $v("t{$i}_nationality"), $errors["t{$i}_nationality"] ?? null, t('Choose…')) ?>
                   </div>
                   <?php if ($kind === 'flight'): ?>
@@ -160,7 +160,7 @@ parse_str($quote['query'], $qp);
                       <div class="mt-3 sm:w-1/2 sm:pr-2"><?= text_field("t{$i}_ff", t('Airline and number, e.g. PR 1234567'), $v("t{$i}_ff"), 'text', $errors["t{$i}_ff"] ?? null, ['autocomplete' => 'off']) ?></div>
                     </details>
                   <?php endif; ?>
-                <?php elseif ($slot['dob']): ?><div class="sm:w-1/2 sm:pr-2"><?= text_field("t{$i}_dob", t('Date of birth'), $v("t{$i}_dob"), 'date', $errors["t{$i}_dob"] ?? null) ?></div><?php endif; ?>
+                <?php elseif ($slot['dob']): ?><div class="sm:w-1/2 sm:pr-2"><?= text_field("t{$i}_dob", t('Date of birth'), $v("t{$i}_dob"), 'date', $errors["t{$i}_dob"] ?? null, ['min' => '1900-01-01', 'max' => today()]) ?></div><?php endif; ?>
               </fieldset>
             <?php endforeach; ?>
           </div>

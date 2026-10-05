@@ -150,9 +150,9 @@ $label = 'block text-sm font-medium text-slate-700';
         <p class="text-xs text-slate-500">The price is the total per person, including taxes. Member discounts don't apply to packages. Only fill in a "was" price if you really sold it at that price — it shows a crossed-out price and "You save". Make sure the price covers the flights, hotel, card fees and your profit, because supplier prices can change before you buy.</p>
         <div class="grid gap-4 sm:grid-cols-2">
           <div><label for="p_from" class="<?= $label ?>">First departure date <span class="font-normal text-slate-400">· optional</span></label>
-            <input id="p_from" name="valid_from" type="date" value="<?= e($v['valid_from']) ?>" class="<?= $input ?> mt-1"><?= $err('valid_from') ?></div>
+            <input id="p_from" name="valid_from" type="date" min="2020-01-01" max="2099-12-31" value="<?= e($v['valid_from']) ?>" class="<?= $input ?> mt-1"><?= $err('valid_from') ?></div>
           <div><label for="p_to" class="<?= $label ?>">Last departure date <span class="font-normal text-slate-400">· optional</span></label>
-            <input id="p_to" name="valid_to" type="date" value="<?= e($v['valid_to']) ?>" class="<?= $input ?> mt-1"><?= $err('valid_to') ?></div>
+            <input id="p_to" name="valid_to" type="date" min="2020-01-01" max="2099-12-31" value="<?= e($v['valid_to']) ?>" class="<?= $input ?> mt-1"><?= $err('valid_to') ?></div>
         </div>
         <p class="text-xs text-slate-500">Customers choose a departure date between these. After the last date the package disappears from the website automatically.</p>
       </section>

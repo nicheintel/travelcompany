@@ -65,7 +65,7 @@ function date_field(string $name, string $label, string $value = '', int $defaul
 {
     return '<label class="' . FIELD_BOX . '" data-date-box><span class="' . FIELD_LABEL . '">' . e($label) . '</span>'
         . '<span class="flex items-center gap-2">' . icon('calendar', 16, 'shrink-0 text-brand-500')
-        . '<input type="date" name="' . e($name) . '" value="' . e($value) . '" required class="' . FIELD_INPUT . '"'
+        . '<input type="date" name="' . e($name) . '" value="' . e($value) . '" max="' . e(add_days(today(), 730)) . '" required class="' . FIELD_INPUT . '"'
         . ' data-date data-offset="' . $defaultOffset . '"' . ($after ? ' data-after="' . e($after) . '" data-after-days="' . $afterDays . '"' : '') . '></span></label>';
 }
 
@@ -292,6 +292,7 @@ function text_field(string $name, string $label, string $value = '', string $typ
 {
     $id = 'f_' . preg_replace('/[^a-z0-9_]/i', '_', $name);
     $extra = '';
+    if ($type === 'date') $attrs += ['min' => '1900-01-01', 'max' => '2099-12-31']; // keeps the year to 4 digits
     foreach ($attrs as $k => $v) {
         $extra .= ' ' . e($k) . '="' . e($v) . '"';
     }
