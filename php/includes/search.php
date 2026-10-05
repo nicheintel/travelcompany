@@ -65,7 +65,11 @@ function sell_price(float $netUsd, float $markup): int
 /** Converts to USD using config fx_rates_to_usd; null when the currency is unknown. */
 function to_usd(float $amount, string $currency): ?float
 {
-    $rate = ((array) config('fx_rates_to_usd'))[strtoupper($currency)] ?? null;
+    $currency = strtoupper($currency);
+    if ($currency === 'USD') return $amount;
+    $live = fx_rates()['rates'][$currency] ?? null; // units per 1 USD, refreshed daily
+    if ($live) return $amount / $live;
+    $rate = ((array) config('fx_rates_to_usd'))[$currency] ?? null;
     return $rate ? $amount * (float) $rate : null;
 }
 

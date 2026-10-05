@@ -15,6 +15,21 @@ function to_booking(array $r): array
     ];
 }
 
+/**
+ * A traveler slot label from a quote ("Adult 1", "Child 2", "Infant 1", "Lead guest"), translated for display.
+ * The stored label stays English; unknown labels are shown as they are.
+ */
+function slot_label(string $label): string
+{
+    if ($label === 'Lead guest') return t('Lead guest');
+    if (!preg_match('/^(Adult|Child|Infant) (\d+)$/', $label, $m)) return $label;
+    return match ($m[1]) {
+        'Adult' => t('Adult {n}', ['n' => $m[2]]),
+        'Child' => t('Child {n}', ['n' => $m[2]]),
+        'Infant' => t('Infant {n}', ['n' => $m[2]]),
+    };
+}
+
 function add_event(string $reference, ?int $actorId, string $type, string $message): void
 {
     db_run('INSERT INTO booking_events (reference, actor_id, type, message, created_at) VALUES (?, ?, ?, ?, ?)', [$reference, $actorId, $type, $message, now_utc()]);

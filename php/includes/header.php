@@ -5,17 +5,21 @@ defined('TC_APP') || exit;
 $user = current_user();
 $site = (string) config('site_name');
 $current = basename((string) ($_SERVER['SCRIPT_NAME'] ?? ''));
-$nav = [['flights.php', 'Flights', 'plane'], ['hotels.php', 'Hotels', 'bed'], ['packages.php', 'Packages', 'package']];
+$nav = [['flights.php', t('Flights'), 'plane'], ['hotels.php', t('Hotels'), 'bed'], ['packages.php', t('Packages'), 'package']];
+$here = current_path_with_query();
+$lang = current_lang();
+$cur = current_currency();
+$fxOn = (bool) fx_rates();
 $initials = $user ? implode('', array_map(fn($p) => mb_strtoupper(mb_substr($p, 0, 1)), array_slice(preg_split('/\s+/', trim($user['name'])), 0, 2))) : '';
 $flashMessage = take_flash();
 ?><!doctype html>
-<html lang="en" class="h-full">
+<html lang="<?= e(html_lang()) ?>" class="h-full">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <?php
-  $pageTitle = isset($title) ? "$title | $site" : "$site — Cheap flights, hotels & holiday packages";
-  $pageDescription = $description ?? 'Your travel assistant for affordable flights, hotels and Flight + Hotel packages. Real airline and hotel prices, booked with help from real travel assistants.';
+  $pageTitle = isset($title) ? t($title) . " | $site" : "$site — " . t('Cheap flights, hotels & holiday packages');
+  $pageDescription = t($description ?? 'Your travel assistant for affordable flights, hotels and Flight + Hotel packages. Real airline and hotel prices, booked with help from real travel assistants.');
   $script = basename((string) ($_SERVER['SCRIPT_NAME'] ?? ''));
   $canonical = app_url_or_local() . '/' . ($script === 'index.php' ? '' : $script);
   ?>
@@ -51,6 +55,36 @@ $flashMessage = take_flash();
       <?php endforeach; ?>
     </nav>
     <div class="hidden items-center gap-2 md:flex">
+      <div class="relative" data-menu>
+        <button type="button" aria-expanded="false" aria-haspopup="menu" aria-label="<?= e(t('Language and currency')) ?>" class="flex items-center gap-2 rounded-full px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100" data-menu-toggle data-prefs-toggle>
+          <?= lang_flag($lang) ?><span><?= e($cur === 'USD' ? '$ USD' : CURRENCIES[$cur][0]) ?></span>
+        </button>
+        <div role="menu" class="absolute right-0 top-full mt-2 hidden w-[36rem] max-w-[calc(100vw-2rem)] rounded-xl border border-slate-200 bg-white p-4 shadow-xl" data-menu-panel>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500"><?= e(t('Language')) ?></p>
+              <div class="max-h-80 overflow-y-auto pr-1">
+                <?php foreach (LANGUAGES as $code => [$name]): ?>
+                  <a role="menuitem" lang="<?= e(LANGUAGES[$code][2]) ?>" href="<?= e(url('prefs.php', ['lang' => $code, 'next' => $here])) ?>" class="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm <?= $code === $lang ? 'bg-brand-50 font-semibold text-brand-700' : 'text-slate-700 hover:bg-slate-50' ?>"><?= lang_flag($code) ?><?= e($name) ?></a>
+                <?php endforeach; ?>
+              </div>
+            </div>
+            <div>
+              <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500"><?= e(t('Currency')) ?></p>
+              <?php if ($fxOn): ?>
+                <div class="max-h-80 overflow-y-auto pr-1">
+                  <?php foreach (CURRENCIES as $code => [$symbol, $cname]): if ($code !== 'USD' && !isset(fx_rates()['rates'][$code])) continue; ?>
+                    <a role="menuitem" href="<?= e(url('prefs.php', ['cur' => $code, 'next' => $here])) ?>" class="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm <?= $code === $cur ? 'bg-brand-50 font-semibold text-brand-700' : 'text-slate-700 hover:bg-slate-50' ?>"><span class="w-9 shrink-0 font-semibold"><?= e($code) ?></span><span class="truncate"><?= e(t($cname)) ?></span><span class="ml-auto text-slate-400"><?= e($symbol) ?></span></a>
+                  <?php endforeach; ?>
+                </div>
+              <?php else: ?>
+                <p class="text-sm text-slate-600"><?= e(t('Prices are shown in US dollars.')) ?></p>
+              <?php endif; ?>
+            </div>
+          </div>
+          <p class="mt-3 border-t border-slate-100 pt-3 text-xs text-slate-500"><?= e(t('You always pay in US dollars. Other currencies are estimates using today\'s exchange rate.')) ?></p>
+        </div>
+      </div>
       <?php if ($user): ?>
         <div class="relative" data-menu>
           <button type="button" aria-expanded="false" aria-haspopup="menu" class="flex items-center gap-2 rounded-full py-1 pl-1 pr-3 hover:bg-slate-100" data-menu-toggle>
@@ -62,24 +96,36 @@ $flashMessage = take_flash();
               <p class="truncate text-sm font-semibold text-slate-900"><?= e($user['name']) ?></p>
               <p class="truncate text-xs text-slate-500"><?= e($user['email']) ?></p>
             </div>
-            <a role="menuitem" href="<?= e(url('account.php')) ?>" class="flex items-center gap-2 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50"><?= icon('user', 16) ?> My account &amp; trips</a>
+            <a role="menuitem" href="<?= e(url('account.php')) ?>" class="flex items-center gap-2 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50"><?= icon('user', 16) ?> <?= e(t('My account & trips')) ?></a>
             <?php if ($user['role'] === 'admin'): ?>
               <a role="menuitem" href="<?= e(url('admin/')) ?>" class="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-brand-700 hover:bg-brand-50"><?= icon('package', 16) ?> Admin dashboard</a>
             <?php endif; ?>
-            <a role="menuitem" href="<?= e(url('settings.php')) ?>" class="flex items-center gap-2 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50"><?= icon('shield', 16) ?> Settings</a>
+            <a role="menuitem" href="<?= e(url('settings.php')) ?>" class="flex items-center gap-2 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50"><?= icon('shield', 16) ?> <?= e(t('Settings')) ?></a>
             <form method="post" action="<?= e(url('signout.php')) ?>"><?= csrf_field() ?>
-              <button type="submit" role="menuitem" class="w-full px-4 py-2.5 text-left text-sm text-red-600 hover:bg-red-50">Sign out</button>
+              <button type="submit" role="menuitem" class="w-full px-4 py-2.5 text-left text-sm text-red-600 hover:bg-red-50"><?= e(t('Sign out')) ?></button>
             </form>
           </div>
         </div>
       <?php else: ?>
-        <a href="<?= e(url('signin.php')) ?>" class="rounded-full px-4 py-2 text-sm font-semibold text-brand-700 hover:bg-brand-50">Sign in</a>
-        <a href="<?= e(url('register.php')) ?>" class="rounded-full bg-brand-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-700">Create account</a>
+        <a href="<?= e(url('signin.php')) ?>" class="rounded-full px-4 py-2 text-sm font-semibold text-brand-700 hover:bg-brand-50"><?= e(t('Sign in')) ?></a>
+        <a href="<?= e(url('register.php')) ?>" class="rounded-full bg-brand-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-700"><?= e(t('Create account')) ?></a>
       <?php endif; ?>
     </div>
-    <button type="button" class="rounded-lg p-2 text-slate-700 hover:bg-slate-100 md:hidden" aria-label="Open menu" aria-expanded="false" data-mobile-toggle><?= icon('menu') ?></button>
+    <button type="button" class="rounded-lg p-2 text-slate-700 hover:bg-slate-100 md:hidden" aria-label="<?= e(t('Open menu')) ?>" aria-expanded="false" data-mobile-toggle><?= icon('menu') ?></button>
   </div>
   <div class="hidden border-t border-slate-200 bg-white px-4 pb-4 md:hidden" data-mobile-menu>
+    <form method="get" action="<?= e(url('prefs.php')) ?>" class="grid grid-cols-[1fr_1fr_auto] items-end gap-2 border-b border-slate-100 py-3">
+      <input type="hidden" name="next" value="<?= e($here) ?>">
+      <label class="text-xs font-semibold text-slate-500"><?= e(t('Language')) ?>
+        <select name="lang" class="mt-1 w-full rounded-lg border border-slate-300 bg-white px-2 py-2 text-sm text-slate-800">
+          <?php foreach (LANGUAGES as $code => [$name]): ?><option value="<?= e($code) ?>"<?= $code === $lang ? ' selected' : '' ?>><?= e($name) ?></option><?php endforeach; ?>
+        </select></label>
+      <label class="text-xs font-semibold text-slate-500"><?= e(t('Currency')) ?>
+        <select name="cur" class="mt-1 w-full rounded-lg border border-slate-300 bg-white px-2 py-2 text-sm text-slate-800">
+          <?php foreach (CURRENCIES as $code => [$symbol]): if ($code !== 'USD' && !isset(fx_rates()['rates'][$code])) continue; ?><option value="<?= e($code) ?>"<?= $code === $cur ? ' selected' : '' ?>><?= e("$code $symbol") ?></option><?php endforeach; ?>
+        </select></label>
+      <button type="submit" class="rounded-lg bg-slate-900 px-3 py-2 text-sm font-semibold text-white"><?= e(t('Apply')) ?></button>
+    </form>
     <nav class="flex flex-col py-2">
       <?php foreach ($nav as [$href, $label, $ic]): ?>
         <a href="<?= e(url($href)) ?>" class="flex items-center gap-3 rounded-lg px-3 py-3 text-slate-700 hover:bg-slate-100"><?= icon($ic, 18) ?><?= $label ?></a>
@@ -90,8 +136,8 @@ $flashMessage = take_flash();
         <p class="px-3 text-sm font-semibold text-slate-900"><?= e($user['name']) ?></p>
         <p class="px-3 text-xs text-slate-500"><?= e($user['email']) ?></p>
         <div class="mt-3 grid grid-cols-2 gap-2">
-          <a href="<?= e(url('account.php')) ?>" class="rounded-full bg-brand-600 py-2 text-center text-sm font-semibold text-white">My account</a>
-          <form method="post" action="<?= e(url('signout.php')) ?>"><?= csrf_field() ?><button type="submit" class="w-full rounded-full border border-slate-200 py-2 text-sm font-semibold text-slate-700">Sign out</button></form>
+          <a href="<?= e(url('account.php')) ?>" class="rounded-full bg-brand-600 py-2 text-center text-sm font-semibold text-white"><?= e(t('My account')) ?></a>
+          <form method="post" action="<?= e(url('signout.php')) ?>"><?= csrf_field() ?><button type="submit" class="w-full rounded-full border border-slate-200 py-2 text-sm font-semibold text-slate-700"><?= e(t('Sign out')) ?></button></form>
           <?php if ($user['role'] === 'admin'): ?>
             <a href="<?= e(url('admin/')) ?>" class="col-span-2 rounded-full border border-brand-200 py-2 text-center text-sm font-semibold text-brand-700">Admin dashboard</a>
           <?php endif; ?>
@@ -99,8 +145,8 @@ $flashMessage = take_flash();
       </div>
     <?php else: ?>
       <div class="grid grid-cols-2 gap-2">
-        <a href="<?= e(url('signin.php')) ?>" class="rounded-full border border-brand-200 py-2 text-center text-sm font-semibold text-brand-700">Sign in</a>
-        <a href="<?= e(url('register.php')) ?>" class="rounded-full bg-brand-600 py-2 text-center text-sm font-semibold text-white">Create account</a>
+        <a href="<?= e(url('signin.php')) ?>" class="rounded-full border border-brand-200 py-2 text-center text-sm font-semibold text-brand-700"><?= e(t('Sign in')) ?></a>
+        <a href="<?= e(url('register.php')) ?>" class="rounded-full bg-brand-600 py-2 text-center text-sm font-semibold text-white"><?= e(t('Create account')) ?></a>
       </div>
     <?php endif; ?>
   </div>
@@ -110,8 +156,8 @@ $flashMessage = take_flash();
   <form method="post" action="<?= e(url('verify-email.php')) ?>" class="border-b border-amber-200 bg-amber-50"><?= csrf_field() ?>
     <input type="hidden" name="next" value="<?= e((string) ($_SERVER['REQUEST_URI'] ?? '')) ?>">
     <div class="mx-auto flex max-w-7xl flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 text-sm text-amber-900 sm:px-6">
-      <p><strong>Please confirm your email.</strong> We sent a link to <?= e($user['email']) ?> — you'll need it before booking.</p>
-      <button type="submit" class="font-semibold underline underline-offset-2 hover:text-amber-700">Send a new link</button>
+      <p><strong><?= e(t('Please confirm your email.')) ?></strong> <?= e(t("We sent a link to {email} — you'll need it before booking.", ['email' => $user['email']])) ?></p>
+      <button type="submit" class="font-semibold underline underline-offset-2 hover:text-amber-700"><?= e(t('Send a new link')) ?></button>
     </div>
   </form>
 <?php endif; ?>

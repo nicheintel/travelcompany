@@ -49,6 +49,9 @@ function config(string $key, mixed $default = null): mixed
             'flight_markup_rate' => 0.20,   // +20% on supplier flight prices
             'hotel_markup_rate' => 0.20,    // +20% on supplier hotel prices
             'member_discount_rate' => 0.10, // members' discount on bookings (0 = off)
+            // Real daily exchange rates for showing prices in other currencies ('' = US dollars only).
+            'fx_api_url' => 'https://open.er-api.com/v6/latest/USD',
+            'fx_backup_url' => 'https://api.frankfurter.dev/v1/latest?base=USD',
             'fx_rates_to_usd' => ['USD' => 1, 'EUR' => 1.08, 'GBP' => 1.27, 'CAD' => 0.73, 'AUD' => 0.66, 'SGD' => 0.75, 'PHP' => 0.0175, 'JPY' => 0.0067],
 
             // Live suppliers. Without a key, search says "not connected" — no invented results.

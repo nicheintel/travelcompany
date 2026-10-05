@@ -83,6 +83,11 @@ if ($pe = last_payment_error()) {
     $checks[] = ['Last payment problem', false, gmdate('M j, g:i A', strtotime($pe['at'] . ' UTC')) . ' UTC' . " · trip {$pe['ref']} · {$pe['message']}"];
 }
 $checks[] = ['Demo mode', !demo_mode(), demo_mode() ? 'ON — made-up flights/hotels are shown. Turn off for customers!' : 'Off'];
+$fx = fx_rates();
+$checks[] = ['Exchange rates', (bool) $fx, $fx
+    ? count($fx['rates']) . ' currencies from ' . $fx['source'] . ', updated ' . gmdate('M j, H:i', (int) $fx['updated_at']) . ' UTC — customers can see prices in their currency (they always pay in USD)'
+    : 'Not available right now — prices are shown in US dollars only. The site retries every 15 minutes.'];
+$checks[] = ['Languages', is_file(dirname(__DIR__) . '/lang/fil.json'), count(array_filter(array_keys(LANGUAGES), fn($c) => $c === 'en' || is_file(dirname(__DIR__) . "/lang/$c.json"))) . ' of ' . count(LANGUAGES) . ' languages installed (machine-translated; admin pages and emails stay in English)'];
 $checks[] = ['Markup', true, 'Flights +' . round(markup_rate('flight') * 100) . '%, hotels +' . round(markup_rate('hotel') * 100) . '%, member discount ' . round(member_discount_rate() * 100) . '%'];
 
 $title = 'Diagnostics';

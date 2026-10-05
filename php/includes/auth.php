@@ -136,18 +136,18 @@ function require_admin(): array
 /** Passwords: 8–128 characters with a letter and a number. Returns an error or null. */
 function password_problem(string $password): ?string
 {
-    if (strlen($password) < 8) return 'Password must be at least 8 characters.';
-    if (strlen($password) > 128) return 'Password must be 128 characters or fewer.';
-    if (!preg_match('/[a-zA-Z]/', $password)) return 'Password must contain at least one letter.';
-    if (!preg_match('/[0-9]/', $password)) return 'Password must contain at least one number.';
+    if (strlen($password) < 8) return t('Password must be at least 8 characters.');
+    if (strlen($password) > 128) return t('Password must be 128 characters or fewer.');
+    if (!preg_match('/[a-zA-Z]/', $password)) return t('Password must contain at least one letter.');
+    if (!preg_match('/[0-9]/', $password)) return t('Password must contain at least one number.');
     return null;
 }
 
 function name_problem(string $name): ?string
 {
     $len = mb_strlen($name);
-    if ($len < 2) return 'Please enter your full name.';
-    if ($len > 60) return 'Name must be 60 characters or fewer.';
+    if ($len < 2) return t('Please enter your full name.');
+    if ($len > 60) return t('Name must be 60 characters or fewer.');
     return null;
 }
 
@@ -209,7 +209,7 @@ function check_password_with_lockout(array $userRow, string $password, string $w
 {
     $key = 'signin:' . $userRow['email'];
     if (rate_limited($key, SIGNIN_MAX)) {
-        return 'Too many failed attempts. Please wait 15 minutes and try again.';
+        return t('Too many failed attempts. Please wait 15 minutes and try again.');
     }
     if (!password_verify($password, $userRow['password_hash'])) {
         rate_hit($key, SIGNIN_WINDOW);

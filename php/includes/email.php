@@ -198,7 +198,13 @@ function simple_email(string $subject, string $heading, string $firstName, array
 }
 
 /** Emails the booking contact about a status change. */
+/** Emails are always written in English (dates, labels), whatever language the visitor uses. */
 function notify_booking(string $event, string $reference): void
+{
+    in_english(fn() => notify_booking_now($event, $reference));
+}
+
+function notify_booking_now(string $event, string $reference): void
 {
     try {
         $r = db_one('SELECT * FROM bookings WHERE reference = ?', [$reference]);
@@ -263,7 +269,13 @@ function pay_link(string $reference): string
 }
 
 /** Staff-sent payment reminder with a Pay now button and an optional personal message. */
+/** Emails are always written in English (dates, labels), whatever language the visitor uses. */
 function send_payment_link(array $b, string $message): void
+{
+    in_english(fn() => send_payment_link_now($b, $message));
+}
+
+function send_payment_link_now(array $b, string $message): void
 {
     $first = $b['travelers'][0]['first'] ?? 'there';
     $paragraphs = ["Your trip {$b['reference']} is reserved and waiting for payment. You can pay securely with PayPal or a debit/credit card — it only takes a minute."];

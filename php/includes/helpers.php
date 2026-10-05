@@ -91,9 +91,9 @@ function not_found(): never
     http_response_code(404);
     $title = 'Page not found';
     require __DIR__ . '/header.php';
-    echo '<section class="mx-auto max-w-xl px-4 py-24 text-center"><h1 class="text-3xl font-bold text-slate-900">Page not found</h1>'
-        . '<p class="mt-2 text-slate-600">The page you\'re looking for doesn\'t exist.</p>'
-        . '<a href="' . e(url()) . '" class="mt-6 inline-block rounded-xl bg-brand-600 px-5 py-2.5 font-semibold text-white">Back to home</a></section>';
+    echo '<section class="mx-auto max-w-xl px-4 py-24 text-center"><h1 class="text-3xl font-bold text-slate-900">' . e(t('Page not found')) . '</h1>'
+        . '<p class="mt-2 text-slate-600">' . e(t('The page you\'re looking for doesn\'t exist.')) . '</p>'
+        . '<a href="' . e(url()) . '" class="mt-6 inline-block rounded-xl bg-brand-600 px-5 py-2.5 font-semibold text-white">' . e(t('Back to home')) . '</a></section>';
     require __DIR__ . '/footer.php';
     exit;
 }
@@ -158,7 +158,7 @@ function verify_csrf(): void
     $sent = $_POST['_csrf'] ?? '';
     if (!is_string($sent) || !hash_equals(csrf_token(), $sent)) {
         http_response_code(400);
-        exit('Your session expired. Please go back, refresh the page and try again.');
+        exit(t('Your session expired. Please go back, refresh the page and try again.'));
     }
 }
 
@@ -184,13 +184,13 @@ function money(float|int $amount): string
 function fmt_date(string $iso): string
 {
     $d = DateTimeImmutable::createFromFormat('!Y-m-d', $iso, new DateTimeZone('UTC'));
-    return $d ? $d->format('D, M j') : $iso;
+    return $d ? fmt_local($d, 'EEE, MMM d', 'D, M j') : $iso;
 }
 
 function fmt_dob(string $iso): string
 {
     $d = DateTimeImmutable::createFromFormat('!Y-m-d', $iso, new DateTimeZone('UTC'));
-    return $d ? $d->format('M j, Y') : $iso;
+    return $d ? fmt_local($d, 'MMM d, y', 'M j, Y') : $iso;
 }
 
 function fmt_time(int $minutes): string
@@ -212,7 +212,7 @@ function local_time(?string $utc, bool $dateOnly = false): string
         return '';
     }
     $d = new DateTimeImmutable($utc, new DateTimeZone('UTC'));
-    $text = $dateOnly ? $d->format('M j, Y') : $d->format('M j, Y, g:i A') . ' UTC';
+    $text = $dateOnly ? fmt_local($d, 'MMM d, y', 'M j, Y') : fmt_local($d, 'MMM d, y, h:mm a', 'M j, Y, g:i A') . ' UTC';
     return '<time datetime="' . e($d->format('c')) . '"' . ($dateOnly ? ' data-date-only' : '') . ' data-local>' . e($text) . '</time>';
 }
 

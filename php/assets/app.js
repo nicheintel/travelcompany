@@ -3,6 +3,11 @@
   "use strict";
   const $ = (sel, root = document) => root.querySelector(sel);
   const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+  // Translations for the visitor's language (from the page), with {name} placeholders.
+  let STR = {};
+  try { STR = JSON.parse(document.getElementById("tc-i18n")?.textContent || "{}"); } catch { STR = {}; }
+  const tr = (s, v = {}) => (STR[s] || s).replace(/\{(\w+)\}/g, (m, k) => (k in v ? v[k] : m));
+  const LOCALE = document.documentElement.lang || "en";
 
   // ---------- Dates (visitor's timezone) ----------
   function todayIso() {
@@ -131,7 +136,7 @@
     const panel = $("[data-travelers-panel]", box);
     const summary = $("[data-travelers-summary]", box);
     const hidden = (n) => $(`input[name="${n}"]`, box);
-    const cabinNames = { economy: "Economy", premium: "Premium Economy", business: "Business", first: "First" };
+    const cabinNames = { economy: tr("Economy"), premium: tr("Premium Economy"), business: tr("Business"), first: tr("First") };
     const update = () => {
       // One lap infant per adult: fewer adults means fewer infants.
       $$("[data-counter][data-max-of]", box).forEach((c) => {
@@ -139,8 +144,8 @@
         input.value = String(Math.min(Number(input.value), Number(hidden(c.dataset.maxOf).value)));
       });
       const people = ["adults", "children", "infants"].reduce((n, k) => n + Number(hidden(k)?.value || 0), 0);
-      const parts = [`${people} traveler${people === 1 ? "" : "s"}`];
-      if (hidden("rooms")) parts.push(`${hidden("rooms").value} room${hidden("rooms").value === "1" ? "" : "s"}`);
+      const parts = [tr(people === 1 ? "{n} traveler" : "{n} travelers", { n: people })];
+      if (hidden("rooms")) parts.push(tr(hidden("rooms").value === "1" ? "{n} room" : "{n} rooms", { n: hidden("rooms").value }));
       if (hidden("cabin")) parts.push(cabinNames[hidden("cabin").value]);
       summary.textContent = parts.join(", ");
       $$("[data-counter]", box).forEach((c) => {
@@ -208,12 +213,12 @@
       if (!codes.length) return; // e.g. the packages destination list
       let msg = "";
       if (form.dataset.searchForm === "flight") {
-        if (!codes[0] || !codes[1]) msg = "Please choose where you're flying from and to.";
-        else if (codes[0] === codes[1]) msg = "Origin and destination must be different.";
+        if (!codes[0] || !codes[1]) msg = tr("Please choose where you're flying from and to.");
+        else if (codes[0] === codes[1]) msg = tr("Origin and destination must be different.");
       } else if (!codes[codes.length - 1]) {
-        msg = "Please choose a destination.";
+        msg = tr("Please choose a destination.");
       } else if (codes.length === 2 && codes[0] === codes[1]) {
-        msg = "Leaving from and going to must be different.";
+        msg = tr("Leaving from and going to must be different.");
       }
       if (msg) {
         e.preventDefault();
@@ -260,7 +265,7 @@
       sorted.forEach((it) => list.appendChild(it));
       $$("[data-range-label]", scope).forEach((l) => {
         const r = $(`[data-filter-max="${l.dataset.rangeLabel}"]`, scope);
-        if (r) l.textContent = "$" + Number(r.value).toLocaleString("en-US");
+        if (r) l.textContent = (scope.dataset.curSymbol || "$") + Math.round(Number(r.value) * Number(scope.dataset.curRate || 1)).toLocaleString("en-US");
       });
     }
     $$("input", scope).forEach((i) => i.addEventListener("input", apply));
@@ -318,8 +323,8 @@
         const input = b.parentElement.querySelector("input");
         const show = input.type === "password";
         input.type = show ? "text" : "password";
-        b.textContent = show ? "Hide" : "Show";
-        b.setAttribute("aria-label", show ? "Hide password" : "Show password");
+        b.textContent = show ? tr("Hide") : tr("Show");
+        b.setAttribute("aria-label", show ? tr("Hide password") : tr("Show password"));
       }),
     );
     $$("[data-password-rules]").forEach((input) => {
@@ -344,8 +349,8 @@
     $$("time[data-local]").forEach((t) => {
       const d = new Date(t.getAttribute("datetime"));
       if (!isNaN(d)) t.textContent = t.hasAttribute("data-date-only")
-        ? d.toLocaleDateString("en-US", { dateStyle: "medium" })
-        : d.toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" });
+        ? d.toLocaleDateString(LOCALE, { dateStyle: "medium" })
+        : d.toLocaleString(LOCALE, { dateStyle: "medium", timeStyle: "short" });
     });
   }
 
