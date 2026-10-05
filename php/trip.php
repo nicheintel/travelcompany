@@ -13,7 +13,7 @@ if (is_post()) {
         notify_booking('cancelled', $ref);
         redirect(url('trip.php', ['ref' => $ref]));
     }
-    if ($action === 'pay' && $booking['status'] === 'reserved' && payments_enabled()) {
+    if ($action === 'pay' && $booking['status'] === 'reserved' && payments_enabled() && ($booking['bag_status'] ?? null) !== 'pending') {
         try {
             if (payment_provider() === 'paypal') {
                 [$orderId, $approveUrl] = paypal_create_order($booking);
@@ -63,7 +63,8 @@ $status = $booking['status'];
 $isNew = ($_GET['new'] ?? '') === '1' && $status === 'reserved';
 $justPaid = $returned && $status === 'paid';
 $payFailed = $returned && $status === 'reserved';
-$canPay = $status === 'reserved' && payments_enabled();
+$bagPending = $status === 'reserved' && ($booking['bag_status'] ?? null) === 'pending';
+$canPay = $status === 'reserved' && payments_enabled() && !$bagPending;
 $provider = payment_provider();
 $title = t('Trip {ref}', ['ref' => $ref]);
 require __DIR__ . '/includes/header.php';
@@ -131,18 +132,37 @@ $check = '<span class="grid h-10 w-10 shrink-0 place-items-center rounded-full b
         <h2 class="text-lg font-semibold text-slate-900"><?= e(t('Travelers')) ?></h2>
         <ul class="mt-4 divide-y divide-slate-100">
           <?php foreach ($booking['travelers'] as $i => $t): ?>
-            <li class="flex items-center justify-between py-3 text-sm"><span class="font-medium text-slate-900"><?= e("{$t['first']} {$t['last']}") ?></span>
-              <span class="text-slate-500"><?= e(slot_label($booking['quote']['slots'][$i]['label'] ?? '')) ?><?= !empty($t['dob']) ? ' · ' . e(t('born {date}', ['date' => fmt_dob($t['dob'])])) : '' ?></span></li>
+            <li class="py-3 text-sm"><div class="flex items-center justify-between gap-3"><span class="font-medium text-slate-900"><?= e(trim("{$t['first']} {$t['last']}")) ?></span>
+              <span class="text-right text-slate-500"><?= e(slot_label($booking['quote']['slots'][$i]['label'] ?? '')) ?><?= !empty($t['dob']) ? ' · ' . e(t('born {date}', ['date' => fmt_dob($t['dob'])])) : '' ?></span></div>
+              <?php
+              $more = array_filter([
+                  isset($t['gender']) ? ($t['gender'] === 'F' ? t('Female') : t('Male')) : null,
+                  !empty($t['nationality']) ? country_name($t['nationality']) : null,
+                  // Only the last 3 characters of the passport number are shown here.
+                  !empty($t['passport']) ? t('Passport ending {last}, valid until {date}', ['last' => substr($t['passport'], -3), 'date' => fmt_dob($t['passport_expiry'])]) : null,
+                  !empty($t['frequent_flyer']) ? t('Frequent flyer {number}', ['number' => $t['frequent_flyer']]) : null,
+                  !empty($t['extra_bag']) ? t('Checked bag requested') : null,
+              ]);
+              if ($more): ?><p class="mt-1 text-xs text-slate-500"><?= e(implode(' · ', $more)) ?></p><?php endif; ?></li>
           <?php endforeach; ?>
         </ul>
       </section>
       <section class="rounded-2xl border border-slate-200 bg-white p-6">
         <h2 class="text-lg font-semibold text-slate-900"><?= e(t('Contact')) ?></h2>
         <dl class="mt-4 space-y-2 text-sm">
+          <?php if (!empty($booking['contact_name'])): ?><div class="flex justify-between"><dt class="text-slate-500"><?= e(t('Name')) ?></dt><dd class="font-medium text-slate-900"><?= e($booking['contact_name']) ?></dd></div><?php endif; ?>
           <div class="flex justify-between"><dt class="text-slate-500"><?= e(t('Email')) ?></dt><dd class="font-medium text-slate-900"><?= e($booking['contact_email']) ?></dd></div>
           <div class="flex justify-between"><dt class="text-slate-500"><?= e(t('Phone')) ?></dt><dd class="font-medium text-slate-900"><?= e($booking['contact_phone']) ?></dd></div>
         </dl>
       </section>
+      <?php if ($bagPending): ?>
+        <section class="rounded-2xl border border-amber-200 bg-amber-50 p-6">
+          <h2 class="text-lg font-semibold text-amber-900"><?= e(t("We're checking the price of your checked bag")) ?></h2>
+          <p class="mt-1 text-sm text-amber-900"><?= e(t("Bag prices are set by the airline. A travel assistant will add the exact price to your total and email you a payment link — usually within a few hours. You don't pay anything for the bag without seeing the price first.")) ?></p>
+        </section>
+      <?php elseif (($booking['bag_status'] ?? null) === 'declined' && $status === 'reserved'): ?>
+        <div><?= alert_box(t("The airline couldn't add a checked bag to this booking, so your total hasn't changed. Contact us if you'd like other options."), 'success') ?></div>
+      <?php endif; ?>
       <?php if ($canPay): ?>
         <section id="pay" class="scroll-mt-24 rounded-2xl border-2 bg-white p-6 <?= ($_GET['pay'] ?? '') === '1' ? 'border-accent-500 ring-4 ring-accent-500/20' : 'border-brand-200' ?>"<?= ($_GET['pay'] ?? '') === '1' ? ' data-scroll-into-view' : '' ?>>
           <h2 class="text-lg font-semibold text-slate-900"><?= e(t('Pay now to confirm')) ?></h2>

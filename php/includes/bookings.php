@@ -7,7 +7,8 @@ function to_booking(array $r): array
     return [
         'reference' => $r['reference'], 'user_id' => (int) $r['user_id'], 'kind' => $r['kind'], 'status' => $r['status'],
         'quote' => json_decode($r['quote_json'], true), 'travelers' => json_decode($r['travelers_json'], true),
-        'contact_email' => $r['contact_email'], 'contact_phone' => $r['contact_phone'], 'total' => (int) $r['total'],
+        'contact_email' => $r['contact_email'], 'contact_phone' => $r['contact_phone'], 'contact_name' => $r['contact_name'] ?? null,
+        'bag_status' => $r['bag_status'] ?? null, 'total' => (int) $r['total'],
         'start_date' => $r['start_date'], 'created_at' => $r['created_at'], 'paid_at' => $r['paid_at'],
         'cancelled_at' => $r['cancelled_at'], 'payment_method' => $r['payment_method'],
         'ticketed_at' => $r['ticketed_at'] ?? null, 'supplier_ref' => $r['supplier_ref'] ?? null, 'ticket_note' => $r['ticket_note'] ?? null,
@@ -45,19 +46,20 @@ function list_events(string $reference): array
 }
 
 /** Saves a booking with a reference like TC-K7MP2Q (no 0/O/1/I, easy to read on the phone). */
-function create_booking(int $userId, array $quote, array $travelers, string $email, string $phone): string
+function create_booking(int $userId, array $quote, array $travelers, string $email, string $phone, ?string $contactName = null): string
 {
     $alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    $bags = count(array_filter($travelers, fn($t) => !empty($t['extra_bag'])));
     for ($attempt = 0; $attempt < 5; $attempt++) {
         $ref = 'TC-';
         for ($i = 0; $i < 6; $i++) $ref .= $alphabet[random_int(0, strlen($alphabet) - 1)];
         try {
             db_run(
-                'INSERT INTO bookings (reference, user_id, kind, quote_json, travelers_json, contact_email, contact_phone, total, start_date, created_at)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-                [$ref, $userId, $quote['kind'], json_encode($quote, JSON_UNESCAPED_UNICODE), json_encode($travelers, JSON_UNESCAPED_UNICODE), $email, $phone, $quote['total'], $quote['start_date'], now_utc()],
+                'INSERT INTO bookings (reference, user_id, kind, quote_json, travelers_json, contact_email, contact_phone, contact_name, bag_status, total, start_date, created_at)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                [$ref, $userId, $quote['kind'], json_encode($quote, JSON_UNESCAPED_UNICODE), json_encode($travelers, JSON_UNESCAPED_UNICODE), $email, $phone, $contactName, $bags ? 'pending' : null, $quote['total'], $quote['start_date'], now_utc()],
             );
-            add_event($ref, $userId, 'created', 'Reserved by the customer online.');
+            add_event($ref, $userId, 'created', 'Reserved by the customer online.' . ($bags ? ' Requested ' . plural($bags, 'checked bag') . ' — set the price before the customer pays.' : ''));
             return $ref;
         } catch (PDOException $e) {
             if ((int) ($e->errorInfo[1] ?? 0) !== 1062) throw $e; // 1062 = duplicate reference, try again
@@ -202,4 +204,28 @@ function search_users(string $q, int $page, int $perPage = 50): array
     );
     $users = array_map(fn($r) => to_user($r) + ['booking_count' => (int) $r['booking_count']], array_slice($rows, 0, $perPage));
     return ['users' => $users, 'has_more' => count($rows) > $perPage];
+}
+
+/**
+ * Admin: the airline's price for the requested checked bags is known. Adds it to the unpaid booking
+ * (total and price breakdown), or with $amount = null records that bags can't be added.
+ */
+function settle_bag_request(string $ref, ?int $amount, int $adminId): bool
+{
+    $r = db_one("SELECT * FROM bookings WHERE reference = ? AND status = 'reserved' AND bag_status = 'pending'", [$ref]);
+    if (!$r) return false;
+    $bags = count(array_filter(json_decode($r['travelers_json'], true), fn($t) => !empty($t['extra_bag'])));
+    if ($amount === null) {
+        db_run("UPDATE bookings SET bag_status = 'declined' WHERE reference = ?", [$ref]);
+        add_event($ref, $adminId, 'note', 'Checked bags could not be added — the booking total is unchanged.');
+        return true;
+    }
+    $quote = json_decode($r['quote_json'], true);
+    $quote['lines'][] = ['label' => 'Checked bag × ' . $bags, 'amount' => $amount];
+    $quote['subtotal'] += $amount;
+    $quote['total'] += $amount;
+    db_run("UPDATE bookings SET bag_status = 'added', total = total + ?, quote_json = ? WHERE reference = ? AND status = 'reserved'",
+        [$amount, json_encode($quote, JSON_UNESCAPED_UNICODE), $ref]);
+    add_event($ref, $adminId, 'note', 'Added ' . plural($bags, 'checked bag') . ' for ' . money($amount) . '. New total ' . money($quote['total']) . '.');
+    return true;
 }

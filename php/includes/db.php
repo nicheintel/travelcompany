@@ -79,8 +79,8 @@ function migrate(PDO $pdo): void
         $pdo->exec('ALTER TABLE users ADD COLUMN email_verified_at DATETIME NULL AFTER session_version');
         $pdo->exec('UPDATE users SET email_verified_at = created_at');
     }
-    // Ticket details (added later).
-    foreach (['ticketed_at' => 'DATETIME NULL', 'supplier_ref' => 'VARCHAR(100) NULL', 'ticket_note' => 'TEXT NULL'] as $col => $type) {
+    // Ticket details, contact name and checked-bag requests (added later).
+    foreach (['ticketed_at' => 'DATETIME NULL', 'supplier_ref' => 'VARCHAR(100) NULL', 'ticket_note' => 'TEXT NULL', 'contact_name' => 'VARCHAR(100) NULL', 'bag_status' => 'VARCHAR(10) NULL'] as $col => $type) {
         if (!in_array($col, $cols, true)) $pdo->exec("ALTER TABLE bookings ADD COLUMN $col $type");
     }
     @touch($marker);

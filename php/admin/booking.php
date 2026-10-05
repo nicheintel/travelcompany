@@ -32,6 +32,23 @@ if (is_post()) {
             flash("Payment link sent to {$booking['contact_email']}.");
             redirect($self);
         }
+    } elseif ($action === 'bag_price' || $action === 'bag_decline') {
+        $amount = $action === 'bag_price' ? filter_var(post('bag_amount'), FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'max_range' => 5000]]) : null;
+        if ($action === 'bag_price' && $amount === false) $error = 'Enter the total bag price for the customer in whole US dollars (e.g. 45).';
+        elseif (!settle_bag_request($ref, $amount === false ? null : $amount, $admin['id'])) $error = 'This bag request was already handled, or the booking is no longer unpaid.';
+        else {
+            $fresh = admin_booking($ref);
+            $msg = $amount ? 'We\'ve added your checked bag(s) for ' . money($amount) . '. Your new total is ' . money($fresh['total']) . '.'
+                : 'Unfortunately the airline couldn\'t add a checked bag to this booking, so your total is unchanged.';
+            if (payments_enabled()) {
+                send_payment_link($fresh, $msg);
+                add_event($ref, $admin['id'], 'email', "Payment link emailed to {$fresh['contact_email']}. Message: $msg");
+                flash('Saved. The customer has been emailed the ' . ($amount ? 'new total' : 'news') . ' and a payment link.');
+            } else {
+                flash('Saved. Payments are off, so please tell the customer yourself: ' . $msg);
+            }
+            redirect($self);
+        }
     } elseif ($action === 'ticket') {
         $code = mb_strtoupper(trim(post('code')));
         $note = mb_substr(trim(post('ticket_note')), 0, 1000);
@@ -69,6 +86,7 @@ echo admin_open('bookings');
     <div class="space-y-6">
       <section class="grid gap-6 rounded-xl border border-slate-200 bg-white p-5 sm:grid-cols-2">
         <div><h2 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Contact for this trip</h2>
+          <?php if (!empty($booking['contact_name'])): ?><p class="mt-2 font-medium text-slate-900"><?= e($booking['contact_name']) ?></p><?php endif; ?>
           <p class="mt-2"><a href="tel:<?= e(preg_replace('/[^\d+]/', '', $booking['contact_phone'])) ?>" class="text-lg font-semibold text-brand-700 hover:underline"><?= e($booking['contact_phone']) ?></a></p>
           <p><a href="mailto:<?= e($booking['contact_email']) ?>?subject=<?= rawurlencode("Your trip $ref") ?>" class="text-brand-700 hover:underline"><?= e($booking['contact_email']) ?></a></p></div>
         <div><h2 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Account</h2>
@@ -79,7 +97,15 @@ echo admin_open('bookings');
         <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Travelers</h2>
         <table class="mt-3 w-full text-sm"><tbody class="divide-y divide-slate-100">
           <?php foreach ($booking['travelers'] as $i => $t): ?>
-            <tr><td class="py-2 text-slate-500"><?= e($q['slots'][$i]['label'] ?? '') ?></td><td class="py-2 font-medium text-slate-900"><?= e(mb_strtoupper($t['last']) . ', ' . $t['first']) ?></td>
+            <tr class="align-top"><td class="py-2 text-slate-500"><?= e($q['slots'][$i]['label'] ?? '') ?></td>
+              <td class="py-2"><p class="font-medium text-slate-900"><?= e(($t['last'] !== '' ? mb_strtoupper($t['last']) . ', ' : '') . $t['first']) ?><?= !empty($t['no_last_name']) ? ' <span class="text-xs font-normal text-amber-700">(no surname)</span>' : '' ?></p>
+                <p class="text-xs text-slate-600"><?= e(implode(' · ', array_filter([
+                    isset($t['gender']) ? ($t['gender'] === 'F' ? 'Female' : 'Male') : null,
+                    !empty($t['nationality']) ? 'Nationality ' . country_name($t['nationality']) : null,
+                    !empty($t['passport']) ? 'Passport ' . $t['passport'] . ' (exp. ' . fmt_dob($t['passport_expiry']) . ')' : null,
+                    !empty($t['frequent_flyer']) ? 'Frequent flyer ' . $t['frequent_flyer'] : null,
+                ]))) ?></p>
+                <?php if (!empty($t['extra_bag'])): ?><p class="text-xs font-semibold text-accent-600">+ Checked bag requested</p><?php endif; ?></td>
               <td class="py-2 text-right text-slate-600"><?= !empty($t['dob']) ? 'DOB ' . e(fmt_dob($t['dob'])) : '' ?></td></tr>
           <?php endforeach; ?>
         </tbody></table>
@@ -100,6 +126,23 @@ echo admin_open('bookings');
       </section>
     </div>
     <aside class="space-y-6">
+      <?php if ($booking['status'] === 'reserved' && $booking['bag_status'] === 'pending'):
+          $bagCount = count(array_filter($booking['travelers'], fn($t) => !empty($t['extra_bag'])));
+          $from = $q['baggage']['checked_from'] ?? null; ?>
+        <section class="rounded-xl border-2 border-red-300 bg-white p-5 ring-4 ring-red-100">
+          <h2 class="font-semibold text-slate-900">Checked bag request — set the price</h2>
+          <p class="mb-3 mt-1 text-sm text-slate-600">The customer asked for <strong><?= plural($bagCount, 'checked bag') ?></strong>. Online payment is paused until you answer.
+            Check the airline's bag price<?= $from !== null ? ' (LiteAPI said from ' . money((int) ceil($from)) . ' per bag)' : '' ?>, then enter what the customer pays for all bags. It's added to the total and the customer is emailed a payment link.</p>
+          <form method="post" class="space-y-3"><?= csrf_field() ?><input type="hidden" name="action" value="bag_price">
+            <label class="block text-xs font-medium text-slate-500">Total for <?= plural($bagCount, 'bag') ?> (USD)
+              <input name="bag_amount" type="number" min="1" max="5000" step="1" required placeholder="e.g. 45" class="<?= $input ?> mt-1"></label>
+            <button type="submit" class="w-full rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700">Add to total &amp; email customer</button>
+          </form>
+          <form method="post" class="mt-2"><?= csrf_field() ?><input type="hidden" name="action" value="bag_decline">
+            <button type="submit" class="w-full rounded-lg px-4 py-2 text-sm font-semibold text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50">Bags can't be added — keep the current total</button>
+          </form>
+        </section>
+      <?php endif; ?>
       <?php if ($booking['status'] === 'reserved'): ?>
         <section class="rounded-xl border-2 border-accent-500/40 bg-white p-5">
           <h2 class="font-semibold text-slate-900">Send payment link</h2>

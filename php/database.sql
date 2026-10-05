@@ -22,6 +22,8 @@ CREATE TABLE IF NOT EXISTS bookings (
   travelers_json    TEXT         NOT NULL,
   contact_email     VARCHAR(254) NOT NULL,
   contact_phone     VARCHAR(30)  NOT NULL,
+  contact_name      VARCHAR(100) NULL,
+  bag_status        VARCHAR(10)  NULL,
   total             INT UNSIGNED NOT NULL,
   start_date        DATE         NOT NULL,
   created_at        DATETIME     NOT NULL,

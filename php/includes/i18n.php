@@ -333,6 +333,7 @@ function quote_text(?string $s, ?string $startIso = null): string
         $who = tn((int) $m[2], '{n} adult', '{n} adults') . (!empty($m[3]) ? ', ' . tn((int) $m[3], '{n} child', '{n} children') : '');
         return $m[1] . ' (' . $who . ')';
     }
+    if (preg_match('/^Checked bag × (\d+)$/', $s, $m)) return t('Checked bag × {n}', ['n' => $m[1]]);
     if (preg_match('/^(\d+) nights?$/', $s, $m)) return tn((int) $m[1], '{n} night', '{n} nights');
     if (preg_match('/^checked bag from (\S+)$/u', $s, $m)) return t('checked bag from {price}', ['price' => $m[1]]);
     if (preg_match('/^(?:[A-Z][a-z]{2}, )?[A-Z][a-z]{2} \d{1,2}$/', $s)) return quote_date($s, $startIso);

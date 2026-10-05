@@ -95,6 +95,10 @@ function flight_quote(array $params): ?array
         'query' => $p['query'] . '&offer=' . rawurlencode($o['id']),
         'note' => $note,
         'supplier' => $cost,
+        // Passport details are required when the trip crosses a border.
+        'international' => ($p['from']['cc'] ?? '') !== ($p['to']['cc'] ?? ''),
+        // Real allowance from the supplier (LiteAPI); null when the supplier doesn't say.
+        'baggage' => $bag ?? null,
     ]);
 }
 
@@ -130,6 +134,7 @@ function package_quote(array $params): ?array
         'supplier' => null,
         'no_discount' => true, // promo prices are already final
         'package' => ['slug' => $pkg['slug'], 'first' => $first, 'last' => $last],
+        'international' => (airport($pkg['from_code'])['cc'] ?? '') !== (airport($pkg['to_code'])['cc'] ?? ''),
     ]);
 }
 

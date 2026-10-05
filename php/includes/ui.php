@@ -540,3 +540,18 @@ function legal_page(string $title, string $intro, string $updated, array $sectio
         . '<nav class="hidden lg:block"><ul class="sticky top-24 space-y-0.5">' . $toc . '</ul></nav>'
         . '<article class="legal min-w-0 rounded-2xl border border-slate-200 bg-white p-6 sm:p-10"><p class="text-lg !text-slate-700">' . $intro . '</p>' . $body . '</article></div></div>';
 }
+
+/** Labelled <select> with optional error, styled like text_field(). $options: value => label. */
+function select_field(string $name, string $label, array $options, string $value = '', ?string $error = null, string $placeholder = '', array $attrs = []): string
+{
+    $id = 'f_' . preg_replace('/[^a-z0-9_]/i', '_', $name);
+    $extra = '';
+    foreach ($attrs as $k => $v) $extra .= ' ' . e($k) . '="' . e($v) . '"';
+    $border = $error ? 'border-red-400 focus:border-red-500 focus:ring-red-100' : 'border-slate-300 focus:border-brand-500 focus:ring-brand-100';
+    $html = '<div><label for="' . $id . '" class="mb-1.5 block text-sm font-medium text-slate-700">' . e($label) . '</label>'
+        . '<select id="' . $id . '" name="' . e($name) . '"' . ($error ? ' aria-invalid="true" aria-describedby="' . $id . '_err"' : '') . $extra
+        . ' class="w-full rounded-xl border bg-white px-4 py-3 text-slate-900 outline-none transition focus:ring-2 ' . $border . '">';
+    if ($placeholder !== '') $html .= '<option value="">' . e($placeholder) . '</option>';
+    foreach ($options as $v => $l) $html .= '<option value="' . e((string) $v) . '"' . ((string) $v === $value ? ' selected' : '') . '>' . e($l) . '</option>';
+    return $html . '</select>' . ($error ? '<p id="' . $id . '_err" class="mt-1.5 text-sm text-red-600">' . e($error) . '</p>' : '') . '</div>';
+}
