@@ -22,6 +22,17 @@ function config(string $key): mixed
             'contact_email' => 'info@lamazonloads.com',
             'contact_phone' => '678-666-4334',
             'max_upload_mb' => 8,
+            // Email (chat notifications). With smtp_pass set, mail goes through your Hostinger mailbox;
+            // otherwise PHP's mail(). 'file' saves emails in storage/mail/ instead of sending (testing).
+            'app_url'        => 'https://lamazonloads.com',
+            'support_email'  => '',          // where chat alerts go; empty = contact_email
+            'mail_from'      => '',          // sender address; empty = smtp_user or contact_email
+            'mail_transport' => '',          // '' = automatic, or 'smtp', 'mail', 'file'
+            'smtp_host'      => 'smtp.hostinger.com',
+            'smtp_port'      => 465,
+            'smtp_secure'    => 'ssl',       // 'ssl' (port 465) or 'tls' (port 587)
+            'smtp_user'      => '',
+            'smtp_pass'      => '',
         ];
         $local = dirname(__DIR__) . '/config.local.php';
         if (is_file($local)) {

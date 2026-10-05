@@ -118,7 +118,7 @@ page_header('', 'home');
   </div>
 </section>
 
-<section class="section section-white">
+<section class="section section-white" id="faq">
   <div class="container narrow">
     <div class="section-head reveal"><span class="eyebrow">Questions</span><h2>Frequently asked</h2></div>
     <div class="faq reveal">

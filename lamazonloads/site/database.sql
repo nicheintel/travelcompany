@@ -101,3 +101,56 @@ CREATE TABLE IF NOT EXISTS login_attempts (
   KEY idx_attempt_email (email, created_at),
   KEY idx_attempt_ip (ip, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Live chat (the Chat button and Admin -> Support chats). One conversation per member or visitor.
+-- account_id = users.id for members, 0 for visitors (recognised by visitor_hash, a hash of a random cookie).
+-- Times are Unix timestamps (seconds).
+CREATE TABLE IF NOT EXISTS support_threads (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  account_type VARCHAR(10) NOT NULL,
+  account_id INT UNSIGNED NOT NULL DEFAULT 0,
+  visitor_hash CHAR(64) NOT NULL DEFAULT '',
+  name VARCHAR(100) NOT NULL,
+  email VARCHAR(190) NOT NULL,
+  status VARCHAR(10) NOT NULL DEFAULT 'open',
+  page VARCHAR(80) NOT NULL DEFAULT '',
+  last_from VARCHAR(10) NOT NULL DEFAULT 'user',
+  admin_unread INT UNSIGNED NOT NULL DEFAULT 0,
+  user_unread INT UNSIGNED NOT NULL DEFAULT 0,
+  user_seen_at INT UNSIGNED NOT NULL DEFAULT 0,
+  admin_notified_at INT UNSIGNED NOT NULL DEFAULT 0,
+  user_notified_at INT UNSIGNED NOT NULL DEFAULT 0,
+  user_typing_at INT UNSIGNED NOT NULL DEFAULT 0,
+  admin_typing_at INT UNSIGNED NOT NULL DEFAULT 0,
+  admin_read_id INT UNSIGNED NOT NULL DEFAULT 0,
+  user_read_id INT UNSIGNED NOT NULL DEFAULT 0,
+  ended_at INT UNSIGNED NOT NULL DEFAULT 0,
+  ended_by VARCHAR(10) NOT NULL DEFAULT '',
+  rating TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  feedback VARCHAR(500) NOT NULL DEFAULT '',
+  rated_at INT UNSIGNED NOT NULL DEFAULT 0,
+  created_at INT UNSIGNED NOT NULL,
+  updated_at INT UNSIGNED NOT NULL,
+  KEY idx_chat_owner (account_type, account_id),
+  KEY idx_chat_visitor (visitor_hash),
+  KEY idx_chat_status (status, updated_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS support_messages (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  thread_id INT UNSIGNED NOT NULL,
+  sender VARCHAR(10) NOT NULL,
+  body TEXT NOT NULL,
+  created_at INT UNSIGNED NOT NULL,
+  KEY idx_msg_thread (thread_id, id),
+  CONSTRAINT fk_msg_thread FOREIGN KEY (thread_id) REFERENCES support_threads(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Simple rate limits (chat messages, new chats per IP)
+CREATE TABLE IF NOT EXISTS rate_hits (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  kind VARCHAR(20) NOT NULL,
+  k VARCHAR(80) NOT NULL,
+  created_at INT UNSIGNED NOT NULL,
+  KEY idx_hits (kind, k, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

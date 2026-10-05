@@ -51,7 +51,7 @@ function logo_html(string $class = ''): string
     return '<img class="logo ' . e($class) . '" src="' . e(asset('brand/logo.png')) . '" alt="LamazonLoads: Why wait? Let\'s freight." width="364" height="204">';
 }
 
-function page_header(string $title, string $active = '', string $description = ''): void
+function page_header(string $title, string $active = '', string $description = '', string $bodyClass = ''): void
 {
     $user = current_user();
     $desc = $description ?: 'LamazonLoads: freight dispatching, daily routes and real driver support for cargo vans, Sprinter vans and box trucks. Built by drivers, for drivers.';
@@ -82,7 +82,7 @@ function page_header(string $title, string $active = '', string $description = '
 <link rel="stylesheet" href="<?= e(asset('style.css')) ?>">
 <script src="<?= e(asset('app.js')) ?>" defer></script>
 </head>
-<body>
+<body<?= $bodyClass !== '' ? ' class="' . e($bodyClass) . '"' : '' ?>>
 <a class="skip" href="#main">Skip to content</a>
 <header class="site-header" id="top">
   <div class="container header-row">
@@ -160,9 +160,10 @@ function page_footer(): void
   </div>
   <div class="footer-bottom-wrap"><div class="container footer-bottom">
     <span>&copy; <?= date('Y') ?> LamazonLoads. All rights reserved.</span>
-    <span class="motto">Why wait? <b>Let's freight.</b></span>
+    <span><a href="<?= e(url('privacy.php')) ?>">Privacy policy</a> · <span class="motto">Why wait? <b>Let's freight.</b></span></span>
   </div></div>
 </footer>
+<?= chat_bubble() ?>
 </body>
 </html>
 <?php
@@ -254,12 +255,13 @@ function admin_open(string $active): void
         'applications' => ['admin/applications.php', 'clipboard', 'Applications', $newApps],
         'jobs' => ['admin/jobs.php', 'briefcase', 'Job posts', 0],
         'drivers' => ['admin/drivers.php', 'truck', 'Drivers & members', 0],
+        'chats' => ['admin/chats.php', 'chat', 'Support chats', chat_unread_total()],
         'messages' => ['admin/messages.php', 'mail', 'Messages', $unread],
     ];
     echo '<div class="container dash"><aside class="card dash-nav"><div class="who"><b>Admin</b><small>LamazonLoads staff</small></div>';
     foreach ($items as $key => [$href, $ic, $label, $count]) {
         echo '<a href="' . e(url($href)) . '"' . ($active === $key ? ' class="active"' : '') . '>' . icon($ic) . e($label)
-            . ($count ? ' <span class="badge badge-reviewing" style="margin-left:auto">' . $count . '</span>' : '') . '</a>';
+            . ($count ? ' <span class="nav-count">' . $count . '</span>' : '') . '</a>';
     }
     echo '<a href="' . e(url('account.php')) . '">' . icon('user') . 'My dashboard</a>';
     echo '</aside><div class="dash-main">';

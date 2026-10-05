@@ -29,7 +29,7 @@ if (is_post()) {
     }
 }
 
-page_header('Sign in');
+page_header('Sign in', '', '', 'page-auth');
 ?>
 <div class="auth-wrap">
   <aside class="auth-side">

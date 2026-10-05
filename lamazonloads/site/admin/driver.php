@@ -25,6 +25,7 @@ if (is_post()) {
         foreach (db_all('SELECT stored_name FROM documents WHERE user_id = ?', [$id]) as $d) {
             @unlink(dirname(__DIR__) . '/uploads/' . basename($d['stored_name']));
         }
+        chat_delete_for_user($id);
         db_run('DELETE FROM users WHERE id = ?', [$id]);
         flash('success', 'Member deleted.');
         redirect('admin/drivers.php');

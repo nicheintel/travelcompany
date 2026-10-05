@@ -36,11 +36,20 @@ In File Manager, right-click **`public_html/config.local.php`** → **Edit**, an
 'admin_emails' => 'you@lamazonloads.com',
 'contact_email' => 'info@lamazonloads.com',
 'contact_phone' => '678-666-4334',
+'smtp_user' => 'info@lamazonloads.com',
+'smtp_pass' => 'your-email-password',    // the password of the info@ mailbox (step 4b)
 ```
 Save.
 
 **`admin_emails` matters:** only the emails listed there become admins when they sign up.
 Several people: `'you@lamazonloads.com, partner@lamazonloads.com'`.
+
+### 4b. Email for the live chat
+The Chat button emails you when someone writes, and emails people your reply if they've left the site.
+1. hPanel → **Emails** → make sure the mailbox **info@lamazonloads.com** exists (create it if not) and note its password.
+2. Put that password in `config.local.php` as `smtp_pass` (and `smtp_user` = `info@lamazonloads.com`).
+Chat alerts go to `contact_email`. Without the password the site still tries to send with PHP's built-in mail,
+but those emails often land in spam.
 
 ## 5. Turn on SSL (https)
 hPanel → **Security → SSL** → make sure lamazonloads.com has an active (free) certificate.
@@ -60,7 +69,8 @@ These two addresses must show **403 Forbidden** (not a download):
 - **Updating later:** upload only the changed files, or upload a new zip and extract it over the old files.
   Never overwrite `config.local.php` or delete the `uploads` folder (drivers' documents are there).
 - **Backups:** hPanel → Files → Backups (database + files). Download one now and then.
-- **Contact form messages** appear in **Admin → Messages** (no email alert yet).
+- **Live chat:** answer in **Admin → Support chats**. While that page is open, visitors see "Online now".
+- **Contact form messages** appear in **Admin → Messages** (no email alert).
 - **Google:** in Google Search Console, add lamazonloads.com and submit `https://lamazonloads.com/sitemap.php`.
 - **"Can't connect to the database"** after step 6 means a typo in `config.local.php`: check the
   full `u123456789_…` names and the password.

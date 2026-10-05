@@ -12,6 +12,8 @@ require __DIR__ . '/config.php';
 require __DIR__ . '/helpers.php';
 require __DIR__ . '/db.php';
 require __DIR__ . '/auth.php';
+require __DIR__ . '/mail.php';
+require __DIR__ . '/chat.php';
 require __DIR__ . '/layout.php';
 
 if (PHP_SAPI !== 'cli') {

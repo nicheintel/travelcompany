@@ -37,7 +37,7 @@ if (is_post()) {
     }
 }
 
-page_header('Create your account');
+page_header('Create your account', '', '', 'page-auth');
 ?>
 <div class="auth-wrap">
   <aside class="auth-side">

@@ -21,6 +21,8 @@ The tables and four starter job posts are created automatically on the first vis
 | `services.php`, `drivers.php`, `about.php` | Services, Drive with us (onboarding checklist), company story & motto |
 | `careers.php`, `job.php` | Job posts with category filter; job details and one-click apply. `job.php?id=0` is the always-open "Join the driver network" application |
 | `contact.php` | Contact form (messages land in Admin → Messages) |
+| `privacy.php` | Privacy policy |
+| Chat button | Live chat on every page (not for staff): `chat.php` + `assets/chat.js`, engine in `includes/chat.php`. Staff answer in `admin/chats.php` (Support chats). Emails via `includes/mail.php` |
 | `register.php`, `login.php` | Sign up (name, email, phone, owner-operator / driver / dispatcher) and sign in |
 | `account.php` | Member dashboard: onboarding progress and application status |
 | `profile.php` | Driver profile: equipment, vehicle, ZIP code, availability, MC / DOT, insurance |
@@ -38,6 +40,7 @@ The tables and four starter job posts are created automatically on the first vis
 | `admin_emails` | Emails that become admins when they sign up |
 | `db_host`, `db_name`, `db_user`, `db_pass` | Database login from hPanel → Databases |
 | `max_upload_mb` | Biggest document upload (default 8 MB) |
+| `smtp_user`, `smtp_pass` | Hostinger mailbox for chat emails (`smtp_host` smtp.hostinger.com, port 465 by default). `support_email` = where chat alerts go (default `contact_email`) |
 
 ## Security
 
