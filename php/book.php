@@ -185,15 +185,20 @@ parse_str($quote['query'], $qp);
                         <?php if ($infant): ?><span class="text-slate-500"><?= e(t('Not included for infants')) ?></span>
                         <?php elseif (!empty($bag['checked'])): ?><span class="font-semibold text-emerald-700">✓ <?= e(t('Included')) ?></span>
                         <?php else: ?>
-                          <div class="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-                            <?php if ($bag): ?><span class="font-semibold text-accent-600"><?= e(t('No free checked bag')) ?></span><?php endif; ?>
-                            <label class="relative inline-flex cursor-pointer select-none items-center rounded-lg border border-brand-300 bg-white text-sm font-semibold text-brand-700 hover:bg-brand-50 has-[:checked]:border-brand-600 has-[:checked]:bg-brand-600 has-[:checked]:text-white has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand-300">
-                              <input type="checkbox" name="t<?= $i ?>_bag" value="1"<?= !empty($values["t{$i}_bag"]) ? ' checked' : '' ?> class="peer sr-only" aria-label="<?= e(t('Add a checked bag for {traveler}', ['traveler' => slot_label($slot['label'])])) ?>">
-                              <span class="px-3 py-1.5 peer-checked:hidden">＋ <?= e(t('Add checked bag')) ?></span>
-                              <span class="hidden px-3 py-1.5 peer-checked:inline">✓ <?= e(t('Checked bag added')) ?></span>
-                            </label>
+                          <div class="group/bag">
+                            <div class="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+                              <span class="font-semibold text-accent-600 group-has-[:checked]/bag:hidden"><?= e($bag ? t('No free checked bag') : t('Not confirmed yet')) ?></span>
+                              <span class="hidden font-semibold text-brand-700 group-has-[:checked]/bag:inline">✓ <?= e(t('Checked bag requested')) ?></span>
+                              <label class="relative inline-flex cursor-pointer select-none items-center rounded-lg border border-brand-300 bg-white text-sm font-semibold text-brand-700 hover:bg-brand-50 has-[:checked]:border-slate-300 has-[:checked]:text-slate-600 has-[:checked]:hover:bg-slate-50 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand-300">
+                                <input type="checkbox" name="t<?= $i ?>_bag" value="1"<?= !empty($values["t{$i}_bag"]) ? ' checked' : '' ?> class="peer sr-only" data-bag-toggle aria-label="<?= e(t('Add a checked bag for {traveler}', ['traveler' => slot_label($slot['label'])])) ?>">
+                                <span class="px-3 py-1.5 peer-checked:hidden">＋ <?= e(t('Add checked bag')) ?></span>
+                                <span class="hidden px-3 py-1.5 peer-checked:inline"><?= e(t('Remove')) ?></span>
+                              </label>
+                            </div>
+                            <?php $from = isset($bag['checked_from']) ? price((int) ceil($bag['checked_from'])) : null; ?>
+                            <span class="mt-1 block text-xs text-slate-500 group-has-[:checked]/bag:hidden"><?= e($from ? t('Airline price from {price} if you add one', ['price' => $from]) : t("Add one and we'll confirm the airline's price")) ?></span>
+                            <span class="mt-1 hidden text-xs text-slate-600 group-has-[:checked]/bag:block"><?= e($from ? t("We'll confirm the airline's price (from {price}) and add it to your total before you pay.", ['price' => $from]) : t("We'll confirm the airline's price and add it to your total before you pay.")) ?></span>
                           </div>
-                          <span class="mt-1 block text-xs text-slate-500"><?= e(isset($bag['checked_from']) ? t('Airline price from {price} — confirmed before you pay', ['price' => price((int) ceil($bag['checked_from']))]) : t('Airline price confirmed before you pay')) ?></span>
                         <?php endif; ?>
                       </td>
                     </tr>

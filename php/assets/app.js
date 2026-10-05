@@ -354,6 +354,20 @@
     });
   }
 
+  // Booking page: the trip summary's "Checked bag" line follows the Add checked bag buttons.
+  function initBagSummary() {
+    const toggles = $$("[data-bag-toggle]");
+    const summary = $("[data-bag-summary]");
+    if (!toggles.length || !summary) return;
+    const sync = () => {
+      const any = toggles.some((t) => t.checked);
+      $("[data-bag-none]", summary).hidden = any;
+      $("[data-bag-requested]", summary).hidden = !any;
+    };
+    toggles.forEach((t) => t.addEventListener("change", sync));
+    sync();
+  }
+
   document.addEventListener("DOMContentLoaded", () => {
     // Default photos from another website: if one can't load, show the colour background instead.
     $$("img[data-fallback]").forEach((img) => {
@@ -373,5 +387,6 @@
     $$("[data-tabs]").forEach(initTabs);
     initMenus();
     initForms();
+    initBagSummary();
   });
 })();

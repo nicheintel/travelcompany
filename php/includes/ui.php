@@ -244,7 +244,8 @@ function trip_summary(array $q): string
             . ($from !== null ? '<span class="block text-xs text-slate-500">' . e(t('from {price}', ['price' => price((int) ceil($from))])) . '</span>' : '');
         $html .= '<div class="border-b border-slate-100 p-5 text-sm"><h3 class="mb-2.5 text-xs font-semibold uppercase tracking-wide text-slate-500">' . e(t('Baggage')) . '</h3><dl class="space-y-2.5">'
             . summary_row(e(t('Carry-on bag')), $b['carry_on'] ? $yes() : $no(null))
-            . summary_row(e(t('Checked bag')), $b['checked'] ? $yes() : $no($b['checked_from'] ?? null))
+            . summary_row(e(t('Checked bag')), $b['checked'] ? $yes() : '<span data-bag-summary><span data-bag-none>' . $no($b['checked_from'] ?? null) . '</span>'
+                . '<span data-bag-requested hidden><span class="font-medium text-brand-700">' . e(t('Requested')) . '</span><span class="block text-xs text-slate-500">' . e(t('Price confirmed before you pay')) . '</span></span></span>')
             . '</dl></div>';
     }
     if (!empty($q['policy'])) {
