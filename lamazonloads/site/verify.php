@@ -7,7 +7,7 @@ require __DIR__ . '/includes/bootstrap.php';
 // 1. The link from the email
 if (isset($_GET['t'])) {
     $raw = (string) $_GET['t'];
-    $row = preg_match('/^[a-f0-9]{64}$/', $raw) ? db_one('SELECT * FROM users WHERE verify_token = ?', [hash('sha256', $raw)]) : null;
+    $row = preg_match('/^[a-f0-9]{64}$/', $raw) ? db_one('SELECT *, verify_expires < NOW() AS expired FROM users WHERE verify_token = ?', [hash('sha256', $raw)]) : null;
     if (!$row) {
         $me = current_user();
         if ($me && is_verified($me)) {
@@ -17,7 +17,7 @@ if (isset($_GET['t'])) {
         flash('error', 'That confirmation link is not valid any more. Send yourself a new one below.');
         redirect($me ? 'verify.php' : 'login.php?next=verify.php');
     }
-    if (strtotime((string) $row['verify_expires']) < time()) {
+    if ((int) $row['expired']) { // compared in the database, so time zones can't get mixed up
         flash('error', 'That confirmation link has expired. Send yourself a new one below.');
         redirect(current_user() ? 'verify.php' : 'login.php?next=verify.php');
     }
@@ -46,7 +46,7 @@ $errors = [];
 if (is_post()) {
     csrf_check();
     $action = $_POST['action'] ?? 'resend';
-    $wait = $u['verify_sent_at'] ? 60 - (time() - (int) strtotime((string) $u['verify_sent_at'])) : 0;
+    $wait = 60 - (int) db_val('SELECT COALESCE(TIMESTAMPDIFF(SECOND, verify_sent_at, NOW()), 999) FROM users WHERE id = ?', [$u['id']]);
     if ($wait > 0) {
         $errors[] = "We just sent an email. Please wait $wait seconds before sending another one.";
     } elseif (rate_limited('verify', 'u' . $u['id'], 6, 86400)) {

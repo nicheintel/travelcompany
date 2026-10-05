@@ -24,6 +24,8 @@ function db(): PDO
         error_log('[db] ' . $err->getMessage());
         setup_needed();
     }
+    // Same clock as PHP (America/New_York, with daylight saving), so NOW() and date() always agree
+    $pdo->exec("SET time_zone = '" . (new DateTime())->format('P') . "'");
     migrate($pdo);
     return $pdo;
 }
