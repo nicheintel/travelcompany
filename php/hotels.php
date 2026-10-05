@@ -6,6 +6,7 @@ $s = $p['search'];
 $result = $s ? search_hotels($s) : null;
 $hotels = $result['items'] ?? [];
 $popular = ['CDG', 'NRT', 'DPS', 'BKK', 'LHR', 'CUN', 'DXB', 'CEB'];
+$description = 'Find hotels worldwide at live rates and book them with help from a real travel assistant.';
 $title = $s ? "Hotels in {$s['city']['city']}" : 'Hotels';
 require __DIR__ . '/includes/header.php';
 ?>

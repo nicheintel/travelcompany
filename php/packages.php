@@ -4,6 +4,7 @@ require __DIR__ . '/includes/bootstrap.php';
 $to = airport(param('to'));
 $all = active_packages();
 $shown = $to ? array_values(array_filter($all, fn($p) => $p['to_code'] === $to['code'])) : $all;
+$description = 'Flight + Hotel promo packages put together by FareFinders travel assistants — one booking, one price per person.';
 $title = 'Promo packages — Flight + Hotel';
 require __DIR__ . '/includes/header.php';
 ?>

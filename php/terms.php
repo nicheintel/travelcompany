@@ -4,6 +4,7 @@ require __DIR__ . '/includes/bootstrap.php';
 $site = e((string) config('site_name'));
 $who = business_identity();
 $mail = contact_email_link();
+$description = 'The terms for using FareFinders and booking flights, hotels and packages with us.';
 $title = 'Terms of use';
 require __DIR__ . '/includes/header.php';
 echo legal_page('Terms of use', "These terms apply when you use the $site website and when you book travel through us. Please read them before booking — by creating an account or making a reservation you agree to them.", 'October 5, 2026', [

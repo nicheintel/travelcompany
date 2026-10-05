@@ -2,6 +2,7 @@
 require __DIR__ . '/includes/bootstrap.php';
 
 $contacts = support_contacts();
+$description = 'Answers about booking flights, hotels and packages with FareFinders: payment, tickets, changes, refunds and how to reach our travel assistants.';
 $title = 'Help center';
 require __DIR__ . '/includes/header.php';
 ?>

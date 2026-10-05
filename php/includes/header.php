@@ -13,9 +13,24 @@ $flashMessage = take_flash();
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title><?= e(isset($title) ? "$title | $site" : "$site — Cheap flights, hotels & holiday packages") ?></title>
-  <meta name="description" content="Your travel assistant for affordable flights, hotels and holiday packages">
-  <?php if (!empty($noindex)): ?><meta name="robots" content="noindex, nofollow"><?php endif; ?>
+  <?php
+  $pageTitle = isset($title) ? "$title | $site" : "$site — Cheap flights, hotels & holiday packages";
+  $pageDescription = $description ?? 'Your travel assistant for affordable flights, hotels and Flight + Hotel packages. Real airline and hotel prices, booked with help from real travel assistants.';
+  $script = basename((string) ($_SERVER['SCRIPT_NAME'] ?? ''));
+  $canonical = app_url_or_local() . '/' . ($script === 'index.php' ? '' : $script);
+  ?>
+  <title><?= e($pageTitle) ?></title>
+  <meta name="description" content="<?= e($pageDescription) ?>">
+  <?php if (!empty($noindex) || ($_GET && in_array($script, ['flights.php', 'hotels.php'], true))): ?>
+    <meta name="robots" content="noindex, nofollow">
+  <?php else: ?>
+    <link rel="canonical" href="<?= e($canonical) ?>">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="<?= e($site) ?>">
+    <meta property="og:title" content="<?= e($pageTitle) ?>">
+    <meta property="og:description" content="<?= e($pageDescription) ?>">
+    <meta property="og:url" content="<?= e($canonical) ?>">
+  <?php endif; ?>
   <?php if (!empty($noReferrer)): ?><meta name="referrer" content="no-referrer"><?php endif; ?>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

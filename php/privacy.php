@@ -4,6 +4,7 @@ require __DIR__ . '/includes/bootstrap.php';
 $site = e((string) config('site_name'));
 $who = business_identity();
 $mail = contact_email_link();
+$description = 'How FareFinders collects, uses and protects your personal information.';
 $title = 'Privacy policy';
 require __DIR__ . '/includes/header.php';
 echo legal_page('Privacy policy', "This policy explains what personal information $site collects when you use our website and book travel with us, why we need it, who we share it with and the choices you have.", 'October 5, 2026', [

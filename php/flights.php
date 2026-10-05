@@ -27,6 +27,7 @@ if ($offers) {
     $priceMax = max(array_column($offers, 'total'));
 }
 $popular = [['JFK', 'LHR'], ['LAX', 'NRT'], ['JFK', 'CUN'], ['SFO', 'MNL'], ['MIA', 'BCN'], ['ORD', 'DXB']];
+$description = 'Compare live fares from airlines worldwide and book with help from a real travel assistant.';
 $title = $s ? "{$s['from']['city']} to {$s['to']['city']} flights" : 'Cheap flights';
 require __DIR__ . '/includes/header.php';
 ?>

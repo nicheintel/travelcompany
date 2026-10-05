@@ -2,6 +2,7 @@
 require __DIR__ . '/includes/bootstrap.php';
 
 $site = e((string) config('site_name'));
+$description = 'FareFinders uses one essential sign-in cookie and no tracking cookies.';
 $title = 'Cookie policy';
 require __DIR__ . '/includes/header.php';
 echo legal_page('Cookie policy', "$site uses as few cookies as possible: just one, to keep you signed in. We don't use advertising, analytics or tracking cookies, so there's nothing to accept or reject.", 'October 5, 2026', [

@@ -5,3 +5,4 @@ Disallow: /trip.php
 Disallow: /book.php
 Disallow: /settings.php
 Disallow: /verify-email.php
+Sitemap: https://farefinders.net/sitemap.php
