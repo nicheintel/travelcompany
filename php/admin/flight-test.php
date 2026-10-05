@@ -7,6 +7,7 @@ $date = add_days(today(), 30);
 $body = (string) ($_POST['body'] ?? json_encode([
     'legs' => [['origin' => 'MNL', 'destination' => 'CEB', 'date' => $date]],
     'adults' => 1,
+    'currency' => 'USD',
 ], JSON_PRETTY_PRINT));
 $result = null;
 if (is_post()) {
