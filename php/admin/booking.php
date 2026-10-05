@@ -62,6 +62,14 @@ if (is_post()) {
         elseif (!preg_match('/^[A-Z0-9][A-Z0-9 ,\/-]{1,98}$/', $code)) $error = 'Enter the confirmation code from the airline or hotel (letters and numbers, e.g. ABC123).';
         elseif (!mark_ticketed($ref, $admin['id'], $code, $note, $boughtFrom, $boughtCost)) $error = 'Only paid bookings can be marked as ticketed.';
         else { notify_booking('ticketed', $ref); flash("Saved. {$booking['contact_email']} has been emailed the confirmation $code."); redirect($self); }
+    } elseif ($action === 'delete') {
+        if (strtoupper(post('confirm_ref')) !== $ref) $error = "To delete, type the reference $ref exactly.";
+        elseif (!delete_booking($ref)) $error = 'This booking was already deleted.';
+        else {
+            error_log("[admin] booking $ref deleted by admin #{$admin['id']}");
+            flash("Booking $ref was deleted.");
+            redirect(url('admin/bookings.php'));
+        }
     } elseif ($action === 'cancel') {
         $reason = post('reason');
         if (mb_strlen($reason) < 3) $error = "Please give a reason (it's saved in the activity log).";
@@ -236,6 +244,16 @@ echo admin_open('bookings');
         </section>
       <?php endif; ?>
       <?= trip_summary($q) ?>
+      <details class="rounded-xl border border-red-200 bg-white p-5"<?= str_contains((string) $error, 'To delete') ? ' open' : '' ?>>
+        <summary class="cursor-pointer font-semibold text-red-700">Delete booking</summary>
+        <p class="mt-2 text-sm text-slate-600">Permanently removes this booking and its activity log — use it for test or duplicate bookings.
+          <?= in_array($booking['status'], ['paid', 'ticketed'], true) ? '<strong class="text-red-700">This booking was paid.</strong> Deleting it removes it from your records; the payment itself stays in PayPal and is not refunded.' : 'The customer is not emailed.' ?></p>
+        <form method="post" class="mt-3 space-y-2" data-confirm="Delete <?= e($ref) ?> permanently? This can't be undone."><?= csrf_field() ?><input type="hidden" name="action" value="delete">
+          <label class="block text-xs font-medium text-slate-500">Type <span class="font-mono font-semibold text-slate-700"><?= e($ref) ?></span> to confirm
+            <input name="confirm_ref" autocomplete="off" spellcheck="false" class="<?= $input ?> mt-1 font-mono uppercase"></label>
+          <button type="submit" class="w-full rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700">Delete permanently</button>
+        </form>
+      </details>
     </aside>
   </div>
 </div>

@@ -53,7 +53,7 @@ function create_booking(int $userId, array $quote, array $travelers, string $ema
     $alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
     $bags = count(array_filter($travelers, fn($t) => !empty($t['extra_bag'])));
     for ($attempt = 0; $attempt < 5; $attempt++) {
-        $ref = 'TC-';
+        $ref = 'FF-'; // FareFinders (older bookings start with TC-)
         for ($i = 0; $i < 6; $i++) $ref .= $alphabet[random_int(0, strlen($alphabet) - 1)];
         try {
             db_run(
@@ -235,4 +235,10 @@ function settle_bag_request(string $ref, ?int $amount, int $adminId, bool $alrea
         [$amount, json_encode($quote, JSON_UNESCAPED_UNICODE), $ref]);
     add_event($ref, $adminId, 'note', 'Added ' . plural($bags, 'checked bag') . ' for ' . money($amount) . '. New total ' . money($quote['total']) . '.');
     return true;
+}
+
+/** Admin: permanently removes a booking and its activity log. */
+function delete_booking(string $ref): bool
+{
+    return db_run('DELETE FROM bookings WHERE reference = ?', [$ref]) > 0;
 }
