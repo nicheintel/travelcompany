@@ -230,7 +230,7 @@ function trip_summary(array $q): string
 
 function status_badge(string $status): string
 {
-    $map = ['reserved' => ['bg-amber-100 text-amber-800', 'Unpaid'], 'paid' => ['bg-emerald-100 text-emerald-800', 'Paid'], 'cancelled' => ['bg-slate-200 text-slate-600', 'Cancelled']];
+    $map = ['reserved' => ['bg-amber-100 text-amber-800', 'Unpaid'], 'paid' => ['bg-red-100 text-red-700', 'Paid · to ticket'], 'ticketed' => ['bg-emerald-100 text-emerald-800', 'Ticketed'], 'cancelled' => ['bg-slate-200 text-slate-600', 'Cancelled']];
     [$cls, $label] = $map[$status] ?? $map['reserved'];
     return '<span class="inline-block rounded-full px-2.5 py-0.5 text-xs font-bold ' . $cls . '">' . $label . '</span>';
 }
@@ -322,7 +322,8 @@ function trip_card(array $b): string
     $icons = ['flight' => 'plane', 'package' => 'package', 'hotel' => 'bed'];
     $q = $b['quote'];
     [$cls, $label] = match ($b['status']) {
-        'paid' => ['text-emerald-700', 'Paid'],
+        'paid' => ['text-emerald-700', 'Paid · issuing tickets'],
+        'ticketed' => ['text-emerald-700', 'Confirmed'],
         'cancelled' => ['text-slate-500', 'Cancelled'],
         default => ['text-amber-700', 'Reserved · unpaid'],
     };

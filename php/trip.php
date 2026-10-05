@@ -79,7 +79,7 @@ $check = '<span class="grid h-10 w-10 shrink-0 place-items-center rounded-full b
   <?php endif; ?>
   <?php if ($justPaid): ?>
     <div class="mb-6 flex items-start gap-4 rounded-2xl bg-emerald-50 p-5 ring-1 ring-emerald-200"><?= $check ?>
-      <div><p class="text-lg font-semibold text-emerald-900">Payment received — you're all set!</p><p class="mt-1 text-sm text-emerald-800">We've emailed your receipt to <?= e($booking['contact_email']) ?>.</p></div>
+      <div><p class="text-lg font-semibold text-emerald-900">Payment received — thank you!</p><p class="mt-1 text-sm text-emerald-800">We've emailed your receipt to <?= e($booking['contact_email']) ?>. A travel assistant is now issuing your <?= $booking['kind'] === 'hotel' ? 'room booking' : 'tickets' ?> — you'll get your confirmation code by email, usually within a few hours.</p></div>
     </div>
   <?php endif; ?>
   <?php if (($_GET['payment'] ?? '') === 'error' && $status === 'reserved'): ?>
@@ -92,13 +92,32 @@ $check = '<span class="grid h-10 w-10 shrink-0 place-items-center rounded-full b
 
   <div class="flex flex-wrap items-center gap-3">
     <h1 class="text-3xl font-bold text-slate-900">Trip <?= e($ref) ?></h1>
-    <span class="rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wide <?= $status === 'cancelled' ? 'bg-slate-200 text-slate-600' : ($status === 'paid' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800') ?>">
-      <?= $status === 'cancelled' ? 'Cancelled' : ($status === 'paid' ? 'Paid · confirmed' : 'Reserved · awaiting payment') ?></span>
+    <?php [$badgeCls, $badgeText] = match ($status) {
+        'cancelled' => ['bg-slate-200 text-slate-600', 'Cancelled'],
+        'ticketed' => ['bg-emerald-100 text-emerald-800', 'Confirmed · ' . ($booking['kind'] === 'hotel' ? 'booked' : 'ticket issued')],
+        'paid' => ['bg-sky-100 text-sky-800', 'Paid · ' . ($booking['kind'] === 'hotel' ? 'booking your room' : 'issuing tickets')],
+        default => ['bg-amber-100 text-amber-800', 'Reserved · awaiting payment'],
+    }; ?>
+    <span class="rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wide <?= $badgeCls ?>"><?= e($badgeText) ?></span>
   </div>
-  <p class="mt-1 text-sm text-slate-500">Booked <?= local_time($booking['created_at'], true) ?><?= $booking['paid_at'] ? ' · Paid ' . local_time($booking['paid_at'], true) : '' ?><?= $booking['cancelled_at'] ? ' · Cancelled ' . local_time($booking['cancelled_at'], true) : '' ?></p>
+  <p class="mt-1 text-sm text-slate-500">Booked <?= local_time($booking['created_at'], true) ?><?= $booking['paid_at'] ? ' · Paid ' . local_time($booking['paid_at'], true) : '' ?><?= $booking['ticketed_at'] ? ' · Confirmed ' . local_time($booking['ticketed_at'], true) : '' ?><?= $booking['cancelled_at'] ? ' · Cancelled ' . local_time($booking['cancelled_at'], true) : '' ?></p>
 
   <div class="mt-8 grid gap-8 lg:grid-cols-[1fr_380px]">
     <div class="space-y-6">
+      <?php if ($status === 'ticketed'): ?>
+        <section class="rounded-2xl border-2 border-emerald-300 bg-emerald-50 p-6">
+          <h2 class="text-lg font-semibold text-emerald-900"><?= $booking['kind'] === 'hotel' ? 'Your room is booked' : 'Your ticket is issued' ?></h2>
+          <p class="mt-3 text-sm text-emerald-800"><?= e(['flight' => 'Airline booking code', 'hotel' => 'Hotel confirmation number', 'package' => 'Booking code'][$booking['kind']]) ?></p>
+          <p class="font-mono text-3xl font-extrabold tracking-wider text-emerald-950"><?= e((string) $booking['supplier_ref']) ?></p>
+          <?php if ($booking['ticket_note']): ?><p class="mt-4 whitespace-pre-line text-sm text-emerald-900"><?= e($booking['ticket_note']) ?></p><?php endif; ?>
+          <p class="mt-4 text-xs text-emerald-800"><?= $booking['kind'] === 'hotel' ? 'Show this number at check-in.' : 'Use this code to check in and manage your booking on the airline\'s website.' ?></p>
+        </section>
+      <?php elseif ($status === 'paid'): ?>
+        <section class="rounded-2xl border border-sky-200 bg-sky-50 p-6">
+          <h2 class="text-lg font-semibold text-sky-900">Payment received — we're issuing your <?= $booking['kind'] === 'hotel' ? 'room booking' : 'tickets' ?></h2>
+          <p class="mt-1 text-sm text-sky-800">A travel assistant is confirming your trip with the <?= $booking['kind'] === 'hotel' ? 'hotel' : 'airline' ?>. You'll get an email with your confirmation code, usually within a few hours. It will also appear right here.</p>
+        </section>
+      <?php endif; ?>
       <section class="rounded-2xl border border-slate-200 bg-white p-6">
         <h2 class="text-lg font-semibold text-slate-900">Travelers</h2>
         <ul class="mt-4 divide-y divide-slate-100">
@@ -126,7 +145,7 @@ $check = '<span class="grid h-10 w-10 shrink-0 place-items-center rounded-full b
           </form>
         </section>
       <?php endif; ?>
-      <?php if ($status === 'paid'): ?>
+      <?php if ($status === 'paid' || $status === 'ticketed'): ?>
         <section class="rounded-2xl border border-slate-200 bg-white p-6">
           <h2 class="text-lg font-semibold text-slate-900">Need to change plans?</h2>
           <p class="mt-1 text-sm text-slate-600">Your trip is paid. To change or cancel it, contact our travel assistants with your reference <?= e($ref) ?> — refunds depend on the fare and hotel rules.</p>

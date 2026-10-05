@@ -22,7 +22,7 @@ echo admin_open('bookings');
     <label class="flex min-w-64 flex-1 flex-col gap-1 text-xs font-medium text-slate-500">Search
       <input name="q" value="<?= e($f['q']) ?>" placeholder="Reference, name, email, phone or traveler" class="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900"></label>
     <label class="flex flex-col gap-1 text-xs font-medium text-slate-500">Status
-      <select name="status" class="<?= $select ?>"><?php foreach (['' => 'All', 'reserved' => 'Unpaid', 'paid' => 'Paid', 'cancelled' => 'Cancelled'] as $v => $l): ?><option value="<?= $v ?>"<?= $f['status'] === $v ? ' selected' : '' ?>><?= $l ?></option><?php endforeach; ?></select></label>
+      <select name="status" class="<?= $select ?>"><?php foreach (['' => 'All', 'reserved' => 'Unpaid', 'paid' => 'Paid · to ticket', 'ticketed' => 'Ticketed', 'cancelled' => 'Cancelled'] as $v => $l): ?><option value="<?= $v ?>"<?= $f['status'] === $v ? ' selected' : '' ?>><?= $l ?></option><?php endforeach; ?></select></label>
     <label class="flex flex-col gap-1 text-xs font-medium text-slate-500">Type
       <select name="kind" class="<?= $select ?>"><?php foreach (['' => 'All', 'flight' => 'Flights', 'hotel' => 'Hotels', 'package' => 'Packages'] as $v => $l): ?><option value="<?= $v ?>"<?= $f['kind'] === $v ? ' selected' : '' ?>><?= $l ?></option><?php endforeach; ?></select></label>
     <button type="submit" class="rounded-lg bg-brand-600 px-5 py-2 text-sm font-semibold text-white hover:bg-brand-700">Filter</button>

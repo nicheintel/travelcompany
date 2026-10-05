@@ -4,6 +4,7 @@ require dirname(__DIR__) . '/includes/bootstrap.php';
 $admin = require_admin();
 $stats = admin_stats();
 $attention = admin_needs_attention();
+$toTicket = admin_needs_ticket();
 $recent = admin_search_bookings([], 1, 10)['bookings'];
 $title = 'Admin';
 $noindex = true;
@@ -18,9 +19,16 @@ echo admin_open('overview');
   <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
     <?= $stat('Awaiting payment', (string) $stats['awaiting'], url('admin/bookings.php', ['status' => 'reserved']), money($stats['awaiting_total']) . ' in upcoming unpaid trips') ?>
     <?= $stat('Bookings (7 days)', (string) $stats['bookings_7d'], url('admin/bookings.php')) ?>
-    <?= $stat('Revenue (30 days)', money($stats['revenue_30d']), url('admin/bookings.php', ['status' => 'paid']), 'Paid bookings') ?>
+    <?= $stat('Revenue (30 days)', money($stats['revenue_30d']), url('admin/bookings.php', ['status' => 'ticketed']), 'Paid bookings') ?>
     <?= $stat('New members (7 days)', (string) $stats['users_7d'], url('admin/users.php')) ?>
   </div>
+  <?php if ($toTicket): ?>
+    <section class="rounded-2xl border-2 border-red-300 bg-red-50 p-5">
+      <div class="mb-3"><h2 class="text-lg font-bold text-red-800">Paid — issue the tickets now (<?= count($toTicket) ?>)</h2>
+        <p class="text-sm text-red-700">These customers have paid. Buy the flight or room from the supplier, then open the booking and click <strong>Mark as ticketed</strong> — the customer gets their confirmation by email.</p></div>
+      <?= bookings_table($toTicket, '') ?>
+    </section>
+  <?php endif; ?>
   <section>
     <div class="mb-3"><h2 class="text-lg font-semibold text-slate-900">Needs a call (<?= count($attention) ?>)</h2>
       <p class="text-sm text-slate-500">Unpaid trips departing within 14 days, or reserved more than 24 hours ago — soonest departure first.</p></div>

@@ -81,7 +81,7 @@ function simple_email(string $subject, string $heading, string $firstName, array
 {
     $site = config('site_name');
     $text = "Hi $firstName,\n\n" . implode("\n\n", $paragraphs) . ($rows ? "\n\n" . rows_text($rows) : '') . "\n\n$button: $link\n\n— The $site team";
-    $html = email_p('Hi ' . e($firstName) . ',') . implode('', array_map(fn($p) => email_p(e($p)), $paragraphs)) . ($rows ? rows_html($rows) : '') . email_button($link, $button);
+    $html = email_p('Hi ' . e($firstName) . ',') . implode('', array_map(fn($p) => email_p(nl2br(e($p))), $paragraphs)) . ($rows ? rows_html($rows) : '') . email_button($link, $button);
     return ['subject' => $subject, 'text' => $text, 'html' => email_layout($heading, $html)];
 }
 
@@ -104,9 +104,23 @@ function notify_booking(string $event, string $reference): void
                 : simple_email("Trip reserved: $title", 'Your trip is reserved!', $first, [
                     'A travel assistant will contact you within 24 hours to confirm availability and arrange payment.',
                 ], $rows, $link, 'View my trip'),
-            'paid' => simple_email("Payment received: $title", "Payment received — you're all set", $first, [
-                'Thanks — we\'ve received your payment of ' . money($b['total']) . '. Your trip is confirmed.',
+            'paid' => simple_email("Payment received: $title", 'Payment received — thank you!', $first, [
+                'Thanks — we\'ve received your payment of ' . money($b['total']) . '.',
+                'A travel assistant is now ' . ($b['kind'] === 'hotel' ? 'booking your room' : 'issuing your tickets') . '. You\'ll get another email with your confirmation code, usually within a few hours.',
             ], $rows, $link, 'View my trip'),
+            'ticketed' => simple_email(
+                ($b['kind'] === 'hotel' ? 'Room booked' : 'Ticket issued') . ": $title — code {$b['supplier_ref']}",
+                $b['kind'] === 'hotel' ? 'Your room is booked!' : 'Your ticket is issued!',
+                $first,
+                array_values(array_filter([
+                    ['flight' => 'Your airline booking code is ', 'hotel' => 'Your hotel confirmation number is ', 'package' => 'Your booking code is '][$b['kind']] . $b['supplier_ref'] . '.',
+                    $b['kind'] === 'hotel' ? 'Show it at check-in.' : 'Use it to check in and manage your booking on the airline\'s website.',
+                    (string) $b['ticket_note'],
+                ])),
+                ['Confirmation' => (string) $b['supplier_ref']] + $rows,
+                $link,
+                'View my trip',
+            ),
             'cancelled' => simple_email("Reservation cancelled: $title", 'Reservation cancelled', $first, [
                 'Your reservation has been cancelled. ' . ($b['paid_at']
                     ? 'Our team will contact you about your refund, which depends on the airline and hotel rules.'

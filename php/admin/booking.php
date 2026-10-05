@@ -32,6 +32,12 @@ if (is_post()) {
             flash("Payment link sent to {$booking['contact_email']}.");
             redirect($self);
         }
+    } elseif ($action === 'ticket') {
+        $code = mb_strtoupper(trim(post('code')));
+        $note = mb_substr(trim(post('ticket_note')), 0, 1000);
+        if (!preg_match('/^[A-Z0-9][A-Z0-9 ,\/-]{1,98}$/', $code)) $error = 'Enter the confirmation code from the airline or hotel (letters and numbers, e.g. ABC123).';
+        elseif (!mark_ticketed($ref, $admin['id'], $code, $note)) $error = 'Only paid bookings can be marked as ticketed.';
+        else { notify_booking('ticketed', $ref); flash("Saved. {$booking['contact_email']} has been emailed the confirmation $code."); redirect($self); }
     } elseif ($action === 'cancel') {
         $reason = post('reason');
         if (mb_strlen($reason) < 3) $error = "Please give a reason (it's saved in the activity log).";
@@ -45,7 +51,7 @@ $q = $booking['quote'];
 $title = $ref;
 $noindex = true;
 require dirname(__DIR__) . '/includes/header.php';
-$dot = ['created' => 'bg-brand-500', 'paid' => 'bg-emerald-500', 'cancelled' => 'bg-red-500', 'note' => 'bg-slate-400', 'email' => 'bg-accent-500'];
+$dot = ['created' => 'bg-brand-500', 'paid' => 'bg-emerald-500', 'ticketed' => 'bg-emerald-700', 'cancelled' => 'bg-red-500', 'note' => 'bg-slate-400', 'email' => 'bg-accent-500'];
 $input = 'w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900';
 echo admin_open('bookings');
 ?>
@@ -56,6 +62,7 @@ echo admin_open('bookings');
     <h1 class="font-mono text-2xl font-bold text-slate-900"><?= e($ref) ?></h1><?= status_badge($booking['status']) ?>
     <span class="text-sm text-slate-500">Booked <?= local_time($booking['created_at']) ?>
       <?= $booking['paid_at'] ? ' · Paid ' . local_time($booking['paid_at']) . ' (' . e($booking['payment_method']) . ')' : '' ?>
+      <?= $booking['ticketed_at'] ? ' · Ticketed ' . local_time($booking['ticketed_at']) : '' ?>
       <?= $booking['cancelled_at'] ? ' · Cancelled ' . local_time($booking['cancelled_at']) : '' ?></span>
   </div>
   <div class="grid gap-6 lg:grid-cols-[1fr_380px]">
@@ -118,12 +125,34 @@ echo admin_open('bookings');
           </form>
         </section>
       <?php endif; ?>
+      <?php if (in_array($booking['status'], ['paid', 'ticketed'], true)):
+          $codeLabel = ['flight' => 'Airline booking code (PNR)', 'hotel' => 'Hotel confirmation number', 'package' => 'Booking code(s)'][$booking['kind']];
+          $isPaid = $booking['status'] === 'paid'; ?>
+        <section class="rounded-xl border-2 bg-white p-5 <?= $isPaid ? 'border-red-300 ring-4 ring-red-100' : 'border-emerald-200' ?>">
+          <h2 class="font-semibold text-slate-900"><?= $isPaid ? 'Issue the ticket' : 'Ticket issued' ?></h2>
+          <?php if ($isPaid): ?>
+            <ol class="mb-3 mt-2 list-decimal space-y-1 pl-5 text-sm text-slate-600">
+              <li>Buy this <?= $booking['kind'] === 'hotel' ? 'room' : 'trip' ?> in the <?= ($q['supplier']['provider'] ?? '') === 'liteapi' ? 'LiteAPI' : (($q['supplier']['provider'] ?? '') === 'duffel' ? 'Duffel' : 'supplier') ?> dashboard for the travelers listed here.</li>
+              <li>Copy the confirmation code below and save — the customer is emailed straight away.</li>
+            </ol>
+          <?php else: ?>
+            <p class="mb-3 mt-1 text-sm text-slate-600">Confirmation <strong class="font-mono"><?= e($booking['supplier_ref']) ?></strong> was emailed to the customer. Fix a mistake below — they'll get the corrected details by email.</p>
+          <?php endif; ?>
+          <form method="post" class="space-y-3"><?= csrf_field() ?><input type="hidden" name="action" value="ticket">
+            <label class="block text-xs font-medium text-slate-500"><?= e($codeLabel) ?>
+              <input name="code" required maxlength="99" value="<?= e((string) ($booking['supplier_ref'] ?? '')) ?>" placeholder="e.g. ABC123" class="<?= $input ?> mt-1 font-mono uppercase"></label>
+            <label class="block text-xs font-medium text-slate-500">Message for the customer (optional)
+              <textarea name="ticket_note" rows="3" maxlength="1000" placeholder="e.g. E-ticket numbers 075-1234567890. Check in online 24 hours before departure. 1 checked bag included." class="<?= $input ?> mt-1"><?= e((string) ($booking['ticket_note'] ?? '')) ?></textarea></label>
+            <button type="submit" class="w-full rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700"><?= $isPaid ? 'Mark as ticketed &amp; email customer' : 'Save &amp; email corrected details' ?></button>
+          </form>
+        </section>
+      <?php endif; ?>
       <?php if ($booking['status'] !== 'cancelled'): ?>
         <section class="rounded-xl border border-slate-200 bg-white p-5">
           <h2 class="mb-3 font-semibold text-slate-900">Cancel booking</h2>
           <form method="post" class="space-y-3" data-confirm="Cancel <?= e($ref) ?>? The customer will be emailed."><?= csrf_field() ?><input type="hidden" name="action" value="cancel">
             <label class="block text-xs font-medium text-slate-500">Reason<input name="reason" maxlength="300" placeholder="e.g. Customer asked to cancel by phone" class="<?= $input ?> mt-1"></label>
-            <?php if ($booking['status'] === 'paid'): ?><p class="text-xs text-amber-700">This trip is paid. Cancelling doesn't refund automatically — issue the refund in PayPal, Stripe or your bank.</p><?php endif; ?>
+            <?php if ($booking['status'] !== 'reserved'): ?><p class="text-xs text-amber-700">This trip is paid. Cancelling doesn't refund automatically — issue the refund in PayPal, Stripe or your bank.</p><?php endif; ?>
             <button type="submit" class="w-full rounded-lg px-4 py-2 text-sm font-semibold text-red-600 ring-1 ring-red-200 hover:bg-red-50">Cancel booking</button>
           </form>
         </section>

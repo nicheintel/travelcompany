@@ -10,6 +10,7 @@ function to_booking(array $r): array
         'contact_email' => $r['contact_email'], 'contact_phone' => $r['contact_phone'], 'total' => (int) $r['total'],
         'start_date' => $r['start_date'], 'created_at' => $r['created_at'], 'paid_at' => $r['paid_at'],
         'cancelled_at' => $r['cancelled_at'], 'payment_method' => $r['payment_method'],
+        'ticketed_at' => $r['ticketed_at'] ?? null, 'supplier_ref' => $r['supplier_ref'] ?? null, 'ticket_note' => $r['ticket_note'] ?? null,
         'customer_name' => $r['customer_name'] ?? null, 'customer_email' => $r['customer_email'] ?? null,
     ];
 }
@@ -100,7 +101,7 @@ function admin_search_bookings(array $f, int $page = 1, int $perPage = 50): arra
         $where[] = '(LOWER(b.reference) LIKE ? OR LOWER(u.name) LIKE ? OR u.email LIKE ? OR b.contact_email LIKE ? OR LOWER(b.travelers_json) LIKE ? OR b.contact_phone LIKE ?)';
         array_push($args, $like, $like, $like, $like, $like, $like);
     }
-    if (in_array($f['status'] ?? '', ['reserved', 'paid', 'cancelled'], true)) {
+    if (in_array($f['status'] ?? '', ['reserved', 'paid', 'ticketed', 'cancelled'], true)) {
         $where[] = 'b.status = ?';
         $args[] = $f['status'];
     }
@@ -124,9 +125,32 @@ function admin_stats(): array
         'awaiting' => (int) $awaiting['n'],
         'awaiting_total' => (int) $awaiting['total'],
         'bookings_7d' => (int) db_one('SELECT COUNT(*) n FROM bookings WHERE created_at >= ?', [gmdate('Y-m-d H:i:s', time() - 7 * 86400)])['n'],
-        'revenue_30d' => (int) db_one("SELECT COALESCE(SUM(total), 0) t FROM bookings WHERE status = 'paid' AND paid_at >= ?", [gmdate('Y-m-d H:i:s', time() - 30 * 86400)])['t'],
+        'to_ticket' => (int) db_one("SELECT COUNT(*) n FROM bookings WHERE status = 'paid'")['n'],
+        'revenue_30d' => (int) db_one("SELECT COALESCE(SUM(total), 0) t FROM bookings WHERE status IN ('paid', 'ticketed') AND paid_at >= ?", [gmdate('Y-m-d H:i:s', time() - 30 * 86400)])['t'],
         'users_7d' => (int) db_one('SELECT COUNT(*) n FROM users WHERE created_at >= ?', [gmdate('Y-m-d H:i:s', time() - 7 * 86400)])['n'],
     ];
+}
+
+/** Paid trips whose tickets/rooms haven't been issued yet. Paid longest ago first. */
+function admin_needs_ticket(): array
+{
+    return array_map('to_booking', db_all(ADMIN_SELECT . " WHERE b.status = 'paid' ORDER BY b.paid_at ASC LIMIT 50"));
+}
+
+/**
+ * Records the airline/hotel confirmation after staff bought it from the supplier.
+ * Also used to correct the details later (the customer is emailed again).
+ */
+function mark_ticketed(string $reference, int $actorId, string $code, string $note): bool
+{
+    $before = db_one('SELECT status FROM bookings WHERE reference = ?', [$reference]);
+    if (!$before || !in_array($before['status'], ['paid', 'ticketed'], true)) return false;
+    db_run(
+        "UPDATE bookings SET status = 'ticketed', supplier_ref = ?, ticket_note = ?, ticketed_at = COALESCE(ticketed_at, ?) WHERE reference = ?",
+        [$code, $note !== '' ? $note : null, now_utc(), $reference],
+    );
+    add_event($reference, $actorId, 'ticketed', ($before['status'] === 'ticketed' ? 'Ticket details updated' : 'Ticket issued') . " — confirmation $code." . ($note !== '' ? " Note to customer: $note" : ''));
+    return true;
 }
 
 /** Unpaid trips departing within 14 days, or reserved over 24 hours ago. Soonest first. */
@@ -143,7 +167,7 @@ function admin_cancel(string $reference, int $actorId, string $reason): bool
     $before = db_one('SELECT status FROM bookings WHERE reference = ?', [$reference]);
     if (!$before || $before['status'] === 'cancelled') return false;
     db_run("UPDATE bookings SET status = 'cancelled', cancelled_at = ? WHERE reference = ?", [now_utc(), $reference]);
-    add_event($reference, $actorId, 'cancelled', 'Cancelled by staff' . ($before['status'] === 'paid' ? ' (was paid — refund to be processed)' : '') . ". Reason: $reason");
+    add_event($reference, $actorId, 'cancelled', 'Cancelled by staff' . (in_array($before['status'], ['paid', 'ticketed'], true) ? ' (was paid — refund to be processed)' : '') . ". Reason: $reason");
     return true;
 }
 
