@@ -146,7 +146,7 @@ function package_search_form(array $d = []): string
         . '<span class="flex items-center gap-1.5 rounded-full bg-brand-50 px-3 py-1.5 font-medium text-brand-700">' . icon('bed', 14) . ' ' . e(t('Hotel')) . '</span>'
         . '<span class="text-slate-500">· ' . e(t('some packages include a car')) . '</span></div>'
         . '<div class="grid gap-3 sm:grid-cols-[1fr_auto]">'
-        . '<label class="' . FIELD_BOX . '"><span class="' . FIELD_LABEL . '">Going to</span><span class="flex items-center gap-2">' . icon('pin', 16, 'shrink-0 text-brand-500')
+        . '<label class="' . FIELD_BOX . '"><span class="' . FIELD_LABEL . '">' . e(t('Going to')) . '</span><span class="flex items-center gap-2">' . icon('pin', 16, 'shrink-0 text-brand-500')
         . '<select name="to" class="' . FIELD_INPUT . '">' . $options . '</select></span></label>'
         . search_button(t('See packages'))
         . '</div></form>';
