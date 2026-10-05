@@ -660,5 +660,6 @@
  "Pay in US dollars · confirmed instantly": "以美元付款 · 即時確認",
  "Pay in pesos · confirmed within a few hours": "以披索付款 · 數小時內確認",
  "PayPal or card": "PayPal 或信用卡",
- "Total: {total}": "總計：{total}"
+ "Total: {total}": "總計：{total}",
+ "Change fee": "變更手續費"
 }

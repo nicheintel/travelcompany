@@ -660,5 +660,6 @@
  "Pay in US dollars · confirmed instantly": "ชำระเป็นดอลลาร์สหรัฐ · ยืนยันทันที",
  "Pay in pesos · confirmed within a few hours": "ชำระเป็นเปโซ · ยืนยันภายในไม่กี่ชั่วโมง",
  "PayPal or card": "PayPal หรือบัตร",
- "Total: {total}": "ยอดรวม: {total}"
+ "Total: {total}": "ยอดรวม: {total}",
+ "Change fee": "ค่าธรรมเนียมการเปลี่ยนแปลง"
 }

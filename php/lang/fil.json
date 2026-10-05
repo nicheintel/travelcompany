@@ -660,5 +660,6 @@
  "Pay in US dollars · confirmed instantly": "Magbayad sa US dollars · kumpirmado agad",
  "Pay in pesos · confirmed within a few hours": "Magbayad sa piso · kumpirmado sa loob ng ilang oras",
  "PayPal or card": "PayPal o card",
- "Total: {total}": "Kabuuan: {total}"
+ "Total: {total}": "Kabuuan: {total}",
+ "Change fee": "Bayad sa pagpapalit"
 }

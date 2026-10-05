@@ -37,7 +37,9 @@ function fare_policy(array $messages): ?array
     foreach ($messages as $msg) {
         $msg = trim((string) $msg);
         if ($msg === '') continue;
-        if (preg_match('/^(.+?):\s*([\d.,]+)\s*([A-Z]{3})$/', $msg, $m)) {
+        // "Change fee: 193 PLN", "Change fee: from 1248.8 PHP", "Cancellation fee: PHP 1,248.80"
+        if (preg_match('/^(.+?):\s*(?:from\s+)?(?:([A-Z]{3})\s*)?([\d.,]+)\s*([A-Z]{3})?$/i', $msg, $m) && (($m[2] ?? '') !== '' || ($m[4] ?? '') !== '')) {
+            $m = [$m[0], $m[1], $m[3], strtoupper(($m[4] ?? '') !== '' ? $m[4] : $m[2])];
             $usd = to_usd((float) str_replace(',', '', $m[2]), $m[3]);
             $label = trim($m[1]);
             if ($usd === null) { $notes[$msg] = true; continue; } // unknown currency: show as the airline wrote it

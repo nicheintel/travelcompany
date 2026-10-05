@@ -660,5 +660,6 @@
  "Pay in US dollars · confirmed instantly": "अमेरिकी डॉलर में भुगतान · तुरंत पुष्टि",
  "Pay in pesos · confirmed within a few hours": "पेसो में भुगतान · कुछ घंटों में पुष्टि",
  "PayPal or card": "PayPal या कार्ड",
- "Total: {total}": "कुल: {total}"
+ "Total: {total}": "कुल: {total}",
+ "Change fee": "बदलाव शुल्क"
 }

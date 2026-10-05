@@ -660,5 +660,6 @@
  "Pay in US dollars · confirmed instantly": "米ドルでのお支払い · すぐに確定",
  "Pay in pesos · confirmed within a few hours": "ペソでのお支払い · 数時間以内に確定",
  "PayPal or card": "PayPal またはカード",
- "Total: {total}": "合計：{total}"
+ "Total: {total}": "合計：{total}",
+ "Change fee": "変更手数料"
 }

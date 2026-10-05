@@ -250,7 +250,7 @@ function trip_summary(array $q): string
     if (!empty($q['policy'])) {
         $pol = $q['policy'];
         // Airline wording we translate when it appears (anything else is shown as the airline wrote it).
-        // i18n-keys: 'Refundable with penalty', 'Changes allowed with penalty', 'Change fee (before departure)', 'Change fee (after departure)', 'Cancellation fee', 'Cancellation fee (before departure)', 'Cancellation fee (after departure)', 'Changes allowed', 'Changes not allowed', 'Non-refundable', 'Refundable'
+        // i18n-keys: 'Refundable with penalty', 'Changes allowed with penalty', 'Change fee', 'Change fee (before departure)', 'Change fee (after departure)', 'Cancellation fee', 'Cancellation fee (before departure)', 'Cancellation fee (after departure)', 'Changes allowed', 'Changes not allowed', 'Non-refundable', 'Refundable'
         $html .= '<div class="border-b border-slate-100 p-5 text-sm"><h3 class="mb-2.5 text-xs font-semibold uppercase tracking-wide text-slate-500">' . e(t('Changes & cancellation')) . '</h3>';
         if ($pol['notes']) {
             $html .= '<ul class="mb-3 flex flex-wrap gap-1.5">';

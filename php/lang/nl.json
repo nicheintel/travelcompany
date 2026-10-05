@@ -660,5 +660,6 @@
  "Pay in US dollars · confirmed instantly": "Betalen in Amerikaanse dollars · direct bevestigd",
  "Pay in pesos · confirmed within a few hours": "Betalen in pesos · binnen enkele uren bevestigd",
  "PayPal or card": "PayPal of kaart",
- "Total: {total}": "Totaal: {total}"
+ "Total: {total}": "Totaal: {total}",
+ "Change fee": "Wijzigingskosten"
 }

@@ -660,5 +660,6 @@
  "Pay in US dollars · confirmed instantly": "ABD doları ile ödeme · anında onay",
  "Pay in pesos · confirmed within a few hours": "Peso ile ödeme · birkaç saat içinde onay",
  "PayPal or card": "PayPal veya kart",
- "Total: {total}": "Toplam: {total}"
+ "Total: {total}": "Toplam: {total}",
+ "Change fee": "Değişiklik ücreti"
 }

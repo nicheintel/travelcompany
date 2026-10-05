@@ -660,5 +660,6 @@
  "Pay in US dollars · confirmed instantly": "Paga in dollari USA · confermato subito",
  "Pay in pesos · confirmed within a few hours": "Paga in pesos · confermato entro poche ore",
  "PayPal or card": "PayPal o carta",
- "Total: {total}": "Totale: {total}"
+ "Total: {total}": "Totale: {total}",
+ "Change fee": "Penale di modifica"
 }
