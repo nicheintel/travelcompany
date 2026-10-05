@@ -7,7 +7,7 @@ page_header('', 'home');
 ?>
 <section class="hero">
   <div class="container hero-grid">
-    <div>
+    <div class="hero-copy">
       <span class="pill"><span class="dot"><?= icon('truck') ?></span>Built by drivers, for drivers</span>
       <h1>Why wait?<span class="accent">Let's freight.</span></h1>
       <p class="lead">Freight dispatching, daily route opportunities and real driver support for cargo vans, Sprinter vans and box trucks. We keep independent drivers and owner-operators moving, and loaded.</p>
@@ -22,26 +22,27 @@ page_header('', 'home');
       </div>
     </div>
     <div class="dispatch-card" aria-label="How LamazonLoads dispatch works">
-      <div class="dc-head"><h3>Your dispatch desk</h3><span class="live">Working for you</span></div>
-      <ul class="dc-steps">
-        <li><span class="ico"><?= icon('search') ?></span><div><b>We find the freight</b><small>Load boards, brokers &amp; contracts worked daily</small></div></li>
-        <li><span class="ico"><?= icon('handshake') ?></span><div><b>We negotiate the rate</b><small>No more losing bids or hauling cheap freight</small></div></li>
-        <li><span class="ico"><?= icon('clipboard') ?></span><div><b>You get the details</b><small>Rate con, pickup &amp; drop-off sent to your phone</small></div></li>
-        <li><span class="ico"><?= icon('dollar') ?></span><div><b>We follow up on pay</b><small>Payment tracking until the money lands</small></div></li>
+      <div class="dc-head"><h3>Your dispatch desk</h3><span class="live" data-live>Working for you</span></div>
+      <div class="dc-bar" aria-hidden="true"><span></span></div>
+      <ul class="dc-steps" data-dispatch>
+        <li data-status="Finding freight…"><span class="ico"><?= icon('search', 'ic ic-main') ?><?= icon('check', 'ic ic-done') ?></span><div><b>We find the freight</b><small>Load boards, brokers &amp; contracts worked daily</small></div></li>
+        <li data-status="Negotiating the rate…"><span class="ico"><?= icon('handshake', 'ic ic-main') ?><?= icon('check', 'ic ic-done') ?></span><div><b>We negotiate the rate</b><small>No more losing bids or hauling cheap freight</small></div></li>
+        <li data-status="Sending your details…"><span class="ico"><?= icon('clipboard', 'ic ic-main') ?><?= icon('check', 'ic ic-done') ?></span><div><b>You get the details</b><small>Rate con, pickup &amp; drop-off sent to your phone</small></div></li>
+        <li data-status="Tracking your payment…"><span class="ico"><?= icon('dollar', 'ic ic-main') ?><?= icon('check', 'ic ic-done') ?></span><div><b>We follow up on pay</b><small>Payment tracking until the money lands</small></div></li>
       </ul>
       <div class="dc-foot"><span>Cargo Van · Sprinter · Box Truck</span><b style="color:var(--blue)">Stay loaded</b></div>
     </div>
   </div>
-  <div class="road" aria-hidden="true"></div>
+  <div class="road" aria-hidden="true"><?= truck_svg('truck-svg road-truck') ?></div>
 </section>
 
 <section class="equip-strip">
   <div class="container equip-row">
     <span class="label">We dispatch</span>
-    <span class="equip"><?= icon('van') ?>Cargo Vans</span>
-    <span class="equip"><?= icon('van') ?>Sprinter Vans</span>
-    <span class="equip"><?= icon('truck') ?>Box Trucks</span>
-    <span class="equip"><?= icon('route') ?>Other qualified equipment</span>
+    <div class="marquee"><div class="marquee-track">
+      <div class="marquee-group"><span class="equip"><?= icon('van') ?>Cargo Vans</span><span class="equip"><?= icon('van') ?>Sprinter Vans</span><span class="equip"><?= icon('truck') ?>Box Trucks 16–26 ft</span><span class="equip"><?= icon('route') ?>Hotshot & other equipment</span><span class="equip"><?= icon('calendar') ?>Daily routes</span><span class="equip"><?= icon('clock') ?>Expedited freight</span><span class="equip"><?= icon('pin') ?>Local & last-mile</span><span class="equip"><?= icon('handshake') ?>Owner-operators</span></div>
+      <div class="marquee-group" aria-hidden="true"><span class="equip"><?= icon('van') ?>Cargo Vans</span><span class="equip"><?= icon('van') ?>Sprinter Vans</span><span class="equip"><?= icon('truck') ?>Box Trucks 16–26 ft</span><span class="equip"><?= icon('route') ?>Hotshot & other equipment</span><span class="equip"><?= icon('calendar') ?>Daily routes</span><span class="equip"><?= icon('clock') ?>Expedited freight</span><span class="equip"><?= icon('pin') ?>Local & last-mile</span><span class="equip"><?= icon('handshake') ?>Owner-operators</span></div>
+    </div></div>
   </div>
 </section>
 
@@ -91,11 +92,14 @@ page_header('', 'home');
       <span class="eyebrow">How it works</span>
       <h2>From sign-up to rolling in four steps</h2>
     </div>
+    <div class="route-wrap">
+    <div class="route-track" aria-hidden="true"><span class="route-line"></span><span class="route-truck"><?= truck_svg() ?></span></div>
     <div class="steps">
       <div class="card step reveal"><h3>Create your account</h3><p>Free sign-up in under a minute. Tell us if you're an owner-operator, driver or dispatcher.</p></div>
       <div class="card step reveal"><h3>Finish onboarding</h3><p>Add your equipment, home ZIP code and availability, then upload your W-9, insurance and license.</p></div>
       <div class="card step reveal"><h3>Get matched</h3><p>We match you with loads, daily routes and job openings that fit your truck and your schedule.</p></div>
       <div class="card step reveal"><h3>Stay loaded</h3><p>Dispatch and support stay with you on the road, from pickup to payment.</p></div>
+    </div>
     </div>
   </div>
 </section>

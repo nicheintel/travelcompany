@@ -310,3 +310,123 @@ tr:last-child td { border-bottom: 0; }
 .reveal { opacity: 0; transform: translateY(18px); transition: opacity .6s ease, transform .6s ease; }
 .reveal.in { opacity: 1; transform: none; }
 @media (prefers-reduced-motion: reduce) { .reveal { opacity: 1; transform: none; transition: none; } }
+
+/* =========================================================
+   Animations
+   ========================================================= */
+
+/* Header tightens once you scroll */
+.site-header { transition: box-shadow .25s, background .25s; }
+.site-header .logo { transition: height .25s; }
+.site-header.scrolled { box-shadow: 0 6px 20px rgba(10, 36, 99, .08); background: rgba(255, 255, 255, .97); }
+.site-header.scrolled .logo { height: 56px; }
+
+/* Hero entrance: copy rises in, the motto "drives" in, the card slides from the right */
+@keyframes rise { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
+@keyframes speed-in {
+  0% { opacity: 0; transform: translateX(-90px) skewX(-18deg); filter: blur(6px); }
+  60% { opacity: 1; transform: translateX(10px) skewX(6deg); filter: blur(0); }
+  80% { transform: translateX(-3px) skewX(-2deg); }
+  100% { transform: none; }
+}
+@keyframes card-in { from { opacity: 0; transform: translateX(60px) rotate(2deg); } to { opacity: 1; transform: none; } }
+.hero-copy > * { animation: rise .7s cubic-bezier(.2, .7, .2, 1) both; }
+.hero-copy > :nth-child(1) { animation-delay: .05s; }
+.hero-copy > :nth-child(2) { animation-delay: .15s; }
+.hero-copy > :nth-child(3) { animation-delay: .75s; }
+.hero-copy > :nth-child(4) { animation-delay: .9s; }
+.hero-copy > :nth-child(5) { animation-delay: 1.05s; }
+.hero h1 .accent { animation: speed-in .9s .45s cubic-bezier(.2, .7, .2, 1) both; transform-origin: left bottom; }
+.dispatch-card { animation: card-in .9s .5s cubic-bezier(.2, .7, .2, 1) both; }
+
+/* Truck driving along the hero road */
+.road { height: 72px; }
+.hero-grid { padding-bottom: 140px; }
+.truck-svg { display: block; width: 140px; height: 60px; overflow: visible; }
+.road-truck { position: absolute; left: 0; bottom: 8px; animation: drive-across 11s linear infinite; }
+@keyframes drive-across { from { transform: translateX(-170px); } to { transform: translateX(calc(100vw + 20px)); } }
+.truck-svg .wheel { transform-box: fill-box; transform-origin: center; animation: wheel-spin .5s linear infinite; }
+@keyframes wheel-spin { to { transform: rotate(360deg); } }
+.truck-svg .bounce { animation: truck-bounce .35s ease-in-out infinite alternate; }
+@keyframes truck-bounce { to { transform: translateY(-1px); } }
+.truck-svg .speed path { stroke-dasharray: 14 30; animation: speed-lines .6s linear infinite; }
+.truck-svg .speed path:nth-child(2) { animation-delay: -.2s; }
+.truck-svg .speed path:nth-child(3) { animation-delay: -.4s; }
+@keyframes speed-lines { from { stroke-dashoffset: 0; } to { stroke-dashoffset: 44; } }
+
+/* Live dispatch desk: steps tick off one by one */
+.dc-bar { height: 4px; background: var(--blue-50); border-radius: 999px; overflow: hidden; margin: -6px 0 16px; }
+.dc-bar span { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--blue), var(--sky-2)); border-radius: 999px; transition: width .6s ease; }
+.dc-steps li { transition: border-color .35s, background .35s, box-shadow .35s, transform .35s; }
+.dc-steps li.is-active { border-color: var(--blue); background: #fff; box-shadow: 0 0 0 4px rgba(30, 99, 233, .12); transform: translateX(6px); }
+.dc-steps li.is-active .ico { animation: ico-pulse 1s ease-in-out infinite; }
+@keyframes ico-pulse { 50% { transform: scale(1.12); background: var(--blue); color: #fff; } }
+.dc-steps .ico { transition: background .3s, color .3s; }
+.dc-steps .ic-done { display: none; }
+.dc-steps li.is-done .ico { background: #E8F8EF; color: var(--green); }
+.dc-steps li.is-done .ic-main { display: none; }
+.dc-steps li.is-done .ic-done { display: block; animation: pop .35s cubic-bezier(.3, 1.6, .5, 1); }
+@keyframes pop { from { transform: scale(0); } }
+.live { transition: color .3s, background .3s; }
+.live.working { color: var(--blue); background: var(--blue-50); }
+.live.booked { animation: pop .35s cubic-bezier(.3, 1.6, .5, 1); }
+
+/* Scrolling equipment strip */
+.equip-row { flex-wrap: nowrap; justify-content: flex-start; gap: 28px; }
+.equip-row .label { flex: none; }
+.marquee { flex: 1; min-width: 0; overflow: hidden; -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent); mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent); }
+.marquee-track { display: flex; width: max-content; animation: marquee 32s linear infinite; }
+.marquee:hover .marquee-track { animation-play-state: paused; }
+.marquee-group { display: flex; gap: 44px; padding-right: 44px; }
+.marquee-group .equip { white-space: nowrap; }
+@keyframes marquee { to { transform: translateX(-50%); } }
+@media (max-width: 640px) { .equip-row .label { display: none; } }
+
+/* "How it works": a road draws across the steps and a truck drives along it */
+.route-track { position: relative; height: 72px; margin: 0 12.5% 6px; }
+.route-line { position: absolute; left: 0; right: 0; top: 58px; height: 0; border-top: 4px dashed #B9CCF2; transform: scaleX(0); transform-origin: left; transition: transform 3.2s linear; }
+.route-truck { position: absolute; left: 0; bottom: 4px; transform: translateX(-50%); transition: left 3.2s linear; }
+.route-truck .truck-svg { width: 124px; height: 53px; }
+.route-truck .truck-svg .wheel, .route-truck .truck-svg .bounce, .route-truck .truck-svg .speed path { animation-play-state: paused; }
+.route-wrap.go .route-line { transform: scaleX(1); }
+.route-wrap.go .route-truck { left: 100%; }
+.route-wrap.go .route-truck .truck-svg * { animation-play-state: running; }
+.route-wrap.parked .route-truck .truck-svg * { animation-play-state: paused; }
+.route-truck .truck-svg rect[fill="#fff"], .route-truck .truck-svg path[fill="#fff"] { fill: #fff; stroke: #C9D6F5; stroke-width: 1.5; }
+.step { transition: border-color .4s, box-shadow .4s, transform .4s; }
+.step::before { transition: color .4s; }
+.route-wrap.go .step { animation: step-lit .5s ease forwards; }
+.route-wrap.go .step:nth-child(1) { animation-delay: 0s; }
+.route-wrap.go .step:nth-child(2) { animation-delay: 1.05s; }
+.route-wrap.go .step:nth-child(3) { animation-delay: 2.1s; }
+.route-wrap.go .step:nth-child(4) { animation-delay: 3.1s; }
+@keyframes step-lit { to { border-color: var(--blue); box-shadow: 0 14px 30px rgba(30, 99, 233, .16); transform: translateY(-4px); } }
+.route-wrap.go .step:nth-child(1)::before { color: var(--blue); transition-delay: 0s; }
+.route-wrap.go .step:nth-child(2)::before { color: var(--blue); transition-delay: 1.05s; }
+.route-wrap.go .step:nth-child(3)::before { color: var(--blue); transition-delay: 2.1s; }
+.route-wrap.go .step:nth-child(4)::before { color: var(--blue); transition-delay: 3.1s; }
+@media (max-width: 960px) { .route-track { display: none; } }
+
+/* Buttons: arrows nudge forward, main buttons get a shine */
+.btn .ic { transition: transform .2s; }
+.btn:hover .ic:last-child { transform: translateX(4px); }
+.btn-accent, .btn-primary { position: relative; overflow: hidden; }
+.btn-accent::after, .btn-primary::after { content: ""; position: absolute; top: 0; left: -75%; width: 50%; height: 100%; background: linear-gradient(100deg, transparent, rgba(255, 255, 255, .45), transparent); transform: skewX(-20deg); pointer-events: none; }
+.btn-accent:hover::after, .btn-primary:hover::after { left: 130%; transition: left .7s ease; }
+.hero .btn-accent::after { background: linear-gradient(100deg, transparent, rgba(30, 99, 233, .22), transparent); animation: shine 5s 2s ease-in-out infinite; }
+@keyframes shine { 0% { left: -75%; } 18%, 100% { left: 130%; } }
+
+/* Cards: icons tilt on hover; inner page road stripe keeps moving */
+.feature .ico { transition: transform .3s cubic-bezier(.3, 1.6, .5, 1); }
+.feature:hover .ico { transform: rotate(-8deg) scale(1.1); }
+.page-hero::after { animation: stripe 1.6s linear infinite; }
+@keyframes stripe { to { background-position: 70px 0; } }
+.auth-side .road::before { animation-duration: 3s; }
+
+/* Respect "reduce motion" settings */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  .road-truck { display: none; }
+  .route-truck { left: 100%; }
+  .route-line { transform: none; }
+}

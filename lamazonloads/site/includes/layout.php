@@ -259,3 +259,22 @@ function applicant_label(array $row): string
 {
     return (int) $row['job_id'] === 0 ? 'Driver network (general)' : (string) ($row['title'] ?? 'Removed opening');
 }
+
+/** White box truck with the company name, used by the road animations. */
+function truck_svg(string $class = 'truck-svg'): string
+{
+    return '<svg class="' . e($class) . '" viewBox="0 0 140 60" aria-hidden="true">'
+        . '<g class="speed" stroke="#8EC2FF" stroke-width="3" stroke-linecap="round"><path d="M2 18h14"/><path d="M6 27h12"/><path d="M0 36h16"/></g>'
+        . '<g class="bounce">'
+        . '<rect x="22" y="6" width="70" height="38" rx="3" fill="#fff"/>'
+        . '<rect x="22" y="33" width="70" height="4" fill="#1E63E9"/>'
+        . '<text x="57" y="24" text-anchor="middle" textLength="60" lengthAdjust="spacingAndGlyphs" font-family="Montserrat,Arial,sans-serif" font-weight="900" font-style="italic" font-size="10.5" fill="#0A2463">Lamazon<tspan fill="#1E63E9">Loads</tspan></text>'
+        . '<path d="M94 16h18a3 3 0 0 1 2.4 1.2l9 12a3 3 0 0 1 .6 1.8V44H94z" fill="#fff"/>'
+        . '<path d="M98 20h12.5l7 9.5H98z" fill="#0A2463"/>'
+        . '<rect x="120" y="35" width="4" height="3" rx="1" fill="#8EC2FF"/>'
+        . '<rect x="20" y="43" width="106" height="4" rx="2" fill="#C9D6F5"/>'
+        . '</g>'
+        . '<g class="wheel"><circle cx="42" cy="49" r="8" fill="#0A2463" stroke="#fff" stroke-width="3"/><path d="M42 43.5v11M36.5 49h11" stroke="#8EC2FF" stroke-width="2"/></g>'
+        . '<g class="wheel"><circle cx="108" cy="49" r="8" fill="#0A2463" stroke="#fff" stroke-width="3"/><path d="M108 43.5v11M102.5 49h11" stroke="#8EC2FF" stroke-width="2"/></g>'
+        . '</svg>';
+}
