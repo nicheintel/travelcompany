@@ -4,6 +4,9 @@ require __DIR__ . '/includes/bootstrap.php';
 
 $id = (int) ($_GET['id'] ?? 0);
 $job = $id === 0 ? network_job() : db_one('SELECT * FROM jobs WHERE id = ?', [$id]);
+if ($id === 0 && !network_enabled()) {
+    $job['status'] = 'closed'; // hidden by staff
+}
 if (!$job || ($job['status'] !== 'open' && !is_admin())) {
     http_response_code(404);
     page_header('Opening not found', 'careers');

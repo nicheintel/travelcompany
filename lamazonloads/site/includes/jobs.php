@@ -16,6 +16,13 @@ defined('LL_APP') || exit;
 
 const DEFAULT_WELCOME = "Hi {first_name},\n\nThanks for applying for {job_title} at LamazonLoads! We've got your application.\n\nTo move forward fast, finish your onboarding in your dashboard: add your equipment, home ZIP code and availability, and upload your W-9, insurance and driver's license.\n\nTalk soon,\nThe LamazonLoads team";
 
+/** Is the built-in "Join the driver network" application shown? Staff turn it on/off in Admin -> Job posts. */
+function network_enabled(): bool
+{
+    static $on = null;
+    return $on ??= db_val("SELECT v FROM meta WHERE k = 'network_job'") !== 'off';
+}
+
 /** The general "Join the driver network" application (job id 0). */
 function network_job(): array
 {

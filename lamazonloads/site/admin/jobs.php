@@ -35,6 +35,12 @@ if (is_post()) {
         flash('success', 'Job post deleted.');
         redirect('admin/jobs.php');
     }
+    if ($action === 'network') {
+        $on = ($_POST['on'] ?? '') === '1';
+        db_run("INSERT INTO meta (k, v) VALUES ('network_job', ?) ON DUPLICATE KEY UPDATE v = VALUES(v)", [$on ? 'on' : 'off']);
+        flash('success', $on ? 'The driver network application is shown on Careers again.' : 'The driver network application is hidden from the website.');
+        redirect('admin/jobs.php');
+    }
     if ($action === 'status') {
         $s = post('status', 10);
         if (isset($statuses[$s])) {
@@ -211,8 +217,22 @@ admin_open('jobs');
 </form>
 <?php endif; ?>
 
+<?php $netOn = network_enabled(); $netApps = (int) db_val('SELECT COUNT(*) FROM applications WHERE job_id = 0'); ?>
+<div class="card pad mt net-row">
+  <div>
+    <b>Join the LamazonLoads driver network</b> <span class="badge <?= $netOn ? 'badge-open' : 'badge-closed' ?>"><?= $netOn ? 'Shown' : 'Hidden' ?></span>
+    <p class="muted mb-0">Built-in, always-open general application (not a job post). Drivers apply once and you reach out when something fits.
+      <a href="<?= e(url('admin/applications.php?job=0')) ?>"><?= $netApps ?> applicant<?= $netApps === 1 ? '' : 's' ?></a></p>
+  </div>
+  <div class="row-actions">
+    <?php if ($netOn): ?><a class="btn btn-ghost btn-sm" href="<?= e(url('job.php?id=0')) ?>">View</a><?php endif; ?>
+    <form method="post" action="<?= e(url('admin/jobs.php')) ?>" class="inline-form"><?= csrf_field() ?><input type="hidden" name="action" value="network"><input type="hidden" name="on" value="<?= $netOn ? '0' : '1' ?>">
+      <button class="btn <?= $netOn ? 'btn-ghost' : 'btn-primary' ?> btn-sm" type="submit"><?= $netOn ? 'Hide from website' : 'Show on website' ?></button></form>
+  </div>
+</div>
+
 <div class="card pad mt">
-  <?php if (!$jobs): ?><div class="empty">No job posts yet.</div><?php else: ?>
+  <?php if (!$jobs): ?><div class="empty">No job posts yet. Click <b>+ New job post</b> to add one.</div><?php else: ?>
   <div class="table-wrap"><table>
     <thead><tr><th>Job</th><th>Type</th><th>Hiring</th><th>Status</th><th>Applicants</th><th></th></tr></thead>
     <tbody><?php foreach ($jobs as $j): $autos = array_filter(['Welcome' => $j['auto_welcome'], 'In review' => $j['auto_review'], 'Reminder' => $j['auto_remind'], 'Not selected' => $j['auto_decline'], 'Auto-close' => $j['auto_close']]); ?>

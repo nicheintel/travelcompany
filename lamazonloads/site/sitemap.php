@@ -6,7 +6,10 @@ require __DIR__ . '/includes/bootstrap.php';
 $https = (($_SERVER['HTTPS'] ?? '') !== '' && $_SERVER['HTTPS'] !== 'off') || ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https';
 $host = preg_match('/^[a-z0-9.\-:]+$/i', (string) ($_SERVER['HTTP_HOST'] ?? '')) ? $_SERVER['HTTP_HOST'] : 'lamazonloads.com';
 $root = ($https ? 'https://' : 'http://') . $host;
-$pages = ['', 'services.php', 'drivers.php', 'careers.php', 'about.php', 'contact.php', 'job.php?id=0', 'register.php', 'privacy.php'];
+$pages = ['', 'services.php', 'drivers.php', 'careers.php', 'about.php', 'contact.php', 'register.php', 'privacy.php'];
+if (network_enabled()) {
+    $pages[] = 'job.php?id=0';
+}
 foreach (db_all("SELECT id FROM jobs WHERE status = 'open'") as $j) {
     $pages[] = 'job.php?id=' . (int) $j['id'];
 }

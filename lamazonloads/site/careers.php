@@ -15,7 +15,7 @@ $jobs = $cat === ''
 if ($savedOnly) {
     $jobs = array_values(array_filter($jobs, fn ($j) => in_array((int) $j['id'], $savedIds, true)));
 }
-$showNetwork = $cat === '' && (!$savedOnly || in_array(0, $savedIds, true));
+$showNetwork = network_enabled() && $cat === '' && (!$savedOnly || in_array(0, $savedIds, true));
 $used = array_column(db_all("SELECT DISTINCT category FROM jobs WHERE status = 'open'"), 'category');
 
 page_header('Careers & opportunities', 'careers', 'Open opportunities at LamazonLoads: owner-operator dispatch, daily routes, dispatch team and driver support jobs.');
@@ -35,7 +35,9 @@ page_hero('Careers & opportunities', 'Open opportunities', 'Create a free accoun
       <?php if ($showNetwork) echo job_card(network_job()); ?>
     </div>
     <?php if (!$jobs && !$showNetwork): ?>
-      <div class="card empty"><?= $savedOnly ? 'No saved jobs yet. Tap the ♡ on a job to save it for later.' : 'No openings in this category right now.' ?> <a href="<?= e(url('careers.php')) ?>">See all openings</a></div>
+      <div class="card empty"><?php if ($savedOnly): ?>No saved jobs yet. Tap the ♡ on a job to save it for later. <a href="<?= e(url('careers.php')) ?>">See all openings</a>
+        <?php elseif ($cat !== ''): ?>No openings in this category right now. <a href="<?= e(url('careers.php')) ?>">See all openings</a>
+        <?php else: ?>No openings right now. New jobs are posted here first<?= $me ? '' : ': <a href="' . e(url('register.php')) . '">create a free account</a> to be ready when they open' ?>.<?php endif; ?></div>
     <?php endif; ?>
   </div>
 </section>

@@ -665,3 +665,6 @@ tr:last-child td { border-bottom: 0; }
   display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; min-height: calc(1.55em * 3); }
 @media (max-width: 640px) { .jc-desc { min-height: 0; } }
 .jc-apply .ic { width: 16px; height: 16px; }
+.net-row { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+.net-row > div:first-child { flex: 1; min-width: 240px; }
+.net-row b { color: var(--ink); }

@@ -9,7 +9,7 @@ $pct = (int) round($done / count($steps) * 100);
 $apps = db_all('SELECT a.*, j.title, j.status AS job_status FROM applications a LEFT JOIN jobs j ON j.id = a.job_id WHERE a.user_id = ? ORDER BY a.created_at DESC', [$u['id']]);
 $docCount = (int) db_val('SELECT COUNT(*) FROM documents WHERE user_id = ?', [$u['id']]);
 $saved = db_all("SELECT j.* FROM saved_jobs s JOIN jobs j ON j.id = s.job_id WHERE s.user_id = ? AND j.status = 'open' ORDER BY s.created_at DESC", [$u['id']]);
-if (db_val('SELECT 1 FROM saved_jobs WHERE user_id = ? AND job_id = 0', [$u['id']])) {
+if (network_enabled() && db_val('SELECT 1 FROM saved_jobs WHERE user_id = ? AND job_id = 0', [$u['id']])) {
     $saved[] = network_job();
 }
 
@@ -42,7 +42,7 @@ dash_open('overview');
     <a class="btn btn-ghost btn-sm" href="<?= e(url('careers.php')) ?>">Browse openings <?= icon('arrow') ?></a>
   </div>
   <?php if (!$apps): ?>
-    <div class="empty">You haven't applied yet. <a href="<?= e(url('careers.php')) ?>">See open opportunities</a> or <a href="<?= e(url('job.php?id=0')) ?>">join the driver network</a>.</div>
+    <div class="empty">You haven't applied yet. <a href="<?= e(url('careers.php')) ?>">See open opportunities</a><?php if (network_enabled()): ?> or <a href="<?= e(url('job.php?id=0')) ?>">join the driver network</a><?php endif; ?>.</div>
   <?php else: ?>
     <div class="table-wrap mt"><table>
       <thead><tr><th>Opening</th><th>Applied</th><th>Status</th></tr></thead>
