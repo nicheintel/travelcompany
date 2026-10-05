@@ -3,3 +3,15 @@ Options -Indexes
 <FilesMatch "(^\.|^config\.local.*\.php$|\.(sql|md|log|txt|json|ini|sh|bat)$)">
     Require all denied
 </FilesMatch>
+<FilesMatch "^robots\.txt$">
+    Require all granted
+</FilesMatch>
+
+# Live site: always use https (skipped on your own computer)
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{HTTPS} off
+    RewriteCond %{HTTP:X-Forwarded-Proto} !https
+    RewriteCond %{HTTP_HOST} !^(localhost|127\.0\.0\.1)(:\d+)?$ [NC]
+    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+</IfModule>

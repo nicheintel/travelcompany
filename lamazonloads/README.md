@@ -19,6 +19,12 @@ default `root` user, no password), with four starter job posts you can edit or c
 Manual install instead of the .bat: copy the `site` folder to `C:\xampp\htdocs\` and rename it to
 `lamazonloads`, start Apache and MySQL in the XAMPP Control Panel, then open the address above.
 
+## Put it live on Hostinger
+
+Step by step: [`HOSTINGER.md`](HOSTINGER.md). In short: create a MySQL database in hPanel, upload the contents of
+`site/` to `public_html`, fill in `config.local.php` (database + `admin_emails`), turn on SSL, then sign up
+with your admin email. On a live site only `admin_emails` become admins, and visitors are sent to https.
+
 ## Pages
 
 | Page | What it is |

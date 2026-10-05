@@ -48,7 +48,9 @@ function db_unavailable(PDOException $err): never
         . (is_local_request()
             ? '<p>Start <strong>MySQL</strong> in the XAMPP Control Panel, then refresh this page.</p>'
               . '<p>If MySQL is running, check the database settings in <code>config.local.php</code>.</p>'
-            : '<p>The site is being set up. Please try again in a few minutes.</p>')
+            : (str_starts_with((string) config('db_name'), 'PUT_')
+                ? '<p>Almost there: open <code>config.local.php</code> in Hostinger\'s File Manager and fill in your database name, user and password.</p>'
+                : '<p>The site is being set up. Please try again in a few minutes.</p>'))
         . '</body>';
     exit;
 }

@@ -1,0 +1,9 @@
+User-agent: *
+Disallow: /admin/
+Disallow: /account.php
+Disallow: /profile.php
+Disallow: /documents.php
+Disallow: /settings.php
+Disallow: /doc.php
+
+Sitemap: https://lamazonloads.com/sitemap.php

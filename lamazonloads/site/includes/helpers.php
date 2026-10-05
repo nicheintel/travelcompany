@@ -51,10 +51,12 @@ function is_post(): bool
     return ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST';
 }
 
+/** True only on your own computer (XAMPP): the visitor is this machine AND the address is localhost. */
 function is_local_request(): bool
 {
     $ip = (string) ($_SERVER['REMOTE_ADDR'] ?? '');
-    return in_array($ip, ['127.0.0.1', '::1'], true);
+    $host = strtolower(preg_replace('/:\d+$/', '', (string) ($_SERVER['HTTP_HOST'] ?? '')));
+    return in_array($ip, ['127.0.0.1', '::1'], true) && in_array($host, ['localhost', '127.0.0.1', '[::1]'], true);
 }
 
 function client_ip(): string

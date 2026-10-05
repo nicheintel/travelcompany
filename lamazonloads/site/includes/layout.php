@@ -66,6 +66,8 @@ function page_header(string $title, string $active = '', string $description = '
 <meta name="theme-color" content="#0A2463">
 <meta property="og:title" content="<?= e($title ?: 'LamazonLoads') ?>">
 <meta property="og:description" content="<?= e($desc) ?>">
+<meta property="og:type" content="website">
+<?php if (preg_match('/^[a-z0-9.\-:]+$/i', (string) ($_SERVER['HTTP_HOST'] ?? ''))): ?><meta property="og:image" content="<?= e('https://' . $_SERVER['HTTP_HOST'] . asset('brand/logo.png')) ?>"><?php endif; ?>
 <link rel="icon" href="<?= e(asset('favicon.png')) ?>" type="image/png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
