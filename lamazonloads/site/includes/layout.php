@@ -198,7 +198,7 @@ function member_job_marks(): array
     return $marks;
 }
 
-/** Job box: title, "LamazonLoads – location", Apply Now and a heart to save it. */
+/** Job box: title, "LamazonLoads – location", a short description, Apply Now and a heart to save it. */
 function job_card(array $job): string
 {
     $id = (int) $job['id'];
@@ -210,6 +210,7 @@ function job_card(array $job): string
     return '<article class="card jc reveal">'
         . '<h3 class="jc-title"><a href="' . $href . '">' . e($job['title']) . '</a></h3>'
         . '<p class="jc-where">LamazonLoads &ndash; ' . e($where) . '</p>'
+        . '<p class="jc-desc">' . e(job_excerpt($job, 260, true)) . '</p>'
         . '<div class="jc-actions">'
         . ($applied
             ? '<a class="btn jc-apply is-applied" href="' . $href . '">Applied ' . icon('check') . '</a>'

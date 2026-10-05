@@ -36,10 +36,11 @@ function job_type_labels(array $job): array
     return array_values(array_intersect_key(JOB_TYPES, array_flip(array_filter(explode(',', (string) ($job['job_types'] ?? ''))))));
 }
 
-/** First paragraph of the description, shortened, for job cards (replaces the old one-line summary). */
-function job_excerpt(array $job, int $len = 160): string
+/** Start of the description, shortened (first paragraph, or the whole text with $whole), for job boxes and page intros. */
+function job_excerpt(array $job, int $len = 160, bool $whole = false): string
 {
-    $first = trim((string) (preg_split('/\R{2,}/', trim((string) ($job['description'] ?? '')))[0] ?? ''));
+    $desc = trim((string) ($job['description'] ?? ''));
+    $first = $whole ? $desc : trim((string) (preg_split('/\R{2,}/', $desc)[0] ?? ''));
     if ($first === '') {
         $first = (string) ($job['summary'] ?? '');
     }
