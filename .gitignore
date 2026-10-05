@@ -60,3 +60,4 @@ next-env.d.ts
 /lamazonloads/site/uploads/*
 !/lamazonloads/site/uploads/.htaccess
 !/lamazonloads/site/uploads/.gitkeep
+/lamazonloads/site/storage/mail/
