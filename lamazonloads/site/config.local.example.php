@@ -1,23 +1,17 @@
 <?php
-// Copy this file to config.local.php and change what you need.
-// config.local.php is never overwritten when you run START-LamazonLoads.bat again.
+// LamazonLoads settings. On Hostinger this file is public_html/config.local.php.
+// Replace every PUT_... value, then save. See HOSTINGER.md, step 4.
 return [
-    // Contact details shown in the footer and on the Contact page
+    // Database from hPanel -> Databases -> Management (full names start with u + numbers)
+    'db_host' => 'localhost',
+    'db_name' => 'PUT_DATABASE_NAME_HERE',
+    'db_user' => 'PUT_DATABASE_USER_HERE',
+    'db_pass' => 'PUT_DATABASE_PASSWORD_HERE',
+
+    // Your email: signing up with it gives you the Admin dashboard. Several: 'a@x.com, b@x.com'
+    'admin_emails' => 'PUT_YOUR_EMAIL_HERE',
+
+    // Shown in the footer and on the Contact page
     'contact_email' => 'dispatch@lamazonloads.com',
     // 'contact_phone' => '(555) 123-4567',
-
-    // Staff accounts: anyone who signs up with one of these emails becomes an admin.
-    // REQUIRED on a live site (Hostinger). On your own computer, if this is empty,
-    // the very first account is made admin automatically.
-    // 'admin_emails' => 'you@lamazonloads.com, partner@lamazonloads.com',
-
-    // Database. XAMPP needs no changes. On Hostinger use the database you created in
-    // hPanel -> Databases -> MySQL Databases (host is 'localhost').
-    // 'db_host' => 'localhost',
-    // 'db_name' => 'u123456789_lamazon',
-    // 'db_user' => 'u123456789_lamazon',
-    // 'db_pass' => 'your-database-password',
-
-    // Biggest document upload in MB
-    // 'max_upload_mb' => 8,
 ];

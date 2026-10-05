@@ -75,17 +75,11 @@ function record_failed_login(string $email): void
     db_run('INSERT INTO login_attempts (ip, email, created_at) VALUES (?, ?, NOW())', [client_ip(), $email]);
 }
 
-/**
- * New accounts become staff when listed in admin_emails. On your own computer only, and only when
- * admin_emails is empty, the first account becomes admin. On a live site nobody else can claim it.
- */
+/** New accounts become staff only when their email is listed in admin_emails (config.local.php). */
 function should_be_admin(string $email): bool
 {
     $list = array_filter(array_map('trim', explode(',', strtolower((string) config('admin_emails')))));
-    if ($list) {
-        return in_array(strtolower($email), $list, true);
-    }
-    return is_local_request() && !db_val('SELECT COUNT(*) FROM users WHERE is_admin = 1');
+    return in_array(strtolower($email), $list, true);
 }
 
 /** How far along a member is with onboarding, for the dashboard checklist. */

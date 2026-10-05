@@ -7,7 +7,7 @@ function e(mixed $s): string
     return htmlspecialchars((string) $s, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 }
 
-/** URL path of the site folder, e.g. "/lamazonloads" on XAMPP or "" at a domain root. */
+/** URL path of the site folder: "" at the domain root, or e.g. "/lamazonloads" in a subfolder. */
 function base_path(): string
 {
     static $b = null;
@@ -49,14 +49,6 @@ function redirect(string $path): never
 function is_post(): bool
 {
     return ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST';
-}
-
-/** True only on your own computer (XAMPP): the visitor is this machine AND the address is localhost. */
-function is_local_request(): bool
-{
-    $ip = (string) ($_SERVER['REMOTE_ADDR'] ?? '');
-    $host = strtolower(preg_replace('/:\d+$/', '', (string) ($_SERVER['HTTP_HOST'] ?? '')));
-    return in_array($ip, ['127.0.0.1', '::1'], true) && in_array($host, ['localhost', '127.0.0.1', '[::1]'], true);
 }
 
 function client_ip(): string

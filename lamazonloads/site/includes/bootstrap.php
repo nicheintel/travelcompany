@@ -15,26 +15,22 @@ require __DIR__ . '/auth.php';
 require __DIR__ . '/layout.php';
 
 if (PHP_SAPI !== 'cli') {
-    if (is_local_request()) {
-        ini_set('display_errors', '1'); // on your own computer, show errors to help fix them
-    } else {
-        // Live site: log the details, show visitors a friendly message.
-        set_exception_handler(function (Throwable $e): void {
-            error_log('[error] ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
-            if (!headers_sent()) {
-                http_response_code(500);
-            }
-            echo '<!doctype html><meta charset="utf-8"><title>Something went wrong</title>'
-                . '<p style="font-family:sans-serif;margin:3rem auto;max-width:32rem">Sorry, something went wrong on our side. Please try again in a moment.</p>';
-        });
-    }
+    // Log error details, show visitors a friendly message.
+    set_exception_handler(function (Throwable $e): void {
+        error_log('[error] ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
+        if (!headers_sent()) {
+            http_response_code(500);
+        }
+        echo '<!doctype html><meta charset="utf-8"><title>Something went wrong</title>'
+            . '<p style="font-family:sans-serif;margin:3rem auto;max-width:32rem">Sorry, something went wrong on our side. Please try again in a moment.</p>';
+    });
     header_remove('X-Powered-By');
     header('X-Content-Type-Options: nosniff');
     header('Referrer-Policy: strict-origin-when-cross-origin');
     header('X-Frame-Options: DENY');
 
     $https = (($_SERVER['HTTPS'] ?? '') !== '' && $_SERVER['HTTPS'] !== 'off') || ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https';
-    if ($https && !is_local_request()) {
+    if ($https) {
         header('Strict-Transport-Security: max-age=31536000');
     }
     session_name('ll_session');

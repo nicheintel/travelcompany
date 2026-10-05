@@ -3,8 +3,8 @@ declare(strict_types=1);
 defined('LL_APP') || exit;
 
 /**
- * Settings. Defaults work on a fresh XAMPP install (MySQL user "root", no password).
- * To change anything, copy config.local.example.php to config.local.php and edit that file.
+ * Settings. Your real values (database, admin emails, contact details) live in config.local.php,
+ * which is made from config.local.example.php. See HOSTINGER.md.
  */
 function config(string $key): mixed
 {
@@ -13,10 +13,10 @@ function config(string $key): mixed
         $c = [
             'site_name'     => 'LamazonLoads',
             'motto'         => "Why Wait? Let's Freight.",
-            'db_host'       => '127.0.0.1',
+            'db_host'       => 'localhost',
             'db_port'       => 3306,
-            'db_name'       => 'lamazonloads',
-            'db_user'       => 'root',
+            'db_name'       => '',
+            'db_user'       => '',
             'db_pass'       => '',
             'admin_emails'  => '',
             'contact_email' => 'dispatch@lamazonloads.com',

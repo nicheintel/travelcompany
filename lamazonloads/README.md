@@ -1,29 +1,17 @@
 # LamazonLoads website
 
 **Why Wait? Let's Freight.** The website for LamazonLoads: freight dispatching, daily routes and
-driver support for cargo vans, Sprinter vans and box trucks. Plain PHP 8.1+ and MySQL, so it runs on
-**XAMPP** with no build step, and later on any normal web host (e.g. Hostinger) at lamazonloads.com.
+driver support for cargo vans, Sprinter vans and box trucks. Plain PHP 8.1+ and MySQL with no build
+step, hosted on **Hostinger** at **lamazonloads.com**.
 
-## Test it on Windows (XAMPP)
+## Put it live / update it
 
-1. Install [XAMPP](https://www.apachefriends.org) (PHP 8.1 or newer).
-2. Double-click **`START-LamazonLoads.bat`** in this folder. It finds XAMPP, copies `site/` to
-   `C:\xampp\htdocs\lamazonloads`, starts Apache + MySQL and opens **http://localhost/lamazonloads/**.
-3. Create your account. **The first account created on your own computer becomes the admin.**
-4. `STOP-LamazonLoads.bat` stops Apache and MySQL.
+Step by step: [`HOSTINGER.md`](HOSTINGER.md). In short: create a MySQL database in hPanel, upload the
+contents of `site/` to `public_html`, make `config.local.php` from `config.local.example.php` (database,
+`admin_emails`, contact details), turn on SSL, then sign up with your admin email.
 
-The database `lamazonloads` and its tables are created automatically on the first visit (XAMPP's
-default `root` user, no password), with four starter job posts you can edit or close in
-**Admin → Job posts**. You can also import `site/database.sql` in phpMyAdmin.
-
-Manual install instead of the .bat: copy the `site` folder to `C:\xampp\htdocs\` and rename it to
-`lamazonloads`, start Apache and MySQL in the XAMPP Control Panel, then open the address above.
-
-## Put it live on Hostinger
-
-Step by step: [`HOSTINGER.md`](HOSTINGER.md). In short: create a MySQL database in hPanel, upload the contents of
-`site/` to `public_html`, fill in `config.local.php` (database + `admin_emails`), turn on SSL, then sign up
-with your admin email. On a live site only `admin_emails` become admins, and visitors are sent to https.
+The tables and four starter job posts are created automatically on the first visit
+(or import `site/database.sql` in phpMyAdmin). Only emails listed in `admin_emails` become admins.
 
 ## Pages
 
@@ -42,13 +30,13 @@ with your admin email. On a live site only `admin_emails` become admins, and vis
 
 ## Settings
 
-Copy `site/config.local.example.php` to `config.local.php` (the .bat does this for you) to set:
+`config.local.php` (made from `site/config.local.example.php`) sets:
 
 | Setting | What it does |
 | --- | --- |
 | `contact_email`, `contact_phone` | Shown in the footer and on the Contact page |
-| `admin_emails` | Emails that become admins when they sign up (needed on a live server) |
-| `db_host`, `db_name`, `db_user`, `db_pass` | Database login (live server) |
+| `admin_emails` | Emails that become admins when they sign up |
+| `db_host`, `db_name`, `db_user`, `db_pass` | Database login from hPanel → Databases |
 | `max_upload_mb` | Biggest document upload (default 8 MB) |
 
 ## Security

@@ -2,12 +2,15 @@
 
 You need: a Hostinger plan with **lamazonloads.com** connected to it. About 15 minutes.
 Use **`lamazonloads-hostinger.zip`**. It holds the website files plus a `config.local.php` ready to fill in.
-(To build it yourself: zip the *contents* of the `site` folder and add `config.local.hostinger.php` renamed to `config.local.php`.)
+(To build it yourself: zip the *contents* of the `site` folder and add a copy of `config.local.example.php` named `config.local.php`.)
 
 ## 1. Set PHP to 8.2
 hPanel → **Websites** → lamazonloads.com → **Advanced → PHP Configuration** → choose **PHP 8.2** (8.1 or newer) → Save.
 
 ## 2. Create the database
+If Hostinger already made one for you (a **"Connect database manually"** screen showing a database name,
+username and password), use those values and skip to step 3. Otherwise:
+
 hPanel → **Databases → Management** (MySQL Databases):
 - Database name: e.g. `lamazon` → Hostinger shows the full name, like **`u123456789_lamazon`**
 - Username: e.g. `lamazon` → full name like **`u123456789_lamazon`**
@@ -36,7 +39,7 @@ In File Manager, right-click **`public_html/config.local.php`** → **Edit**, an
 ```
 Save.
 
-**`admin_emails` matters:** on the live site, only the emails listed there become admins when they sign up.
+**`admin_emails` matters:** only the emails listed there become admins when they sign up.
 Several people: `'you@lamazonloads.com, partner@lamazonloads.com'`.
 
 ## 5. Turn on SSL (https)
@@ -54,7 +57,6 @@ These two addresses must show **403 Forbidden** (not a download):
 - https://lamazonloads.com/uploads/
 
 ## Good to know
-- **Your test data stays on your computer.** The live site starts fresh, which is what you want (no test accounts).
 - **Updating later:** upload only the changed files, or upload a new zip and extract it over the old files.
   Never overwrite `config.local.php` or delete the `uploads` folder (drivers' documents are there).
 - **Backups:** hPanel → Files → Backups (database + files). Download one now and then.

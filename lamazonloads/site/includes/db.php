@@ -2,7 +2,7 @@
 declare(strict_types=1);
 defined('LL_APP') || exit;
 
-/** Shared PDO connection. Creates the database, tables and starter job posts on first use. */
+/** Shared PDO connection. Creates the tables and starter job posts on first use. */
 function db(): PDO
 {
     static $pdo = null;
@@ -10,47 +10,32 @@ function db(): PDO
         return $pdo;
     }
     $name = (string) config('db_name');
-    if (!preg_match('/^[A-Za-z0-9_]+$/', $name)) {
-        throw new RuntimeException('Invalid db_name in config.');
+    if (!preg_match('/^[A-Za-z0-9_]+$/', $name) || str_starts_with($name, 'PUT_')) {
+        setup_needed();
     }
-    $options = [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-        PDO::ATTR_EMULATE_PREPARES => false,
-    ];
-    $dsn = sprintf('mysql:host=%s;port=%d;charset=utf8mb4', config('db_host'), (int) config('db_port'));
+    $dsn = sprintf('mysql:host=%s;port=%d;dbname=%s;charset=utf8mb4', config('db_host'), (int) config('db_port'), $name);
     try {
-        $pdo = new PDO($dsn . ';dbname=' . $name, (string) config('db_user'), (string) config('db_pass'), $options);
+        $pdo = new PDO($dsn, (string) config('db_user'), (string) config('db_pass'), [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::ATTR_EMULATE_PREPARES => false,
+        ]);
     } catch (PDOException $err) {
-        // 1049 = unknown database: create it (XAMPP's root user is allowed to).
-        if ((int) ($err->errorInfo[1] ?? 0) !== 1049) {
-            db_unavailable($err);
-        }
-        try {
-            $pdo = new PDO($dsn, (string) config('db_user'), (string) config('db_pass'), $options);
-            $pdo->exec("CREATE DATABASE IF NOT EXISTS `$name` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
-            $pdo->exec("USE `$name`");
-        } catch (PDOException $err2) {
-            db_unavailable($err2);
-        }
+        error_log('[db] ' . $err->getMessage());
+        setup_needed();
     }
     migrate($pdo);
     return $pdo;
 }
 
-function db_unavailable(PDOException $err): never
+/** Shown until config.local.php has working database details. */
+function setup_needed(): never
 {
-    error_log('[db] ' . $err->getMessage());
-    http_response_code(500);
-    echo '<!doctype html><meta charset="utf-8"><title>Database not running</title>'
+    http_response_code(503);
+    echo '<!doctype html><meta charset="utf-8"><title>LamazonLoads</title>'
         . '<body style="font-family:system-ui;padding:40px;max-width:640px;margin:auto">'
         . '<h1>Can\'t connect to the database</h1>'
-        . (is_local_request()
-            ? '<p>Start <strong>MySQL</strong> in the XAMPP Control Panel, then refresh this page.</p>'
-              . '<p>If MySQL is running, check the database settings in <code>config.local.php</code>.</p>'
-            : (str_starts_with((string) config('db_name'), 'PUT_')
-                ? '<p>Almost there: open <code>config.local.php</code> in Hostinger\'s File Manager and fill in your database name, user and password.</p>'
-                : '<p>The site is being set up. Please try again in a few minutes.</p>'))
+        . '<p>Open <code>config.local.php</code> (Hostinger File Manager, in <code>public_html</code>) and check the database name, user and password from hPanel &rarr; Databases.</p>'
         . '</body>';
     exit;
 }
