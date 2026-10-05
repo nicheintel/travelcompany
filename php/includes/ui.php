@@ -20,6 +20,8 @@ const ICONS = [
     'headset' => '<path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"/>',
     'menu' => '<path d="M4 6h16M4 12h16M4 18h16"/>',
     'close' => '<path d="M18 6 6 18M6 6l12 12"/>',
+    'mail' => '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>',
+    'chat' => '<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.4-5A8 8 0 1 1 21 12Z"/>',
 ];
 
 function icon(string $name, int $size = 20, string $class = '', float $stroke = 1.8): string
@@ -185,9 +187,9 @@ function package_card(array $p): string
         . '<p class="mt-1 text-xs text-slate-500">From ' . e($p['from_city']) . ' · travel ' . e(fmt_date($first)) . ' – ' . e(fmt_date($last)) . '</p>'
         . '<div class="mt-3 flex flex-wrap gap-1.5 text-xs font-medium">' . $chip('plane', 'Flight') . $chip('bed', 'Hotel') . ($p['car'] ? $chip('car', 'Car') : '') . '</div>'
         . ($perks ? '<ul class="mt-3 space-y-1 text-sm text-slate-600">' . $perks . '</ul>' : '')
-        . '<div class="mt-auto flex items-end justify-between gap-3 pt-5"><div>'
+        . '<div class="mt-auto flex flex-wrap items-end justify-between gap-3 pt-5"><div>'
         . ($save ? '<p class="text-sm text-slate-400 line-through">' . money($p['was_price']) . '</p>' : '')
-        . '<p class="text-2xl font-extrabold text-slate-900">' . money($p['price']) . '<span class="text-xs font-medium text-slate-500"> /person</span></p>'
+        . '<p class="whitespace-nowrap text-2xl font-extrabold text-slate-900">' . money($p['price']) . '<span class="text-xs font-medium text-slate-500"> /person</span></p>'
         . ($save ? '<p class="text-xs font-semibold text-emerald-600">You save ' . money($save) . '</p>' : '') . '</div>'
         . '<a href="' . e(url('book.php', ['kind' => 'package', 'id' => $p['slug']])) . '" class="shrink-0 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-700">Book deal</a></div></div></article>';
 }
@@ -422,4 +424,32 @@ function admin_cost_line(?array $cost, int $sellTotal): string
         . ($discount ? ' · after ' . round(member_discount_rate() * 100) . '% member discount you keep <strong class="' . ($keep >= 0 ? 'text-emerald-300' : 'text-red-300') . '">$' . number_format($keep, 2) . '</strong>'
                      : ' · you keep <strong class="text-emerald-300">$' . number_format($keep, 2) . '</strong>')
         . ' <span class="text-slate-400">(before card &amp; supplier fees)</span></div>';
+}
+
+/** How customers can reach the team (only what's filled in on Site settings). */
+function support_contacts(): array
+{
+    $email = (string) config('support_email') ?: (string) config('smtp_user');
+    $phone = trim((string) config('support_phone'));
+    $wa = trim((string) config('support_whatsapp'));
+    return array_filter([
+        'email' => valid_email($email) ? $email : null,
+        'phone' => $phone !== '' ? $phone : null,
+        'whatsapp' => strlen(preg_replace('/\D/', '', $wa)) >= 7 ? $wa : null,
+    ]);
+}
+
+function support_card(): string
+{
+    $c = support_contacts();
+    if (!$c) return '';
+    $row = fn(string $href, string $icon, string $label, string $value, bool $external = false) => '<a href="' . e($href) . '"' . ($external ? ' target="_blank" rel="noopener"' : '')
+        . ' class="flex items-center gap-3 rounded-xl px-3 py-2.5 transition hover:bg-slate-50"><span class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-brand-50 text-brand-600">' . icon($icon, 16) . '</span>'
+        . '<span class="min-w-0"><span class="block text-xs text-slate-500">' . e($label) . '</span><span class="block truncate text-sm font-semibold text-slate-900">' . e($value) . '</span></span></a>';
+    $html = '<section class="rounded-2xl border border-slate-200 bg-white p-6"><h2 class="font-semibold text-slate-900">Need help?</h2>'
+        . '<p class="mt-1 text-sm text-slate-600">Our travel assistants are happy to help with bookings, changes and questions.</p><div class="-mx-3 mt-3 space-y-1">';
+    if (isset($c['email'])) $html .= $row('mailto:' . $c['email'], 'mail', 'Email', $c['email']);
+    if (isset($c['whatsapp'])) $html .= $row('https://wa.me/' . preg_replace('/\D/', '', $c['whatsapp']), 'chat', 'WhatsApp', $c['whatsapp'], true);
+    if (isset($c['phone'])) $html .= $row('tel:' . preg_replace('/[^\d+]/', '', $c['phone']), 'headset', 'Phone', $c['phone']);
+    return $html . '</div></section>';
 }

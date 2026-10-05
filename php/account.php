@@ -17,7 +17,6 @@ require __DIR__ . '/includes/header.php';
       <h1 class="mt-1 text-3xl font-bold">Hi, <?= e($first) ?>! 👋</h1>
       <p class="mt-1 text-brand-100">Where are you heading next?</p>
     </div>
-    <span class="rounded-full bg-white/15 px-4 py-1.5 text-sm font-semibold ring-1 ring-white/25">Member since <?= e($since) ?></span>
   </div>
   <div class="mt-8 grid gap-6 lg:grid-cols-[1fr_320px]">
     <section class="rounded-2xl border border-slate-200 bg-white p-6">
@@ -33,6 +32,15 @@ require __DIR__ . '/includes/header.php';
             <a href="<?= e(url('hotels.php')) ?>" class="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-brand-700 ring-1 ring-brand-200 hover:bg-brand-50"><?= icon('bed', 16) ?> Hotels</a>
           </div>
         </div>
+        <?php if ($deals = array_slice(active_packages(), 0, 2)): ?>
+          <div class="mt-8">
+            <div class="mb-4 flex items-end justify-between gap-3">
+              <h3 class="font-semibold text-slate-900">Current package deals</h3>
+              <a href="<?= e(url('packages.php')) ?>" class="text-sm font-semibold text-brand-700 hover:underline">All packages →</a>
+            </div>
+            <div class="grid gap-6 sm:grid-cols-2"><?php foreach ($deals as $p) echo package_card($p); ?></div>
+          </div>
+        <?php endif; ?>
       <?php else: ?>
         <div class="mt-4 space-y-6">
           <div>
@@ -52,7 +60,8 @@ require __DIR__ . '/includes/header.php';
         </div>
       <?php endif; ?>
     </section>
-    <aside class="h-fit rounded-2xl border border-slate-200 bg-white p-6">
+    <aside class="h-fit space-y-6">
+    <div class="rounded-2xl border border-slate-200 bg-white p-6">
       <div class="flex items-center gap-3">
         <span class="grid h-12 w-12 place-items-center rounded-full bg-brand-100 text-brand-700"><?= icon('user', 22) ?></span>
         <div class="min-w-0"><p class="truncate font-semibold text-slate-900"><?= e($user['name']) ?></p><p class="truncate text-sm text-slate-500"><?= e($user['email']) ?></p></div>
@@ -68,6 +77,8 @@ require __DIR__ . '/includes/header.php';
       <form method="post" action="<?= e(url('signout.php')) ?>" class="mt-3"><?= csrf_field() ?>
         <button type="submit" class="w-full rounded-xl py-2.5 text-sm font-semibold text-red-600 ring-1 ring-red-200 hover:bg-red-50">Sign out</button>
       </form>
+    </div>
+    <?= support_card() ?>
     </aside>
   </div>
 </div>

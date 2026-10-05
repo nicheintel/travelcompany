@@ -68,6 +68,18 @@ if (is_post()) {
     }
     if (!config_fixed('paypal_mode')) save_setting('paypal_mode', ($_POST['paypal_mode'] ?? '') === 'live' ? 'live' : 'sandbox');
     if (!config_fixed('email_from')) save_setting('email_from', mb_substr(trim((string) ($_POST['email_from'] ?? '')), 0, 200));
+    // "Need help?" contact for customers
+    if (!config_fixed('support_email')) {
+        $se = normalize_email((string) ($_POST['support_email'] ?? ''));
+        if ($se !== '' && !valid_email($se)) $errors['support_email'] = 'Enter a valid email address, or leave empty.';
+        else save_setting('support_email', $se);
+    }
+    foreach (['support_phone', 'support_whatsapp'] as $f) {
+        if (config_fixed($f)) continue;
+        $num = trim((string) ($_POST[$f] ?? ''));
+        if ($num !== '' && !preg_match('/^\+[0-9][0-9 ().-]{6,22}$/', $num)) $errors[$f] = 'Use international format starting with +, e.g. +63 917 123 4567 — or leave empty.';
+        else save_setting($f, $num);
+    }
     // Your own mailbox for sending emails
     if (!config_fixed('smtp_user')) {
         $mailbox = normalize_email((string) ($_POST['smtp_user'] ?? ''));
@@ -180,6 +192,20 @@ $fixedNote = '<p class="mt-1 text-xs text-amber-700">Set in config.local.php or 
         <input id="s_email_from" name="email_from" type="text" value="<?= e((string) config('email_from')) ?>" placeholder="FareFinders &lt;hello@farefinders.net&gt;" class="<?= $input ?> mt-1"<?= config_fixed('email_from') ? ' disabled' : '' ?>>
         <p class="mt-1 text-xs text-slate-500">Only used with Resend. With your own mailbox, emails come from that address.</p>
       </div>
+    </div>
+  </section>
+
+  <section class="rounded-xl border border-slate-200 bg-white p-6">
+    <h2 class="text-lg font-semibold text-slate-900">Customer support</h2>
+    <p class="mt-1 text-sm text-slate-500">Shown to customers in a "Need help?" box on their account page. Leave a field empty to hide it.</p>
+    <div class="mt-5 grid gap-4 sm:grid-cols-3">
+      <?php foreach (['support_email' => ['Support email', 'email', (string) config('smtp_user') ?: 'hello@farefinders.net', 'Empty = your sending mailbox'], 'support_phone' => ['Phone', 'tel', '+63 917 123 4567', ''], 'support_whatsapp' => ['WhatsApp', 'tel', '+63 917 123 4567', '']] as $f => [$lbl, $type, $ph, $hint]): ?>
+        <div>
+          <label for="s_<?= $f ?>" class="block text-sm font-medium text-slate-700"><?= $lbl ?></label>
+          <input id="s_<?= $f ?>" name="<?= $f ?>" type="<?= $type ?>" value="<?= e(is_post() ? (string) ($_POST[$f] ?? '') : (string) config($f)) ?>" placeholder="<?= e($ph) ?>" class="<?= $input ?> mt-1"<?= config_fixed($f) ? ' disabled' : '' ?>>
+          <?php if (isset($errors[$f])): ?><p class="mt-1 text-sm text-red-600"><?= e($errors[$f]) ?></p><?php elseif ($hint): ?><p class="mt-1 text-xs text-slate-500"><?= e($hint) ?></p><?php endif; ?>
+        </div>
+      <?php endforeach; ?>
     </div>
   </section>
 
