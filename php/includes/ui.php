@@ -352,7 +352,19 @@ function admin_open(string $active): string
         . ($l[2] === $active ? 'bg-white text-brand-800 shadow-sm' : 'text-brand-100 hover:bg-white/10 hover:text-white') . '">' . $l[1] . '</a>', $links));
     return '<div class="min-h-full bg-slate-50"><div class="bg-brand-900"><div class="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">'
         . '<p class="font-semibold text-white">Admin <span class="font-normal text-brand-200">· travel assistant dashboard</span></p><nav class="flex gap-1 overflow-x-auto">' . $nav . '</nav></div></div>'
-        . '<div class="mx-auto max-w-7xl px-4 py-8 sm:px-6">';
+        . '<div class="mx-auto max-w-7xl px-4 py-8 sm:px-6">' . site_address_warning();
+}
+
+/** Admin warning when emails would link to a different address than the one being used now. */
+function site_address_warning(): string
+{
+    $saved = (string) config('app_url');
+    if ($saved === '' || is_local_request()) return '';
+    $savedHost = strtolower((string) parse_url($saved, PHP_URL_HOST));
+    $nowHost = strtolower((string) parse_url('http://' . ($_SERVER['HTTP_HOST'] ?? ''), PHP_URL_HOST));
+    if ($savedHost === '' || $savedHost === $nowHost) return '';
+    return '<div class="mb-6 rounded-xl bg-amber-50 p-4 text-sm text-amber-900 ring-1 ring-amber-200"><strong>Links in emails go to ' . e($saved) . '</strong>, but you\'re using '
+        . e($nowHost) . '. If that\'s your address now, update <a class="font-semibold underline" href="' . e(url('admin/settings.php')) . '#s_app_url">Site settings → Site address</a>.</div>';
 }
 
 function admin_close(): string

@@ -37,11 +37,12 @@ if (PHP_SAPI !== 'cli') {
     }
     header_remove('X-Powered-By');
 
-    // Live site with an https address: always use https.
+    // Live site with an https address: always use https (on the address the visitor typed).
     $site = (string) config('app_url');
+    $host = strtolower((string) ($_SERVER['HTTP_HOST'] ?? ''));
     if (str_starts_with($site, 'https://') && !request_is_https() && !is_local_request()
-        && in_array($_SERVER['REQUEST_METHOD'] ?? 'GET', ['GET', 'HEAD'], true)) {
-        header('Location: https://' . parse_url($site, PHP_URL_HOST) . ($_SERVER['REQUEST_URI'] ?? '/'), true, 301);
+        && preg_match('/^[a-z0-9.-]+$/', $host) && in_array($_SERVER['REQUEST_METHOD'] ?? 'GET', ['GET', 'HEAD'], true)) {
+        header("Location: https://$host" . ($_SERVER['REQUEST_URI'] ?? '/'), true, 301);
         exit;
     }
 }

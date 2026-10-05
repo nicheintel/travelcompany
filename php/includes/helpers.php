@@ -15,16 +15,17 @@ function base_path(): string
     if ($base !== null) {
         return $base;
     }
-    $configured = rtrim((string) config('app_url'), '/');
-    if ($configured !== '') {
-        return $base = rtrim((string) parse_url($configured, PHP_URL_PATH), '/');
-    }
+    // Worked out from the page being run, so links keep working whatever the saved site address says.
     $appRoot = realpath(dirname(__DIR__)) ?: dirname(__DIR__);
     $script = realpath((string) ($_SERVER['SCRIPT_FILENAME'] ?? '')) ?: '';
     $relative = str_starts_with($script, $appRoot) ? substr($script, strlen($appRoot)) : '';
     $name = str_replace('\\', '/', (string) ($_SERVER['SCRIPT_NAME'] ?? ''));
     $relative = str_replace('\\', '/', $relative);
-    return $base = ($relative !== '' && str_ends_with($name, $relative)) ? substr($name, 0, -strlen($relative)) : '';
+    if ($relative !== '' && str_ends_with($name, $relative)) {
+        return $base = substr($name, 0, -strlen($relative));
+    }
+    // Command line (no web request): use the saved site address.
+    return $base = rtrim((string) parse_url((string) config('app_url'), PHP_URL_PATH), '/');
 }
 
 /** Absolute site URL for emails and Stripe, e.g. "http://localhost/travelcompany". */
