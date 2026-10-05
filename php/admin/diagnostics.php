@@ -38,7 +38,9 @@ $checks[] = ['PHP curl extension', function_exists('curl_init'), function_exists
 $checks[] = ['HTTPS certificates', true, ini_get('curl.cainfo') ? 'From php.ini (curl.cainfo)' : (ca_bundle() ? 'Using ' . ca_bundle() : 'System default')];
 $checks[] = ['Database', true, 'Connected to ' . config('db_name')];
 
-if (duffel_enabled()) {
+if (flight_supplier() === 'liteapi') {
+    $checks[] = ['Flights', true, 'From LiteAPI (your ' . (str_starts_with((string) config('liteapi_key'), 'sand_') ? 'SANDBOX' : 'PRODUCTION') . ' key) — use the flight search test below to check'];
+} elseif (duffel_enabled()) {
     $mode = str_starts_with((string) config('duffel_access_token'), 'duffel_test_') ? 'TEST token — only "Duffel Airways" test flights' : 'LIVE token — real airlines';
     $r = probe(fn() => http_json('GET', rtrim((string) config('duffel_api_base'), '/') . '/air/airlines?limit=1', ['Authorization: Bearer ' . config('duffel_access_token'), 'Duffel-Version: v2'], null, 20));
     if (flights_on_hold()) {

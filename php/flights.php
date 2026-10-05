@@ -110,6 +110,7 @@ require __DIR__ . '/includes/header.php';
               <?php endif; ?>
               <span class="font-medium text-slate-900"><?= e($o['airline']['name']) ?></span>
               <?php if ($o['refundable']): ?><span class="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700">Refundable</span><?php endif; ?>
+              <?php if (!empty($o['baggage'])): ?><span class="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600"><?= $o['baggage']['checked'] ? 'Checked bag included' : ($o['baggage']['carry_on'] ? 'Carry-on only' : 'No bags included') ?></span><?php endif; ?>
               <?php if ($o['seats_left'] !== null && $o['seats_left'] <= 3): ?><span class="rounded-full bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-600"><?= plural($o['seats_left'], 'seat') ?> left</span><?php endif; ?>
             </div>
             <?= leg_row($o['outbound'], 'Depart') ?>

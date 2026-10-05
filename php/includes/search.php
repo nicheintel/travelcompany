@@ -132,9 +132,16 @@ function duffel_enabled(): bool
  * Safety rule: a Duffel TEST token only returns a fake airline. Once PayPal takes real money,
  * those flights must not be sellable, so flight search shows "coming soon" until a live token is set.
  */
+/** Where flights come from: 'duffel', 'liteapi', or null when no supplier is set up. */
+function flight_supplier(): ?string
+{
+    if (config('flight_supplier') === 'liteapi' && liteapi_enabled()) return 'liteapi';
+    return duffel_enabled() ? 'duffel' : null;
+}
+
 function flights_on_hold(): bool
 {
-    return duffel_enabled() && str_starts_with((string) config('duffel_access_token'), 'duffel_test_')
+    return flight_supplier() === 'duffel' && duffel_enabled() && str_starts_with((string) config('duffel_access_token'), 'duffel_test_')
         && function_exists('paypal_enabled') && paypal_enabled() && paypal_live();
 }
 
@@ -406,9 +413,10 @@ function live_search(string $kind, array $s, callable $fetch): array
 function search_flights(array $s): array
 {
     if (flights_on_hold()) return not_connected() + ['on_hold' => true];
-    if (!duffel_enabled()) return demo_mode() ? ['items' => sample_flights($s), 'live' => false, 'error' => null] : not_connected();
+    $supplier = flight_supplier();
+    if (!$supplier) return demo_mode() ? ['items' => sample_flights($s), 'live' => false, 'error' => null] : not_connected();
     try {
-        return live_search('flights', $s, 'duffel_search');
+        return $supplier === 'liteapi' ? live_search('flights-liteapi', $s, 'liteapi_flight_search') : live_search('flights', $s, 'duffel_search');
     } catch (Throwable $e) {
         error_log('[duffel] search failed: ' . $e->getMessage());
         return ['items' => [], 'live' => true, 'error' => "We couldn't load live fares just now. Please try again in a moment."];
@@ -424,4 +432,118 @@ function search_hotels(array $s): array
         error_log('[liteapi] search failed: ' . $e->getMessage());
         return ['items' => [], 'live' => true, 'error' => "We couldn't load live hotel prices just now. Please try again in a moment."];
     }
+}
+
+// ---------- LiteAPI (flights) ----------
+
+const LITEAPI_CABINS = ['economy' => 'economy', 'premium' => 'premium', 'business' => 'business', 'first' => 'first'];
+
+/** One direction of a LiteAPI journey in our leg format (same as Duffel's). */
+function liteapi_flight_leg(array $segs, ?int $minutes): array
+{
+    $first = $segs[0];
+    $last = $segs[count($segs) - 1];
+    $depart = clock_minutes($first['departureTime']);
+    $arrive = clock_minutes($last['arrivalTime']);
+    $dayOffset = (int) round((strtotime(substr($last['arrivalTime'], 0, 10)) - strtotime(substr($first['departureTime'], 0, 10))) / 86400);
+    return [
+        'from' => $first['originCode'] ?? '', 'to' => $last['destinationCode'] ?? '',
+        'date' => substr($first['departureTime'], 0, 10),
+        'depart' => $depart, 'arrive' => $arrive, 'day_offset' => $dayOffset,
+        'duration' => $minutes ?? ($dayOffset * 1440 + $arrive - $depart),
+        'stops' => count($segs) - 1 + array_sum(array_map(fn($x) => (int) ($x['stopCount'] ?? 0), $segs)),
+        'stop_cities' => array_map(fn($x) => $x['destinationCode'] ?? '', array_slice($segs, 0, -1)),
+        'flight_number' => ($first['carrier']['marketingCode'] ?? '') . ($first['flight']['marketingNumber'] ?? ''),
+    ];
+}
+
+/** Maps a LiteAPI journey (its cheapest offer) to our flight format, with the marked-up price. */
+function liteapi_flight_map(array $j, array $s): ?array
+{
+    $o = $j['cheapestOffer'] ?? null;
+    $segs = $j['segments'] ?? [];
+    if (!$o || !$segs || empty($o['offerId'])) return null;
+    $out = array_values(array_filter($segs, fn($x) => ($x['direction'] ?? 'OUTBOUND') === 'OUTBOUND'));
+    $in = array_values(array_filter($segs, fn($x) => ($x['direction'] ?? '') === 'INBOUND'));
+    if (!$out || ($s['return'] && !$in)) return null;
+    $mins = [];
+    foreach ($j['legDurations'] ?? [] as $d) $mins[$d['direction'] ?? ''] = $d['duration']['minutes'] ?? null;
+
+    // Total from the per-passenger prices, so it always matches the travelers searched for.
+    $pp = $o['pricing']['display']['perPassenger'] ?? [];
+    $currency = (string) ($o['pricing']['display']['currency'] ?? 'USD');
+    $net = ($pp['adult']['total'] ?? 0) * $s['adults'] + ($pp['child']['total'] ?? 0) * $s['children'] + ($pp['infant']['total'] ?? 0) * ($s['infants'] ?? 0);
+    if ($net <= 0 || ($s['children'] && !isset($pp['child'])) || (($s['infants'] ?? 0) && !isset($pp['infant']))) return null;
+    $netUsd = to_usd((float) $net, $currency);
+    if ($netUsd === null) return null;
+    $markup = markup_rate('flight');
+    $carrier = $out[0]['carrier'] ?? [];
+    $code = (string) ($carrier['marketingCode'] ?? '');
+    $palette = ['#1c54f0', '#0f766e', '#7c3aed', '#f06c06', '#be123c', '#0369a1', '#15803d', '#a16207'];
+    $bags = $o['baggage'] ?? [];
+    $checkedFrom = null;
+    foreach ($bags['paid'] ?? [] as $b) {
+        if (($b['bagType'] ?? '') === 'checked' && isset($b['pricing']['display']['amount'])) {
+            $checkedFrom = min($checkedFrom ?? PHP_INT_MAX, (float) $b['pricing']['display']['amount']);
+        }
+    }
+    return [
+        'id' => (string) $o['offerId'],
+        'airline' => ['code' => $code, 'name' => (string) ($carrier['marketingName'] ?? $code), 'color' => $palette[crc32($code ?: 'x') % count($palette)], 'logo' => $carrier['marketingLogo'] ?? null],
+        'outbound' => liteapi_flight_leg($out, $mins['OUTBOUND'] ?? null),
+        'inbound' => $in ? liteapi_flight_leg($in, $mins['INBOUND'] ?? null) : null,
+        'total' => sell_price($netUsd, $markup),
+        'refundable' => (bool) ($o['terms']['refundable'] ?? false),
+        'seats_left' => isset($o['fare']['seatsRemaining']) ? (int) $o['fare']['seatsRemaining'] : null,
+        'adults' => $s['adults'], 'children' => $s['children'], 'infants' => $s['infants'] ?? 0,
+        'origin_city' => $s['from']['city'], 'destination_city' => $s['to']['city'],
+        'cabin' => (string) ($o['segmentFares'][0]['cabin'] ?? ''),
+        'baggage' => ['carry_on' => (bool) ($bags['hasCarryOnBag'] ?? false), 'checked' => (bool) ($bags['hasCheckedBag'] ?? false), 'checked_from' => $checkedFrom],
+        'terms' => array_values(array_filter(array_map(fn($t) => (string) ($t['message'] ?? ''), $o['terms']['summary'] ?? []))),
+        'expires_at' => (string) ($o['expiration'] ?? ''),
+        'cost' => ['provider' => 'liteapi_flights', 'offer_id' => (string) $o['offerId'], 'net_amount' => round((float) $net, 2), 'net_currency' => $currency, 'net_usd' => $netUsd, 'markup_rate' => $markup],
+    ];
+}
+
+function liteapi_flight_search(array $s): array
+{
+    $legs = [['origin' => $s['from']['code'], 'destination' => $s['to']['code'], 'date' => $s['depart'], 'direction' => 'OUTBOUND']];
+    if ($s['return']) $legs[] = ['origin' => $s['to']['code'], 'destination' => $s['from']['code'], 'date' => $s['return'], 'direction' => 'INBOUND'];
+    $body = ['legs' => $legs, 'adults' => $s['adults'], 'children' => $s['children'], 'infants' => $s['infants'] ?? 0, 'currency' => 'USD'];
+    $data = liteapi('POST', '/flights/rates', $body)['data'][0]['journeys'] ?? [];
+
+    // Only the route asked for (same airport or same city), and the cabin asked for.
+    $sameCity = fn(string $code, array $want) => $code === $want['code'] || (($a = airport($code)) && $a['city'] === $want['city'] && $a['cc'] === $want['cc']);
+    $cabin = LITEAPI_CABINS[$s['cabin']] ?? 'economy';
+    $offers = [];
+    foreach ($data as $j) {
+        $o = liteapi_flight_map($j, $s);
+        if (!$o || !$sameCity($o['outbound']['from'], $s['from']) || !$sameCity($o['outbound']['to'], $s['to'])) continue;
+        if ($o['cabin'] !== '' && !str_contains(strtolower($o['cabin']), $cabin)) continue;
+        $offers[] = $o;
+    }
+    usort($offers, fn($a, $b) => $a['total'] <=> $b['total']);
+    $offers = array_slice($offers, 0, 60);
+    remember_flight_offers($offers);
+    return $offers;
+}
+
+/** Keeps the offers we showed (until they expire), so booking uses LiteAPI's price, not the URL. */
+function remember_flight_offers(array $offers): void
+{
+    db_run('DELETE FROM flight_offers WHERE expires_at < ?', [now_utc()]);
+    foreach ($offers as $o) {
+        $exp = strtotime($o['expires_at']) ?: time() + 1800;
+        db_run(
+            'INSERT INTO flight_offers (id_hash, data, expires_at) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE data = VALUES(data), expires_at = VALUES(expires_at)',
+            [hash('sha256', $o['id']), json_encode($o), gmdate('Y-m-d H:i:s', $exp)],
+        );
+    }
+}
+
+function find_flight_offer(string $id): ?array
+{
+    if ($id === '' || strlen($id) > 1000) return null;
+    $row = db_one('SELECT data FROM flight_offers WHERE id_hash = ? AND expires_at > ?', [hash('sha256', $id), now_utc()]);
+    return $row ? json_decode($row['data'], true) : null;
 }

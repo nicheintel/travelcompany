@@ -35,7 +35,22 @@ function flight_quote(array $params): ?array
     $cost = null;
     $note = null;
 
-    if (duffel_enabled()) {
+    $extraFacts = [];
+    if (flight_supplier() === 'liteapi') {
+        // The offer exactly as LiteAPI returned it in the search (kept on our server until it expires).
+        $o = find_flight_offer($offerId);
+        if (!$o) return null;
+        $adults = $o['adults'];
+        $children = $o['children'];
+        $infants = $o['infants'];
+        $title = "{$o['origin_city']} → {$o['destination_city']}";
+        $lines = [['label' => 'Flight for ' . plural($adults + $children + $infants, 'traveler'), 'amount' => $o['total']]];
+        $cost = $o['cost'];
+        $note = "Live airline fare. Fares can change until your ticket is issued — we'll confirm before charging any difference.";
+        $bag = $o['baggage'];
+        $extraFacts[] = ['Baggage', ($bag['carry_on'] ? 'Carry-on included' : 'No carry-on included') . ' · ' . ($bag['checked'] ? 'checked bag included' : 'checked bag ' . ($bag['checked_from'] !== null ? 'from ' . money((int) ceil($bag['checked_from'])) : 'not included'))];
+        if ($o['terms']) $extraFacts[] = ['Fare rules', implode(' · ', $o['terms'])];
+    } elseif (duffel_enabled()) {
         // Trust the airline offer itself (route, passengers, price) rather than the URL.
         $o = duffel_offer($offerId);
         if (!$o) return null;
@@ -65,7 +80,7 @@ function flight_quote(array $params): ?array
 
     $facts = [['Depart', fmt_date($o['outbound']['date'])]];
     if ($o['inbound']) $facts[] = ['Return', fmt_date($o['inbound']['date'])];
-    array_push($facts, ['Travelers', (string) ($adults + $children + $infants) . ($infants ? ' (incl. ' . plural($infants, 'infant') . ')' : '')], ['Cabin', $cabin], ['Fare', $o['refundable'] ? 'Refundable' : 'Non-refundable']);
+    array_push($facts, ['Travelers', (string) ($adults + $children + $infants) . ($infants ? ' (incl. ' . plural($infants, 'infant') . ')' : '')], ['Cabin', $cabin], ['Fare', $o['refundable'] ? 'Refundable' : 'Non-refundable'], ...$extraFacts);
 
     return finish_quote([
         'kind' => 'flight',

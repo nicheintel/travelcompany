@@ -110,3 +110,12 @@ CREATE TABLE IF NOT EXISTS site_images (
   path       VARCHAR(100) NOT NULL,
   updated_at DATETIME     NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- LiteAPI flight offers seen in searches (about 30 minutes), so bookings use the
+-- price and flights LiteAPI returned rather than anything in the page address.
+CREATE TABLE IF NOT EXISTS flight_offers (
+  id_hash    CHAR(64)     NOT NULL PRIMARY KEY,
+  data       MEDIUMTEXT   NOT NULL,
+  expires_at DATETIME     NOT NULL,
+  INDEX flight_offers_expires (expires_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

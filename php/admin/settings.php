@@ -66,6 +66,7 @@ if (is_post()) {
             save_setting('app_url', $site);
         }
     }
+    if (!config_fixed('flight_supplier')) save_setting('flight_supplier', ($_POST['flight_supplier'] ?? '') === 'liteapi' ? 'liteapi' : 'duffel');
     if (!config_fixed('paypal_mode')) save_setting('paypal_mode', ($_POST['paypal_mode'] ?? '') === 'live' ? 'live' : 'sandbox');
     if (!config_fixed('email_from')) save_setting('email_from', mb_substr(trim((string) ($_POST['email_from'] ?? '')), 0, 200));
     foreach (['business_name' => 120, 'business_address' => 250] as $f => $max) {
@@ -144,6 +145,14 @@ $fixedNote = '<p class="mt-1 text-xs text-amber-700">Set in config.local.php or 
           <?php endif; ?>
         </div>
       <?php endforeach; ?>
+      <div>
+        <label for="s_flight_supplier" class="block text-sm font-medium text-slate-700">Flights come from</label>
+        <select id="s_flight_supplier" name="flight_supplier" class="<?= $input ?> mt-1 sm:w-72"<?= config_fixed('flight_supplier') ? ' disabled' : '' ?>>
+          <option value="duffel"<?= config('flight_supplier') !== 'liteapi' ? ' selected' : '' ?>>Duffel</option>
+          <option value="liteapi"<?= config('flight_supplier') === 'liteapi' ? ' selected' : '' ?>>LiteAPI (uses your LiteAPI key)</option>
+        </select>
+        <p class="mt-1 text-xs text-slate-500">Which supplier your flight search uses. Hotels always come from LiteAPI.</p>
+      </div>
       <div>
         <label for="s_paypal_mode" class="block text-sm font-medium text-slate-700">PayPal mode</label>
         <select id="s_paypal_mode" name="paypal_mode" class="<?= $input ?> mt-1 sm:w-72"<?= config_fixed('paypal_mode') ? ' disabled' : '' ?>>

@@ -26,7 +26,7 @@ echo legal_page('Privacy policy', "This policy explains what personal informatio
     'basis' => ['Why we\'re allowed to use it', '<p>We use your information because we need it to provide the bookings and account you asked for (performing our agreement with you), to meet legal obligations, and for our legitimate interest in keeping the service secure. Where the law requires your consent, we ask for it, and you can withdraw it at any time.</p>'],
     'share' => ['Who we share it with', '<p>Only with the companies needed to provide your trip and run this website:</p>
         <table><tr><th>Who</th><th>Why</th></tr>
-        <tr><td>Airlines, via our flight supplier Duffel</td><td>To search fares and issue your tickets (traveler names, dates of birth, contact details).</td></tr>
+        <tr><td>Airlines, via our flight suppliers (Duffel and LiteAPI)</td><td>To search fares and issue your tickets (traveler names, dates of birth, contact details).</td></tr>
         <tr><td>Hotels, via our hotel supplier LiteAPI</td><td>To search rates and book your room (guest names and contact details).</td></tr>
         <tr><td>PayPal (or Stripe)</td><td>To process your payment on their secure pages.</td></tr>
         <tr><td>Hostinger</td><td>Hosts this website, its database and our email.</td></tr>

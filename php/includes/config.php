@@ -10,7 +10,7 @@ defined('TC_APP') || exit;
 /** Settings admins can change on the Admin → Site settings page. */
 const EDITABLE_SETTINGS = [
     'app_url', 'admin_emails', 'flight_markup_rate', 'hotel_markup_rate', 'member_discount_rate',
-    'duffel_access_token', 'liteapi_key', 'resend_api_key', 'email_from',
+    'flight_supplier', 'duffel_access_token', 'liteapi_key', 'resend_api_key', 'email_from',
     'smtp_host', 'smtp_port', 'smtp_user', 'smtp_pass',
     'support_email', 'support_phone', 'support_whatsapp', 'business_name', 'business_address',
     'stripe_secret_key', 'stripe_webhook_secret',
@@ -52,6 +52,7 @@ function config(string $key, mixed $default = null): mixed
             'fx_rates_to_usd' => ['USD' => 1, 'EUR' => 1.08, 'GBP' => 1.27, 'CAD' => 0.73, 'AUD' => 0.66, 'SGD' => 0.75, 'PHP' => 0.0175, 'JPY' => 0.0067],
 
             // Live suppliers. Without a key, search says "not connected" — no invented results.
+            'flight_supplier' => 'duffel', // 'duffel' or 'liteapi' (uses the LiteAPI key)
             'duffel_access_token' => '',
             'liteapi_key' => '',
 

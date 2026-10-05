@@ -132,7 +132,7 @@ echo admin_open('bookings');
           <h2 class="font-semibold text-slate-900"><?= $isPaid ? 'Issue the ticket' : 'Ticket issued' ?></h2>
           <?php if ($isPaid): ?>
             <ol class="mb-3 mt-2 list-decimal space-y-1 pl-5 text-sm text-slate-600">
-              <li>Buy this <?= $booking['kind'] === 'hotel' ? 'room' : 'trip' ?> in the <?= ($q['supplier']['provider'] ?? '') === 'liteapi' ? 'LiteAPI' : (($q['supplier']['provider'] ?? '') === 'duffel' ? 'Duffel' : 'supplier') ?> dashboard for the travelers listed here.</li>
+              <li>Buy this <?= $booking['kind'] === 'hotel' ? 'room' : 'trip' ?> in the <?= ['liteapi' => 'LiteAPI', 'liteapi_flights' => 'LiteAPI', 'duffel' => 'Duffel'][$q['supplier']['provider'] ?? ''] ?? 'supplier' ?> dashboard for the travelers listed here.</li>
               <li>Copy the confirmation code below and save — the customer is emailed straight away.</li>
             </ol>
           <?php else: ?>
@@ -161,14 +161,14 @@ echo admin_open('bookings');
         <section class="rounded-xl border border-slate-200 bg-white p-5 text-sm">
           <h2 class="font-semibold text-slate-900">Supplier &amp; margin</h2>
           <dl class="mt-3 space-y-2">
-            <div class="flex justify-between gap-3"><dt class="text-slate-500">Supplier</dt><dd class="font-medium text-slate-900"><?= $s['provider'] === 'duffel' ? 'Duffel (flights)' : 'LiteAPI (hotels)' ?></dd></div>
+            <div class="flex justify-between gap-3"><dt class="text-slate-500">Supplier</dt><dd class="font-medium text-slate-900"><?= ['duffel' => 'Duffel (flights)', 'liteapi_flights' => 'LiteAPI (flights)', 'liteapi' => 'LiteAPI (hotels)'][$s['provider']] ?? e($s['provider']) ?></dd></div>
             <div class="flex justify-between gap-3"><dt class="text-slate-500">Offer ID</dt><dd class="truncate font-mono text-xs text-slate-700" title="<?= e($s['offer_id']) ?>"><?= e($s['offer_id']) ?></dd></div>
             <div class="flex justify-between gap-3"><dt class="text-slate-500">Cost when booked</dt><dd class="font-medium text-slate-900"><?= $s['net_currency'] === 'USD' ? money($s['net_amount']) : e(number_format($s['net_amount'], 2) . ' ' . $s['net_currency']) . ' (≈' . money($s['net_usd']) . ')' ?></dd></div>
             <div class="flex justify-between gap-3"><dt class="text-slate-500">Customer pays</dt><dd class="font-medium text-slate-900"><?= money($booking['total']) ?></dd></div>
             <div class="flex justify-between gap-3 border-t border-slate-100 pt-2"><dt class="font-semibold text-slate-700">Gross margin</dt>
               <dd class="font-bold <?= $margin >= 0 ? 'text-emerald-700' : 'text-red-600' ?>"><?= money($margin) ?> (<?= round($margin / $booking['total'] * 100) ?>%)</dd></div>
           </dl>
-          <p class="mt-3 text-xs text-slate-500">Before supplier and card fees. Issue the ticket or room in the <?= $s['provider'] === 'duffel' ? 'Duffel' : 'LiteAPI' ?> dashboard after payment — supplier prices can change until then.</p>
+          <p class="mt-3 text-xs text-slate-500">Before supplier and card fees. Issue the ticket or room with <?= $s['provider'] === 'duffel' ? 'Duffel' : 'LiteAPI' ?> after payment — supplier prices can change until then.</p>
         </section>
       <?php endif; ?>
       <?= trip_summary($q) ?>
