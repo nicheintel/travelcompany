@@ -144,7 +144,7 @@ function email_body(string $heading, array $paragraphs, ?string $button = null, 
         $quote = $i === count($paragraphs) - 1 && count($paragraphs) > 1;
         $html .= $quote
             ? '<p style="margin:0 0 14px;padding:12px 14px;border-left:4px solid #1E63E9;background:#EEF4FF;border-radius:8px;font-size:15px;line-height:1.55;color:#24304A;white-space:pre-wrap;">' . e($p) . '</p>'
-            : '<p style="margin:0 0 14px;font-size:15px;line-height:1.55;color:#24304A;">' . e($p) . '</p>';
+            : '<p style="margin:0 0 14px;font-size:15px;line-height:1.55;color:#24304A;white-space:pre-wrap;">' . e($p) . '</p>';
     }
     if ($button && $link) {
         $html .= '<p style="margin:22px 0 10px;"><a href="' . e($link) . '" style="display:inline-block;background:#1E63E9;color:#ffffff;text-decoration:none;font-weight:bold;font-size:15px;padding:12px 22px;border-radius:999px;">' . e($button) . '</a></p>'

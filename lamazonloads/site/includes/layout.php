@@ -121,6 +121,7 @@ function page_header(string $title, string $active = '', string $description = '
 
 function page_footer(): void
 {
+    run_automations_if_due();
     $email = (string) config('contact_email');
     $phone = (string) config('contact_phone');
     ?>
@@ -185,12 +186,18 @@ function page_hero(string $eyebrow, string $title, string $lead = ''): void
 function job_card(array $job): string
 {
     $href = e(url('job.php?id=' . (int) $job['id']));
+    $tags = '';
+    foreach (job_type_labels($job) as $t) {
+        $tags .= '<span class="tag">' . e($t) . '</span>';
+    }
     return '<article class="card job-card reveal">'
         . '<div class="tags"><span class="tag tag-solid">' . e(JOB_CATEGORIES[$job['category']] ?? 'Opportunity') . '</span>'
+        . (($job['hiring_timeline'] ?? '') === '1-3d' ? '<span class="tag tag-urgent">⚡ Urgently hiring</span>' : '')
         . ($job['location'] !== '' ? '<span class="tag">' . icon('pin') . e($job['location']) . '</span>' : '') . '</div>'
         . '<h3><a href="' . $href . '">' . e($job['title']) . '</a></h3>'
-        . '<p>' . e($job['summary']) . '</p>'
-        . ($job['equipment'] !== '' && $job['equipment'] !== 'Not applicable' ? '<div class="tags"><span class="tag">' . icon('truck') . e($job['equipment']) . '</span></div>' : '')
+        . '<p>' . e(job_excerpt($job)) . '</p>'
+        . '<div class="tags">' . $tags . '<span class="tag">' . icon('users') . e(job_hiring_label($job)) . '</span>'
+        . ((int) ($job['fair_chance'] ?? 0) ? '<span class="tag tag-fair">Fair chance</span>' : '') . '</div>'
         . '<a class="btn btn-ghost btn-sm" href="' . $href . '">View &amp; apply ' . icon('arrow') . '</a>'
         . '</article>';
 }

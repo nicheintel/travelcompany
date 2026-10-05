@@ -140,6 +140,7 @@ const AVAILABILITY = [
 ];
 
 const DOC_KINDS = [
+    'resume'       => 'Resume',
     'w9'           => 'W-9',
     'insurance'    => 'Certificate of insurance (COI)',
     'license'      => "Driver's license",
@@ -149,12 +150,23 @@ const DOC_KINDS = [
 ];
 
 const JOB_CATEGORIES = [
+    'light_truck'    => 'Light Truck & Delivery Drivers (Transportation)',
     'owner_operator' => 'Owner-Operator',
     'daily_route'    => 'Daily Route',
     'dispatch'       => 'Dispatch Team',
     'support'        => 'Driver Support',
     'other'          => 'Other',
 ];
+
+const JOB_TYPES = ['full_time' => 'Full-time', 'part_time' => 'Part-time', 'contract' => 'Contract', 'temporary' => 'Temporary', 'seasonal' => 'Seasonal'];
+
+// "Number of people to hire in the next 30 days"
+const HIRE_COUNTS = ['1' => '1', '2' => '2', '3' => '3', '4' => '4', '5' => '5', '6' => '6', '7' => '7', '8' => '8', '9' => '9', '10' => '10',
+    '10+' => 'More than 10', 'ongoing' => 'I have an ongoing need to fill this role'];
+
+const HIRING_TIMELINES = ['1-3d' => '1 to 3 days', '3-7d' => '3 to 7 days', '1-2w' => '1 to 2 weeks', '2-4w' => '2 to 4 weeks', '4w+' => 'More than 4 weeks'];
+
+const RESUME_OPTIONS = ['required' => 'Yes, require a resume', 'optional' => 'Optional (candidates can add one)', 'no' => "No, don't ask for a resume"];
 
 const APP_STATUSES = [
     'new'          => 'Received',

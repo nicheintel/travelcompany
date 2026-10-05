@@ -89,7 +89,9 @@ admin_open('drivers');
   <h3 class="mt-0">Applications</h3>
   <?php if (!$apps): ?><p class="muted mb-0">No applications yet.</p><?php else: ?>
   <div class="table-wrap"><table><thead><tr><th>Opening</th><th>Message</th><th>Status &amp; note</th></tr></thead><tbody><?php foreach ($apps as $a): ?>
-    <tr><td><?= e(applicant_label($a)) ?><br><span class="muted"><?= e(fmt_date($a['created_at'])) ?></span></td><td style="max-width:320px"><?= nl2br(e($a['message'] ?? '')) ?></td>
+    <tr><td><?= e(applicant_label($a)) ?><br><span class="muted"><?= e(fmt_date($a['created_at'])) ?></span>
+      <?php if ($a['resume_doc_id']): ?><br><a href="<?= e(url('doc.php?id=' . (int) $a['resume_doc_id'])) ?>" target="_blank" rel="noopener"><?= icon('file') ?> Resume</a><?php endif; ?>
+      <?php if ($a['auto_note'] !== ''): ?><br><span class="hint">⚡ <?= e($a['auto_note']) ?></span><?php endif; ?></td><td style="max-width:320px"><?= nl2br(e($a['message'] ?? '')) ?></td>
       <td><form method="post" action="<?= e(url('admin/applications.php')) ?>" style="display:grid;gap:6px;min-width:200px">
         <?= csrf_field() ?><input type="hidden" name="id" value="<?= (int) $a['id'] ?>"><input type="hidden" name="back" value="<?= e($self) ?>">
         <select name="status" aria-label="Status"><?php foreach (APP_STATUSES as $k => $l): ?><option value="<?= e($k) ?>"<?= $a['status'] === $k ? ' selected' : '' ?>><?= e($l) ?></option><?php endforeach; ?></select>

@@ -49,6 +49,25 @@ function migrate(PDO $pdo): void
         return;
     }
     $pdo->exec($schema);
+    // Columns added after the first version (CREATE TABLE IF NOT EXISTS doesn't add them to existing tables)
+    add_missing_columns($pdo, 'jobs', [
+        'hires_needed' => "VARCHAR(10) NOT NULL DEFAULT '1'", 'country' => "VARCHAR(40) NOT NULL DEFAULT 'United States'",
+        'language' => "VARCHAR(20) NOT NULL DEFAULT 'English'", 'job_types' => "VARCHAR(100) NOT NULL DEFAULT ''",
+        'apply_method' => "VARCHAR(10) NOT NULL DEFAULT 'site'", 'apply_url' => "VARCHAR(300) NOT NULL DEFAULT ''",
+        'resume' => "VARCHAR(10) NOT NULL DEFAULT 'optional'", 'notify_on' => 'TINYINT(1) NOT NULL DEFAULT 1',
+        'notify_emails' => "VARCHAR(300) NOT NULL DEFAULT ''", 'contact_by_email' => 'TINYINT(1) NOT NULL DEFAULT 0',
+        'contact_email' => "VARCHAR(190) NOT NULL DEFAULT ''", 'fair_chance' => 'TINYINT(1) NOT NULL DEFAULT 0',
+        'background_check' => 'TINYINT(1) NOT NULL DEFAULT 0', 'hiring_timeline' => "VARCHAR(10) NOT NULL DEFAULT ''",
+        'auto_welcome' => 'TINYINT(1) NOT NULL DEFAULT 0', 'welcome_message' => 'TEXT NULL',
+        'auto_review' => 'TINYINT(1) NOT NULL DEFAULT 0', 'auto_remind' => 'TINYINT(1) NOT NULL DEFAULT 0',
+        'remind_days' => 'TINYINT UNSIGNED NOT NULL DEFAULT 2', 'auto_decline' => 'TINYINT(1) NOT NULL DEFAULT 0',
+        'decline_days' => 'TINYINT UNSIGNED NOT NULL DEFAULT 5', 'auto_close' => 'TINYINT(1) NOT NULL DEFAULT 0',
+    ]);
+    // Room for ".docx" names and Word's long file type
+    $pdo->exec('ALTER TABLE documents MODIFY stored_name VARCHAR(40) NOT NULL, MODIFY mime VARCHAR(100) NOT NULL');
+    add_missing_columns($pdo, 'applications', [
+        'resume_doc_id' => 'INT UNSIGNED NULL', 'reminded_at' => 'DATETIME NULL', 'auto_note' => "VARCHAR(255) NOT NULL DEFAULT ''",
+    ]);
     $seeded = $pdo->query("SELECT v FROM meta WHERE k = 'seeded'")->fetchColumn();
     if (!$seeded) {
         seed_jobs($pdo);
@@ -57,28 +76,37 @@ function migrate(PDO $pdo): void
     @touch($marker);
 }
 
+function add_missing_columns(PDO $pdo, string $table, array $columns): void
+{
+    $st = $pdo->prepare('SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?');
+    $st->execute([$table]);
+    $have = $st->fetchAll(PDO::FETCH_COLUMN);
+    foreach ($columns as $col => $def) {
+        if (!in_array($col, $have, true)) {
+            $pdo->exec("ALTER TABLE `$table` ADD COLUMN `$col` $def");
+        }
+    }
+}
+
 /** Starter job posts so the Careers page isn't empty. Edit or close them in Admin → Job posts. */
 function seed_jobs(PDO $pdo): void
 {
+    // title, category, location, equipment, pay, job types, hires, timeline, description, requirements
     $jobs = [
-        ['Box Truck Owner-Operators: Freight Dispatch', 'owner_operator', 'Nationwide (USA)', 'Box Truck (16–26 ft)', 'Paid per load, rate confirmation before you roll', 'Flexible: you choose your lanes and home time',
-         'We search, negotiate and book loads for your box truck so you can spend your time driving, not refreshing load boards.',
-         "Our dispatch team works the load boards and broker relationships for you. We negotiate rates, handle the paperwork, send you pickup and drop-off details, and follow up on payment so you stay loaded and profitable.\n\nYou keep control: we discuss lanes, home time and minimum rates with you before booking.",
+        ['Box Truck Owner-Operators: Freight Dispatch', 'owner_operator', 'Nationwide (USA)', 'Box Truck (16–26 ft)', 'Paid per load, rate confirmation before you roll', 'full_time,contract', 'ongoing', '1-2w',
+         "We search, negotiate and book loads for your box truck so you can spend your time driving, not refreshing load boards.\n\nOur dispatch team works the load boards and broker relationships for you. We negotiate rates, handle the paperwork, send you pickup and drop-off details, and follow up on payment so you stay loaded and profitable.\n\nYou keep control: we discuss lanes, home time and minimum rates with you before booking.",
          "Box truck (16 to 26 ft) in good working condition\nActive MC / DOT authority, or willing to lease on\nCommercial auto and cargo insurance\nW-9\nSmartphone for updates and rate confirmations"],
-        ['Cargo Van & Sprinter Drivers: Expedited Loads', 'owner_operator', 'Nationwide (USA)', 'Cargo Van / Sprinter Van', 'Paid per load', 'Full-time or part-time',
-         'Expedited and last-mile freight for cargo vans and Sprinter vans. We find the loads, you keep the wheels turning.',
-         "Hot-shot style expedited freight, same-day runs and multi-stop deliveries for van operators. We book, coordinate pickup and drop-off, and keep in touch on the road.",
+        ['Cargo Van & Sprinter Drivers: Expedited Loads', 'light_truck', 'Nationwide (USA)', 'Cargo Van / Sprinter Van', 'Paid per load', 'full_time,part_time,contract', 'ongoing', '1-2w',
+         "Expedited and last-mile freight for cargo vans and Sprinter vans. We find the loads, you keep the wheels turning.\n\nHot-shot style expedited freight, same-day runs and multi-stop deliveries for van operators. We book, coordinate pickup and drop-off, and keep in touch on the road.",
          "Cargo van or Sprinter van (high roof preferred)\nValid driver's license and clean driving record\nInsurance that covers hauling freight\nW-9\nSmartphone with GPS"],
-        ['Local Daily Route Driver (Dedicated Contract)', 'daily_route', 'Depends on contract location', 'Cargo Van / Sprinter / Box Truck', 'Per route, shared when a contract opens', 'Daily routes, set schedule',
-         'Dedicated and local delivery routes when contracts are available. Apply now and we will match you by ZIP code and equipment.',
-         "When a dedicated or local delivery contract opens, we fill it from drivers who already completed onboarding. Applying now puts you first in line in your area.\n\nTell us your home ZIP code, equipment and availability in your profile so we can match you quickly.",
+        ['Local Daily Route Driver (Dedicated Contract)', 'light_truck', 'Depends on contract location', 'Cargo Van / Sprinter / Box Truck', 'Per route, shared when a contract opens', 'full_time,part_time,contract', '5', '2-4w',
+         "Dedicated and local delivery routes when contracts are available. Apply now and we will match you by ZIP code and equipment.\n\nWhen a dedicated or local delivery contract opens, we fill it from drivers who already completed onboarding. Applying now puts you first in line in your area.\n\nTell us your home ZIP code, equipment and availability in your profile so we can match you quickly.",
          "Reliable vehicle that fits the route (van or box truck)\nAvailable on the route's schedule\nValid driver's license and insurance\nW-9 and onboarding documents on file"],
-        ['Freight Dispatcher (Remote)', 'dispatch', 'Remote', 'Not applicable', 'Discussed in the interview', 'Full-time or part-time',
-         'Join the LamazonLoads dispatch team: search, negotiate and book freight for our drivers, and keep them loaded.',
-         "You will work load boards, negotiate with brokers, build lanes for our drivers and coordinate pickup, delivery and paperwork. Drivers come first here: you are their advocate.",
+        ['Freight Dispatcher (Remote)', 'dispatch', 'Remote', 'Not applicable', 'Discussed in the interview', 'full_time,part_time', '2', '2-4w',
+         "Join the LamazonLoads dispatch team: search, negotiate and book freight for our drivers, and keep them loaded.\n\nYou will work load boards, negotiate with brokers, build lanes for our drivers and coordinate pickup, delivery and paperwork. Drivers come first here: you are their advocate.",
          "Dispatch or logistics experience (box truck / van freight is a plus)\nStrong negotiation and communication skills\nComfortable with load boards and rate confirmations\nReliable internet and phone"],
     ];
-    $st = $pdo->prepare('INSERT INTO jobs (title, category, location, equipment, pay, schedule, summary, description, requirements, status, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?,?,\'open\',NOW(),NOW())');
+    $st = $pdo->prepare("INSERT INTO jobs (title, category, location, equipment, pay, job_types, hires_needed, hiring_timeline, description, requirements, status, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,'open',NOW(),NOW())");
     foreach ($jobs as $j) {
         $st->execute($j);
     }

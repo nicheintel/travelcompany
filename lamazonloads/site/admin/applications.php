@@ -7,8 +7,10 @@ if (is_post()) {
     csrf_check();
     $status = post('status', 20);
     if (isset(APP_STATUSES[$status])) {
-        db_run('UPDATE applications SET status = ?, admin_note = ?, updated_at = NOW() WHERE id = ?', [$status, post('admin_note', 2000), (int) ($_POST['id'] ?? 0)]);
-        flash('success', 'Application updated.');
+        $appId = (int) ($_POST['id'] ?? 0);
+        db_run('UPDATE applications SET status = ?, admin_note = ?, updated_at = NOW() WHERE id = ?', [$status, post('admin_note', 2000), $appId]);
+        $closed = auto_close_job((int) db_val('SELECT job_id FROM applications WHERE id = ?', [$appId]));
+        flash('success', 'Application updated.' . ($closed ? ' You have approved enough people, so the job post was closed automatically.' : ''));
     }
     $back = safe_next(post('back', 300));
     redirect($back === 'account.php' ? 'admin/applications.php' : $back);
@@ -45,7 +47,9 @@ admin_open('applications');
     <tbody><?php foreach ($apps as $a): ?>
       <tr>
         <td><a href="<?= e(url('admin/driver.php?id=' . (int) $a['user_id'])) ?>"><b><?= e($a['name']) ?></b></a><br><span class="muted"><?= e($a['email']) ?><br><?= e($a['phone']) ?></span>
-          <?php if ($a['message']): ?><p class="hint" style="max-width:260px">“<?= e(mb_strimwidth($a['message'], 0, 160, '…')) ?>”</p><?php endif; ?></td>
+          <?php if ($a['message']): ?><p class="hint" style="max-width:260px">“<?= e(mb_strimwidth($a['message'], 0, 160, '…')) ?>”</p><?php endif; ?>
+          <?php if ($a['resume_doc_id']): ?><a class="hint" href="<?= e(url('doc.php?id=' . (int) $a['resume_doc_id'])) ?>" target="_blank" rel="noopener"><?= icon('file') ?> Resume</a><?php endif; ?>
+          <?php if ($a['auto_note'] !== ''): ?><p class="hint">⚡ <?= e($a['auto_note']) ?></p><?php endif; ?></td>
         <td><?= e(applicant_label($a)) ?></td>
         <td><?= e(EQUIPMENT[$a['equipment'] ?? ''] ?? '—') ?><br><span class="muted"><?= e($a['home_zip'] ?: '') ?></span></td>
         <td><?= e(fmt_date($a['created_at'])) ?></td>

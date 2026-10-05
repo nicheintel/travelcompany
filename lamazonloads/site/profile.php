@@ -26,6 +26,7 @@ if (is_post()) {
         $upd = implode(', ', array_map(fn ($k) => "$k = VALUES($k)", array_keys($fields)));
         db_run("INSERT INTO driver_profiles (user_id, $cols, updated_at) VALUES (?, $marks, NOW()) ON DUPLICATE KEY UPDATE $upd, updated_at = NOW()",
             array_merge([$u['id']], $vals));
+        auto_review_user((int) $u['id']);
         flash('success', 'Driver profile saved.');
         redirect('profile.php');
     }

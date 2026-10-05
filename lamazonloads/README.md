@@ -29,6 +29,7 @@ The tables and four starter job posts are created automatically on the first vis
 | `documents.php` | Private uploads: W-9, insurance (COI), driver's license, registration, authority (PDF / JPG / PNG) |
 | `settings.php` | Change name, phone, password |
 | `admin/` | Staff: overview, applications (status + private notes), job posts, drivers & members (search by ZIP / equipment, documents, make staff, reset password), messages |
+| Job posts | Admin → Job posts: category (incl. Light Truck & Delivery Drivers), number to hire in 30 days, job types (multi-choice), settings (apply on the site or another website, resume required/optional/no, application-update emails, candidate contact email, fair chance, background check, hiring timeline) and automations (welcome email, auto "In review", onboarding reminder, "Not selected" for unresponsive applicants, auto-close when enough are approved). Code: `includes/jobs.php`. Time-based automations run at most every 30 minutes when someone opens a page |
 
 ## Settings
 
