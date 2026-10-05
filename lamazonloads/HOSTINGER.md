@@ -34,8 +34,8 @@ In File Manager, right-click **`public_html/config.local.php`** → **Edit**, an
 'db_user' => 'u123456789_lamazon',      // from step 2
 'db_pass' => 'your-database-password',  // from step 2
 'admin_emails' => 'you@lamazonloads.com',
-'contact_email' => 'dispatch@lamazonloads.com',
-'contact_phone' => '(555) 123-4567',
+'contact_email' => 'info@lamazonloads.com',
+'contact_phone' => '678-666-4334',
 ```
 Save.
 

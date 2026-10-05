@@ -19,8 +19,8 @@ function config(string $key): mixed
             'db_user'       => '',
             'db_pass'       => '',
             'admin_emails'  => '',
-            'contact_email' => 'dispatch@lamazonloads.com',
-            'contact_phone' => '',
+            'contact_email' => 'info@lamazonloads.com',
+            'contact_phone' => '678-666-4334',
             'max_upload_mb' => 8,
         ];
         $local = dirname(__DIR__) . '/config.local.php';

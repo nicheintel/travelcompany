@@ -39,6 +39,13 @@ function icon(string $name, string $class = 'ic'): string
         . ($paths[$name] ?? '') . '</svg>';
 }
 
+/** "tel:" link for a US phone number written any way, e.g. 678-666-4334 -> tel:+16786664334. */
+function tel_href(string $phone): string
+{
+    $digits = preg_replace('/\D+/', '', $phone);
+    return 'tel:' . (strlen($digits) === 10 ? '+1' . $digits : (str_starts_with($phone, '+') ? '+' : '') . $digits);
+}
+
 function logo_html(string $class = ''): string
 {
     return '<img class="logo ' . e($class) . '" src="' . e(asset('brand/logo.png')) . '" alt="LamazonLoads: Why wait? Let\'s freight." width="364" height="204">';
@@ -88,6 +95,7 @@ function page_header(string $title, string $active = '', string $description = '
         <?php endforeach; ?>
       </ul>
       <div class="nav-actions">
+        <?php if ((string) config('contact_phone') !== ''): ?><a class="nav-phone" href="<?= e(tel_href((string) config('contact_phone'))) ?>" aria-label="Call LamazonLoads"><?= icon('phone') ?><?= e(config('contact_phone')) ?></a><?php endif; ?>
         <?php if ($user): ?>
           <?php if ($user['is_admin']): ?><a class="btn btn-ghost btn-sm" href="<?= e(url('admin/')) ?>">Admin</a><?php endif; ?>
           <a class="btn btn-primary btn-sm" href="<?= e(url('account.php')) ?>"><?= icon('user') ?> My dashboard</a>
@@ -145,7 +153,7 @@ function page_footer(): void
       <h3>Get in touch</h3>
       <ul class="footer-contact">
         <?php if ($email !== ''): ?><li><?= icon('mail') ?><a href="mailto:<?= e($email) ?>"><?= e($email) ?></a></li><?php endif; ?>
-        <?php if ($phone !== ''): ?><li><?= icon('phone') ?><a href="tel:<?= e(preg_replace('/[^0-9+]/', '', $phone)) ?>"><?= e($phone) ?></a></li><?php endif; ?>
+        <?php if ($phone !== ''): ?><li><?= icon('phone') ?><a href="<?= e(tel_href($phone)) ?>"><?= e($phone) ?></a></li><?php endif; ?>
         <li><?= icon('pin') ?>Serving drivers across the USA</li>
       </ul>
     </div>

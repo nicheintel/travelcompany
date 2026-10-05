@@ -12,6 +12,6 @@ return [
     'admin_emails' => 'PUT_YOUR_EMAIL_HERE',
 
     // Shown in the footer and on the Contact page
-    'contact_email' => 'dispatch@lamazonloads.com',
-    // 'contact_phone' => '(555) 123-4567',
+    'contact_email' => 'info@lamazonloads.com',
+    'contact_phone' => '678-666-4334',
 ];

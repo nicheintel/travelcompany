@@ -40,7 +40,7 @@ $phone = (string) config('contact_phone');
       <h2>We're here to keep you moving</h2>
       <ul class="checklist mt">
         <?php if ($email !== ''): ?><li><span class="tick"><?= icon('mail') ?></span><span><b>Email</b><br><a href="mailto:<?= e($email) ?>"><?= e($email) ?></a></span></li><?php endif; ?>
-        <?php if ($phone !== ''): ?><li><span class="tick"><?= icon('phone') ?></span><span><b>Phone</b><br><a href="tel:<?= e(preg_replace('/[^0-9+]/', '', $phone)) ?>"><?= e($phone) ?></a></span></li><?php endif; ?>
+        <?php if ($phone !== ''): ?><li><span class="tick"><?= icon('phone') ?></span><span><b>Phone</b><br><a href="<?= e(tel_href($phone)) ?>"><?= e($phone) ?></a></span></li><?php endif; ?>
         <li><span class="tick"><?= icon('users') ?></span><span><b>Already a member?</b><br>Your dedicated support group details are shared after onboarding.</span></li>
       </ul>
     </div>
