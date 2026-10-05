@@ -44,7 +44,7 @@ if (flight_supplier() === 'liteapi') {
     $mode = str_starts_with((string) config('duffel_access_token'), 'duffel_test_') ? 'TEST token — only "Duffel Airways" test flights' : 'LIVE token — real airlines';
     $r = probe(fn() => http_json('GET', rtrim((string) config('duffel_api_base'), '/') . '/air/airlines?limit=1', ['Authorization: Bearer ' . config('duffel_access_token'), 'Duffel-Version: v2'], null, 20));
     if (flights_on_hold()) {
-        $checks[] = ['Duffel (flights)', false, 'TEST token while PayPal is LIVE — flights are hidden from customers ("coming soon") until you add a duffel_live_ token'];
+        $checks[] = ['Duffel (flights)', false, 'TEST token while PayPal is LIVE — flights are hidden from customers ("coming soon"). Fix: on Site settings set "Flights come from" to LiteAPI (or add a duffel_live_ token)'];
     } else {
         $checks[] = ['Duffel (flights)', $r['ok'], $mode . ' · ' . $r['text']];
     }
