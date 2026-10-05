@@ -32,18 +32,21 @@ if (is_post()) {
             flash("Payment link sent to {$booking['contact_email']}.");
             redirect($self);
         }
-    } elseif ($action === 'bag_price' || $action === 'bag_decline') {
+    } elseif (in_array($action, ['bag_price', 'bag_decline', 'bag_included'], true)) {
         $amount = $action === 'bag_price' ? filter_var(post('bag_amount'), FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'max_range' => 5000]]) : null;
         if ($action === 'bag_price' && $amount === false) $error = 'Enter the total bag price for the customer in whole US dollars (e.g. 45).';
-        elseif (!settle_bag_request($ref, $amount === false ? null : $amount, $admin['id'])) $error = 'This bag request was already handled, or the booking is no longer unpaid.';
+        elseif (!settle_bag_request($ref, $amount === false ? null : $amount, $admin['id'], $action === 'bag_included')) $error = 'This bag request was already handled, or the booking is no longer unpaid.';
         else {
             $fresh = admin_booking($ref);
-            $msg = $amount ? 'We\'ve added your checked bag(s) for ' . money($amount) . '. Your new total is ' . money($fresh['total']) . '.'
-                : 'Unfortunately the airline couldn\'t add a checked bag to this booking, so your total is unchanged.';
+            $msg = match ($action) {
+                'bag_price' => 'We\'ve added your checked bag(s) for ' . money($amount) . '. Your new total is ' . money($fresh['total']) . '.',
+                'bag_included' => 'Good news: a checked bag is already included in your fare, so there\'s nothing extra to pay.',
+                default => 'Unfortunately the airline couldn\'t add a checked bag to this booking, so your total is unchanged.',
+            };
             if (payments_enabled()) {
                 send_payment_link($fresh, $msg);
                 add_event($ref, $admin['id'], 'email', "Payment link emailed to {$fresh['contact_email']}. Message: $msg");
-                flash('Saved. The customer has been emailed the ' . ($amount ? 'new total' : 'news') . ' and a payment link.');
+                flash('Saved. The customer has been emailed the ' . ($action === 'bag_price' ? 'new total' : 'news') . ' and a payment link.');
             } else {
                 flash('Saved. Payments are off, so please tell the customer yourself: ' . $msg);
             }
@@ -102,7 +105,6 @@ echo admin_open('bookings');
                 <p class="text-xs text-slate-600"><?= e(implode(' · ', array_filter([
                     isset($t['gender']) ? ($t['gender'] === 'F' ? 'Female' : 'Male') : null,
                     !empty($t['nationality']) ? 'Nationality ' . country_name($t['nationality']) : null,
-                    !empty($t['passport']) ? 'Passport ' . $t['passport'] . ' (exp. ' . fmt_dob($t['passport_expiry']) . ')' : null,
                     !empty($t['frequent_flyer']) ? 'Frequent flyer ' . $t['frequent_flyer'] : null,
                 ]))) ?></p>
                 <?php if (!empty($t['extra_bag'])): ?><p class="text-xs font-semibold text-accent-600">+ Checked bag requested</p><?php endif; ?></td>
@@ -137,6 +139,9 @@ echo admin_open('bookings');
             <label class="block text-xs font-medium text-slate-500">Total for <?= plural($bagCount, 'bag') ?> (USD)
               <input name="bag_amount" type="number" min="1" max="5000" step="1" required placeholder="e.g. 45" class="<?= $input ?> mt-1"></label>
             <button type="submit" class="w-full rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700">Add to total &amp; email customer</button>
+          </form>
+          <form method="post" class="mt-2"><?= csrf_field() ?><input type="hidden" name="action" value="bag_included">
+            <button type="submit" class="w-full rounded-lg px-4 py-2 text-sm font-semibold text-emerald-700 ring-1 ring-emerald-200 hover:bg-emerald-50">Bag is already included in the fare — no charge</button>
           </form>
           <form method="post" class="mt-2"><?= csrf_field() ?><input type="hidden" name="action" value="bag_decline">
             <button type="submit" class="w-full rounded-lg px-4 py-2 text-sm font-semibold text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50">Bags can't be added — keep the current total</button>

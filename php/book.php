@@ -15,10 +15,12 @@ $quote = build_quote($kind, $params);
 $errors = [];
 $message = null;
 $values = [];
-// Flights and packages need passport-style details; hotels only need the lead guest's name.
+// Flights and packages need the details airlines ask for; hotels only need the lead guest's name.
 $airTravel = $quote && $kind !== 'hotel';
 // Checked bag not included in the fare (real allowance from the supplier): travelers can ask us to add one.
-$bagOffer = $quote && $kind === 'flight' && !empty($quote['baggage']) && empty($quote['baggage']['checked']);
+// When the supplier says what's included we show it; otherwise the travel assistant confirms it.
+$bagInfo = $quote && $kind === 'flight' ? ($quote['baggage'] ?? null) : null;
+$bagOffer = $quote && $kind !== 'hotel' && empty($bagInfo['checked']);
 if ($quote && is_post()) {
     verify_csrf();
     $values = array_map(fn($v) => is_string($v) ? trim($v) : '', $_POST);
@@ -27,7 +29,6 @@ if ($quote && is_post()) {
     } else {
         $travelers = [];
         $nameRe = '/^\p{L}[\p{L}\p{M}\' .-]*$/u';
-        $tripEnd = $quote['end_date'] ?? $quote['start_date'];
         foreach ($quote['slots'] as $i => $slot) {
             $first = $values["t{$i}_first"] ?? '';
             $noLast = $airTravel && !empty($values["t{$i}_nolast"]);
@@ -43,15 +44,6 @@ if ($quote && is_post()) {
                 if (!in_array($gender, ['M', 'F'], true)) $errors["t{$i}_gender"] = t('Choose the gender shown on the passport or ID.');
                 if (!isset(COUNTRY_DIAL[$nat])) $errors["t{$i}_nationality"] = t('Choose a nationality.');
                 $extra = ['gender' => $gender, 'nationality' => $nat] + ($noLast ? ['no_last_name' => true] : []);
-                if ($quote['international']) {
-                    $passport = strtoupper(preg_replace('/\s+/', '', $values["t{$i}_passport"] ?? ''));
-                    $expiry = $values["t{$i}_passport_expiry"] ?? '';
-                    $exp = DateTimeImmutable::createFromFormat('!Y-m-d', $expiry);
-                    if (!preg_match('/^[A-Z0-9]{5,20}$/', $passport)) $errors["t{$i}_passport"] = t('Enter the passport number (letters and numbers only).');
-                    if (!$exp || $exp->format('Y-m-d') !== $expiry) $errors["t{$i}_passport_expiry"] = t('Enter the passport expiry date.');
-                    elseif ($expiry < $tripEnd) $errors["t{$i}_passport_expiry"] = t('This passport expires before the trip ends ({date}). Please use a valid passport.', ['date' => fmt_date($tripEnd)]);
-                    $extra += ['passport' => $passport, 'passport_expiry' => $expiry];
-                }
                 $ff = strtoupper(trim($values["t{$i}_ff"] ?? ''));
                 if ($ff !== '') {
                     if (!preg_match('/^[A-Z0-9][A-Z0-9 -]{3,29}$/', $ff)) $errors["t{$i}_ff"] = t('Enter the frequent flyer number (letters and numbers only), or leave it empty.');
@@ -162,12 +154,6 @@ parse_str($quote['query'], $qp);
                     <?= text_field("t{$i}_dob", t('Date of birth'), $v("t{$i}_dob"), 'date', $errors["t{$i}_dob"] ?? null) ?>
                     <?= select_field("t{$i}_nationality", t('Nationality'), country_list(), $v("t{$i}_nationality"), $errors["t{$i}_nationality"] ?? null, t('Choose…')) ?>
                   </div>
-                  <?php if ($quote['international']): ?>
-                    <div class="grid gap-4 sm:grid-cols-2">
-                      <?= text_field("t{$i}_passport", t('Passport number'), $v("t{$i}_passport"), 'text', $errors["t{$i}_passport"] ?? null, ['autocomplete' => 'off', 'spellcheck' => 'false']) ?>
-                      <?= text_field("t{$i}_passport_expiry", t('Passport expiry date'), $v("t{$i}_passport_expiry"), 'date', $errors["t{$i}_passport_expiry"] ?? null, [], t('Must be valid until the trip ends. Some countries require 6 months\' validity.')) ?>
-                    </div>
-                  <?php endif; ?>
                   <?php if ($kind === 'flight'): ?>
                     <details class="group"<?= $v("t{$i}_ff") !== '' || isset($errors["t{$i}_ff"]) ? ' open' : '' ?>>
                       <summary class="cursor-pointer text-sm font-semibold text-brand-700 hover:underline"><?= e(t('Frequent flyer number (optional)')) ?></summary>
@@ -179,28 +165,35 @@ parse_str($quote['query'], $qp);
             <?php endforeach; ?>
           </div>
         </section>
-        <?php if ($kind === 'flight' && !empty($quote['baggage'])): $bag = $quote['baggage']; ?>
+        <?php if ($airTravel): $bag = $bagInfo; ?>
           <section class="rounded-2xl border border-slate-200 bg-white p-6">
             <h2 class="text-lg font-semibold text-slate-900"><?= e(t('Baggage allowance')) ?></h2>
-            <p class="mt-1 text-sm text-slate-500"><?= e(t('What the airline includes in this fare, for each traveler.')) ?></p>
+            <p class="mt-1 text-sm text-slate-500"><?= e($bag ? t('What the airline includes in this fare, for each traveler.') : t("Your travel assistant will confirm what this fare includes. Need a checked bag? Add it below and we'll confirm the airline's price.")) ?></p>
             <div class="mt-4 overflow-x-auto">
               <table class="w-full min-w-[28rem] text-sm">
                 <thead><tr class="border-b border-slate-200 text-left text-slate-500">
                   <th class="py-2 pr-3 font-medium"><?= e(t('Traveler')) ?></th>
-                  <th class="py-2 pr-3 font-medium"><?= icon('package', 14, 'mr-1 inline text-slate-400') ?><?= e(t('Carry-on bag')) ?></th>
-                  <th class="py-2 font-medium"><?= icon('package', 14, 'mr-1 inline text-slate-400') ?><?= e(t('Checked bag')) ?></th>
+                  <?php if ($bag): ?><th class="py-2 pr-3 font-medium"><?= e(t('Carry-on bag')) ?></th><?php endif; ?>
+                  <th class="py-2 font-medium"><?= e(t('Checked bag')) ?></th>
                 </tr></thead>
                 <tbody class="divide-y divide-slate-100">
                   <?php foreach ($quote['slots'] as $i => $slot): $infant = str_starts_with($slot['label'], 'Infant'); ?>
                     <tr>
                       <td class="py-3 pr-3 font-medium text-slate-900"><?= e(slot_label($slot['label'])) ?></td>
-                      <td class="py-3 pr-3"><?= $infant ? '<span class="text-slate-500">' . e(t('Not included for infants')) . '</span>' : ($bag['carry_on'] ? '<span class="font-semibold text-emerald-700">✓ ' . e(t('Included')) . '</span>' : '<span class="text-slate-600">' . e(t('Not included')) . '</span>') ?></td>
+                      <?php if ($bag): ?><td class="py-3 pr-3"><?= $infant ? '<span class="text-slate-500">' . e(t('Not included for infants')) . '</span>' : ($bag['carry_on'] ? '<span class="font-semibold text-emerald-700">✓ ' . e(t('Included')) . '</span>' : '<span class="text-slate-600">' . e(t('Not included')) . '</span>') ?></td><?php endif; ?>
                       <td class="py-3">
                         <?php if ($infant): ?><span class="text-slate-500"><?= e(t('Not included for infants')) ?></span>
-                        <?php elseif ($bag['checked']): ?><span class="font-semibold text-emerald-700">✓ <?= e(t('Included')) ?></span>
+                        <?php elseif (!empty($bag['checked'])): ?><span class="font-semibold text-emerald-700">✓ <?= e(t('Included')) ?></span>
                         <?php else: ?>
-                          <span class="block font-semibold text-accent-600"><?= e(t('No free checked bag')) ?></span>
-                          <label class="mt-1.5 inline-flex items-center gap-2 text-slate-700"><input type="checkbox" name="t<?= $i ?>_bag" value="1"<?= !empty($values["t{$i}_bag"]) ? ' checked' : '' ?> class="h-4 w-4 accent-brand-600"> <?= e($bag['checked_from'] !== null ? t('Request a checked bag (airline price from {price})', ['price' => price((int) ceil($bag['checked_from']))]) : t('Request a checked bag')) ?></label>
+                          <div class="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+                            <?php if ($bag): ?><span class="font-semibold text-accent-600"><?= e(t('No free checked bag')) ?></span><?php endif; ?>
+                            <label class="relative inline-flex cursor-pointer select-none items-center rounded-lg border border-brand-300 bg-white text-sm font-semibold text-brand-700 hover:bg-brand-50 has-[:checked]:border-brand-600 has-[:checked]:bg-brand-600 has-[:checked]:text-white has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand-300">
+                              <input type="checkbox" name="t<?= $i ?>_bag" value="1"<?= !empty($values["t{$i}_bag"]) ? ' checked' : '' ?> class="peer sr-only" aria-label="<?= e(t('Add a checked bag for {traveler}', ['traveler' => slot_label($slot['label'])])) ?>">
+                              <span class="px-3 py-1.5 peer-checked:hidden">＋ <?= e(t('Add checked bag')) ?></span>
+                              <span class="hidden px-3 py-1.5 peer-checked:inline">✓ <?= e(t('Checked bag added')) ?></span>
+                            </label>
+                          </div>
+                          <span class="mt-1 block text-xs text-slate-500"><?= e(isset($bag['checked_from']) ? t('Airline price from {price} — confirmed before you pay', ['price' => price((int) ceil($bag['checked_from']))]) : t('Airline price confirmed before you pay')) ?></span>
                         <?php endif; ?>
                       </td>
                     </tr>

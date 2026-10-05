@@ -210,11 +210,16 @@ function search_users(string $q, int $page, int $perPage = 50): array
  * Admin: the airline's price for the requested checked bags is known. Adds it to the unpaid booking
  * (total and price breakdown), or with $amount = null records that bags can't be added.
  */
-function settle_bag_request(string $ref, ?int $amount, int $adminId): bool
+function settle_bag_request(string $ref, ?int $amount, int $adminId, bool $alreadyIncluded = false): bool
 {
     $r = db_one("SELECT * FROM bookings WHERE reference = ? AND status = 'reserved' AND bag_status = 'pending'", [$ref]);
     if (!$r) return false;
     $bags = count(array_filter(json_decode($r['travelers_json'], true), fn($t) => !empty($t['extra_bag'])));
+    if ($amount === null && $alreadyIncluded) {
+        db_run("UPDATE bookings SET bag_status = 'included' WHERE reference = ?", [$ref]);
+        add_event($ref, $adminId, 'note', 'The requested checked bag is already included in the fare — no extra charge.');
+        return true;
+    }
     if ($amount === null) {
         db_run("UPDATE bookings SET bag_status = 'declined' WHERE reference = ?", [$ref]);
         add_event($ref, $adminId, 'note', 'Checked bags could not be added — the booking total is unchanged.');

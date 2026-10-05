@@ -138,8 +138,6 @@ $check = '<span class="grid h-10 w-10 shrink-0 place-items-center rounded-full b
               $more = array_filter([
                   isset($t['gender']) ? ($t['gender'] === 'F' ? t('Female') : t('Male')) : null,
                   !empty($t['nationality']) ? country_name($t['nationality']) : null,
-                  // Only the last 3 characters of the passport number are shown here.
-                  !empty($t['passport']) ? t('Passport ending {last}, valid until {date}', ['last' => substr($t['passport'], -3), 'date' => fmt_dob($t['passport_expiry'])]) : null,
                   !empty($t['frequent_flyer']) ? t('Frequent flyer {number}', ['number' => $t['frequent_flyer']]) : null,
                   !empty($t['extra_bag']) ? t('Checked bag requested') : null,
               ]);
@@ -160,6 +158,8 @@ $check = '<span class="grid h-10 w-10 shrink-0 place-items-center rounded-full b
           <h2 class="text-lg font-semibold text-amber-900"><?= e(t("We're checking the price of your checked bag")) ?></h2>
           <p class="mt-1 text-sm text-amber-900"><?= e(t("Bag prices are set by the airline. A travel assistant will add the exact price to your total and email you a payment link — usually within a few hours. You don't pay anything for the bag without seeing the price first.")) ?></p>
         </section>
+      <?php elseif (($booking['bag_status'] ?? null) === 'included' && $status === 'reserved'): ?>
+        <div><?= alert_box(t("Good news: a checked bag is already included in your fare, so there's nothing extra to pay."), 'success') ?></div>
       <?php elseif (($booking['bag_status'] ?? null) === 'declined' && $status === 'reserved'): ?>
         <div><?= alert_box(t("The airline couldn't add a checked bag to this booking, so your total hasn't changed. Contact us if you'd like other options."), 'success') ?></div>
       <?php endif; ?>

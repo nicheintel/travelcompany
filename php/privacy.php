@@ -11,7 +11,7 @@ echo legal_page('Privacy policy', "This policy explains what personal informatio
     'who' => ['Who we are', "<p>This website is run by $who, a travel assistant that helps customers find and book flights, hotels and travel packages. We decide how your personal information is used for the purposes below. Questions or requests: $mail.</p>"],
     'collect' => ['Information we collect', '<ul>
         <li><strong>Account details:</strong> your name, email address and password. Passwords are stored only in a securely scrambled (hashed) form — we can\'t see them.</li>
-        <li><strong>Booking details:</strong> each traveler\'s name, date of birth, gender and nationality as shown on their passport or ID; for international flights, the passport number and expiry date; any frequent flyer number and baggage requests you give us; a contact name, email and phone number; and the trip you chose and its price. Airlines require these details to issue tickets.</li>
+        <li><strong>Booking details:</strong> each traveler\'s name, date of birth, gender and nationality as shown on their passport or ID; any frequent flyer number and baggage requests you give us; a contact name, email and phone number; and the trip you chose and its price. Airlines require these details to issue tickets.</li>
         <li><strong>Payment details:</strong> payments are made on PayPal\'s (or Stripe\'s) own secure pages. We receive confirmation that you paid and a payment reference — <strong>never your card number</strong>.</li>
         <li><strong>Messages:</strong> anything you send us by email, WhatsApp or phone, and notes our travel assistants add to your booking to help you.</li>
         <li><strong>Technical information:</strong> your IP address, used briefly to protect the site against password guessing and abuse, and one cookie that keeps you signed in (see our <a href="' . e(url('cookies.php')) . '">Cookie policy</a>). We don\'t use advertising or tracking tools.</li>
@@ -26,7 +26,7 @@ echo legal_page('Privacy policy', "This policy explains what personal informatio
     'basis' => ['Why we\'re allowed to use it', '<p>We use your information because we need it to provide the bookings and account you asked for (performing our agreement with you), to meet legal obligations, and for our legitimate interest in keeping the service secure. Where the law requires your consent, we ask for it, and you can withdraw it at any time.</p>'],
     'share' => ['Who we share it with', '<p>Only with the companies needed to provide your trip and run this website:</p>
         <table><tr><th>Who</th><th>Why</th></tr>
-        <tr><td>Airlines, via our flight suppliers (Duffel and LiteAPI)</td><td>To search fares and issue your tickets (traveler names, dates of birth, gender, nationality, passport details and contact details).</td></tr>
+        <tr><td>Airlines, via our flight suppliers (Duffel and LiteAPI)</td><td>To search fares and issue your tickets (traveler names, dates of birth, gender, nationality and contact details).</td></tr>
         <tr><td>Hotels, via our hotel supplier LiteAPI</td><td>To search rates and book your room (guest names and contact details).</td></tr>
         <tr><td>PayPal (or Stripe)</td><td>To process your payment on their secure pages.</td></tr>
         <tr><td>Hostinger</td><td>Hosts this website, its database and our email.</td></tr>
