@@ -73,6 +73,12 @@ function migrate(PDO $pdo): void
     if (in_array('stripe_session_id', $cols, true) && !in_array('payment_ref', $cols, true)) {
         $pdo->exec('ALTER TABLE bookings CHANGE stripe_session_id payment_ref VARCHAR(255) NULL');
     }
+    // Email confirmation (added later): accounts that existed before count as confirmed.
+    $userCols = $pdo->query("SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users'")->fetchAll(PDO::FETCH_COLUMN);
+    if (!in_array('email_verified_at', $userCols, true)) {
+        $pdo->exec('ALTER TABLE users ADD COLUMN email_verified_at DATETIME NULL AFTER session_version');
+        $pdo->exec('UPDATE users SET email_verified_at = created_at');
+    }
     // Ticket details (added later).
     foreach (['ticketed_at' => 'DATETIME NULL', 'supplier_ref' => 'VARCHAR(100) NULL', 'ticket_note' => 'TEXT NULL'] as $col => $type) {
         if (!in_array($col, $cols, true)) $pdo->exec("ALTER TABLE bookings ADD COLUMN $col $type");

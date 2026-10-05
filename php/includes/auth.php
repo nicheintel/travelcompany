@@ -30,6 +30,7 @@ function to_user(array $row): array
         'role' => $byConfig || $row['role'] === 'admin' ? 'admin' : 'customer',
         'admin_by_config' => $byConfig,
         'session_version' => (int) $row['session_version'],
+        'verified' => ($row['email_verified_at'] ?? null) !== null,
     ];
 }
 
@@ -268,10 +269,48 @@ function consume_reset_token(string $token, string $newPassword): ?int
         return null;
     }
     db_run('UPDATE password_resets SET used_at = ? WHERE token_hash = ?', [now_utc(), hash('sha256', $token)]);
+    // Opening the reset link also proves the email address works.
     db_run(
-        'UPDATE users SET password_hash = ?, session_version = session_version + 1 WHERE id = ?',
-        [password_hash($newPassword, PASSWORD_DEFAULT), $userId],
+        'UPDATE users SET password_hash = ?, session_version = session_version + 1, email_verified_at = COALESCE(email_verified_at, ?) WHERE id = ?',
+        [password_hash($newPassword, PASSWORD_DEFAULT), now_utc(), $userId],
     );
     $pdo->commit();
     return $userId;
+}
+
+// ---------- Email confirmation ----------
+
+/** Emails a link that confirms the user's current email address (valid 48 hours). */
+function send_verification_email(array $user): void
+{
+    $token = rtrim(strtr(base64_encode(random_bytes(32)), '+/', '-_'), '=');
+    db_run('DELETE FROM email_verifications WHERE user_id = ?', [$user['id']]);
+    db_run(
+        'INSERT INTO email_verifications (token_hash, user_id, email, expires_at, created_at) VALUES (?, ?, ?, ?, ?)',
+        [hash('sha256', $token), $user['id'], $user['email'], gmdate('Y-m-d H:i:s', time() + 48 * 3600), now_utc()],
+    );
+    send_email($user['email'], simple_email(
+        'Confirm your email for ' . config('site_name'),
+        'Confirm your email address',
+        explode(' ', $user['name'])[0],
+        ['Please confirm this is your email address. We send your booking confirmations, payment links and tickets here.', 'This link expires in 48 hours.'],
+        [],
+        account_link('verify-email.php?token=' . $token),
+        'Confirm my email',
+    ));
+}
+
+/** Confirms the email the link was sent to (if the account still uses it). Returns the user id or null. */
+function confirm_email_token(string $token): ?int
+{
+    if ($token === '' || strlen($token) > 100) return null;
+    $row = db_one(
+        'SELECT v.user_id, v.email FROM email_verifications v JOIN users u ON u.id = v.user_id
+         WHERE v.token_hash = ? AND v.used_at IS NULL AND v.expires_at > ? AND u.email = v.email',
+        [hash('sha256', $token), now_utc()],
+    );
+    if (!$row) return null;
+    db_run('UPDATE email_verifications SET used_at = ? WHERE token_hash = ?', [now_utc(), hash('sha256', $token)]);
+    db_run('UPDATE users SET email_verified_at = COALESCE(email_verified_at, ?) WHERE id = ?', [now_utc(), $row['user_id']]);
+    return (int) $row['user_id'];
 }

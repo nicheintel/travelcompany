@@ -23,13 +23,14 @@ if (is_post()) {
         elseif ($err = check_password_with_lockout($row, (string) ($_POST['email_current'] ?? ''), 'Your current password is incorrect.')) $errors['email_current'] = $err;
         elseif (find_user_by_email($email)) $errors['email'] = 'Another account already uses this email.';
         else {
-            db_run('UPDATE users SET email = ? WHERE id = ?', [$email, $user['id']]);
+            db_run('UPDATE users SET email = ?, email_verified_at = NULL WHERE id = ?', [$email, $user['id']]);
+            send_verification_email(['email' => $email] + $user);
             // Tell the old address, so a hijacked account doesn't go unnoticed.
             send_email($user['email'], simple_email('Your ' . config('site_name') . ' email address was changed', 'Your email address was changed', explode(' ', $user['name'])[0], [
                 "The email address on your account was changed to $email. Future emails will go there.",
                 "If this wasn't you, reset your password right away and contact our support team.",
             ], [], account_link('forgot-password.php'), 'Reset password'));
-            flash("Your email is now $email.");
+            flash("Your email is now $email. We've sent a confirmation link there — please open it.");
             redirect(url('settings.php'));
         }
     } elseif ($form === 'password') {

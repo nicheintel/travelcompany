@@ -91,6 +91,15 @@ $flashMessage = take_flash();
   </div>
 </header>
 <main class="flex-1">
+<?php if ($user && !$user['verified'] && $current !== 'verify-email.php'): ?>
+  <form method="post" action="<?= e(url('verify-email.php')) ?>" class="border-b border-amber-200 bg-amber-50"><?= csrf_field() ?>
+    <input type="hidden" name="next" value="<?= e((string) ($_SERVER['REQUEST_URI'] ?? '')) ?>">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 text-sm text-amber-900 sm:px-6">
+      <p><strong>Please confirm your email.</strong> We sent a link to <?= e($user['email']) ?> — you'll need it before booking.</p>
+      <button type="submit" class="font-semibold underline underline-offset-2 hover:text-amber-700">Send a new link</button>
+    </div>
+  </form>
+<?php endif; ?>
 <?php if ($flashMessage): ?>
   <div class="mx-auto max-w-7xl px-4 pt-6 sm:px-6"><?= alert_box($flashMessage['message'], $flashMessage['type']) ?></div>
 <?php endif; ?>

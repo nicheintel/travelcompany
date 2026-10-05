@@ -38,7 +38,7 @@ echo admin_open('users');
             <td class="px-4 py-3"><p class="font-medium text-slate-900"><?= e($u['name']) ?> <?= $u['id'] === $me['id'] ? '<span class="text-xs text-slate-400">(you)</span>' : '' ?></p><p class="text-xs text-slate-500"><?= e($u['email']) ?></p></td>
             <td class="px-4 py-3 text-slate-600"><?= local_time($u['created_at'], true) ?></td>
             <td class="px-4 py-3"><?= $u['booking_count'] ? '<a href="' . e(url('admin/bookings.php', ['user' => $u['id']])) . '" class="font-semibold text-brand-700 hover:underline">' . plural($u['booking_count'], 'booking') . '</a>' : '<span class="text-slate-400">None</span>' ?></td>
-            <td class="px-4 py-3"><?= $u['role'] === 'admin' ? '<span class="rounded-full bg-brand-100 px-2.5 py-0.5 text-xs font-bold text-brand-800">Admin' . ($u['admin_by_config'] ? ' · config' : '') . '</span>' : '<span class="text-slate-500">Customer</span>' ?></td>
+            <td class="px-4 py-3"><?= $u['role'] === 'admin' ? '<span class="rounded-full bg-brand-100 px-2.5 py-0.5 text-xs font-bold text-brand-800">Admin' . ($u['admin_by_config'] ? ' · config' : '') . '</span>' : '<span class="text-slate-500">Customer</span>' ?><?= $u['verified'] ? '' : ' <span class="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-800">Email not confirmed</span>' ?></td>
             <td class="px-4 py-3 text-right">
               <?php if ($u['id'] !== $me['id'] && !$u['admin_by_config']): $isAdmin = $u['role'] === 'admin'; ?>
                 <form method="post" data-confirm="<?= e($isAdmin ? "Remove admin access for {$u['name']}?" : "Give {$u['name']} admin access? They'll see all bookings and customers.") ?>">

@@ -21,7 +21,9 @@ if (is_post()) {
     if (!$errors) {
         try {
             db_run('INSERT INTO users (name, email, password_hash, created_at) VALUES (?, ?, ?, ?)', [$name, normalize_email($email), password_hash($password, PASSWORD_DEFAULT), now_utc()]);
-            login_user(find_user((int) db()->lastInsertId()));
+            $newUser = find_user((int) db()->lastInsertId());
+            login_user($newUser);
+            send_verification_email($newUser);
             redirect($next ?: url('account.php'));
         } catch (PDOException $e) {
             if ((int) ($e->errorInfo[1] ?? 0) !== 1062) throw $e;

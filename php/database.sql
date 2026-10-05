@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS users (
   password_hash   VARCHAR(255) NOT NULL,
   role            VARCHAR(20)  NOT NULL DEFAULT 'customer',
   session_version INT UNSIGNED NOT NULL DEFAULT 1,
+  email_verified_at DATETIME   NULL,
   created_at      DATETIME     NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -45,6 +46,17 @@ CREATE TABLE IF NOT EXISTS booking_events (
   INDEX events_reference (reference),
   CONSTRAINT events_booking_fk FOREIGN KEY (reference) REFERENCES bookings(reference) ON DELETE CASCADE,
   CONSTRAINT events_actor_fk FOREIGN KEY (actor_id) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Email confirmation links (only a SHA-256 hash of the token is stored).
+CREATE TABLE IF NOT EXISTS email_verifications (
+  token_hash CHAR(64)     NOT NULL PRIMARY KEY,
+  user_id    INT UNSIGNED NOT NULL,
+  email      VARCHAR(254) NOT NULL,
+  expires_at DATETIME     NOT NULL,
+  used_at    DATETIME     NULL,
+  created_at DATETIME     NOT NULL,
+  CONSTRAINT verify_user_fk FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS password_resets (

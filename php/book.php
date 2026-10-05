@@ -44,7 +44,9 @@ if ($quote && is_post()) {
         $phone = $values['phone'] ?? '';
         if (!valid_email($email)) $errors['email'] = 'Enter a valid email address.';
         if (!preg_match('/^\+?[0-9][0-9\s().-]{6,19}$/', $phone)) $errors['phone'] = 'Enter a valid phone number, including country code.';
-        if ($errors) {
+        if (!$user['verified']) {
+            $message = 'Please confirm your email address first — open the link we emailed you.';
+        } elseif ($errors) {
             $message = 'Please fix the highlighted fields.';
         } elseif (rate_limited('book:' . $user['id'], 20) || ip_throttled('book', 30, 86400)) {
             $message = "You've made a lot of reservations today. Please contact us if you need more.";
@@ -133,8 +135,20 @@ parse_str($quote['query'], $qp);
               ? 'Nothing is charged yet. Next you can pay online' . (payment_provider() === 'paypal' ? ' with PayPal or a card' : ' by card') . ' to confirm right away — or pay later with help from a travel assistant.'
               : 'No payment is taken today. A travel assistant will contact you within 24 hours to confirm availability and arrange payment.' ?></p>
         </div>
-        <?= submit_button('Reserve trip · ' . money($quote['total']), 'Reserving…') ?>
+        <?php if ($user['verified']): ?>
+          <?= submit_button('Reserve trip · ' . money($quote['total']), 'Reserving…') ?>
+        <?php else: ?>
+          <button type="button" disabled class="w-full cursor-not-allowed rounded-xl bg-slate-300 py-3.5 font-bold text-white">Confirm your email to reserve</button>
+        <?php endif; ?>
       </form>
+      <?php if (!$user['verified']): ?>
+        <form method="post" action="<?= e(url('verify-email.php')) ?>" class="rounded-2xl bg-amber-50 p-5 text-sm text-amber-900 ring-1 ring-amber-200"><?= csrf_field() ?>
+          <input type="hidden" name="next" value="<?= e((string) ($_SERVER['REQUEST_URI'] ?? '')) ?>">
+          <p class="font-semibold">One last step: confirm your email address</p>
+          <p class="mt-1">We sent a link to <strong><?= e($user['email']) ?></strong>. Open it, then come back to this page to reserve. Check your spam folder too.</p>
+          <button type="submit" class="mt-3 rounded-lg bg-amber-500 px-4 py-2 font-semibold text-white hover:bg-amber-600">Send me a new link</button>
+        </form>
+      <?php endif; ?>
     </div>
     <aside class="h-fit space-y-3 lg:sticky lg:top-20"><?= admin_cost_line($quote['supplier'], $quote['subtotal']) ?><?= trip_summary($quote) ?></aside>
   </div>
