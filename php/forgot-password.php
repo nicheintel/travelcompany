@@ -27,7 +27,7 @@ if (is_post()) {
                 $first = explode(' ', $row['name'])[0];
                 send_email($row['email'], simple_email('Reset your ' . config('site_name') . ' password', 'Reset your password', $first, [
                     'We received a request to reset your password. This link expires in 1 hour.',
-                    "If you didn't ask for this, you can ignore this email — your password won't change.",
+                    "If you didn't ask for this, you can ignore this email. Your password won't change.",
                 ], [], $link, 'Choose a new password'));
             }
         }

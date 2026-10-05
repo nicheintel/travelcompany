@@ -83,7 +83,7 @@ function email_gcash_not_found(array $b): void
     in_english(function () use ($b) {
         $mail = simple_email("We couldn't find your GCash payment ({$b['reference']})", 'Please check your GCash payment', $b['travelers'][0]['first'] ?? 'there', [
             "We couldn't find a GCash payment with the reference number you entered for trip {$b['reference']}.",
-            'Please check the reference number in your GCash app (Transactions) and enter it again on your trip page — or reply to this email and we\'ll help.',
+            'Please check the reference number in your GCash app (Transactions) and enter it again on your trip page. You can also reply to this email and we\'ll help.',
         ], trip_rows($b), pay_link($b['reference']), 'Open my trip');
         send_email($b['contact_email'], $mail);
     });

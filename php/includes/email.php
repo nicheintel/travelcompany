@@ -169,7 +169,7 @@ function trip_rows(array $b): array
     return [
         'Reference' => $b['reference'],
         'Trip' => $q['title'],
-        'Dates' => fmt_date($q['start_date']) . ($q['end_date'] ? ' – ' . fmt_date($q['end_date']) : ''),
+        'Dates' => fmt_date($q['start_date']) . ($q['end_date'] ? ' to ' . fmt_date($q['end_date']) : ''),
         'Travelers' => implode(', ', array_map(fn($t) => trim("{$t['first']} {$t['last']}"), $b['travelers'])),
         'Total' => money($b['total']),
     ];
@@ -192,7 +192,7 @@ function rows_text(array $rows): string
 function simple_email(string $subject, string $heading, string $firstName, array $paragraphs, array $rows, string $link, string $button): array
 {
     $site = config('site_name');
-    $text = "Hi $firstName,\n\n" . implode("\n\n", $paragraphs) . ($rows ? "\n\n" . rows_text($rows) : '') . "\n\n$button: $link\n\n— The $site team";
+    $text = "Hi $firstName,\n\n" . implode("\n\n", $paragraphs) . ($rows ? "\n\n" . rows_text($rows) : '') . "\n\n$button: $link\n\nThe $site team";
     $html = email_p('Hi ' . e($firstName) . ',') . implode('', array_map(fn($p) => email_p(nl2br(e($p))), $paragraphs)) . ($rows ? rows_html($rows) : '') . email_button($link, $button);
     return ['subject' => $subject, 'text' => $text, 'html' => email_layout($heading, $html)];
 }
@@ -218,24 +218,24 @@ function notify_booking_now(string $event, string $reference): void
             // A checked bag was requested: payment waits until the bag price is added (no "Pay now" yet).
             'reserved' => ($b['bag_status'] ?? null) === 'pending'
                 ? simple_email("Trip reserved: $title", 'Your trip is reserved!', $first, [
-                    'You asked for a checked bag. Bag prices are set by the airline, so a travel assistant will confirm the exact price, add it to your total and email you a payment link — usually within a few hours.',
+                    'You asked for a checked bag. Bag prices are set by the airline, so a travel assistant will confirm the exact price, add it to your total and email you a payment link, usually within a few hours.',
                     "You don't pay anything for the bag without seeing the price first.",
-                ], array_diff_key($rows, ['Total' => true]) + ['Checked bag' => 'Requested — price to be confirmed', 'Total so far' => money($b['total']) . ' + checked bag'], $link, 'View my trip')
+                ], array_diff_key($rows, ['Total' => true]) + ['Checked bag' => 'Requested (price to be confirmed)', 'Total so far' => money($b['total']) . ' + checked bag'], $link, 'View my trip')
                 : (payments_enabled() || gcash_enabled()
                 ? simple_email("Trip reserved: $title", 'Your trip is reserved!', $first, [
                     payments_enabled()
-                        ? 'You can pay securely online now to confirm it' . (gcash_enabled() ? ' (PayPal, card or GCash)' : '') . ' — or a travel assistant will contact you within 24 hours.'
-                        : 'You can pay with GCash on your trip page to confirm it — or a travel assistant will contact you within 24 hours.',
-                ], $rows, pay_link($reference), 'Pay now — ' . money($b['total']))
+                        ? 'You can pay securely online now to confirm it' . (gcash_enabled() ? ' (PayPal, card or GCash)' : '') . '. If you prefer, a travel assistant will contact you within 24 hours.'
+                        : 'You can pay with GCash on your trip page to confirm it. If you prefer, a travel assistant will contact you within 24 hours.',
+                ], $rows, pay_link($reference), 'Pay now: ' . money($b['total']))
                 : simple_email("Trip reserved: $title", 'Your trip is reserved!', $first, [
                     'A travel assistant will contact you within 24 hours to confirm availability and arrange payment.',
                 ], $rows, $link, 'View my trip')),
-            'paid' => simple_email("Payment received: $title", 'Payment received — thank you!', $first, [
-                'Thanks — we\'ve received your payment of ' . money($b['total']) . '.',
+            'paid' => simple_email("Payment received: $title", 'Payment received. Thank you!', $first, [
+                'Thank you, we\'ve received your payment of ' . money($b['total']) . '.',
                 'A travel assistant is now ' . ($b['kind'] === 'hotel' ? 'booking your room' : 'issuing your tickets') . '. You\'ll get another email with your confirmation code, usually within a few hours.',
             ], $rows, $link, 'View my trip'),
             'ticketed' => simple_email(
-                ($b['kind'] === 'hotel' ? 'Room booked' : 'Ticket issued') . ": $title — code {$b['supplier_ref']}",
+                ($b['kind'] === 'hotel' ? 'Room booked' : 'Ticket issued') . ": $title, code {$b['supplier_ref']}",
                 $b['kind'] === 'hotel' ? 'Your room is booked!' : 'Your ticket is issued!',
                 $first,
                 array_values(array_filter([
@@ -286,7 +286,7 @@ function send_payment_link(array $b, string $message): void
 function send_payment_link_now(array $b, string $message): void
 {
     $first = $b['travelers'][0]['first'] ?? 'there';
-    $paragraphs = ["Your trip {$b['reference']} is reserved and waiting for payment. You can pay securely with PayPal or a debit/credit card — it only takes a minute."];
+    $paragraphs = ["Your trip {$b['reference']} is reserved and waiting for payment. You can pay securely with PayPal or a debit/credit card. It only takes a minute."];
     if ($message !== '') array_unshift($paragraphs, $message);
     send_email($b['contact_email'], simple_email(
         "Payment for your trip {$b['reference']} (" . money($b['total']) . ')',
@@ -295,6 +295,6 @@ function send_payment_link_now(array $b, string $message): void
         $paragraphs,
         trip_rows($b),
         pay_link($b['reference']),
-        'Pay now — ' . money($b['total']),
+        'Pay now: ' . money($b['total']),
     ));
 }
