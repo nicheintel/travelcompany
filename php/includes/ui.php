@@ -132,11 +132,7 @@ function package_search_form(array $d = []): string
     $dests = [];
     foreach (active_packages() as $p) $dests[$p['to_code']] = "{$p['destination']}, {$p['country']}";
     asort($dests);
-    if (!$dests) {
-        return '<div class="flex flex-col gap-3 rounded-xl bg-slate-50 p-5 sm:flex-row sm:items-center sm:justify-between">'
-            . '<p class="text-slate-700"><strong class="text-slate-900">New promo packages are coming soon.</strong> Create a free account and our travel assistants can put together a flight + hotel trip for you.</p>'
-            . '<a href="' . e(url('register.php')) . '" class="shrink-0 rounded-xl bg-accent-500 px-5 py-3 text-center font-semibold text-white hover:bg-accent-600">Create free account</a></div>';
-    }
+    if (!$dests) return no_packages_box();
     $options = '<option value="">All destinations</option>';
     foreach ($dests as $code => $label) {
         $options .= '<option value="' . e($code) . '"' . (($d['to'] ?? '') === $code ? ' selected' : '') . '>' . e($label) . '</option>';
@@ -452,4 +448,28 @@ function support_card(): string
     if (isset($c['whatsapp'])) $html .= $row('https://wa.me/' . preg_replace('/\D/', '', $c['whatsapp']), 'chat', 'WhatsApp', $c['whatsapp'], true);
     if (isset($c['phone'])) $html .= $row('tel:' . preg_replace('/[^\d+]/', '', $c['phone']), 'headset', 'Phone', $c['phone']);
     return $html . '</div></section>';
+}
+
+/**
+ * Shown when there are no promo packages yet: one message, and a way to ask for a custom trip
+ * (support email / WhatsApp), or to create an account for visitors who aren't signed in.
+ */
+function no_packages_box(): string
+{
+    $c = support_contacts();
+    $buttons = '';
+    if (isset($c['whatsapp'])) {
+        $buttons .= '<a href="https://wa.me/' . e(preg_replace('/\D/', '', $c['whatsapp'])) . '" target="_blank" rel="noopener" class="flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 font-semibold text-white hover:bg-emerald-700">' . icon('chat', 18) . ' WhatsApp us</a>';
+    }
+    if (isset($c['email'])) {
+        $buttons .= '<a href="mailto:' . e($c['email']) . '?subject=' . rawurlencode('Custom flight + hotel trip') . '" class="flex items-center justify-center gap-2 rounded-xl bg-accent-500 px-5 py-3 font-semibold text-white hover:bg-accent-600">' . icon('mail', 18) . ' Ask for a custom trip</a>';
+    }
+    if (!current_user()) {
+        $buttons .= '<a href="' . e(url('register.php')) . '" class="flex items-center justify-center rounded-xl px-5 py-3 font-semibold text-brand-700 ring-1 ring-brand-200 hover:bg-brand-50">Create free account</a>';
+    }
+    return '<div class="flex flex-col gap-4 rounded-xl bg-slate-50 p-5 lg:flex-row lg:items-center lg:justify-between">'
+        . '<div><p class="font-semibold text-slate-900">New promo packages are coming soon.</p>'
+        . '<p class="mt-1 text-slate-700">Tell us where and when you\'d like to go, and our travel assistants will put together a flight + hotel trip for you. '
+        . 'Or search live <a class="font-semibold text-brand-700 hover:underline" href="' . e(url('flights.php')) . '">flights</a> and <a class="font-semibold text-brand-700 hover:underline" href="' . e(url('hotels.php')) . '">hotels</a> yourself.</p></div>'
+        . ($buttons ? '<div class="flex shrink-0 flex-col gap-2 sm:flex-row">' . $buttons . '</div>' : '') . '</div>';
 }

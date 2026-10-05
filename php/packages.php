@@ -19,6 +19,7 @@ require __DIR__ . '/includes/header.php';
   </div>
 </section>
 
+<?php if ($all || is_admin()): ?>
 <section id="results" class="mx-auto max-w-7xl scroll-mt-20 px-4 py-12 sm:px-6">
   <?php if ($all): ?>
     <div class="mb-6 flex flex-wrap items-end justify-between gap-3">
@@ -33,12 +34,9 @@ require __DIR__ . '/includes/header.php';
     <?php else: ?>
       <p class="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center text-slate-600">No promo to <?= e($to['city']) ?> right now.</p>
     <?php endif; ?>
-  <?php else: ?>
-    <div class="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center">
-      <h2 class="text-xl font-bold text-slate-900">New promo packages are coming soon</h2>
-      <p class="mx-auto mt-2 max-w-xl text-slate-600">Meanwhile, search live <a class="font-semibold text-brand-700 hover:underline" href="<?= e(url('flights.php')) ?>">flights</a> and <a class="font-semibold text-brand-700 hover:underline" href="<?= e(url('hotels.php')) ?>">hotels</a>.</p>
-      <?php if (is_admin()): ?><p class="mt-4 text-sm text-amber-700">Admin: add your first package on <a class="font-semibold underline" href="<?= e(url('admin/packages.php')) ?>">Admin → Packages</a>.</p><?php endif; ?>
-    </div>
+  <?php elseif (is_admin()): ?>
+    <p class="rounded-xl bg-amber-50 p-4 text-sm text-amber-800 ring-1 ring-amber-200">Admin: add your first package on <a class="font-semibold underline" href="<?= e(url('admin/packages.php')) ?>">Admin → Packages</a> — it will appear here and on the homepage.</p>
   <?php endif; ?>
 </section>
+<?php endif; ?>
 <?php require __DIR__ . '/includes/footer.php';
