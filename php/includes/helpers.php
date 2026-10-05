@@ -197,6 +197,8 @@ function fmt_time(int $minutes): string
 {
     $m = (($minutes % 1440) + 1440) % 1440;
     $h = intdiv($m, 60);
+    // English, Filipino and Hindi readers expect 12-hour times; the other languages use 24-hour times.
+    if (!in_array(current_lang(), ['en', 'fil', 'hi'], true)) return sprintf('%02d:%02d', $h, $m % 60);
     return sprintf('%d:%02d %s', $h % 12 === 0 ? 12 : $h % 12, $m % 60, $h >= 12 ? 'PM' : 'AM');
 }
 

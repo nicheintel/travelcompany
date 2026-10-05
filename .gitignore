@@ -49,6 +49,7 @@ next-env.d.ts
 /php/storage/*.log.php
 /php/storage/schema-*
 /php/storage/*.json
+/php/storage/*.txt
 /php/uploads/*
 !/php/uploads/.htaccess
 !/php/uploads/.gitkeep

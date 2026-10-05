@@ -158,7 +158,14 @@ function fmt_local(DateTimeImmutable $d, string $pattern, string $english): stri
 {
     $lang = current_lang();
     if ($lang === 'en' || !class_exists('IntlDateFormatter')) return $d->format($english);
-    $f = new IntlDateFormatter(str_replace('-', '_', html_lang()), IntlDateFormatter::NONE, IntlDateFormatter::NONE, 'UTC', null, $pattern);
+    $locale = str_replace('-', '_', html_lang());
+    if (class_exists('IntlDatePatternGenerator')) {
+        // Use the language's own order for the same fields ("May 14, 1990" → "1990年5月14日").
+        $skeleton = str_replace(['h', 'a'], ['j', ''], preg_replace('/[^A-Za-z]/', '', $pattern));
+        $best = (new IntlDatePatternGenerator($locale))->getBestPattern($skeleton);
+        if (is_string($best) && $best !== '') $pattern = $best;
+    }
+    $f = new IntlDateFormatter($locale, IntlDateFormatter::NONE, IntlDateFormatter::NONE, 'UTC', null, $pattern);
     $out = $f->format($d);
     return $out === false ? $d->format($english) : $out;
 }
@@ -326,6 +333,7 @@ function quote_text(?string $s, ?string $startIso = null): string
         $who = tn((int) $m[2], '{n} adult', '{n} adults') . (!empty($m[3]) ? ', ' . tn((int) $m[3], '{n} child', '{n} children') : '');
         return $m[1] . ' (' . $who . ')';
     }
+    if (preg_match('/^(\d+) nights?$/', $s, $m)) return tn((int) $m[1], '{n} night', '{n} nights');
     if (preg_match('/^checked bag from (\S+)$/u', $s, $m)) return t('checked bag from {price}', ['price' => $m[1]]);
     if (preg_match('/^(?:[A-Z][a-z]{2}, )?[A-Z][a-z]{2} \d{1,2}$/', $s)) return quote_date($s, $startIso);
     if (preg_match('/^((?:[A-Z][a-z]{2}, )?[A-Z][a-z]{2} \d{1,2}) – ((?:[A-Z][a-z]{2}, )?[A-Z][a-z]{2} \d{1,2})$/u', $s, $m)) {
