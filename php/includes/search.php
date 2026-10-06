@@ -462,14 +462,15 @@ function liteapi_flight_leg(array $segs, ?int $minutes): array
 }
 
 /** Maps a LiteAPI journey (its cheapest offer) to our flight format, with the marked-up price. */
-function liteapi_flight_map(array $j, array $s): ?array
+/** One LiteAPI journey as an offer for our results; null (with the reason in $why) when it can't be sold. */
+function liteapi_flight_map(array $j, array $s, ?string &$why = null): ?array
 {
     $o = $j['cheapestOffer'] ?? null;
     $segs = $j['segments'] ?? [];
-    if (!$o || !$segs || empty($o['offerId'])) return null;
+    if (!$o || !$segs || empty($o['offerId'])) { $why = 'no bookable offer in the answer'; return null; }
     $out = array_values(array_filter($segs, fn($x) => ($x['direction'] ?? 'OUTBOUND') === 'OUTBOUND'));
     $in = array_values(array_filter($segs, fn($x) => ($x['direction'] ?? '') === 'INBOUND'));
-    if (!$out || ($s['return'] && !$in)) return null;
+    if (!$out || ($s['return'] && !$in)) { $why = $out ? 'no return flight in this offer' : 'no outbound flight in this offer'; return null; }
     $mins = [];
     foreach ($j['legDurations'] ?? [] as $d) $mins[$d['direction'] ?? ''] = $d['duration']['minutes'] ?? null;
 
@@ -477,9 +478,9 @@ function liteapi_flight_map(array $j, array $s): ?array
     $pp = $o['pricing']['display']['perPassenger'] ?? [];
     $currency = (string) ($o['pricing']['display']['currency'] ?? 'USD');
     $net = ($pp['adult']['total'] ?? 0) * $s['adults'] + ($pp['child']['total'] ?? 0) * $s['children'] + ($pp['infant']['total'] ?? 0) * ($s['infants'] ?? 0);
-    if ($net <= 0 || ($s['children'] && !isset($pp['child'])) || (($s['infants'] ?? 0) && !isset($pp['infant']))) return null;
+    if ($net <= 0 || ($s['children'] && !isset($pp['child'])) || (($s['infants'] ?? 0) && !isset($pp['infant']))) { $why = 'no price for every traveler (adults, children, infants)'; return null; }
     $netUsd = to_usd((float) $net, $currency);
-    if ($netUsd === null) return null;
+    if ($netUsd === null) { $why = "price in $currency, which we can't convert to USD"; return null; }
     $markup = markup_rate('flight');
     $carrier = $out[0]['carrier'] ?? [];
     $code = (string) ($carrier['marketingCode'] ?? '');
@@ -509,23 +510,50 @@ function liteapi_flight_map(array $j, array $s): ?array
     ];
 }
 
-function liteapi_flight_search(array $s): array
+/** Every journey in a LiteAPI /flights/rates answer (all result groups, not only the first). */
+function liteapi_journeys(array $json): array
 {
-    $legs = [['origin' => $s['from']['code'], 'destination' => $s['to']['code'], 'date' => $s['depart'], 'direction' => 'OUTBOUND']];
-    if ($s['return']) $legs[] = ['origin' => $s['to']['code'], 'destination' => $s['from']['code'], 'date' => $s['return'], 'direction' => 'INBOUND'];
-    $body = ['legs' => $legs, 'adults' => $s['adults'], 'children' => $s['children'], 'infants' => $s['infants'] ?? 0, 'currency' => 'USD'];
-    $data = liteapi('POST', '/flights/rates', $body)['data'][0]['journeys'] ?? [];
+    $all = [];
+    foreach ($json['data'] ?? [] as $group) foreach ($group['journeys'] ?? [] as $j) $all[] = $j;
+    return $all;
+}
 
+/**
+ * Checks each journey the way the search does. Returns [offer or null, reason it's hidden or null, airline name].
+ * Used by the search and by Admin → Diagnostics → LiteAPI flight search test.
+ */
+function liteapi_flight_review(array $journeys, array $s): array
+{
     // Only the route asked for (same airport or same city), and the cabin asked for.
     $sameCity = fn(string $code, array $want) => $code === $want['code'] || (($a = airport($code)) && $a['city'] === $want['city'] && $a['cc'] === $want['cc']);
     $cabin = LITEAPI_CABINS[$s['cabin']] ?? 'economy';
-    $offers = [];
-    foreach ($data as $j) {
-        $o = liteapi_flight_map($j, $s);
-        if (!$o || !$sameCity($o['outbound']['from'], $s['from']) || !$sameCity($o['outbound']['to'], $s['to'])) continue;
-        if ($o['cabin'] !== '' && !str_contains(strtolower($o['cabin']), $cabin)) continue;
-        $offers[] = $o;
+    $rows = [];
+    foreach ($journeys as $j) {
+        $why = null;
+        $o = liteapi_flight_map($j, $s, $why);
+        $first = array_values(array_filter($j['segments'] ?? [], fn($x) => ($x['direction'] ?? 'OUTBOUND') === 'OUTBOUND'))[0]['carrier'] ?? [];
+        $name = (string) ($first['marketingName'] ?? $first['marketingCode'] ?? 'Unknown airline');
+        if ($o && (!$sameCity($o['outbound']['from'], $s['from']) || !$sameCity($o['outbound']['to'], $s['to']))) {
+            $why = "different route ({$o['outbound']['from']} to {$o['outbound']['to']})";
+        } elseif ($o && $o['cabin'] !== '' && !str_contains(strtolower($o['cabin']), $cabin)) {
+            $why = "cabin is \"{$o['cabin']}\", the search asked for $cabin";
+        }
+        $rows[] = [$why === null ? $o : null, $why, $name];
     }
+    return $rows;
+}
+
+function liteapi_flight_body(array $s): array
+{
+    $legs = [['origin' => $s['from']['code'], 'destination' => $s['to']['code'], 'date' => $s['depart'], 'direction' => 'OUTBOUND']];
+    if ($s['return']) $legs[] = ['origin' => $s['to']['code'], 'destination' => $s['from']['code'], 'date' => $s['return'], 'direction' => 'INBOUND'];
+    return ['legs' => $legs, 'adults' => $s['adults'], 'children' => $s['children'], 'infants' => $s['infants'] ?? 0, 'currency' => 'USD'];
+}
+
+function liteapi_flight_search(array $s): array
+{
+    $journeys = liteapi_journeys(liteapi('POST', '/flights/rates', liteapi_flight_body($s)));
+    $offers = array_values(array_filter(array_column(liteapi_flight_review($journeys, $s), 0)));
     usort($offers, fn($a, $b) => $a['total'] <=> $b['total']);
     $offers = array_slice($offers, 0, 60);
     remember_flight_offers($offers);
