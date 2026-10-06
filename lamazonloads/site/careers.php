@@ -18,6 +18,7 @@ if ($savedOnly) {
 $showNetwork = network_enabled() && $cat === '' && (!$savedOnly || in_array(0, $savedIds, true));
 $used = array_column(db_all("SELECT DISTINCT category FROM jobs WHERE status = 'open'"), 'category');
 
+preload_photo('banner_careers');
 page_header('Careers & opportunities', 'careers', 'Open opportunities at LamazonLoads: owner-operator dispatch, daily routes, dispatch team and driver support jobs.');
 page_hero('Careers & opportunities', 'Open opportunities', 'Create a free account, then apply in one click. Your profile and documents travel with every application.', 'banner_careers', 'center 30%');
 ?>

@@ -92,7 +92,10 @@ function page_header(string $title, string $active = '', string $description = '
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,600;0,700;0,800;0,900;1,800;1,900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="<?= e(asset('style.css')) ?>">
+<?php if (($pre = preload_photo()) !== null): [$preSmall, $preLarge] = photo_urls($pre); ?><link rel="preload" as="image" href="<?= e($preSmall) ?>" imagesrcset="<?= e($preSmall) ?> 800w, <?= e($preLarge) ?> 1600w" imagesizes="100vw" fetchpriority="high">
+<?php endif; ?>
 <script src="<?= e(asset('app.js')) ?>" defer></script>
+<script type="speculationrules">{"prefetch":[{"where":{"selector_matches":".site-nav a, .site-footer a, a.btn, .jc-title a, a.sol-top, a.more-sol-card, a.biz-item, .crumbs a"},"eagerness":"moderate"}]}</script>
 </head>
 <body<?= $bodyClass !== '' ? ' class="' . e($bodyClass) . '"' : '' ?>>
 <a class="skip" href="#main">Skip to content</a>
@@ -201,15 +204,28 @@ function page_hero(string $eyebrow, string $title, string $lead = '', string $ph
 /** A photo spot from PAGE_PHOTOS (your upload from Admin → Site photos, or the original stock photo), or a stock photo name. */
 function photo(string $name, string $alt, string $class = '', string $sizes = '(max-width: 900px) 100vw, 50vw', string $pos = 'center', bool $eager = false): string
 {
-    [$small, $large, $up] = photo_urls($name);
+    [$small, $large, $up, $file] = photo_urls($name);
     if ($up) { // a photo uploaded in Admin → Site photos: centred, with its own description
         $pos = 'center';
         $alt = $alt !== '' && $up['caption'] !== '' ? $up['caption'] : $alt;
     }
-    return '<img class="' . e($class) . '" src="' . e($small) . '" srcset="'
+    $blur = photo_placeholder($file);
+    $style = ($blur !== '' ? 'background-image:url(' . $blur . ');background-size:cover;background-position:' . $pos . ';' : '')
+        . ($pos !== 'center' ? 'object-position:' . $pos . ';' : '');
+    return '<img class="' . e(trim('ph ' . $class)) . '" src="' . e($small) . '" srcset="'
         . e($small) . ' 800w, ' . e($large) . ' 1600w" sizes="' . e($sizes) . '" alt="' . e($alt) . '"'
-        . ($pos !== 'center' ? ' style="object-position:' . e($pos) . '"' : '')
-        . ($eager ? ' fetchpriority="high"' : ' loading="lazy"') . ' decoding="async">';
+        . ($style !== '' ? ' style="' . e($style) . '"' : '')
+        . ($eager ? ' fetchpriority="high" decoding="sync"' : ' loading="lazy" decoding="async"') . '>';
+}
+
+/** Ask the browser to fetch a page's top banner photo straight away (call before page_header). */
+function preload_photo(?string $name = null): ?string
+{
+    static $preload = null;
+    if ($name !== null) {
+        $preload = $name;
+    }
+    return $preload;
 }
 
 /** Row (or mosaic) of photos with captions: [[photo, title, text], ...]. */

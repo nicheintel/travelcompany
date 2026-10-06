@@ -2,6 +2,7 @@
 declare(strict_types=1);
 require __DIR__ . '/includes/bootstrap.php';
 
+preload_photo('banner_about');
 page_header('About us', 'about', "LamazonLoads was created from a driver's perspective to advocate for independent drivers and owner-operators and keep them loaded.");
 page_hero('About LamazonLoads', "Created from the driver's seat", 'LamazonLoads is a transportation and logistics company focused on helping independent drivers and owner-operators stay moving and get access to freight opportunities.', 'banner_about', 'center 40%');
 ?>

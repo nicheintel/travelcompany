@@ -2,6 +2,7 @@
 declare(strict_types=1);
 require __DIR__ . '/includes/bootstrap.php';
 
+preload_photo('banner_services');
 page_header('Services', 'services', 'Freight dispatching, daily routes, driver onboarding, support, load coordination and community for independent drivers and owner-operators.');
 page_hero('What we do', 'Services built to keep you loaded', 'Dispatching is where we start. Support, routes and community are what keep you moving.', 'banner_services', 'center 18%');
 

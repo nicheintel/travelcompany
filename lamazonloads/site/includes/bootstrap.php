@@ -36,8 +36,9 @@ if (PHP_SAPI !== 'cli') {
     header('Referrer-Policy: strict-origin-when-cross-origin');
     header('X-Frame-Options: DENY');
     // Content Security Policy: only our own scripts run, nothing can be loaded from or sent to other sites
-    // (except Google Fonts), and no other site can show our pages in a frame.
-    header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+    // (except Google Fonts), and no other site can show our pages in a frame. 'inline-speculation-rules' only
+    // allows the small "load the next page early" list in the page head, never inline JavaScript.
+    header("Content-Security-Policy: default-src 'self'; script-src 'self' 'inline-speculation-rules'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
         . "font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; form-action 'self'; "
         . "frame-ancestors 'none'; base-uri 'self'; object-src 'none'");
     header('Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()');

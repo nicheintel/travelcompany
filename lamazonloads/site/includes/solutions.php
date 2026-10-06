@@ -272,6 +272,7 @@ function solution_page(string $key): void
     $s = SOLUTIONS[$key];
     [$val, $errors] = partner_form_state($s['page'], $key);
     [$trTitle, $trStatus, $trSteps] = $s['tracker'];
+    preload_photo($s['hero_photo']);
     page_header($s['title'], 'partners', $s['meta']);
     ?>
 <section class="hero sol-hero has-photo">

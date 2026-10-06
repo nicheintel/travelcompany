@@ -25,6 +25,7 @@ $stops = [ // icon, label, x, y, route from the hub
 $vans = [[0, '7s', '0s'], [1, '8s', '-2.5s'], [3, '6.5s', '-1s'], [4, '7.5s', '-4s'], [5, '9s', '-6s']];
 
 
+preload_photo('partners_hero');
 page_header('Partner with us', 'partners', 'Partner with LamazonLoads for last-mile delivery, healthcare delivery and dedicated fleet & driver services. Trusted couriers, in-house developers and real people on support. Request a call.');
 ?>
 <section class="hero partner-hero has-photo">

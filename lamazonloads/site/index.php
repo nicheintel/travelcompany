@@ -3,6 +3,7 @@ declare(strict_types=1);
 require __DIR__ . '/includes/bootstrap.php';
 
 $jobs = db_all("SELECT * FROM jobs WHERE status = 'open' ORDER BY created_at DESC, id DESC LIMIT 3");
+preload_photo('home_hero');
 page_header('', 'home');
 ?>
 <section class="hero has-photo">

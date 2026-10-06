@@ -64,18 +64,49 @@ const PAGE_PHOTOS = [
     'overview_dedicated'  => ['Solution pages', 'Dedicated Fleet: overview photo', 'van-unloading', 'Next to the Dedicated Fleet overview'],
 ];
 
-/** [small URL, large URL, uploaded photo row or null] for a photo spot (or a stock photo name). */
+/** [small URL, large URL, uploaded photo row or null, small file on disk] for a photo spot (or a stock photo name). */
 function photo_urls(string $name): array
 {
+    $root = dirname(__DIR__);
     if (isset(PAGE_PHOTOS[$name])) {
         $up = site_photo($name);
         if ($up) {
             $small = preg_replace('/\.(webp|jpg)$/', '-800.$1', $up['file']);
-            return [is_file(dirname(__DIR__) . '/media/' . $small) ? media_url($small) : media_url($up['file']), media_url($up['file']), $up];
+            $small = is_file($root . '/media/' . $small) ? $small : $up['file'];
+            return [media_url($small), media_url($up['file']), $up, $root . '/media/' . $small];
         }
         $name = PAGE_PHOTOS[$name][2];
     }
-    return [asset('photos/' . $name . '-800.webp'), asset('photos/' . $name . '-1600.webp'), null];
+    return [asset('photos/' . $name . '-800.webp'), asset('photos/' . $name . '-1600.webp'), null, $root . '/assets/photos/' . $name . '-800.webp'];
+}
+
+/**
+ * Tiny blurred copy of a photo (about 0.5 KB) put inline in the page, so a soft preview shows
+ * instantly while the real photo loads. Made once per photo and kept in storage/lqip.
+ */
+function photo_placeholder(string $file): string
+{
+    if (!is_file($file) || !function_exists('imagecreatefromstring')) {
+        return '';
+    }
+    $dir = dirname(__DIR__) . '/storage/lqip';
+    $cache = $dir . '/' . md5($file . '|' . filemtime($file)) . '.txt';
+    if (is_file($cache)) {
+        return (string) file_get_contents($cache);
+    }
+    $img = @imagecreatefromstring((string) file_get_contents($file));
+    if (!$img) {
+        return '';
+    }
+    $tiny = imagescale($img, 24, max(1, (int) round(imagesy($img) * 24 / imagesx($img))), IMG_BILINEAR_FIXED);
+    ob_start();
+    function_exists('imagewebp') ? imagewebp($tiny, null, 45) : imagejpeg($tiny, null, 50);
+    $uri = 'data:image/' . (function_exists('imagewebp') ? 'webp' : 'jpeg') . ';base64,' . base64_encode((string) ob_get_clean());
+    if (!is_dir($dir)) {
+        @mkdir($dir, 0755, true);
+    }
+    @file_put_contents($cache, $uri);
+    return $uri;
 }
 
 /** One wheel, centred on (0, 0): placed with translate so CSS can spin the inner group. */
