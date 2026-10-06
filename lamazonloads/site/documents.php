@@ -66,13 +66,14 @@ dash_open('documents');
       <?php foreach ($docs as $d): ?>
         <tr>
           <td><b><?= e(DOC_KINDS[$d['kind']] ?? $d['kind']) ?></b><?php if ($d['added_by']): ?><br><span class="doc-staff"><?= icon('shield') ?> Added by LamazonLoads staff</span><?php endif; ?></td>
-          <td><a href="<?= e(url('doc.php?id=' . (int) $d['id'])) ?>"><?= e($d['original_name']) ?></a> <span class="muted">(<?= e(number_format($d['size'] / 1024, 0)) ?> KB)</span></td>
+          <td><?= doc_link($d, e($d['original_name'])) ?> <span class="muted">(<?= e(number_format($d['size'] / 1024, 0)) ?> KB)</span></td>
           <td><?= e(fmt_date($d['created_at'])) ?></td>
           <td>
+            <div class="row-actions"><?= doc_link($d, icon('eye') . ' View', 'btn btn-primary btn-sm') ?>
             <form method="post" action="<?= e(url('documents.php')) ?>" class="inline-form" data-confirm="Remove this document?">
               <?= csrf_field() ?><input type="hidden" name="action" value="delete"><input type="hidden" name="id" value="<?= (int) $d['id'] ?>">
               <button class="btn btn-danger btn-sm" type="submit"><?= icon('trash') ?> Remove</button>
-            </form>
+            </form></div>
           </td>
         </tr>
       <?php endforeach; ?>

@@ -1,0 +1,2 @@
+PDF.js 4.10.38 (https://mozilla.github.io/pdf.js/), Apache License 2.0 (see LICENSE).
+Used to show PDF documents in the document viewer on phones whose browser has no built-in PDF viewer.

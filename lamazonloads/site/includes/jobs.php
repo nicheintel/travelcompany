@@ -310,3 +310,16 @@ function save_upload(?array $f, int $userId, string $kind): array
         [$userId, $kind, $stored, $name, $mime, (int) $f['size']]);
     return [(int) db()->lastInsertId(), ''];
 }
+
+/**
+ * A link that opens a document in the pop-up viewer (PDFs and photos show right there; Word files offer a download).
+ * Without JavaScript it simply opens the file.
+ */
+function doc_link(array $d, string $label, string $class = '', string $eyebrow = ''): string
+{
+    $view = $d['mime'] === 'application/pdf' ? 'pdf' : (str_starts_with((string) $d['mime'], 'image/') ? 'image' : 'file');
+    return '<a href="' . e(url('doc.php?id=' . (int) $d['id'])) . '"' . ($class !== '' ? ' class="' . e($class) . '"' : '')
+        . ' data-doc-view="' . $view . '" data-doc-name="' . e((string) $d['original_name']) . '"'
+        . ' data-doc-kind="' . e($eyebrow !== '' ? $eyebrow : (DOC_KINDS[$d['kind']] ?? 'Document')) . '"'
+        . ' data-doc-download="' . e(url('doc.php?id=' . (int) $d['id'] . '&download=1')) . '">' . $label . '</a>';
+}

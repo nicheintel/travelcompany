@@ -193,8 +193,9 @@
       m.classList.add('is-closing');
       setTimeout(function () {
         m.classList.remove('is-open', 'is-closing'); m.setAttribute('aria-hidden', 'true');
-        document.documentElement.classList.remove('modal-lock');
+        if (!document.querySelector('.modal.is-open')) document.documentElement.classList.remove('modal-lock');
         if (lastFocus && lastFocus.focus) lastFocus.focus({ preventScroll: true });
+        m.dispatchEvent(new Event('modal:closed'));
       }, 220);
       var param = m.getAttribute('data-modal-param') || 'apply';
       var search = location.search.replace(new RegExp('([?&])' + param + '=[^&]*(&|$)'), function (all, a, b) { return b ? a : ''; });
@@ -209,6 +210,8 @@
     m.addEventListener('modal:open', open);
     document.addEventListener('keydown', function (e) {
       if (!m.classList.contains('is-open')) return;
+      var opened = document.querySelectorAll('.modal.is-open');
+      if (opened[opened.length - 1] !== m) return; // a pop-up opened on top of this one handles the keys
       if (e.key === 'Escape') { close(); return; }
       if (e.key === 'Tab') { // keep the keyboard inside the pop-up
         var f = focusables(); if (!f.length) return;
@@ -418,6 +421,110 @@
     if (all) all.addEventListener('change', function () { boxes.forEach(function (b) { b.checked = all.checked; }); sync(); });
     document.querySelector('[data-bulk-clear]').addEventListener('click', function () { boxes.forEach(function (b) { b.checked = false; }); sync(); });
     sync();
+  }
+
+  // Document viewer: PDFs and photos open in a smooth pop-up instead of a new tab. Phones without a built-in
+  // PDF viewer (most Android phones) get the pages drawn by PDF.js, loaded only then. Word files offer a download.
+  var dv = document.getElementById('docview');
+  if (dv) {
+    var dvBody = dv.querySelector('[data-dv-body]'), dvList = [], dvAt = 0, dvRun = 0, dvPdf = null, pdfjs = null;
+    var dvq = function (s) { return dv.querySelector(s); };
+    var pdfBase = dv.getAttribute('data-pdfjs');
+    var nativePdf = navigator.pdfViewerEnabled === true;
+    var loadPdfjs = function () {
+      pdfjs = pdfjs || import(pdfBase + 'pdf.min.js').then(function (lib) {
+        lib.GlobalWorkerOptions.workerSrc = pdfBase + 'pdf.worker.min.js';
+        return lib;
+      }, function (err) { pdfjs = null; throw err; });
+      return pdfjs;
+    };
+    var dropPdf = function () { if (dvPdf) { dvPdf.destroy(); dvPdf = null; } };
+    var loaded = function (run) { if (run === dvRun) dvBody.classList.remove('is-loading'); };
+    var card = function (title, text, a) {
+      dvBody.className = 'dv-body';
+      dvBody.innerHTML = '<div class="dv-card"><div class="verify-ico"></div><h3></h3><p></p><a class="btn btn-primary"></a></div>';
+      dvBody.querySelector('.verify-ico').innerHTML = dvq('[data-dv-download]').innerHTML;
+      dvBody.querySelector('h3').textContent = title;
+      dvBody.querySelector('p').textContent = text;
+      var btn = dvBody.querySelector('.btn');
+      btn.href = a.getAttribute('data-doc-download'); btn.innerHTML = dvq('[data-dv-download]').innerHTML + ' Download';
+    };
+    var show = function (i) {
+      var a = dvList[i], run = ++dvRun;
+      var type = a.getAttribute('data-doc-view'), src = a.getAttribute('href'), name = a.getAttribute('data-doc-name') || 'Document';
+      dvAt = i; dropPdf();
+      dvq('[data-dv-kind]').textContent = a.getAttribute('data-doc-kind') || 'Document';
+      dvq('[data-dv-name]').textContent = name;
+      dvq('[data-dv-download]').href = a.getAttribute('data-doc-download');
+      dvq('[data-dv-tab]').href = src; dvq('[data-dv-tab]').hidden = type === 'file';
+      var many = dvList.length > 1, prev = dvq('[data-dv-prev]'), next = dvq('[data-dv-next]'), count = dvq('[data-dv-count]');
+      prev.hidden = next.hidden = count.hidden = !many;
+      prev.disabled = i === 0; next.disabled = i === dvList.length - 1;
+      count.textContent = (i + 1) + ' of ' + dvList.length;
+      dvBody.className = 'dv-body is-loading dv-' + type; dvBody.scrollTop = 0;
+      dvBody.innerHTML = '<div class="dv-spin" role="status"><span></span>Opening…</div>';
+      var fail = function () { if (run === dvRun) card('We couldn’t show this file here', 'You can still download it and open it on your device.', a); };
+      if (type === 'image') {
+        var img = new Image();
+        img.className = 'dv-img'; img.alt = name;
+        img.onload = function () { if (run !== dvRun) return; dvBody.appendChild(img); loaded(run); };
+        img.onerror = fail;
+        img.addEventListener('click', function () { dvBody.classList.toggle('is-zoom'); });
+        img.src = src;
+      } else if (type === 'pdf' && nativePdf) {
+        var f = document.createElement('iframe');
+        f.className = 'dv-frame'; f.title = name;
+        f.onload = function () { loaded(run); };
+        f.src = src + '#view=FitH';
+        dvBody.appendChild(f);
+      } else if (type === 'pdf') {
+        loadPdfjs().then(function (lib) {
+          return lib.getDocument({ url: src, isEvalSupported: false, standardFontDataUrl: pdfBase + 'standard_fonts/' }).promise;
+        }).then(function (pdf) {
+          if (run !== dvRun) { pdf.destroy(); return; }
+          dvPdf = pdf;
+          var wrap = document.createElement('div'), pages = Math.min(pdf.numPages, 60), width = Math.max(dvBody.clientWidth - 24, 200);
+          var ratio = Math.min(window.devicePixelRatio || 1, 2), chain = Promise.resolve();
+          wrap.className = 'dv-pages';
+          var draw = function (n) {
+            return pdf.getPage(n).then(function (page) {
+              if (run !== dvRun) return;
+              var scale = width / page.getViewport({ scale: 1 }).width, vp = page.getViewport({ scale: scale * ratio });
+              var c = document.createElement('canvas');
+              c.className = 'dv-page'; c.width = Math.floor(vp.width); c.height = Math.floor(vp.height); c.style.width = Math.floor(vp.width / ratio) + 'px';
+              wrap.appendChild(c);
+              if (n === 1) { dvBody.appendChild(wrap); loaded(run); }
+              return page.render({ canvasContext: c.getContext('2d'), viewport: vp }).promise;
+            });
+          };
+          for (var n = 1; n <= pages; n++) chain = chain.then(draw.bind(null, n));
+          return chain;
+        }).catch(fail);
+      } else {
+        card('Preview not available', 'Word files can’t be shown here. Download it to open it on your device.', a);
+      }
+    };
+    document.addEventListener('click', function (e) {
+      var a = e.target.closest && e.target.closest('[data-doc-view]');
+      if (!a || e.metaKey || e.ctrlKey || e.shiftKey || e.button) return;
+      e.preventDefault();
+      // The other documents in the same list can be flipped through with the arrows
+      var scope = a.closest('table, .modal-body') || a.parentNode, seen = {};
+      dvList = Array.prototype.filter.call(scope.querySelectorAll('[data-doc-view]'), function (x) {
+        var h = x.getAttribute('href'); if (seen[h]) return false; seen[h] = true; return true;
+      });
+      var at = dvList.map(function (x) { return x.getAttribute('href'); }).indexOf(a.getAttribute('href'));
+      dv.dispatchEvent(new Event('modal:open'));
+      show(at < 0 ? 0 : at);
+    });
+    dvq('[data-dv-prev]').addEventListener('click', function () { if (dvAt > 0) show(dvAt - 1); });
+    dvq('[data-dv-next]').addEventListener('click', function () { if (dvAt < dvList.length - 1) show(dvAt + 1); });
+    document.addEventListener('keydown', function (e) {
+      if (!dv.classList.contains('is-open') || dvList.length < 2) return;
+      if (e.key === 'ArrowLeft' && dvAt > 0) show(dvAt - 1);
+      if (e.key === 'ArrowRight' && dvAt < dvList.length - 1) show(dvAt + 1);
+    });
+    dv.addEventListener('modal:closed', function () { dvRun++; dropPdf(); dvBody.innerHTML = ''; });
   }
 
   // Ask before destructive actions.

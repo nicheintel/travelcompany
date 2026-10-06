@@ -86,6 +86,7 @@ $apps = db_all('SELECT a.*, j.title FROM applications a LEFT JOIN jobs j ON j.id
 $steps = onboarding_steps($id);
 $done = count(array_filter($steps, fn ($s) => $s[1]));
 $self = 'admin/driver.php?id=' . $id;
+$docById = array_column($docs, null, 'id');
 $addedBy = $u['added_by'] ? ((string) db_val('SELECT name FROM users WHERE id = ?', [$u['added_by']]) ?: 'staff') : '';
 $staffNames = array_column(db_all('SELECT DISTINCT u.id, u.name FROM documents d JOIN users u ON u.id = d.added_by WHERE d.user_id = ?', [$id]), 'name', 'id');
 $edit ??= ($p ?? array_fill_keys(array_keys(PROFILE_FIELDS), '')) + ['name' => $u['name'], 'phone' => $u['phone'], 'account_type' => $u['account_type']];
@@ -146,8 +147,8 @@ admin_open('drivers');
   <?php if (!$docs): ?><p class="muted mb-0">No documents yet.</p><?php else: ?>
   <div class="table-wrap"><table><tbody><?php foreach ($docs as $d): ?>
     <tr><td><b><?= e(DOC_KINDS[$d['kind']] ?? $d['kind']) ?></b><?php if ($d['added_by']): ?><br><span class="doc-staff" title="Added by <?= e($staffNames[$d['added_by']] ?? 'staff') ?>"><?= icon('shield') ?> Added by LamazonLoads staff</span><?php endif; ?></td>
-      <td><a href="<?= e(url('doc.php?id=' . (int) $d['id'])) ?>" target="_blank" rel="noopener"><?= e($d['original_name']) ?></a></td><td><?= e(fmt_date($d['created_at'])) ?></td>
-      <td><div class="row-actions"><a class="btn btn-ghost btn-sm" href="<?= e(url('doc.php?id=' . (int) $d['id'] . '&download=1')) ?>"><?= icon('download') ?> Download</a>
+      <td><?= doc_link($d, e($d['original_name'])) ?></td><td><?= e(fmt_date($d['created_at'])) ?></td>
+      <td><div class="row-actions"><?= doc_link($d, icon('eye') . ' View', 'btn btn-primary btn-sm') ?><a class="btn btn-ghost btn-sm" href="<?= e(url('doc.php?id=' . (int) $d['id'] . '&download=1')) ?>"><?= icon('download') ?> Download</a>
         <form method="post" action="<?= e(url($self)) ?>" class="inline-form" data-confirm="Remove this document from their account?"><?= csrf_field() ?><input type="hidden" name="action" value="remove_doc"><input type="hidden" name="doc" value="<?= (int) $d['id'] ?>"><button class="btn btn-danger btn-sm" type="submit" aria-label="Remove <?= e(DOC_KINDS[$d['kind']] ?? 'document') ?>"><?= icon('trash') ?></button></form></div></td></tr>
   <?php endforeach; ?></tbody></table></div>
   <?php endif; ?>
@@ -158,7 +159,7 @@ admin_open('drivers');
   <?php if (!$apps): ?><p class="muted mb-0">No applications yet.</p><?php else: ?>
   <div class="table-wrap"><table><thead><tr><th>Opening</th><th>Message</th><th>Status &amp; note</th></tr></thead><tbody><?php foreach ($apps as $a): ?>
     <tr><td><?= e(applicant_label($a)) ?><br><span class="muted"><?= e(fmt_date($a['created_at'])) ?></span>
-      <?php if ($a['resume_doc_id']): ?><br><a href="<?= e(url('doc.php?id=' . (int) $a['resume_doc_id'])) ?>" target="_blank" rel="noopener"><?= icon('file') ?> Resume</a><?php endif; ?>
+      <?php if ($a['resume_doc_id'] && isset($docById[(int) $a['resume_doc_id']])): ?><br><?= doc_link($docById[(int) $a['resume_doc_id']], icon('file') . ' Resume', '', 'Resume') ?><?php endif; ?>
       <?php if ($a['auto_note'] !== ''): ?><br><span class="hint">⚡ <?= e($a['auto_note']) ?></span><?php endif; ?></td><td style="max-width:320px"><?= nl2br(e($a['message'] ?? '')) ?></td>
       <td><form method="post" action="<?= e(url('admin/applications.php')) ?>" style="display:grid;gap:6px;min-width:200px">
         <?= csrf_field() ?><input type="hidden" name="id" value="<?= (int) $a['id'] ?>"><input type="hidden" name="back" value="<?= e($self) ?>">

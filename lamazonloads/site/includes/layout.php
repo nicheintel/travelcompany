@@ -22,6 +22,10 @@ function icon(string $name, string $class = 'ic'): string
         'file'      => '<path d="M14 3H6v18h12V7z"/><path d="M14 3v4h4M9 13h6M9 17h6"/>',
         'upload'    => '<path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v4h16v-4"/>',
         'plus'      => '<path d="M12 5v14M5 12h14"/>',
+        'eye'       => '<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+        'external'  => '<path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v6H4V6h6"/>',
+        'chev-left' => '<path d="M15 5l-7 7 7 7"/>',
+        'chev-right'=> '<path d="M9 5l7 7-7 7"/>',
         'edit'      => '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>',
         'briefcase' => '<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V4h6v3M3 13h18"/>',
         'phone'     => '<path d="M5 3h4l2 5-2.5 1.5a11 11 0 0 0 6 6L16 13l5 2v4a2 2 0 0 1-2 2A17 17 0 0 1 3 5a2 2 0 0 1 2-2z"/>',
@@ -138,6 +142,24 @@ function page_header(string $title, string $active = '', string $description = '
     }
 }
 
+/** The document viewer pop-up (filled in by app.js when a [data-doc-view] link is clicked). */
+function doc_viewer_html(): string
+{
+    $x = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+    return '<div class="modal doc-modal" id="docview" data-modal data-modal-param="doc" role="dialog" aria-modal="true" aria-labelledby="dv-title" aria-hidden="true" data-pdfjs="' . e(url('assets/vendor/pdfjs/')) . '">'
+        . '<a class="modal-backdrop" href="#" data-modal-close aria-label="Close"></a>'
+        . '<div class="modal-panel">'
+        . '<header class="modal-head dv-head"><div class="dv-title"><span class="eyebrow" data-dv-kind>Document</span><h2 id="dv-title" data-dv-name>Document</h2></div>'
+        . '<div class="dv-tools"><span class="dv-count" data-dv-count hidden></span>'
+        . '<button type="button" class="dv-btn" data-dv-prev aria-label="Previous document" hidden>' . icon('chev-left') . '</button>'
+        . '<button type="button" class="dv-btn" data-dv-next aria-label="Next document" hidden>' . icon('chev-right') . '</button>'
+        . '<a class="dv-btn" href="#" data-dv-download aria-label="Download" title="Download">' . icon('download') . '</a>'
+        . '<a class="dv-btn" href="#" data-dv-tab target="_blank" rel="noopener" aria-label="Open in a new tab" title="Open in a new tab">' . icon('external') . '</a>'
+        . '<a class="modal-x" href="#" data-modal-close aria-label="Close">' . $x . '</a></div></header>'
+        . '<div class="dv-body" data-dv-body></div>'
+        . '</div></div>';
+}
+
 function page_footer(): void
 {
     run_automations_if_due();
@@ -185,6 +207,7 @@ function page_footer(): void
     <span><a href="<?= e(url('privacy.php')) ?>">Privacy policy</a> · <span class="motto">Why wait? <b>Let's freight.</b></span></span>
   </div></div>
 </footer>
+<?= current_user() ? doc_viewer_html() : '' ?>
 <?= chat_bubble() ?>
 </body>
 </html>

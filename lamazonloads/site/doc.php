@@ -14,9 +14,13 @@ $download = isset($_GET['download']) || $doc['mime'] !== 'application/pdf' && !s
 header('Content-Type: ' . $doc['mime']);
 header('Content-Length: ' . filesize($path));
 header_remove('Content-Security-Policy');
+// Only this site's own document viewer (a pop-up) may show the file inside a frame.
+header('X-Frame-Options: SAMEORIGIN');
 if ($doc['mime'] !== 'application/pdf') {
-    // (No CSP on PDFs: some browsers refuse to show a PDF under a strict policy.)
-    header("Content-Security-Policy: default-src 'none'; img-src 'self'; style-src 'unsafe-inline'; sandbox");
+    // (No strict CSP on PDFs: some browsers refuse to show a PDF under a strict policy.)
+    header("Content-Security-Policy: default-src 'none'; img-src 'self'; style-src 'unsafe-inline'; sandbox; frame-ancestors 'self'");
+} else {
+    header("Content-Security-Policy: frame-ancestors 'self'");
 }
 header('Cache-Control: private, no-store');
 header('X-Robots-Tag: noindex');

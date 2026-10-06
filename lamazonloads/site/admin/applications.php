@@ -68,8 +68,8 @@ function app_detail_html(array $a, string $back): string
     if ($a['email_sent_at']) {
         $rows[] = ['Email sent', e(fmt_date($a['email_sent_at'], 'M j, g:i a'))];
     }
-    if ($a['resume_doc_id']) {
-        $rows[] = ['Resume', '<a href="' . e(url('doc.php?id=' . (int) $a['resume_doc_id'])) . '" target="_blank" rel="noopener">' . icon('file') . ' Open</a>'];
+    if ($a['resume_doc_id'] && ($resume = db_one('SELECT * FROM documents WHERE id = ?', [$a['resume_doc_id']]))) {
+        $rows[] = ['Resume', doc_link($resume, icon('file') . ' View', '', 'Resume')];
     }
     $html = '<header class="modal-head"><div><span class="eyebrow">' . e(applicant_label($a)) . '</span><h2 id="app-title">' . e($name) . '</h2>'
         . '<p class="modal-sub">Applied ' . e(fmt_date($a['created_at'], 'M j, Y g:i a')) . '</p></div>'
