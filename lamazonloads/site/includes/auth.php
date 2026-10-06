@@ -155,3 +155,30 @@ function send_verification(array $u): bool
         'This link works for ' . VERIFY_HOURS . " hours. If you didn't create a LamazonLoads account, you can ignore this email.");
     return send_mail((string) $u['email'], 'Confirm your email for LamazonLoads', $text, $html, support_email());
 }
+
+const RESET_MINUTES = 60;
+
+/** Emails a one-time "choose a new password" link (works for an hour; only its hash is stored). */
+function send_password_reset(array $u): bool
+{
+    $raw = bin2hex(random_bytes(32));
+    db_run('UPDATE users SET reset_token = ?, reset_expires = NOW() + INTERVAL ' . RESET_MINUTES . ' MINUTE, reset_sent_at = NOW() WHERE id = ?',
+        [hash('sha256', $raw), $u['id']]);
+    $first = trim((string) strtok((string) $u['name'], ' ')) ?: 'there';
+    [$text, $html] = email_body('Reset your password', [
+        "Hi $first,",
+        'We got a request to reset the password for your LamazonLoads account. Click the button below to choose a new one.',
+    ], 'Choose a new password', abs_url('reset-password.php?t=' . $raw),
+        'This link works for 1 hour and can only be used once. If you didn’t ask for this, you can ignore this email: your password stays the same.');
+    return send_mail((string) $u['email'], 'Reset your LamazonLoads password', $text, $html, support_email());
+}
+
+/** The member a reset link belongs to, or null if it is wrong, used or expired. */
+function user_by_reset_token(string $raw): ?array
+{
+    if (!preg_match('/^[a-f0-9]{64}$/', $raw)) {
+        return null;
+    }
+    return db_one('SELECT * FROM users WHERE reset_token = ? AND reset_expires > NOW()', [hash('sha256', $raw)]);
+}
+

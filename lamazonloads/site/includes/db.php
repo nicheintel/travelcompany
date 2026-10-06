@@ -73,7 +73,9 @@ function migrate(PDO $pdo): void
         $pdo->exec('ALTER TABLE users ADD COLUMN email_verified_at DATETIME NULL AFTER session_version');
         $pdo->exec('UPDATE users SET email_verified_at = created_at');
     }
-    add_missing_columns($pdo, 'users', ['verify_token' => 'CHAR(64) NULL', 'verify_expires' => 'DATETIME NULL', 'verify_sent_at' => 'DATETIME NULL']);
+    add_missing_columns($pdo, 'users', ['verify_token' => 'CHAR(64) NULL', 'verify_expires' => 'DATETIME NULL', 'verify_sent_at' => 'DATETIME NULL',
+        // Forgot password: one-time link (only a hash of it is stored)
+        'reset_token' => 'CHAR(64) NULL', 'reset_expires' => 'DATETIME NULL', 'reset_sent_at' => 'DATETIME NULL']);
     add_missing_columns($pdo, 'applications', [
         'resume_doc_id' => 'INT UNSIGNED NULL', 'reminded_at' => 'DATETIME NULL', 'auto_note' => "VARCHAR(255) NOT NULL DEFAULT ''",
         // Driver application form (vehicles, Walmart daily route) and the onboarding email that went out

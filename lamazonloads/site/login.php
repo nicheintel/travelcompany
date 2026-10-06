@@ -54,7 +54,7 @@ page_header('Sign in', '', '', 'page-auth');
         <input id="email" name="email" type="email" required autocomplete="email" value="<?= e($email) ?>" autofocus>
         <label for="password" style="margin-top:16px">Password</label>
         <input id="password" name="password" type="password" required autocomplete="current-password">
-        <p class="hint">Forgot your password? <a href="<?= e(url('contact.php')) ?>">Contact support</a> and we'll reset it for you.</p>
+        <p class="hint forgot-link"><a href="<?= e(url('forgot-password.php' . ($email !== '' ? '?email=' . rawurlencode($email) : ''))) ?>">Forgot your password?</a></p>
         <button class="btn btn-primary btn-lg btn-block mt" type="submit">Sign in <?= icon('arrow') ?></button>
       </form>
     </div>

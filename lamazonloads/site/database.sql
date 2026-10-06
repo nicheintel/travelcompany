@@ -234,3 +234,5 @@ CREATE TABLE IF NOT EXISTS walmart_routes (
   created_at DATETIME NOT NULL,
   KEY idx_walmart_active (active, city)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- users.reset_token / reset_expires / reset_sent_at (forgot password) are added by includes/db.php on existing sites

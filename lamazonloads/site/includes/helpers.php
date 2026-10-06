@@ -128,6 +128,7 @@ const ACCOUNT_TYPES = [
     'owner_operator' => 'Owner-operator',
     'driver'         => 'Driver (looking for routes or a truck to drive)',
     'dispatcher'     => 'Dispatcher / support',
+    'recruiter'      => 'Driver recruiter',
     'other'          => 'Entrepreneur / other',
 ];
 

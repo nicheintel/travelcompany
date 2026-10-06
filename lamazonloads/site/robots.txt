@@ -4,6 +4,7 @@ Disallow: /account.php
 Disallow: /profile.php
 Disallow: /documents.php
 Disallow: /settings.php
+Disallow: /reset-password.php
 Disallow: /doc.php
 Disallow: /chat.php
 
