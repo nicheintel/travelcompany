@@ -217,6 +217,19 @@
     if (m.classList.contains('is-open') || location.hash === '#' + m.id) open();
   });
 
+  // "Back to all jobs": if the visitor came from the Careers page, go back in history so the list
+  // returns exactly where they left it (with the page cross-fade); otherwise open Careers.
+  document.querySelectorAll('[data-back]').forEach(function (a) {
+    a.addEventListener('click', function (e) {
+      var target = a.getAttribute('data-back');
+      var ref = document.referrer;
+      if (ref && ref.indexOf(location.origin) === 0 && ref.split('?')[0].split('#')[0].slice(-target.length) === target && history.length > 1) {
+        e.preventDefault();
+        history.back();
+      }
+    });
+  });
+
   // Ask before destructive actions.
   document.addEventListener('submit', function (ev) {
     var msg = ev.target.getAttribute('data-confirm');

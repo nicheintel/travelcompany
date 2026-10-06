@@ -74,7 +74,7 @@ page_header($job['title'], 'careers', job_excerpt($job));
 $here = 'job.php?id=' . $id;
 ?>
 <section class="page-hero"><div class="container">
-  <a href="<?= e(url('careers.php')) ?>" class="back-link">&larr; All openings</a>
+  <a href="<?= e(url('careers.php')) ?>" class="back-link" data-back="careers.php">&larr; All openings</a>
   <div class="tags hero-tags">
     <span class="tag tag-solid"><?= e($id === 0 ? 'Always open' : (JOB_CATEGORIES[$job['category']] ?? 'Opportunity')) ?></span>
     <?php if ($urgent): ?><span class="tag tag-urgent">⚡ Urgently hiring</span><?php endif; ?>
@@ -86,6 +86,7 @@ $here = 'job.php?id=' . $id;
 
 <section class="section job-section">
   <div class="container job-wrap">
+    <a class="job-back" href="<?= e(url('careers.php')) ?>" data-back="careers.php"><span class="job-back-ico"><?= icon('arrow') ?></span>All jobs</a>
     <article class="card pad prose job-card">
       <header class="job-title-row">
         <h2 class="job-title"><?= e($job['title']) ?></h2>
@@ -139,6 +140,7 @@ $here = 'job.php?id=' . $id;
         <a class="btn btn-accent btn-lg" href="#apply" data-modal-open="apply">Apply now <?= icon('arrow') ?></a>
       <?php endif; ?>
     </div>
+    <a class="job-back-bottom" href="<?= e(url('careers.php')) ?>" data-back="careers.php"><?= icon('arrow') ?>Back to all jobs</a>
   </div>
 </section>
 

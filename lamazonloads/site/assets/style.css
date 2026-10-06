@@ -1256,3 +1256,19 @@ html.modal-lock { overflow: hidden; }
 .job-title-row { margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--line); }
 .job-card .job-title { margin: 0 0 4px; font-size: clamp(1.4rem, 3vw, 1.9rem); line-height: 1.2; color: var(--ink); }
 .job-where { margin: 0; color: var(--muted); font-weight: 600; }
+
+/* Job page: "All jobs" button that stays in view while reading */
+.job-back { position: sticky; top: 96px; z-index: 5; justify-self: start; display: inline-flex; align-items: center; gap: 10px; margin-bottom: -6px; padding: 8px 18px 8px 8px;
+  border-radius: 999px; background: rgba(255, 255, 255, .92); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); border: 1px solid var(--line);
+  box-shadow: 0 8px 22px rgba(10, 36, 99, .12); color: var(--navy); font-weight: 700; font-size: .92rem; transition: transform .2s, box-shadow .2s, color .2s; }
+.job-back:hover { text-decoration: none; color: var(--blue); transform: translateX(-3px); box-shadow: 0 10px 26px rgba(10, 36, 99, .18); }
+.job-back-ico { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--blue); color: #fff; }
+.job-back-ico .ic, .job-back-bottom .ic { transform: rotate(180deg); }
+.job-back-ico .ic { width: 16px; height: 16px; }
+.job-back-bottom { justify-self: center; display: inline-flex; align-items: center; gap: 8px; font-weight: 700; color: var(--blue); padding: 6px 10px; border-radius: 10px; transition: transform .2s, background .2s; }
+.job-back-bottom:hover { text-decoration: none; background: var(--blue-50); transform: translateX(-3px); }
+.job-back-bottom .ic { width: 18px; height: 18px; }
+@media (max-width: 1180px) { .job-back { top: 92px; } }
+@media (prefers-reduced-motion: reduce) { .job-back:hover, .job-back-bottom:hover { transform: none; } }
+.job-back { align-self: start; }
+@media (min-width: 1200px) { .job-back { margin: 0 0 -70px -150px; } }
