@@ -99,7 +99,7 @@ page_hero('Privacy', 'Privacy policy', 'Plain and simple: what we collect, why w
           <h2><span>4</span>Emails we send</h2>
           <p>All our emails come from <b><?= e($email) ?></b>, and you can reply to any of them.</p>
           <ul>
-            <li><b>Account emails:</b> if our staff create your account for you, your sign-in details (you choose your own password the first time you sign in); confirming your email address, password reset links and “your password was changed” notices.</li>
+            <li><b>Account emails:</b> if our staff create your account for you, your sign-in details (you choose your own password the first time you sign in); confirming your email address, password reset links, “your password was changed” notices, and a confirmation when your account is deleted or closed.</li>
             <li><b>Application emails:</b> right after you apply, our Dispatch Services email or our Walmart Daily Route welcome email, plus updates about your application.</li>
             <li><b>Replies:</b> answers to your chat messages, contact form or partner request.</li>
           </ul>
@@ -146,7 +146,7 @@ page_hero('Privacy', 'Privacy policy', 'Plain and simple: what we collect, why w
           <div class="table-wrap"><table class="legal-table">
             <thead><tr><th>Information</th><th>How long</th></tr></thead>
             <tbody>
-              <tr><td>Account, profile, applications and uploaded documents</td><td>While you have an account. You can delete documents yourself any time.</td></tr>
+              <tr><td>Account, profile, applications and uploaded documents</td><td>While you have an account. You can delete documents, or your whole account, yourself any time.</td></tr>
               <tr><td>Live chats</td><td>Deleted after 180 days without new messages, or when your account is deleted</td></tr>
               <tr><td>Sign-in attempts and spam-protection records</td><td>About 1 day</td></tr>
               <tr><td>Partner requests and contact messages</td><td>As long as needed to respond and follow up</td></tr>
@@ -161,7 +161,7 @@ page_hero('Privacy', 'Privacy policy', 'Plain and simple: what we collect, why w
             <li><b>See and update:</b> change your account, profile and documents any time in your dashboard.</li>
             <li><b>Get a copy:</b> ask us for a copy of the information we have about you.</li>
             <li><b>Correct:</b> ask us to fix anything that's wrong.</li>
-            <li><b>Delete:</b> ask us to delete your account and everything in it. We may keep records the law requires (such as tax records).</li>
+            <li><b>Delete:</b> delete your account and everything in it yourself under <b>Account settings → Delete my account</b>, or ask us to do it. We may keep records the law requires (such as tax records).</li>
             <li><b>Stop emails:</b> reply to any email and tell us.</li>
           </ul>
           <p>Some states (such as California, Virginia and Colorado) give residents specific privacy rights. We honor these requests for everyone, wherever you live, and we'll never treat you differently for using them. Email <?= $mail ?> and we'll reply within 30 days. We may ask you to confirm it's really you first.</p>

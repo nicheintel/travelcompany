@@ -1517,3 +1517,11 @@ a.app-row:hover .ar-go { opacity: 1; transform: translateX(3px); }
 .app-del-row { margin-top: 8px; }
 .app-del-row .link-btn { display: inline-flex; align-items: center; gap: 5px; color: var(--red); font-size: .85rem; font-weight: 600; }
 .app-del-row .ic { width: 15px; height: 15px; }
+
+/* Deleting accounts: the member's own "Delete my account", and the email choice next to Delete member */
+.danger-zone { border-color: #F3C4C4; }
+.danger-zone h3 { display: flex; align-items: center; gap: 8px; color: var(--red); }
+.danger-zone h3 .ic { width: 20px; height: 20px; }
+.del-member { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.check-inline { display: inline-flex; align-items: center; gap: 7px; margin: 0; font-size: .86rem; font-weight: 600; color: var(--muted); cursor: pointer; }
+.check-inline input { width: 16px; height: 16px; margin: 0; accent-color: var(--blue); }

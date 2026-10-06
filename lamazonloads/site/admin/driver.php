@@ -70,12 +70,9 @@ if (is_post()) {
         db_run('UPDATE users SET password_hash = ?, must_change_password = 1, session_version = session_version + 1 WHERE id = ?', [password_hash($temp, PASSWORD_DEFAULT), $id]);
         flash('info', "Temporary password for {$u['name']}: $temp (share it privately; they'll choose their own password when they sign in).");
     } elseif ($action === 'delete' && $id !== (int) $me['id']) {
-        foreach (db_all('SELECT stored_name FROM documents WHERE user_id = ?', [$id]) as $d) {
-            @unlink(dirname(__DIR__) . '/uploads/' . basename($d['stored_name']));
-        }
-        chat_delete_for_user($id);
-        db_run('DELETE FROM users WHERE id = ?', [$id]);
-        flash('success', 'Member deleted.');
+        $told = !empty($_POST['notify']) && send_account_closed($u, 'staff');
+        delete_member($id);
+        flash('success', $u['name'] . ' was deleted.' . (!empty($_POST['notify']) ? ($told ? ' We emailed them that their account was closed.' : " The email to them couldn't be sent.") : ''));
         redirect('admin/drivers.php');
     }
     if (!$editErrors && !$docErrors) {
@@ -185,7 +182,9 @@ admin_open('drivers');
     <form method="post" action="<?= e(url($self)) ?>" class="inline-form" data-confirm="Create a new temporary password for this member?"><?= csrf_field() ?><input type="hidden" name="action" value="password"><button class="btn btn-ghost btn-sm" type="submit">Reset password</button></form>
     <?php if ($id !== (int) $me['id']): ?>
       <form method="post" action="<?= e(url($self)) ?>" class="inline-form"><?= csrf_field() ?><input type="hidden" name="action" value="admin"><input type="hidden" name="make" value="<?= $u['is_admin'] ? '' : '1' ?>"><button class="btn btn-ghost btn-sm" type="submit"><?= $u['is_admin'] ? 'Remove staff access' : 'Make staff (admin)' ?></button></form>
-      <form method="post" action="<?= e(url($self)) ?>" class="inline-form" data-confirm="Delete this member, their documents and applications? This cannot be undone."><?= csrf_field() ?><input type="hidden" name="action" value="delete"><button class="btn btn-danger btn-sm" type="submit">Delete member</button></form>
+      <form method="post" action="<?= e(url($self)) ?>" class="inline-form del-member" data-confirm="Delete this member, their documents and applications? This cannot be undone."><?= csrf_field() ?><input type="hidden" name="action" value="delete">
+        <button class="btn btn-danger btn-sm" type="submit">Delete member</button>
+        <label class="check-inline"><input type="checkbox" name="notify" value="1" checked> Email them that their account was closed</label></form>
     <?php endif; ?>
   </div>
 </div>

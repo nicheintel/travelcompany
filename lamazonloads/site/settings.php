@@ -32,6 +32,21 @@ if (is_post()) {
             flash('success', 'Password changed. Other devices were signed out.');
             redirect('settings.php');
         }
+    } elseif ($action === 'delete_account' && !$u['is_admin']) {
+        // The member deletes their own account: password to confirm, a goodbye email, and a note to staff
+        if (login_locked((string) $u['email'])) {
+            $errors[] = 'Too many attempts. Please wait 15 minutes and try again.';
+        } elseif (!password_verify((string) ($_POST['confirm_password'] ?? ''), $u['password_hash'])) {
+            record_failed_login((string) $u['email']);
+            $errors[] = 'That password is not correct, so your account was not deleted.';
+        } else {
+            notify_staff_account_deleted($u);
+            send_account_closed($u, 'self');
+            delete_member((int) $u['id']);
+            logout_user();
+            flash('success', 'Your account and information were deleted. We sent you a confirmation email. Thanks for riding with LamazonLoads.');
+            redirect('');
+        }
     }
 }
 
@@ -60,4 +75,15 @@ dash_open('settings');
   </div>
   <button class="btn btn-primary mt" type="submit">Change password</button>
 </form>
+<?php if (!$u['is_admin']): ?>
+<form method="post" action="<?= e(url('settings.php')) ?>" class="card form-card danger-zone" id="delete" data-confirm="Delete your LamazonLoads account for good? Your profile, documents and applications will be removed. This can’t be undone.">
+  <?= csrf_field() ?><input type="hidden" name="action" value="delete_account">
+  <h3 class="mt-0"><?= icon('trash') ?> Delete my account</h3>
+  <p class="muted">This removes your account, driver profile, uploaded documents, applications and chats. It can’t be undone. We’ll email you to confirm.</p>
+  <div class="form-grid">
+    <div><label for="confirm_password">Type your password to confirm</label><input id="confirm_password" name="confirm_password" type="password" autocomplete="current-password" required></div>
+  </div>
+  <button class="btn btn-danger mt" type="submit">Delete my account</button>
+</form>
+<?php endif; ?>
 <?php dash_close(); page_footer();

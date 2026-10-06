@@ -97,3 +97,49 @@ function send_member_welcome(array $u, string $pass): bool
         'For your security, don’t share this email. If you weren’t expecting it, reply and let us know.');
     return send_mail((string) $u['email'], 'Your LamazonLoads account is ready', $text, $html, support_email());
 }
+
+/** Removes a member for good: their uploaded files, chats, profile, documents and applications. */
+function delete_member(int $userId): void
+{
+    foreach (db_all('SELECT stored_name FROM documents WHERE user_id = ?', [$userId]) as $d) {
+        @unlink(dirname(__DIR__) . '/uploads/' . basename((string) $d['stored_name']));
+    }
+    chat_delete_for_user($userId);
+    db_run('DELETE FROM users WHERE id = ?', [$userId]); // profile, documents, applications and saved jobs go with it
+}
+
+/**
+ * The goodbye email. $how: 'staff' (we closed it) or 'self' (they deleted it in Account settings).
+ * Sent before the account is removed, so it still has their name and email.
+ */
+function send_account_closed(array $u, string $how): bool
+{
+    $first = trim((string) strtok((string) $u['name'], ' ')) ?: 'there';
+    $self = $how === 'self';
+    [$text, $html] = email_body($self ? 'Your account was deleted' : 'Your account has been closed', [
+        "Hi $first,",
+        $self
+            ? 'As you asked, we deleted your LamazonLoads account, along with your driver profile, uploaded documents and applications.'
+            : 'Your LamazonLoads account has been closed, and your driver profile, uploaded documents and applications were deleted.',
+        $self
+            ? 'Thanks for riding with us. You’re always welcome back: just create a new account any time.'
+            : 'If this was a mistake, or you have questions, just reply to this email and we’ll help.',
+    ], null, null, $self ? 'Didn’t do this? Reply to this email or call us right away.' : '');
+    return send_mail((string) $u['email'], $self ? 'Your LamazonLoads account was deleted' : 'Your LamazonLoads account has been closed',
+        $text, $html, support_email());
+}
+
+/** Lets staff know a member deleted their own account. */
+function notify_staff_account_deleted(array $u): void
+{
+    $docs = (int) db_val('SELECT COUNT(*) FROM documents WHERE user_id = ?', [$u['id']]);
+    $apps = (int) db_val('SELECT COUNT(*) FROM applications WHERE user_id = ?', [$u['id']]);
+    [$text, $html] = email_body('A member deleted their account', [
+        $u['name'] . ' deleted their LamazonLoads account.',
+        'Email: ' . $u['email'] . ($u['phone'] !== '' ? ' · Phone: ' . $u['phone'] : '') . "\nMember since " . fmt_date((string) $u['created_at'])
+            . " · $docs document" . ($docs === 1 ? '' : 's') . " · $apps application" . ($apps === 1 ? '' : 's') . ' (all deleted)',
+    ]);
+    foreach (emails_in(support_email()) as $addr) {
+        send_mail($addr, 'Account deleted: ' . $u['name'], $text, $html, (string) $u['email']);
+    }
+}
