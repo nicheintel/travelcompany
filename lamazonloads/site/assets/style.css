@@ -1272,3 +1272,18 @@ html.modal-lock { overflow: hidden; }
 @media (prefers-reduced-motion: reduce) { .job-back:hover, .job-back-bottom:hover { transform: none; } }
 .job-back { align-self: start; }
 @media (min-width: 1200px) { .job-back { margin: 0 0 -70px -150px; } }
+
+/* Job page: short blue band, details box overlaps it (the title lives in the box) */
+.job-band { position: relative; overflow: hidden; color: #C9D6F5; padding: 30px 0 100px;
+  background: radial-gradient(600px 260px at 85% -20%, rgba(59, 123, 255, .55), transparent 70%), linear-gradient(160deg, #0A2463, #0B2A75); }
+.job-band::before { content: ""; position: absolute; inset: 0; background-image: linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px); background-size: 44px 44px; mask-image: linear-gradient(180deg, #000, transparent 90%); }
+.job-band-row { position: relative; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; max-width: 880px; }
+.job-crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: .92rem; font-weight: 600; }
+.job-crumbs a { color: #fff; }
+.job-crumbs span[aria-hidden] { color: #6F86C0; }
+.job-band .tags .tag { background: rgba(255, 255, 255, .12); color: #fff; }
+.job-band .tags .tag-urgent { background: #FFB020; color: #3D2600; }
+.job-section { padding-top: 0; }
+.job-wrap { position: relative; margin-top: -72px; }
+.job-card .job-title { font-size: clamp(1.5rem, 3.2vw, 2.1rem); font-style: normal; }
+@media (max-width: 1199px) { .job-back { background: #fff; } }

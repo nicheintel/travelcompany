@@ -73,15 +73,13 @@ $urgent = $job['hiring_timeline'] === '1-3d';
 page_header($job['title'], 'careers', job_excerpt($job));
 $here = 'job.php?id=' . $id;
 ?>
-<section class="page-hero"><div class="container">
-  <a href="<?= e(url('careers.php')) ?>" class="back-link" data-back="careers.php">&larr; All openings</a>
-  <div class="tags hero-tags">
-    <span class="tag tag-solid"><?= e($id === 0 ? 'Always open' : (JOB_CATEGORIES[$job['category']] ?? 'Opportunity')) ?></span>
+<section class="job-band"><div class="container job-band-row">
+  <nav class="job-crumbs" aria-label="Breadcrumb"><a href="<?= e(url('careers.php')) ?>" data-back="careers.php">Careers</a><span aria-hidden="true">/</span><span><?= e($id === 0 ? 'Driver network' : (JOB_CATEGORIES[$job['category']] ?? 'Opportunity')) ?></span></nav>
+  <div class="tags">
+    <?php if ($id === 0): ?><span class="tag tag-solid">Always open</span><?php endif; ?>
     <?php if ($urgent): ?><span class="tag tag-urgent">⚡ Urgently hiring</span><?php endif; ?>
     <?php if ($job['status'] !== 'open'): ?><span class="tag">Closed (staff view)</span><?php endif; ?>
   </div>
-  <h1><?= e($job['title']) ?></h1>
-  <p class="lead"><?= e(job_excerpt($job, 220)) ?></p>
 </div></section>
 
 <section class="section job-section">
@@ -89,7 +87,7 @@ $here = 'job.php?id=' . $id;
     <a class="job-back" href="<?= e(url('careers.php')) ?>" data-back="careers.php"><span class="job-back-ico"><?= icon('arrow') ?></span>All jobs</a>
     <article class="card pad prose job-card">
       <header class="job-title-row">
-        <h2 class="job-title"><?= e($job['title']) ?></h2>
+        <h1 class="job-title"><?= e($job['title']) ?></h1>
         <p class="job-where">LamazonLoads &ndash; <?= e(trim((string) $job['location']) !== '' ? $job['location'] : 'United States') ?></p>
       </header>
       <div class="tags job-badges">
