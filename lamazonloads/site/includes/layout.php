@@ -102,6 +102,7 @@ function page_header(string $title, string $active = '', string $description = '
 <?php endif; ?>
 <script src="<?= e(asset('app.js')) ?>" defer></script>
 </head>
+<?php $bodyClass = trim($bodyClass . (is_admin_page() ? ' admin-page' : '')); ?>
 <body<?= $bodyClass !== '' ? ' class="' . e($bodyClass) . '"' : '' ?>>
 <a class="skip" href="#main">Skip to content</a>
 <header class="site-header" id="top">
@@ -163,6 +164,12 @@ function doc_viewer_html(): string
 function page_footer(): void
 {
     run_automations_if_due();
+    if (is_admin_page()) { // admin: a slim footer, no chat bubble (staff answer chats in Support chats)
+        echo '</main><footer class="admin-foot"><div class="container"><span>&copy; ' . date('Y') . ' LamazonLoads · Admin</span>'
+            . '<span><a href="' . e(url('')) . '">View website</a> · <a href="' . e(url('privacy.php')) . '">Privacy policy</a></span></div></footer>'
+            . (current_user() ? doc_viewer_html() : '') . '</body></html>';
+        return;
+    }
     $email = (string) config('contact_email');
     $phone = (string) config('contact_phone');
     ?>
@@ -369,29 +376,78 @@ function dash_close(): void
     echo '</div></div>';
 }
 
+/** Admin menu, in labeled groups: [group => [key => [link, icon, label]]]. */
+const ADMIN_NAV = [
+    'Dashboard' => ['overview' => ['admin/', 'chart', 'Overview']],
+    'Hiring' => [
+        'applications' => ['admin/applications.php', 'clipboard', 'Applications'],
+        'jobs' => ['admin/jobs.php', 'briefcase', 'Job posts'],
+        'drivers' => ['admin/drivers.php', 'truck', 'Drivers & members'],
+        'walmart' => ['admin/walmart.php', 'route', 'Walmart routes'],
+    ],
+    'Inbox' => [
+        'chats' => ['admin/chats.php', 'chat', 'Support chats'],
+        'messages' => ['admin/messages.php', 'mail', 'Contact messages'],
+        'partners' => ['admin/partners.php', 'handshake', 'Partner requests'],
+    ],
+    'Website' => [
+        'photos' => ['admin/photos.php', 'upload', 'Site photos'],
+        'email' => ['admin/email.php', 'shield', 'Email check'],
+    ],
+];
+
+/** Things waiting for staff, shown as red counts in the menu and on the Overview. */
+function admin_counts(): array
+{
+    static $c = null;
+    return $c ??= [
+        'applications' => (int) db_val("SELECT COUNT(*) FROM applications WHERE status = 'new'"),
+        'chats' => chat_unread_total(),
+        'messages' => (int) db_val('SELECT COUNT(*) FROM messages WHERE is_read = 0'),
+        'partners' => (int) db_val("SELECT COUNT(*) FROM partner_requests WHERE status = 'new'"),
+    ];
+}
+
+/** Is this an admin page? (Slim footer, no chat bubble, wider layout.) */
+function is_admin_page(): bool
+{
+    return str_contains(str_replace('\\', '/', (string) ($_SERVER['SCRIPT_NAME'] ?? '')), '/admin/');
+}
+
+/** The admin side menu: who's signed in, then the pages in labeled groups. On phones it becomes a scrolling row of tabs. */
 function admin_open(string $active): void
 {
-    $newApps = (int) db_val("SELECT COUNT(*) FROM applications WHERE status = 'new'");
-    $unread = (int) db_val('SELECT COUNT(*) FROM messages WHERE is_read = 0');
-    $items = [
-        'overview' => ['admin/', 'chart', 'Overview', 0],
-        'applications' => ['admin/applications.php', 'clipboard', 'Applications', $newApps],
-        'jobs' => ['admin/jobs.php', 'briefcase', 'Job posts', 0],
-        'drivers' => ['admin/drivers.php', 'truck', 'Drivers & members', 0],
-        'chats' => ['admin/chats.php', 'chat', 'Support chats', chat_unread_total()],
-        'walmart' => ['admin/walmart.php', 'route', 'Walmart routes', 0],
-        'partners' => ['admin/partners.php', 'handshake', 'Partner requests', (int) db_val("SELECT COUNT(*) FROM partner_requests WHERE status = 'new'")],
-        'messages' => ['admin/messages.php', 'mail', 'Messages', $unread],
-        'photos' => ['admin/photos.php', 'upload', 'Site photos', 0],
-        'email' => ['admin/email.php', 'shield', 'Email check', 0],
-    ];
-    echo '<div class="container dash"><aside class="card dash-nav"><div class="who"><b>Admin</b><small>LamazonLoads staff</small></div>';
-    foreach ($items as $key => [$href, $ic, $label, $count]) {
-        echo '<a href="' . e(url($href)) . '"' . ($active === $key ? ' class="active"' : '') . '>' . icon($ic) . e($label)
-            . ($count ? ' <span class="nav-count">' . $count . '</span>' : '') . '</a>';
+    global $adminGroup;
+    $u = current_user();
+    $counts = admin_counts();
+    $initials = strtoupper(implode('', array_map(fn ($w) => mb_substr($w, 0, 1), array_slice(preg_split('/\s+/', trim((string) $u['name'])) ?: [], 0, 2))));
+    echo '<div class="container dash admin-dash"><aside class="card admin-nav" aria-label="Admin menu">'
+        . '<div class="an-user"><span class="an-avatar" aria-hidden="true">' . e($initials ?: 'LL') . '</span><span><b>' . e((string) $u['name']) . '</b><small>Staff · LamazonLoads</small></span></div>'
+        . '<nav class="an-links">';
+    foreach (ADMIN_NAV as $group => $items) {
+        echo '<p class="an-label">' . e($group) . '</p>';
+        foreach ($items as $key => [$href, $ic, $label]) {
+            if ($active === $key) {
+                $adminGroup = $group;
+            }
+            $n = $counts[$key] ?? 0;
+            echo '<a href="' . e(url($href)) . '"' . ($active === $key ? ' class="active" aria-current="page"' : '') . '>' . icon($ic) . '<span>' . e($label) . '</span>'
+                . ($n ? '<span class="nav-count" aria-label="' . $n . ' new">' . $n . '</span>' : '') . '</a>';
+        }
     }
-    echo '<a href="' . e(url('account.php')) . '">' . icon('user') . 'My dashboard</a>';
-    echo '</aside><div class="dash-main">';
+    echo '</nav><div class="an-foot"><a href="' . e(url('account.php')) . '">' . icon('user') . '<span>My dashboard</span></a>'
+        . '<a href="' . e(url('')) . '">' . icon('external') . '<span>View website</span></a></div>';
+    echo '</aside><div class="dash-main admin-main">';
+}
+
+/** Page title block used on every admin page: group label, title, one-line explanation and the page's main buttons. */
+function admin_head(string $title, string $subtitle = '', string $actions = '', string $eyebrow = ''): string
+{
+    global $adminGroup;
+    $eyebrow = $eyebrow !== '' ? $eyebrow : (string) ($adminGroup ?? 'Admin');
+    return '<header class="admin-head"><div class="ah-text"><span class="eyebrow">' . e($eyebrow) . '</span><h1>' . e($title) . '</h1>'
+        . ($subtitle !== '' ? '<p>' . $subtitle . '</p>' : '') . '</div>'
+        . ($actions !== '' ? '<div class="ah-actions">' . $actions . '</div>' : '') . '</header>';
 }
 
 function applicant_label(array $row): string

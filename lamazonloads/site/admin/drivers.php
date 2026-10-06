@@ -48,34 +48,34 @@ $rows = db_all('SELECT u.*, p.equipment, p.home_zip, p.availability, (SELECT COU
 page_header('Drivers & members');
 admin_open('drivers');
 ?>
-<div class="admin-head">
-  <h1>Drivers &amp; members</h1>
-  <a class="btn btn-accent" href="#add-member" data-modal-open="add-member"><?= icon('plus') ?> Add member</a>
-</div>
-<form method="get" action="<?= e(url('admin/drivers.php')) ?>" class="card pad form-grid" style="grid-template-columns:2fr 1.5fr auto;align-items:end">
-  <div><label for="q">Search name, email, phone or ZIP</label><input id="q" name="q" type="search" value="<?= e($q) ?>"></div>
-  <div><label for="equipment">Equipment</label><select id="equipment" name="equipment"><option value="">Any</option><?php foreach (EQUIPMENT as $k => $l): ?><option value="<?= e($k) ?>"<?= $equip === $k ? ' selected' : '' ?>><?= e($l) ?></option><?php endforeach; ?></select></div>
-  <div><button class="btn btn-primary" type="submit">Search</button></div>
+<?= admin_head('Drivers & members', 'Everyone with a LamazonLoads account. Tap a member to see their profile, documents and applications, or add someone yourself.',
+    '<a class="btn btn-accent" href="#add-member" data-modal-open="add-member">' . icon('plus') . ' Add member</a>') ?>
+<form method="get" action="<?= e(url('admin/drivers.php')) ?>" class="card pad mem-filters">
+  <div class="mf-q"><label for="q">Search</label><input id="q" name="q" type="search" placeholder="Name, email, phone or ZIP" value="<?= e($q) ?>"></div>
+  <div><label for="equipment">Equipment</label><select id="equipment" name="equipment"><option value="">Any equipment</option><?php foreach (EQUIPMENT as $k => $l): ?><option value="<?= e($k) ?>"<?= $equip === $k ? ' selected' : '' ?>><?= e($l) ?></option><?php endforeach; ?></select></div>
+  <div class="mf-go"><button class="btn btn-primary" type="submit"><?= icon('search') ?> Search</button></div>
 </form>
-<div class="card pad">
-  <?php if (!$rows): ?><div class="empty">No members found.</div><?php else: ?>
-  <div class="table-wrap"><table>
-    <thead><tr><th>Name</th><th>Type</th><th>Equipment</th><th>ZIP</th><th>Availability</th><th>Docs</th><th>Apps</th><th>Joined</th></tr></thead>
-    <tbody><?php foreach ($rows as $r): ?>
-      <tr>
-        <td><a href="<?= e(url('admin/driver.php?id=' . (int) $r['id'])) ?>"><b><?= e($r['name']) ?></b></a><?= $r['is_admin'] ? ' <span class="badge badge-draft">Staff</span>' : '' ?><?= !$r['is_admin'] && empty($r['email_verified_at']) ? ' <span class="badge badge-reviewing">Email not confirmed</span>' : '' ?><?= $r['added_by'] ? ' <span class="badge badge-staff">Added by staff</span>' : '' ?><br><span class="muted"><?= e($r['email']) ?> · <?= e($r['phone']) ?></span></td>
-        <td><?= e(explode(' (', ACCOUNT_TYPES[$r['account_type']] ?? '')[0]) ?></td>
-        <td><?= e(EQUIPMENT[$r['equipment'] ?? ''] ?? '—') ?></td>
-        <td><?= e($r['home_zip'] ?? '') ?></td>
-        <td><?= e(AVAILABILITY[$r['availability'] ?? ''] ?? '—') ?></td>
-        <td><?= (int) $r['docs'] ?></td>
-        <td><?= (int) $r['apps'] ?></td>
-        <td><?= e(fmt_date($r['created_at'])) ?></td>
-      </tr>
-    <?php endforeach; ?></tbody>
-  </table></div>
-  <?php endif; ?>
-</div>
+<p class="muted app-count"><b><?= count($rows) ?></b> member<?= count($rows) === 1 ? '' : 's' ?><?= $where ? ' match · <a href="' . e(url('admin/drivers.php')) . '">Clear search</a>' : '' ?></p>
+<?php if (!$rows): ?><div class="card empty">No members found.</div><?php else: ?>
+<section class="card panel">
+  <div class="panel-body flush ml">
+    <div class="ml-row ml-head" aria-hidden="true"><span>Member</span><span>Type</span><span>Equipment &amp; area</span><span>Docs</span><span>Applied</span><span>Joined</span><span></span></div>
+    <?php foreach ($rows as $r): $nm = trim((string) $r['name']); ?>
+      <a class="ml-row" href="<?= e(url('admin/driver.php?id=' . (int) $r['id'])) ?>">
+        <span class="ml-who"><span class="ov-av" aria-hidden="true"><?= e(strtoupper(mb_substr($nm, 0, 1))) ?></span>
+          <span><b><?= e($nm) ?><?= $r['is_admin'] ? ' <span class="badge badge-draft">Staff</span>' : '' ?><?= $r['added_by'] ? ' <span class="badge badge-staff">Added by staff</span>' : '' ?><?= !$r['is_admin'] && empty($r['email_verified_at']) ? ' <span class="badge badge-reviewing">Email not confirmed</span>' : '' ?></b>
+          <small><?= e($r['email']) ?><?= $r['phone'] !== '' ? ' · ' . e($r['phone']) : '' ?></small></span></span>
+        <span class="ml-type"><?= e(explode(' (', ACCOUNT_TYPES[$r['account_type']] ?? '')[0]) ?></span>
+        <span class="ml-eq"><?= isset(EQUIPMENT[$r['equipment'] ?? '']) ? e(EQUIPMENT[$r['equipment']]) : '<span class="muted">No profile yet</span>' ?><?php if ($r['home_zip']): ?><small>ZIP <?= e($r['home_zip']) ?><?= isset(AVAILABILITY[$r['availability'] ?? '']) ? ' · ' . e(explode(' (', AVAILABILITY[$r['availability']])[0]) : '' ?></small><?php endif; ?></span>
+        <span class="ml-n<?= (int) $r['docs'] ? ' has' : '' ?>" title="Documents"><?= icon('file') ?><?= (int) $r['docs'] ?></span>
+        <span class="ml-n<?= (int) $r['apps'] ? ' has' : '' ?>" title="Applications"><?= icon('clipboard') ?><?= (int) $r['apps'] ?></span>
+        <span class="ml-date"><?= e(fmt_date($r['created_at'], 'M j, Y')) ?></span>
+        <span class="ar-go"><?= icon('arrow') ?></span>
+      </a>
+    <?php endforeach; ?>
+  </div>
+</section>
+<?php endif; ?>
 
 <div class="modal<?= $addErrors ? ' is-open' : '' ?>" id="add-member" data-modal data-modal-param="add" role="dialog" aria-modal="true" aria-labelledby="add-title"<?= $addErrors ? '' : ' aria-hidden="true"' ?>>
   <a class="modal-backdrop" href="#" data-modal-close aria-label="Close"></a>

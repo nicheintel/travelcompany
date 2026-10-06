@@ -19,20 +19,35 @@ $rows = db_all('SELECT * FROM messages ORDER BY is_read, created_at DESC LIMIT 3
 page_header('Messages');
 admin_open('messages');
 ?>
-<h1>Messages</h1>
-<p class="muted">From the Contact page. Reply by email or phone.</p>
-<?php if (!$rows): ?><div class="card empty">No messages yet.</div><?php endif; ?>
-<?php foreach ($rows as $m): ?>
-  <div class="card pad" style="margin-bottom:16px;<?= $m['is_read'] ? 'opacity:.75' : 'border-left:4px solid var(--blue)' ?>">
-    <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap">
-      <div><b><?= e($m['name']) ?></b> · <a href="mailto:<?= e($m['email']) ?>"><?= e($m['email']) ?></a><?= $m['phone'] ? ' · ' . e($m['phone']) : '' ?><br>
-        <span class="tag tag-solid"><?= e($topics[$m['topic']] ?? $m['topic']) ?></span> <span class="muted"><?= e(fmt_date($m['created_at'], 'M j, Y g:i a')) ?></span></div>
-      <div class="row-actions">
-        <form method="post" action="<?= e(url('admin/messages.php')) ?>" class="inline-form"><?= csrf_field() ?><input type="hidden" name="id" value="<?= (int) $m['id'] ?>"><button class="btn btn-ghost btn-sm" type="submit"><?= $m['is_read'] ? 'Mark unread' : 'Mark as handled' ?></button></form>
-        <form method="post" action="<?= e(url('admin/messages.php')) ?>" class="inline-form" data-confirm="Delete this message?"><?= csrf_field() ?><input type="hidden" name="id" value="<?= (int) $m['id'] ?>"><input type="hidden" name="action" value="delete"><button class="btn btn-danger btn-sm" type="submit">Delete</button></form>
-      </div>
-    </div>
-    <p class="mt mb-0"><?= nl2br(e($m['message'])) ?></p>
+<?php $unread = count(array_filter($rows, fn ($m) => !$m['is_read'])); ?>
+<?= admin_head('Contact messages', 'Everything sent through the Contact page. Reply by email or phone, then mark it as handled.') ?>
+<?php if (!$rows): ?>
+  <div class="card empty">No messages yet. When someone writes on the Contact page, it shows up here and you get an email.</div>
+<?php else: ?>
+  <p class="muted app-count"><b><?= count($rows) ?></b> message<?= count($rows) === 1 ? '' : 's' ?><?= $unread ? ' · <b>' . $unread . '</b> waiting for a reply' : ' · all handled' ?></p>
+  <div class="msg-list">
+  <?php foreach ($rows as $m): $tel = $m['phone'] ? tel_href((string) $m['phone']) : ''; ?>
+    <article class="card msg<?= $m['is_read'] ? ' is-done' : ' is-new' ?>">
+      <header class="msg-head">
+        <span class="ov-av" aria-hidden="true"><?= e(strtoupper(mb_substr((string) $m['name'], 0, 1))) ?></span>
+        <div class="msg-who">
+          <b><?= e($m['name']) ?></b>
+          <small><a href="mailto:<?= e($m['email']) ?>"><?= e($m['email']) ?></a><?= $m['phone'] ? ' · <a href="' . e($tel) . '">' . e($m['phone']) . '</a>' : '' ?></small>
+        </div>
+        <div class="msg-meta">
+          <span class="tag tag-solid"><?= e($topics[$m['topic']] ?? $m['topic']) ?></span>
+          <time><?= e(fmt_date($m['created_at'], 'M j, Y · g:i a')) ?></time>
+        </div>
+      </header>
+      <p class="msg-body"><?= nl2br(e($m['message'])) ?></p>
+      <footer class="msg-actions">
+        <a class="btn btn-primary btn-sm" href="mailto:<?= e($m['email']) ?>?subject=<?= e(rawurlencode('Re: your message to LamazonLoads')) ?>"><?= icon('mail') ?> Reply by email</a>
+        <?php if ($tel): ?><a class="btn btn-ghost btn-sm" href="<?= e($tel) ?>"><?= icon('phone') ?> Call</a><?php endif; ?>
+        <form method="post" action="<?= e(url('admin/messages.php')) ?>" class="inline-form"><?= csrf_field() ?><input type="hidden" name="id" value="<?= (int) $m['id'] ?>"><button class="btn btn-ghost btn-sm" type="submit"><?= icon('check') ?> <?= $m['is_read'] ? 'Mark as new' : 'Mark as handled' ?></button></form>
+        <form method="post" action="<?= e(url('admin/messages.php')) ?>" class="inline-form msg-del" data-confirm="Delete this message?"><?= csrf_field() ?><input type="hidden" name="id" value="<?= (int) $m['id'] ?>"><input type="hidden" name="action" value="delete"><button class="btn btn-danger btn-sm btn-icon" type="submit" aria-label="Delete message" title="Delete"><?= icon('trash') ?></button></form>
+      </footer>
+    </article>
+  <?php endforeach; ?>
   </div>
-<?php endforeach; ?>
+<?php endif; ?>
 <?php dash_close(); page_footer();

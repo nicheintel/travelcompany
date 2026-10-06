@@ -54,8 +54,7 @@ $row = fn (string $label, bool|null $ok, string $value, string $note = '') =>
 page_header('Email check');
 admin_open('email');
 ?>
-<h1>Email check</h1>
-<p class="muted">Sign-up confirmations, chat replies and application alerts all use these settings.</p>
+<?= admin_head('Email check', 'Make sure the website’s emails get delivered: sign-up confirmations, onboarding emails, chat replies and staff alerts all use these settings.') ?>
 
 <?php if ($result): ?>
   <?php if ($result[0]): ?>

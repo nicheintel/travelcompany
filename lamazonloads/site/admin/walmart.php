@@ -43,50 +43,56 @@ $active = count(array_filter($routes, fn ($r) => (int) $r['active']));
 page_header('Walmart routes');
 admin_open('walmart');
 ?>
-<h1>Walmart daily routes</h1>
-<p class="muted">Drivers who tick “Interested in the Walmart daily route” when they apply choose one of these cities. SUV and other-vehicle drivers get the Walmart welcome email for their city.</p>
+<?= admin_head('Walmart daily routes', 'Set the start month and pay, and choose which cities drivers can pick on the application form. SUV and other-vehicle drivers get the Walmart welcome email for their city.') ?>
 
-<div class="card pad">
-  <h2 style="font-size:1.2rem">Program</h2>
-  <form method="post" action="<?= e(url('admin/walmart.php')) ?>" class="form-grid wm-settings">
+<div class="wm-layout">
+<section class="card panel wm-program">
+  <header class="panel-head"><h2><?= icon('route') ?>Program settings</h2></header>
+  <form method="post" action="<?= e(url('admin/walmart.php')) ?>" class="panel-body wm-settings">
     <?= csrf_field() ?><input type="hidden" name="action" value="settings">
     <div><label for="start">Routes start in</label><input id="start" name="start" type="text" maxlength="40" value="<?= e($s['start']) ?>" placeholder="November"></div>
     <div><label for="rate">Pay rate</label><input id="rate" name="rate" type="text" maxlength="40" value="<?= e($s['rate']) ?>" placeholder="$275 per day"></div>
-    <div class="full"><label class="check"><input type="checkbox" name="on" value="1"<?= $s['on'] ? ' checked' : '' ?>> Show the Walmart daily route on the application form</label></div>
-    <div class="full wm-preview"><small>Drivers see:</small> <b><?= e(walmart_headline()) ?></b></div>
-    <div class="full"><button class="btn btn-primary" type="submit">Save</button></div>
+    <label class="check"><input type="checkbox" name="on" value="1"<?= $s['on'] ? ' checked' : '' ?>> Show the Walmart daily route on the application form</label>
+    <div class="wm-preview"><small>Drivers see</small><b><?= e(walmart_headline()) ?></b></div>
+    <button class="btn btn-primary btn-block" type="submit">Save settings</button>
   </form>
-</div>
+</section>
 
-<div class="card pad">
-  <h2 style="font-size:1.2rem">Cities <span class="muted" style="font-size:.9rem;font-weight:500">(<?= $active ?> open<?= count($routes) > $active ? ', ' . (count($routes) - $active) . ' hidden' : '' ?>)</span></h2>
-  <form method="post" action="<?= e(url('admin/walmart.php')) ?>" class="wm-add">
-    <?= csrf_field() ?><input type="hidden" name="action" value="add">
-    <input name="city" type="text" maxlength="80" required placeholder="City, State (e.g. Tampa, FL)" aria-label="New city">
-    <button class="btn btn-primary" type="submit"><?= icon('route') ?> Add city</button>
-  </form>
-  <?php if (!$routes): ?><div class="empty">No cities yet. Add your first one above.</div><?php else: ?>
-  <div class="wm-list">
-    <?php foreach ($routes as $r): $on = (int) $r['active']; ?>
-      <div class="wm-row<?= $on ? '' : ' off' ?>">
-        <form method="post" action="<?= e(url('admin/walmart.php')) ?>" class="wm-name">
-          <?= csrf_field() ?><input type="hidden" name="action" value="rename"><input type="hidden" name="id" value="<?= (int) $r['id'] ?>">
-          <input name="city" type="text" maxlength="80" value="<?= e($r['city']) ?>" aria-label="City name">
-          <button class="btn btn-ghost btn-sm" type="submit">Save</button>
-        </form>
-        <span class="badge <?= $on ? 'badge-open' : 'badge-closed' ?>"><?= $on ? 'Open' : 'Hidden' ?></span>
-        <a class="wm-apps" href="<?= e(url('admin/applications.php?city=' . rawurlencode($r['city']))) ?>"><?= (int) $r['applicants'] ?> applicant<?= (int) $r['applicants'] === 1 ? '' : 's' ?></a>
-        <form method="post" action="<?= e(url('admin/walmart.php')) ?>" class="inline-form">
-          <?= csrf_field() ?><input type="hidden" name="action" value="toggle"><input type="hidden" name="id" value="<?= (int) $r['id'] ?>">
-          <button class="btn btn-ghost btn-sm" type="submit"><?= $on ? 'Hide' : 'Show' ?></button>
-        </form>
-        <form method="post" action="<?= e(url('admin/walmart.php')) ?>" class="inline-form" data-confirm="Remove <?= e($r['city']) ?> from the list?">
-          <?= csrf_field() ?><input type="hidden" name="action" value="delete"><input type="hidden" name="id" value="<?= (int) $r['id'] ?>">
-          <button class="btn btn-danger btn-sm" type="submit" aria-label="Remove <?= e($r['city']) ?>"><?= icon('trash') ?></button>
-        </form>
-      </div>
-    <?php endforeach; ?>
+<section class="card panel">
+  <header class="panel-head"><h2><?= icon('pin') ?>Cities</h2><small><?= $active ?> open<?= count($routes) > $active ? ' · ' . (count($routes) - $active) . ' hidden' : '' ?></small></header>
+  <div class="panel-body">
+    <form method="post" action="<?= e(url('admin/walmart.php')) ?>" class="wm-add">
+      <?= csrf_field() ?><input type="hidden" name="action" value="add">
+      <input name="city" type="text" maxlength="80" required placeholder="Add a city: City, State (e.g. Tampa, FL)" aria-label="New city">
+      <button class="btn btn-accent" type="submit"><?= icon('plus') ?> Add city</button>
+    </form>
+    <?php if (!$routes): ?><div class="empty">No cities yet. Add your first one above.</div><?php else: ?>
+    <div class="wm-list">
+      <div class="wm-row wm-head" aria-hidden="true"><span>City</span><span>Status</span><span>Applicants</span><span></span></div>
+      <?php foreach ($routes as $r): $on = (int) $r['active']; ?>
+        <div class="wm-row<?= $on ? '' : ' off' ?>">
+          <form method="post" action="<?= e(url('admin/walmart.php')) ?>" class="wm-name" data-inline-edit>
+            <?= csrf_field() ?><input type="hidden" name="action" value="rename"><input type="hidden" name="id" value="<?= (int) $r['id'] ?>">
+            <input name="city" type="text" maxlength="80" value="<?= e($r['city']) ?>" aria-label="City name (click to rename)" title="Click to rename">
+            <button class="btn btn-primary btn-sm" type="submit" data-save hidden>Save</button>
+          </form>
+          <span><span class="badge <?= $on ? 'badge-open' : 'badge-closed' ?>"><?= $on ? 'Open' : 'Hidden' ?></span></span>
+          <a class="wm-apps" href="<?= e(url('admin/applications.php?city=' . rawurlencode($r['city']))) ?>"><?= (int) $r['applicants'] ?> <span>applicant<?= (int) $r['applicants'] === 1 ? '' : 's' ?></span></a>
+          <div class="wm-actions">
+            <form method="post" action="<?= e(url('admin/walmart.php')) ?>" class="inline-form">
+              <?= csrf_field() ?><input type="hidden" name="action" value="toggle"><input type="hidden" name="id" value="<?= (int) $r['id'] ?>">
+              <button class="btn btn-ghost btn-sm" type="submit"><?= icon($on ? 'eye' : 'eye') ?> <?= $on ? 'Hide' : 'Show' ?></button>
+            </form>
+            <form method="post" action="<?= e(url('admin/walmart.php')) ?>" class="inline-form" data-confirm="Remove <?= e($r['city']) ?> from the list?">
+              <?= csrf_field() ?><input type="hidden" name="action" value="delete"><input type="hidden" name="id" value="<?= (int) $r['id'] ?>">
+              <button class="btn btn-danger btn-sm btn-icon" type="submit" aria-label="Remove <?= e($r['city']) ?>" title="Remove"><?= icon('trash') ?></button>
+            </form>
+          </div>
+        </div>
+      <?php endforeach; ?>
+    </div>
+    <?php endif; ?>
   </div>
-  <?php endif; ?>
+</section>
 </div>
 <?php dash_close(); page_footer();

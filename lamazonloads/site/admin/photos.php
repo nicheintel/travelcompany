@@ -78,9 +78,12 @@ function photo_spot_forms(string $slot, ?array $current, string $uploadLabel, st
 page_header('Site photos');
 admin_open('photos');
 ?>
-<h1>Site photos</h1>
-<p class="muted">Every photo is saved as a compressed WebP in three sizes (phones get the smallest). Originals are free stock photos from Pexels and Unsplash, free for business use with no credit needed; each one shows its source link.</p>
-<p class="muted">Change any photo on the website. Upload a JPG, PNG or WebP (up to 12 MB). Photos from your phone are turned the right way up and resized automatically, and banners get the blue LamazonLoads overlay. You can always go back to the original photo.</p>
+<?= admin_head('Site photos', 'Change any photo on the website, and go back to the original any time.') ?>
+<div class="info-strip">
+  <div><?= icon('upload') ?><span><b>Upload</b> a JPG, PNG or WebP up to 12 MB. Phone photos are turned the right way up and resized for you.</span></div>
+  <div><?= icon('layers') ?><span><b>Fast loading:</b> every photo is saved as a compressed WebP in three sizes; phones get the smallest.</span></div>
+  <div><?= icon('link') ?><span><b>Free to use:</b> the originals are Pexels and Unsplash stock photos; each shows its source link.</span></div>
+</div>
 
 <?php $gi = 0; foreach ($groups as $group => $spots): $gi++;
     $custom = count(array_filter(array_keys($spots), fn ($k) => site_photo($k) !== null));

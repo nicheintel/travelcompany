@@ -138,9 +138,9 @@ $newCount = (int) db_val("SELECT COUNT(*) FROM applications WHERE status = 'new'
 page_header('Applications');
 admin_open('applications');
 ?>
-<h1>Applications</h1>
+<?= admin_head('Applications', 'Everyone who applied to a job post or the driver network. Tap an applicant to see all their details, change the status or delete it.') ?>
 <form method="get" action="<?= e(url('admin/applications.php')) ?>" class="card pad app-filters">
-  <div class="af-q"><label for="q">Search name, email, phone or location</label><input id="q" name="q" type="search" value="<?= e($f['q']) ?>"></div>
+  <div class="af-q"><label for="q">Search</label><input id="q" name="q" type="search" placeholder="Name, email, phone or location" value="<?= e($f['q']) ?>"></div>
   <div><label for="status">Status</label><select id="status" name="status"><option value="">Any</option><?php foreach (APP_STATUSES as $k => $l): ?><option value="<?= e($k) ?>"<?= $f['status'] === $k ? ' selected' : '' ?>><?= e($l) ?></option><?php endforeach; ?></select></div>
   <div><label for="sent">Email sent</label><select id="sent" name="sent"><option value="">Any</option><?php foreach (ONBOARDING_EMAILS as $k => $l): ?><option value="<?= e($k) ?>"<?= $f['sent'] === $k ? ' selected' : '' ?>><?= e($l) ?></option><?php endforeach; ?><option value="none"<?= $f['sent'] === 'none' ? ' selected' : '' ?>>None</option></select></div>
   <div><label for="city">Walmart city</label><select id="city" name="city"><option value="">Any</option><?php foreach ($cityList as $c): ?><option value="<?= e($c) ?>"<?= $f['city'] === $c ? ' selected' : '' ?>><?= e($c) ?></option><?php endforeach; ?></select></div>

@@ -38,12 +38,12 @@ $badge = fn (string $s): string => '<span class="badge badge-' . e($s) . '">' . 
 if ($req):
     $name = $req['first_name'] . ' ' . $req['last_name'];
     ?>
-  <p><a href="<?= e(url('admin/partners.php')) ?>">&larr; All partner requests</a></p>
-  <h1><?= e($req['company']) ?></h1>
-  <p class="muted"><?= $badge($req['status']) ?> · Received <?= e(fmt_date($req['created_at'], 'M j, Y g:i a')) ?></p>
+  <a class="back-link" href="<?= e(url('admin/partners.php')) ?>"><?= icon('chev-left') ?> All partner requests</a>
+  <?= admin_head((string) $req['company'], $badge($req['status']) . ' · ' . e($name) . ' · received ' . e(fmt_date($req['created_at'], 'M j, Y g:i a')),
+      '<a class="btn btn-primary" href="' . e(tel_href($req['phone'])) . '">' . icon('phone') . ' Call</a><a class="btn btn-ghost" href="mailto:' . e($req['email']) . '">' . icon('mail') . ' Email</a>', 'Partner request') ?>
   <div class="pr-detail">
     <div class="card pad">
-      <h2 style="font-size:1.2rem">Request</h2>
+      <h3>Request details</h3>
       <div class="table-wrap"><table class="kv">
         <tr><th>Contact</th><td><?= e($name) ?><?= $req['job_title'] !== '' ? ', ' . e($req['job_title']) : '' ?></td></tr>
         <tr><th>Phone</th><td><a href="<?= e(tel_href($req['phone'])) ?>"><?= e($req['phone']) ?></a></td></tr>
@@ -55,13 +55,9 @@ if ($req):
       </table></div>
       <h3 class="mt">Message</h3>
       <p class="mb-0"><?= $req['message'] ? nl2br(e($req['message'])) : '<span class="muted">No message.</span>' ?></p>
-      <div class="row-actions mt">
-        <a class="btn btn-primary btn-sm" href="<?= e(tel_href($req['phone'])) ?>"><?= icon('phone') ?> Call</a>
-        <a class="btn btn-ghost btn-sm" href="mailto:<?= e($req['email']) ?>?subject=<?= e(rawurlencode('Your LamazonLoads partnership request')) ?>"><?= icon('mail') ?> Email</a>
-      </div>
     </div>
     <div class="card pad">
-      <h2 style="font-size:1.2rem">Follow-up</h2>
+      <h3>Follow-up</h3>
       <form method="post" action="<?= e(url('admin/partners.php')) ?>">
         <?= csrf_field() ?><input type="hidden" name="id" value="<?= (int) $req['id'] ?>">
         <label for="status">Status</label>
@@ -81,8 +77,7 @@ if ($req):
         ? db_all("SELECT * FROM partner_requests ORDER BY status = 'new' DESC, created_at DESC LIMIT 300")
         : db_all('SELECT * FROM partner_requests WHERE status = ? ORDER BY created_at DESC LIMIT 300', [$filter]);
     ?>
-  <h1>Partner requests</h1>
-  <p class="muted">Businesses that asked for a call on the <a href="<?= e(url('partners.php')) ?>">Partner with us</a> page. Each one is also emailed to you.</p>
+  <?= admin_head('Partner requests', 'Businesses that asked for a call on the <a href="' . e(url('partners.php')) . '">Partner with us</a> page. Each one is also emailed to you.') ?>
   <div class="filters">
     <a href="<?= e(url('admin/partners.php')) ?>"<?= $filter === '' ? ' class="on"' : '' ?>>All (<?= array_sum($counts) ?>)</a>
     <?php foreach (PARTNER_STATUSES as $k => $l): ?><a href="<?= e(url('admin/partners.php?status=' . $k)) ?>"<?= $filter === $k ? ' class="on"' : '' ?>><?= e($l) ?> (<?= $counts[$k] ?? 0 ?>)</a><?php endforeach; ?>

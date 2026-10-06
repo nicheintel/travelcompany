@@ -62,13 +62,12 @@ $when = function (int $t): string {
 page_header('Support chats');
 admin_open('chats');
 ?>
-<h1>Support chats</h1>
-<p class="muted">Messages from the Chat button on your website. Only staff see them.</p>
+<?= admin_head('Support chats', 'Live messages from the Chat button on your website. Pick a conversation to read and reply. Only staff can see them.') ?>
 
-<div class="stats cs-facts">
-  <div class="card stat"><small>Open chats</small><b><?= (int) ($counts['open'] ?? 0) ?></b><span class="stat-sub"><?= $newOpen ? $newOpen . ' with new messages' : 'nothing new' ?></span></div>
-  <div class="card stat"><small>Average rating</small><b><?= $rs['avg'] !== null ? '★ ' . number_format($rs['avg'], 1) : '–' ?></b><span class="stat-sub"><?= $rs['n'] ? 'out of 5, last 90 days' : 'no ratings yet' ?></span></div>
-  <div class="card stat"><small>Rated chats</small><b><?= $rs['n'] ?></b><span class="stat-sub">people rate a chat after it ends</span></div>
+<div class="kpis kpis-3 cs-facts">
+  <div class="card kpi"><span class="kpi-ico"><?= icon('chat') ?></span><span class="kpi-label">Open chats</span><b class="kpi-num"><?= (int) ($counts['open'] ?? 0) ?></b><small class="kpi-sub"><?= $newOpen ? $newOpen . ' with new messages' : 'Nothing new' ?></small></div>
+  <div class="card kpi"><span class="kpi-ico"><?= icon('star') ?></span><span class="kpi-label">Average rating</span><b class="kpi-num"><?= $rs['avg'] !== null ? number_format($rs['avg'], 1) . ' / 5' : '–' ?></b><small class="kpi-sub"><?= $rs['n'] ? 'Last 90 days' : 'No ratings yet' ?></small></div>
+  <div class="card kpi"><span class="kpi-ico"><?= icon('check') ?></span><span class="kpi-label">Rated chats</span><b class="kpi-num"><?= $rs['n'] ?></b><small class="kpi-sub">People rate a chat after it ends</small></div>
 </div>
 
 <div class="filters cs-tabs" role="tablist" aria-label="Show">

@@ -94,14 +94,14 @@ $edit ??= ($p ?? array_fill_keys(array_keys(PROFILE_FIELDS), '')) + ['name' => $
 page_header($u['name']);
 admin_open('drivers');
 ?>
-<a href="<?= e(url('admin/drivers.php')) ?>">&larr; All members</a>
-<div class="admin-head" style="margin-top:10px">
-  <h1 class="mt-0"><?= e($u['name']) ?></h1>
-  <a class="btn btn-primary" href="#edit" data-modal-open="edit"><?= icon('edit') ?> Edit information</a>
-</div>
-<p class="muted"><?= e(ACCOUNT_TYPES[$u['account_type']] ?? '') ?> · joined <?= e(fmt_date($u['created_at'])) ?><?= $addedBy ? ' · added by ' . e($addedBy) : '' ?>
-  · <?= is_verified($u) ? 'email confirmed' : '<span class="badge badge-reviewing">Email not confirmed</span>' ?>
-  <?= !empty($u['must_change_password']) ? ' · <span class="badge badge-reviewing">Hasn\'t chosen a password yet</span>' : '' ?></p>
+<a class="back-link" href="<?= e(url('admin/drivers.php')) ?>"><?= icon('chev-left') ?> All members</a>
+<?= admin_head((string) $u['name'],
+    e(explode(' (', ACCOUNT_TYPES[$u['account_type']] ?? 'Member')[0]) . ' · joined ' . e(fmt_date($u['created_at'])) . ($addedBy ? ' · added by ' . e($addedBy) : '')
+    . ' · ' . (is_verified($u) ? '<span class="badge badge-open">Email confirmed</span>' : '<span class="badge badge-reviewing">Email not confirmed</span>')
+    . (!empty($u['must_change_password']) ? ' <span class="badge badge-reviewing">Hasn’t chosen a password yet</span>' : ''),
+    '<a class="btn btn-ghost" href="mailto:' . e($u['email']) . '">' . icon('mail') . ' Email</a>'
+    . ($u['phone'] !== '' ? '<a class="btn btn-ghost" href="' . e(tel_href((string) $u['phone'])) . '">' . icon('phone') . ' Call</a>' : '')
+    . '<a class="btn btn-primary" href="#edit" data-modal-open="edit">' . icon('edit') . ' Edit information</a>', 'Member') ?>
 <div class="card pad onb-card">
   <h3 class="mt-0">Onboarding <span class="muted">(<?= $done ?>/<?= count($steps) ?>)</span></h3>
   <ul class="onb-list"><?php foreach ($steps as [$label, $ok]): ?><li class="<?= $ok ? 'ok' : '' ?>"><?= icon($ok ? 'check' : 'clock') ?><?= e($label) ?></li><?php endforeach; ?></ul>

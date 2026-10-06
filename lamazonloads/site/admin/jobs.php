@@ -108,11 +108,13 @@ $sel = function (string $name, array $opts, string $cur, string $placeholder = '
 page_header('Job posts');
 admin_open('jobs');
 ?>
-<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
-  <h1 class="mb-0">Job posts</h1>
-  <?php if (!$showForm): ?><a class="btn btn-accent" href="<?= e(url('admin/jobs.php?new=1')) ?>">+ New job post</a><?php endif; ?>
-</div>
-<p class="muted">Open posts appear on the Careers page and the home page. Members apply with one click.</p>
+<?php if ($showForm): ?>
+  <a class="back-link" href="<?= e(url('admin/jobs.php')) ?>"><?= icon('chev-left') ?> All job posts</a>
+  <?= admin_head($editId ? 'Edit job post' : 'New job post', 'Fill in the basics, the details and the settings. Open posts appear on the Careers page and the home page.') ?>
+<?php else: ?>
+  <?= admin_head('Job posts', 'Open posts appear on the Careers page and the home page. Members apply with one click.',
+      '<a class="btn btn-accent" href="' . e(url('admin/jobs.php?new=1')) . '">' . icon('plus') . ' New job post</a>') ?>
+<?php endif; ?>
 
 <?php if ($showForm): ?>
 <form method="post" action="<?= e(url('admin/jobs.php')) ?>" class="jp-form" novalidate>
@@ -216,42 +218,46 @@ admin_open('jobs');
 </form>
 <?php endif; ?>
 
-<?php $netOn = network_enabled(); $netApps = (int) db_val('SELECT COUNT(*) FROM applications WHERE job_id = 0'); ?>
-<div class="card pad mt net-row">
-  <div>
-    <b>Join the LamazonLoads driver network</b> <span class="badge <?= $netOn ? 'badge-open' : 'badge-closed' ?>"><?= $netOn ? 'Shown' : 'Hidden' ?></span>
-    <p class="muted mb-0">Built-in, always-open general application (not a job post). Drivers apply once and you reach out when something fits.
-      <a href="<?= e(url('admin/applications.php?job=0')) ?>"><?= $netApps ?> applicant<?= $netApps === 1 ? '' : 's' ?></a></p>
+<?php if (!$showForm): $netOn = network_enabled(); $netApps = (int) db_val('SELECT COUNT(*) FROM applications WHERE job_id = 0'); ?>
+<section class="card net-card">
+  <span class="net-ico"><?= icon('users') ?></span>
+  <div class="net-text">
+    <b>LamazonLoads driver network <span class="badge <?= $netOn ? 'badge-open' : 'badge-closed' ?>"><?= $netOn ? 'Shown on website' : 'Hidden' ?></span></b>
+    <p>A built-in general application that is always open (not a job post). Drivers apply once and you reach out when something fits.</p>
   </div>
-  <div class="row-actions">
-    <?php if ($netOn): ?><a class="btn btn-ghost btn-sm" href="<?= e(url('job.php?id=0')) ?>">View</a><?php endif; ?>
+  <div class="net-actions">
+    <a class="btn btn-ghost btn-sm" href="<?= e(url('admin/applications.php?job=0')) ?>"><?= $netApps ?> applicant<?= $netApps === 1 ? '' : 's' ?></a>
+    <?php if ($netOn): ?><a class="btn btn-ghost btn-sm" href="<?= e(url('job.php?id=0')) ?>"><?= icon('eye') ?> View</a><?php endif; ?>
     <form method="post" action="<?= e(url('admin/jobs.php')) ?>" class="inline-form"><?= csrf_field() ?><input type="hidden" name="action" value="network"><input type="hidden" name="on" value="<?= $netOn ? '0' : '1' ?>">
       <button class="btn <?= $netOn ? 'btn-ghost' : 'btn-primary' ?> btn-sm" type="submit"><?= $netOn ? 'Hide from website' : 'Show on website' ?></button></form>
   </div>
-</div>
+</section>
 
-<div class="card pad mt">
-  <?php if (!$jobs): ?><div class="empty">No job posts yet. Click <b>+ New job post</b> to add one.</div><?php else: ?>
-  <div class="table-wrap"><table>
-    <thead><tr><th>Job</th><th>Type</th><th>Hiring</th><th>Status</th><th>Applicants</th><th></th></tr></thead>
-    <tbody><?php foreach ($jobs as $j): $autos = array_filter(['In review' => $j['auto_review'], 'Reminder' => $j['auto_remind'], 'Not selected' => $j['auto_decline'], 'Auto-close' => $j['auto_close']]); ?>
-      <tr>
-        <td><b><?= e($j['title']) ?></b><br><span class="muted"><?= e(JOB_CATEGORIES[$j['category']] ?? $j['category']) ?><?= $j['location'] !== '' ? ' · ' . e($j['location']) : '' ?></span>
-          <?php if ($autos): ?><br><span class="hint">⚡ <?= e(implode(' · ', array_keys($autos))) ?></span><?php endif; ?></td>
-        <td><?= e(implode(', ', job_type_labels($j)) ?: '—') ?></td>
-        <td><?= e(HIRE_COUNTS[$j['hires_needed']] ?? $j['hires_needed']) ?><?php if ((int) $j['hired']): ?><br><span class="muted"><?= (int) $j['hired'] ?> approved</span><?php endif; ?></td>
-        <td><span class="badge badge-<?= e($j['status']) ?>"><?= e(ucfirst($j['status'])) ?></span></td>
-        <td><a href="<?= e(url('admin/applications.php?job=' . (int) $j['id'])) ?>"><?= (int) $j['apps'] ?></a></td>
-        <td><div class="row-actions">
-          <a class="btn btn-ghost btn-sm" href="<?= e(url('admin/jobs.php?edit=' . (int) $j['id'])) ?>">Edit</a>
-          <a class="btn btn-ghost btn-sm" href="<?= e(url('job.php?id=' . (int) $j['id'])) ?>">View</a>
+<section class="card panel">
+  <header class="panel-head"><h2><?= icon('briefcase') ?>Your job posts</h2><small><?= count($jobs) ?> post<?= count($jobs) === 1 ? '' : 's' ?> · <?= count(array_filter($jobs, fn ($j) => $j['status'] === 'open')) ?> open</small></header>
+  <?php if (!$jobs): ?><div class="panel-body"><div class="empty">No job posts yet. Click <b>New job post</b> to add one.</div></div><?php else: ?>
+  <div class="panel-body flush jl">
+    <div class="jl-row jl-head" aria-hidden="true"><span>Job</span><span>Type</span><span>Hiring</span><span>Status</span><span>Applicants</span><span>Actions</span></div>
+    <?php foreach ($jobs as $j): $autos = array_filter(['In review' => $j['auto_review'], 'Reminder' => $j['auto_remind'], 'Not selected' => $j['auto_decline'], 'Auto-close' => $j['auto_close']]); ?>
+      <div class="jl-row">
+        <div class="jl-job"><a href="<?= e(url('admin/jobs.php?edit=' . (int) $j['id'])) ?>"><b><?= e($j['title']) ?></b></a>
+          <small><?= e(JOB_CATEGORIES[$j['category']] ?? $j['category']) ?><?= $j['location'] !== '' ? ' · ' . e($j['location']) : '' ?></small>
+          <?php if ($autos): ?><small class="jl-auto"><?= icon('star') ?> Automations: <?= e(implode(' · ', array_keys($autos))) ?></small><?php endif; ?></div>
+        <span class="jl-type"><span class="jl-k">Type</span><?= e(implode(', ', job_type_labels($j)) ?: '—') ?></span>
+        <span class="jl-hire"><span class="jl-k">Hiring</span><?= e(HIRE_COUNTS[$j['hires_needed']] ?? $j['hires_needed']) ?><?php if ((int) $j['hired']): ?><small><?= (int) $j['hired'] ?> approved</small><?php endif; ?></span>
+        <span class="jl-status"><span class="badge badge-<?= e($j['status']) ?>"><?= e(ucfirst($j['status'])) ?></span></span>
+        <a class="jl-apps" href="<?= e(url('admin/applications.php?job=' . (int) $j['id'])) ?>"><b><?= (int) $j['apps'] ?></b> applicant<?= (int) $j['apps'] === 1 ? '' : 's' ?></a>
+        <div class="jl-actions">
+          <a class="btn btn-ghost btn-sm" href="<?= e(url('admin/jobs.php?edit=' . (int) $j['id'])) ?>"><?= icon('edit') ?> Edit</a>
+          <a class="btn btn-ghost btn-sm btn-icon" href="<?= e(url('job.php?id=' . (int) $j['id'])) ?>" aria-label="View on website" title="View on website"><?= icon('eye') ?></a>
           <form method="post" action="<?= e(url('admin/jobs.php')) ?>" class="inline-form"><?= csrf_field() ?><input type="hidden" name="action" value="status"><input type="hidden" name="id" value="<?= (int) $j['id'] ?>">
-            <input type="hidden" name="status" value="<?= $j['status'] === 'open' ? 'closed' : 'open' ?>"><button class="btn btn-ghost btn-sm" type="submit"><?= $j['status'] === 'open' ? 'Close' : 'Open' ?></button></form>
-          <form method="post" action="<?= e(url('admin/jobs.php')) ?>" class="inline-form" data-confirm="Delete this job post and its applications?"><?= csrf_field() ?><input type="hidden" name="action" value="delete"><input type="hidden" name="id" value="<?= (int) $j['id'] ?>"><button class="btn btn-danger btn-sm" type="submit">Delete</button></form>
-        </div></td>
-      </tr>
-    <?php endforeach; ?></tbody>
-  </table></div>
+            <input type="hidden" name="status" value="<?= $j['status'] === 'open' ? 'closed' : 'open' ?>"><button class="btn btn-ghost btn-sm" type="submit"><?= $j['status'] === 'open' ? 'Close' : 'Reopen' ?></button></form>
+          <form method="post" action="<?= e(url('admin/jobs.php')) ?>" class="inline-form" data-confirm="Delete this job post and its applications?"><?= csrf_field() ?><input type="hidden" name="action" value="delete"><input type="hidden" name="id" value="<?= (int) $j['id'] ?>"><button class="btn btn-danger btn-sm btn-icon" type="submit" aria-label="Delete job post" title="Delete"><?= icon('trash') ?></button></form>
+        </div>
+      </div>
+    <?php endforeach; ?>
+  </div>
   <?php endif; ?>
-</div>
+</section>
+<?php endif; ?>
 <?php dash_close(); page_footer();

@@ -527,6 +527,17 @@
     dv.addEventListener('modal:closed', function () { dvRun++; dropPdf(); dvBody.innerHTML = ''; });
   }
 
+  // Inline rename (Admin → Walmart cities): the Save button shows only after the name is changed.
+  document.querySelectorAll('[data-inline-edit]').forEach(function (f) {
+    var input = f.querySelector('input[type=text]'), btn = f.querySelector('[data-save]'), start = input.value;
+    input.addEventListener('input', function () { btn.hidden = input.value.trim() === start; });
+    input.addEventListener('keydown', function (e) { if (e.key === 'Escape') { input.value = start; btn.hidden = true; input.blur(); } });
+  });
+
+  // Admin menu on phones is a row of tabs: start it scrolled to the current page.
+  var anActive = document.querySelector('.an-links a.active');
+  if (anActive && window.matchMedia('(max-width: 860px)').matches) anActive.parentNode.scrollLeft = anActive.offsetLeft - 12;
+
   // Ask before destructive actions.
   document.addEventListener('submit', function (ev) {
     var msg = ev.target.getAttribute('data-confirm');
