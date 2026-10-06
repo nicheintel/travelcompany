@@ -4,8 +4,10 @@
   const $ = (sel, root = document) => root.querySelector(sel);
   const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
   // Translations for the visitor's language (from the page), with {name} placeholders.
+  // Written for older phones too: no ?. or ?? (they stop the whole file running on old browsers).
+  const SCRIPT_SRC = document.currentScript ? document.currentScript.src : "";
   let STR = {};
-  try { STR = JSON.parse(document.querySelector("[data-i18n]")?.dataset.i18n || "{}"); } catch { STR = {}; }
+  try { const box = document.querySelector("[data-i18n]"); STR = JSON.parse((box && box.dataset.i18n) || "{}"); } catch (e) { STR = {}; }
   const tr = (s, v = {}) => (STR[s] || s).replace(/\{(\w+)\}/g, (m, k) => (k in v ? v[k] : m));
   const LOCALE = document.documentElement.lang || "en";
 
@@ -46,7 +48,7 @@
   // Downloaded after the page has loaded (or when a box is tapped), so pages show sooner.
   let airportList, airportsLoading;
   const airports = () => airportList || (window.AIRPORT_ROWS ? (airportList = window.AIRPORT_ROWS.map(([code, city, country, name, size, words = ""]) => ({ code, city, country, name, size, key: fold(`${city} ${name} ${country} ${words}`) }))) : []);
-  const loadAirports = (src) => window.AIRPORT_ROWS ? Promise.resolve() : (airportsLoading ??= new Promise((resolve) => {
+  const loadAirports = (src) => window.AIRPORT_ROWS ? Promise.resolve() : (airportsLoading = airportsLoading || new Promise((resolve) => {
     const s = document.createElement("script");
     s.src = src;
     s.onload = s.onerror = resolve;
@@ -163,7 +165,7 @@
         const input = hidden(c.dataset.counter);
         input.value = String(Math.min(Number(input.value), Number(hidden(c.dataset.maxOf).value)));
       });
-      const people = ["adults", "children", "infants"].reduce((n, k) => n + Number(hidden(k)?.value || 0), 0);
+      const people = ["adults", "children", "infants"].reduce((n, k) => n + Number((hidden(k) || {}).value || 0), 0);
       const parts = [tr(people === 1 ? "{n} traveler" : "{n} travelers", { n: people })];
       if (hidden("rooms")) parts.push(tr(hidden("rooms").value === "1" ? "{n} room" : "{n} rooms", { n: hidden("rooms").value }));
       if (hidden("cabin")) parts.push(cabinNames[hidden("cabin").value]);
@@ -221,7 +223,7 @@
     if (returnBox) {
       const ret = $("input[name=return]", returnBox);
       const sync = () => {
-        const oneway = $("input[data-trip]:checked", form)?.value === "oneway";
+        const oneway = ($("input[data-trip]:checked", form) || {}).value === "oneway";
         ret.disabled = oneway;
         returnBox.classList.toggle("opacity-50", oneway);
       };
@@ -255,11 +257,11 @@
     const count = $("[data-visible-count]", scope);
     const empty = $("[data-empty]", scope);
     const original = items.slice();
-    let sortKey = $("[data-sort-by][aria-pressed=true]", scope)?.dataset.sortBy || "";
+    let sortKey = ($("[data-sort-by][aria-pressed=true]", scope) || { dataset: {} }).dataset.sortBy || "";
 
     function apply() {
       const groups = {};
-      $$("[data-filter]:checked", scope).forEach((c) => (groups[c.dataset.filter] ||= []).push(c.value));
+      $$("[data-filter]:checked", scope).forEach((c) => (groups[c.dataset.filter] = groups[c.dataset.filter] || []).push(c.value));
       const maxes = $$("[data-filter-max]", scope);
       const mins = $$("[data-filter-min]:checked", scope);
       const has = $$("[data-filter-has]:checked", scope);
@@ -268,11 +270,11 @@
       let visible = 0;
       items.forEach((it) => {
         let ok = Object.entries(groups).every(([k, vals]) => vals.includes(it.dataset[k]));
-        ok &&= maxes.every((r) => Number(it.dataset[r.dataset.filterMax]) <= Number(r.value));
-        ok &&= mins.every((r) => Number(r.value) === 0 || Number(it.dataset[r.dataset.filterMin]) >= Number(r.value));
-        ok &&= has.every((c) => (it.dataset[c.dataset.filterHas] || "").split(" ").includes(c.value));
-        ok &&= flags.every((c) => it.dataset[c.dataset.filterFlag] === "1");
-        ok &&= !chip || chip.value === "All" || it.dataset[chip.dataset.filterChip] === chip.value;
+        ok = ok && (maxes.every((r) => Number(it.dataset[r.dataset.filterMax]) <= Number(r.value)));
+        ok = ok && (mins.every((r) => Number(r.value) === 0 || Number(it.dataset[r.dataset.filterMin]) >= Number(r.value)));
+        ok = ok && (has.every((c) => (it.dataset[c.dataset.filterHas] || "").split(" ").includes(c.value)));
+        ok = ok && (flags.every((c) => it.dataset[c.dataset.filterFlag] === "1"));
+        ok = ok && (!chip || chip.value === "All" || it.dataset[chip.dataset.filterChip] === chip.value);
         it.classList.toggle("hidden", !ok);
         if (ok) visible++;
       });
@@ -378,26 +380,31 @@
   const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   // [data-reveal] fades up when scrolled into view; [data-reveal-stagger] does it for each child, one after another.
+  // With "reduce motion" on, it's a plain fade without the movement.
   function initReveal() {
-    if (calm || !("IntersectionObserver" in window)) return;
+    if (!("IntersectionObserver" in window)) return;
     const items = [...$$("[data-reveal]"), ...$$("[data-reveal-stagger]").flatMap((g) => [...g.children])];
     if (!items.length) return;
     const done = (el) => el.classList.add("revealed");
     // Already on screen: show straight away, no flicker.
     items.forEach((el) => { if (el.getBoundingClientRect().top < window.innerHeight) { el.classList.add("is-in"); done(el); } });
     document.documentElement.classList.add("reveal-on");
+    if (calm) document.documentElement.classList.add("reveal-calm");
+    const pending = new Set(items.filter((el) => !el.classList.contains("is-in")));
+    const reveal = (el, delay) => {
+      pending.delete(el);
+      io.unobserve(el);
+      el.style.setProperty("--reveal-delay", delay + "ms");
+      el.classList.add("is-in");
+      setTimeout(() => done(el), 1400);
+    };
     const io = new IntersectionObserver((entries) => {
       let n = 0;
-      entries.forEach((en) => {
-        if (!en.isIntersecting) return;
-        const el = en.target;
-        io.unobserve(el);
-        el.style.setProperty("--reveal-delay", Math.min(n++, 6) * 90 + "ms");
-        el.classList.add("is-in");
-        setTimeout(() => done(el), 1400);
-      });
+      entries.forEach((en) => { if (en.isIntersecting && pending.has(en.target)) reveal(en.target, Math.min(n++, 6) * 90); });
+      // Jumped past something (a link to #faq, a fast swipe): show it too, so nothing stays hidden above.
+      pending.forEach((el) => { if (el.getBoundingClientRect().bottom < 0) reveal(el, 0); });
     }, { rootMargin: "0px 0px -6% 0px" });
-    items.forEach((el) => { if (!el.classList.contains("is-in")) io.observe(el); });
+    pending.forEach((el) => io.observe(el));
   }
 
   // Home page: destination photos change every few seconds; the caption links to that destination's fares.
@@ -420,6 +427,8 @@
       $("[data-hero-place]", cap).textContent = slides[i].dataset.place;
       cur = i;
     };
+    const plane = $(".hero-flight", hero);
+    if (calm && plane && plane.pauseAnimations) { plane.pauseAnimations(); plane.setCurrentTime(12.5); } // parked on its route
     const start = () => { clearInterval(timer); timer = setInterval(() => { if (!document.hidden) show((cur + 1) % slides.length); }, calm ? 9000 : 6500); };
     dots.forEach((d, n) => d.addEventListener("click", () => { show(n); start(); }));
     // The other photos download after the page has loaded, so the first view stays fast.
@@ -444,7 +453,6 @@
   function initSearchWait() {
     const wait = $("[data-search-wait]");
     if (!wait) return;
-    if (calm) $("svg", wait)?.pauseAnimations?.();
     $$("form[data-search-form=flight], form[data-search-form=hotel]").forEach((f) =>
       f.addEventListener("submit", (e) => {
         if (e.defaultPrevented) return;
@@ -454,6 +462,23 @@
     );
     // Back button: the page comes back from the browser's cache with the screen still showing.
     window.addEventListener("pageshow", () => { wait.classList.remove("on"); wait.hidden = true; });
+  }
+
+  // Admin → Diagnostics: whether the scripts run in this browser and whether it asks for less motion.
+  function initBrowserCheck() {
+    const box = $("[data-browser-check]");
+    if (!box) return;
+    const row = (key, ok, text) => {
+      const r = $(`[data-check=${key}]`, box);
+      $("[data-check-icon]", r).textContent = ok ? "✓" : "!";
+      $("[data-check-icon]", r).className = "grid h-6 w-6 place-items-center rounded-full text-xs font-bold text-white " + (ok ? "bg-emerald-500" : "bg-amber-500");
+      $("[data-check-text]", r).textContent = text;
+    };
+    const current = SCRIPT_SRC.indexOf(box.dataset.expect) !== -1;
+    row("scripts", current, current ? "Running, latest version" : "Running, but an OLDER copy of the website's scripts. Flush the cache in hPanel → Performance → CDN, then press Ctrl + Shift + R.");
+    row("motion", !calm, calm
+      ? "Reduced: this device asks websites to keep motion to a minimum, so the flying plane and zoom effects stay still here (photos and sections still fade in). To see everything: Windows: Settings → Accessibility → Visual effects → Animation effects ON. iPhone: Settings → Accessibility → Motion → Reduce Motion OFF. Android: Settings → Accessibility → Remove animations OFF."
+      : "On: all animations play on this device.");
   }
 
   // Booking page: the trip summary's "Checked bag" line follows the Add checked bag buttons.
@@ -481,12 +506,9 @@
     });
     $$("[data-results]").forEach(initResults);
     $$("[data-tabs]").forEach(initTabs);
-    initMenus();
-    initForms();
-    initBagSummary();
-    initSearchWait();
-    initHeader();
-    initHero();
-    initReveal();
+    // Each part runs on its own, so a problem in one never stops the others.
+    [initMenus, initForms, initBagSummary, initSearchWait, initHeader, initHero, initReveal, initBrowserCheck].forEach((fn) => {
+      try { fn(); } catch (e) { if (window.console) console.error(e); }
+    });
   });
 })();

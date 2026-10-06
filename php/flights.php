@@ -133,10 +133,14 @@ require __DIR__ . '/includes/header.php';
 <?php elseif (!$s): ?>
   <?php if ($p['from'] && $p['to']): ?><div class="mb-6"><?= alert_box(t('Origin and destination must be different.')) ?></div><?php endif; ?>
   <h2 class="text-xl font-bold text-slate-900"><?= e(t('Popular routes')) ?></h2>
-  <div class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-    <?php foreach ($popular as [$a, $b]): $fa = airport($a); $fb = airport($b); ?>
-      <a href="<?= e(url('flights.php', ['from' => $a, 'to' => $b])) ?>" class="flex items-center justify-between rounded-xl border border-slate-200 bg-white p-4 hover:border-brand-300 hover:shadow-md">
-        <span class="font-medium text-slate-900"><?= e($fa['city']) ?> → <?= e($fb['city']) ?></span><span class="font-mono text-xs text-slate-500"><?= $a ?>–<?= $b ?></span>
+  <div class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3" data-reveal-stagger>
+    <?php foreach ($popular as [$a, $b]): $fa = airport($a); $fb = airport($b); $ph = stock_photo($b); ?>
+      <a href="<?= e(url('flights.php', ['from' => $a, 'to' => $b])) ?>" class="group flex items-center gap-4 rounded-xl border border-slate-200 bg-white p-3 transition hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-md">
+        <span class="relative grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-lg bg-gradient-to-br from-sky-400 to-brand-700 text-white">
+          <?php if ($ph): ?><picture><source type="image/avif" srcset="<?= e($ph['avif']) ?>"><img src="<?= e($ph['webp']) ?>" alt="" loading="lazy" decoding="async" class="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-110"></picture><?php else: ?><?= icon('plane', 22) ?><?php endif; ?>
+        </span>
+        <span class="min-w-0 flex-1"><span class="block truncate font-medium text-slate-900"><?= e($fa['city']) ?> → <?= e($fb['city']) ?></span><span class="font-mono text-xs text-slate-500"><?= $a ?>–<?= $b ?></span></span>
+        <span class="text-brand-600 transition group-hover:translate-x-1" aria-hidden="true">→</span>
       </a>
     <?php endforeach; ?>
   </div>

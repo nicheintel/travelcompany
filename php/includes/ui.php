@@ -191,8 +191,9 @@ function package_card(array $p): string
     $perks = implode('', array_map(fn($x) => '<li class="flex items-start gap-2">' . icon('check', 14, 'mt-0.5 shrink-0 text-emerald-500') . e($x) . '</li>', array_slice($p['highlights'], 0, 4)));
     [$first, $last] = package_dates($p);
     $photo = upload_url($p['image']);
-    $top = $photo
-        ? '<img src="' . e($photo) . '" alt="' . e($p['destination']) . '" loading="lazy" class="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-105"><div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-black/20"></div>'
+    $stock = $photo ? null : stock_photo($p['to_code']); // no photo uploaded: one of the destination photos stored with the site
+    $top = $photo || $stock
+        ? ($stock ? '<picture><source type="image/avif" srcset="' . e($stock['avif']) . '">' : '') . '<img src="' . e($photo ?: $stock['webp']) . '" alt="' . e($p['destination']) . '" loading="lazy" decoding="async" class="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-105">' . ($stock ? '</picture>' : '') . '<div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-black/20"></div>'
         : '<div class="absolute inset-0 bg-gradient-to-br ' . $p['gradient'] . '"></div><svg class="absolute inset-0 h-full w-full opacity-20" viewBox="0 0 400 180" preserveAspectRatio="none" aria-hidden="true"><path d="M0 140 Q100 100 200 130 T400 120 V180 H0Z" fill="white"/><path d="M0 160 Q120 130 240 155 T400 150 V180 H0Z" fill="white"/></svg>';
     return '<article id="' . e($p['slug']) . '" class="group flex scroll-mt-24 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl">'
         . '<div class="relative h-48 overflow-hidden p-4 text-white">' . $top

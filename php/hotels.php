@@ -125,11 +125,14 @@ require __DIR__ . '/includes/header.php';
   </div>
 <?php elseif (!$s): ?>
   <h2 class="text-xl font-bold text-slate-900"><?= e(t('Popular cities')) ?></h2>
-  <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-    <?php foreach ($popular as $code): $c = airport($code); ?>
-      <a href="<?= e(url('hotels.php', ['to' => $code])) ?>" class="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-4 hover:border-brand-300 hover:shadow-md">
-        <span class="grid h-10 w-10 place-items-center rounded-lg bg-brand-50 text-brand-600"><?= icon('bed', 18) ?></span>
-        <span><span class="block font-medium text-slate-900"><?= e($c['city']) ?></span><span class="block text-xs text-slate-500"><?= e($c['country']) ?></span></span>
+  <div class="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4" data-reveal-stagger>
+    <?php foreach ($popular as $code): $c = airport($code); $ph = stock_photo($code); ?>
+      <a href="<?= e(url('hotels.php', ['to' => $code])) ?>" class="group relative flex aspect-[4/3] flex-col justify-end overflow-hidden rounded-2xl bg-gradient-to-br from-cyan-500 to-brand-700 p-4 text-white shadow-md transition hover:-translate-y-1 hover:shadow-xl">
+        <?php if ($ph): ?><picture><source type="image/avif" srcset="<?= e($ph['avif']) ?>"><img src="<?= e($ph['webp']) ?>" alt="" loading="lazy" decoding="async" class="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-105"></picture>
+        <?php else: ?><?= icon('bed', 90, 'absolute -right-3 -top-3 text-white/15') ?><?php endif; ?>
+        <span class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent"></span>
+        <span class="relative block text-lg font-bold leading-tight"><?= e($c['city']) ?></span>
+        <span class="relative block text-xs text-white/85"><?= e($c['country']) ?></span>
       </a>
     <?php endforeach; ?>
   </div>

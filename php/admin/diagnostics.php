@@ -119,6 +119,20 @@ echo admin_open('diagnostics');
       </tbody>
     </table>
   </div>
+  <div class="overflow-hidden rounded-xl border border-slate-200 bg-white" data-browser-check data-expect="v=<?= (int) filemtime(dirname(__DIR__) . '/assets/app.js') ?>">
+    <p class="border-b border-slate-100 px-4 py-3 text-sm font-semibold text-slate-900">This browser <span class="font-normal text-slate-500">(the computer or phone you're using now)</span></p>
+    <table class="w-full text-left text-sm">
+      <tbody class="divide-y divide-slate-100">
+        <?php foreach (['scripts' => ['Website scripts', 'NOT running in this browser, so the slideshow, animations, airport search and chat can\'t work here. Flush the cache in hPanel → Performance → CDN, press Ctrl + Shift + R, and if it stays like this, send a screenshot of this page.'], 'motion' => ['Animations', 'Unknown (needs the website scripts)']] as $key => [$name, $detail]): ?>
+          <tr data-check="<?= $key ?>">
+            <td class="w-10 px-4 py-3"><span data-check-icon class="grid h-6 w-6 place-items-center rounded-full bg-red-500 text-xs font-bold text-white">!</span></td>
+            <td class="whitespace-nowrap px-4 py-3 font-semibold text-slate-900"><?= e($name) ?></td>
+            <td class="px-4 py-3 text-slate-700" data-check-text><?= e($detail) ?></td>
+          </tr>
+        <?php endforeach; ?>
+      </tbody>
+    </table>
+  </div>
   <div class="flex flex-wrap items-center gap-3 rounded-xl border border-slate-200 bg-white p-4">
     <a href="<?= e(url('admin/flight-test.php')) ?>" class="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-brand-700 ring-1 ring-brand-200 hover:bg-brand-50">LiteAPI flight search test</a>
     <span class="text-sm text-slate-600">Checks whether LiteAPI flights work on your account (no booking).</span>

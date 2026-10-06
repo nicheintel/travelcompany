@@ -90,6 +90,8 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 .reveal-on [data-reveal]:not(.is-in),
 .reveal-on [data-reveal-stagger] > :not(.is-in) { opacity: 0; transform: translateY(26px); }
+.reveal-calm [data-reveal]:not(.is-in),
+.reveal-calm [data-reveal-stagger] > :not(.is-in) { transform: none; }
 
 /* Gold buttons: a shine sweeps across on hover */
 a.bg-accent-500, button.bg-accent-500 { position: relative; overflow: hidden; isolation: isolate; }
@@ -128,9 +130,10 @@ body > header[data-scrolled] { box-shadow: 0 8px 24px -16px rgba(15, 29, 79, 0.3
 .hero-dot { height: 0.5rem; width: 0.5rem; border-radius: 9999px; background: rgba(255, 255, 255, 0.45); transition: width 0.3s ease, background 0.3s ease; }
 .hero-dot[aria-current] { width: 1.5rem; background: #e9c46a; }
 
+/* Devices set to "reduce motion": no zooming, flowing or sliding; gentle fades and the gold shine stay. */
 @media (prefers-reduced-motion: reduce) {
   .hero-slide.on img { animation: none; }
-  .hero-route, .gold-text, .hero-rise { animation: none; }
-  .hero-flight { display: none; }
-  a.bg-accent-500::after, button.bg-accent-500::after { display: none; }
+  .hero-route { animation: none; }
+  .hero-rise { animation-name: ff-fade; }
 }
+@keyframes ff-fade { from { opacity: 0; } to { opacity: 1; } }
