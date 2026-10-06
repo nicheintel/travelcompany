@@ -190,10 +190,38 @@ function status_badge(string $status): string
 }
 
 /** Small page banner used at the top of inner pages. */
-function page_hero(string $eyebrow, string $title, string $lead = ''): void
+function page_hero(string $eyebrow, string $title, string $lead = '', string $photo = '', string $pos = 'center'): void
 {
-    echo '<section class="page-hero"><div class="container"><span class="eyebrow">' . e($eyebrow) . '</span><h1>' . $title . '</h1>'
+    echo '<section class="page-hero' . ($photo !== '' ? ' has-photo' : '') . '">'
+        . ($photo !== '' ? bg_photo($photo, $pos) : '')
+        . '<div class="container"><span class="eyebrow">' . e($eyebrow) . '</span><h1>' . $title . '</h1>'
         . ($lead !== '' ? '<p class="lead">' . e($lead) . '</p>' : '') . '</div></section>';
+}
+
+/** Stock photo from assets/photos (800 and 1600 px WebP), e.g. photo('van-loaded', 'Courier with a loaded van'). */
+function photo(string $name, string $alt, string $class = '', string $sizes = '(max-width: 900px) 100vw, 50vw', string $pos = 'center', bool $eager = false): string
+{
+    return '<img class="' . e($class) . '" src="' . e(asset('photos/' . $name . '-800.webp')) . '" srcset="'
+        . e(asset('photos/' . $name . '-800.webp')) . ' 800w, ' . e(asset('photos/' . $name . '-1600.webp')) . ' 1600w" sizes="' . e($sizes) . '" alt="' . e($alt) . '"'
+        . ($pos !== 'center' ? ' style="object-position:' . e($pos) . '"' : '')
+        . ($eager ? ' fetchpriority="high"' : ' loading="lazy"') . ' decoding="async">';
+}
+
+/** Row (or mosaic) of photos with captions: [[photo, title, text], ...]. */
+function photo_band(array $items, string $class = ''): string
+{
+    $html = '<div class="photo-band ' . e($class) . ' n' . count($items) . '">';
+    foreach ($items as $i => [$name, $title, $text]) {
+        $html .= '<figure class="pb-item reveal">' . photo($name, $title, '', $i === 0 && count($items) > 3 ? '(max-width: 900px) 100vw, 50vw' : '(max-width: 900px) 100vw, 33vw')
+            . '<figcaption><b>' . e($title) . '</b>' . ($text !== '' ? '<span>' . e($text) . '</span>' : '') . '</figcaption></figure>';
+    }
+    return $html . '</div>';
+}
+
+/** Full-width background photo for a hero; the blue overlay comes from CSS. */
+function bg_photo(string $name, string $pos = 'center'): string
+{
+    return '<div class="bg-photo" aria-hidden="true">' . photo($name, '', '', '100vw', $pos, true) . '</div>';
 }
 
 /** Saved and applied job ids for the signed-in member (for the hearts and "Applied" on job cards). */

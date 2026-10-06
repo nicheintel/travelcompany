@@ -7,6 +7,9 @@ defined('LL_APP') || exit;
 const SOLUTIONS = [
     'last_mile' => [
         'page' => 'last-mile-delivery.php',
+        'hero_photo' => 'doorstep-handoff',
+        'card_photo' => 'van-loading',
+        'overview_photo' => ['van-sorting', 'Courier sorting packages at the back of a van'],
         'icon' => 'package',
         'title' => 'Last-Mile Delivery',
         'summary' => 'Fast, friendly final-mile delivery from your store, warehouse or hub to your customer’s door.',
@@ -48,6 +51,9 @@ const SOLUTIONS = [
     ],
     'healthcare' => [
         'page' => 'healthcare-delivery.php',
+        'hero_photo' => 'medical-supplies',
+        'card_photo' => 'pharmacy-gloves',
+        'overview_photo' => ['nurse-care', 'Healthcare worker caring for a patient'],
         'icon' => 'medical',
         'title' => 'Healthcare Delivery Solutions',
         'summary' => 'Careful, on-time transport for pharmacies, labs, clinics and hospitals, when it really matters.',
@@ -89,6 +95,9 @@ const SOLUTIONS = [
     ],
     'dedicated' => [
         'page' => 'dedicated-fleet.php',
+        'hero_photo' => 'truck-driver-cab',
+        'card_photo' => 'warehouse-team',
+        'overview_photo' => ['van-unloading', 'Two drivers unloading a delivery from a van'],
         'icon' => 'layers',
         'title' => 'Dedicated Fleet & Driver Services',
         'summary' => 'Your own vans and drivers on your schedule, without the hiring headaches.',
@@ -265,7 +274,8 @@ function solution_page(string $key): void
     [$trTitle, $trStatus, $trSteps] = $s['tracker'];
     page_header($s['title'], 'partners', $s['meta']);
     ?>
-<section class="hero sol-hero">
+<section class="hero sol-hero has-photo">
+  <?= bg_photo($s['hero_photo'], 'center 35%') ?>
   <nav class="container crumbs" aria-label="Breadcrumb"><a href="<?= e(url('partners.php')) ?>">Partners</a><span>/</span><a href="<?= e(url('partners.php')) ?>#solutions">Solutions</a><span>/</span><b><?= e($s['title']) ?></b></nav>
   <div class="container hero-grid">
     <div class="hero-copy">
@@ -306,7 +316,10 @@ function solution_page(string $key): void
       <?php foreach ($s['overview'] as $para): ?><p><?= e($para) ?></p><?php endforeach; ?>
       <div class="level-bottom"><a class="btn btn-primary" href="#request-call">Talk to our team <?= icon('arrow') ?></a></div>
     </div>
-    <div class="card pad level-card reveal sol-included">
+    <figure class="sol-photo reveal"><?= photo($s['overview_photo'][0], $s['overview_photo'][1]) ?></figure>
+  </div>
+  <div class="container">
+    <div class="card pad sol-included reveal">
       <h3><?= icon('clipboard') ?>What’s included</h3>
       <ul class="checklist">
         <?php foreach ($s['included'] as $it): ?><li><span class="tick"><?= icon('check') ?></span><span><?= e($it) ?></span></li><?php endforeach; ?>

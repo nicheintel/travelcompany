@@ -3,7 +3,7 @@ declare(strict_types=1);
 require __DIR__ . '/includes/bootstrap.php';
 
 page_header('About us', 'about', "LamazonLoads was created from a driver's perspective to advocate for independent drivers and owner-operators and keep them loaded.");
-page_hero('About LamazonLoads', "Created from the driver's seat", 'LamazonLoads is a transportation and logistics company focused on helping independent drivers and owner-operators stay moving and get access to freight opportunities.');
+page_hero('About LamazonLoads', "Created from the driver's seat", 'LamazonLoads is a transportation and logistics company focused on helping independent drivers and owner-operators stay moving and get access to freight opportunities.', 'driver-wheel', 'center 40%');
 ?>
 <section class="section">
   <div class="container story level">
@@ -20,6 +20,16 @@ page_hero('About LamazonLoads', "Created from the driver's seat", 'LamazonLoads 
       <p class="quote" style="margin-top:0">Why wait?<br>Let's freight.</p>
       <p class="mb-0">One word, one mission: <b style="color:#fff">LamazonLoads</b> keeps drivers moving.</p>
     </div>
+  </div>
+</section>
+
+<section class="section-sm">
+  <div class="container">
+    <?= photo_band([
+        ['truck-driver-cab', 'Drivers first', 'Every decision starts with the driver.'],
+        ['warehouse-team', 'Organized logistics', 'Dispatch, routes and freight booking under one roof.'],
+        ['support-agent', 'Real people on support', 'Talk to someone who knows your name.'],
+    ]) ?>
   </div>
 </section>
 

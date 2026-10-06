@@ -27,7 +27,8 @@ $vans = [[0, '7s', '0s'], [1, '8s', '-2.5s'], [3, '6.5s', '-1s'], [4, '7.5s', '-
 
 page_header('Partner with us', 'partners', 'Partner with LamazonLoads for last-mile delivery, healthcare delivery and dedicated fleet & driver services. Trusted couriers, in-house developers and real people on support. Request a call.');
 ?>
-<section class="hero partner-hero">
+<section class="hero partner-hero has-photo">
+  <?= bg_photo('handshake', 'center 40%') ?>
   <div class="container hero-grid">
     <div class="hero-copy">
       <span class="pill"><span class="dot"><?= icon('handshake') ?></span>Partner with LamazonLoads</span>
@@ -105,6 +106,7 @@ page_header('Partner with us', 'partners', 'Partner with LamazonLoads for last-m
       <?php $n = 0; foreach (SOLUTIONS as $key => $sol): $n++; ?>
         <article class="card sol-card reveal" id="sol-<?= e($key) ?>">
           <a class="sol-top" href="<?= e(url($sol['page'])) ?>">
+            <?= photo($sol['card_photo'], '', 'sol-top-photo', '(max-width: 1000px) 100vw, 400px') ?>
             <span class="sol-num">0<?= $n ?></span>
             <span class="sol-ico"><?= icon($sol['icon']) ?></span>
             <h3><?= e($sol['title']) ?></h3>
@@ -128,8 +130,10 @@ page_header('Partner with us', 'partners', 'Partner with LamazonLoads for last-m
       <span class="eyebrow">Why LamazonLoads</span>
       <h2>Trusted couriers on the road. Developers behind the scenes.</h2>
       <p>Most delivery partners give you drivers. We give you drivers <b>and</b> the technology team to plug them into the way you already work, plus a support team that knows your account by name.</p>
-      <div class="code-card" aria-label="Example of a live delivery update sent to a partner's system">
-        <div class="code-head"><span></span><span></span><span></span><small>delivery-update.json</small></div>
+      <div class="dev-visual">
+        <?= photo('developers', 'LamazonLoads developers at work', 'dev-photo') ?>
+        <div class="code-card" aria-label="Example of a live delivery update sent to a partner's system">
+          <div class="code-head"><span></span><span></span><span></span><small>delivery-update.json</small></div>
 <pre><code>{
   <span class="k">"route"</span>: <span class="s">"RX-14"</span>,
   <span class="k">"stop"</span>: <span class="n">9</span>,
@@ -137,6 +141,7 @@ page_header('Partner with us', 'partners', 'Partner with LamazonLoads for last-m
   <span class="k">"proof"</span>: [<span class="s">"photo"</span>, <span class="s">"signature"</span>],
   <span class="k">"courier"</span>: <span class="s">"LamazonLoads"</span>
 }<span class="cursor"></span></code></pre>
+        </div>
       </div>
     </div>
     <div class="pain-list reveal">
