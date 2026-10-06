@@ -165,6 +165,7 @@ function page_footer(): void
         <li><a href="<?= e(url('register.php')) ?>">Create an account</a></li>
         <li><a href="<?= e(url('login.php')) ?>">Driver sign in</a></li>
         <li><a href="<?= e(url('careers.php')) ?>">Open opportunities</a></li>
+        <li><a href="<?= e(url('faq.php')) ?>">Driver FAQ</a></li>
       </ul>
     </div>
     <div>

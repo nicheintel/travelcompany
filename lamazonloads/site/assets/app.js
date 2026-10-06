@@ -302,6 +302,54 @@
     document.querySelectorAll('.hero, .sol-grid, .code-card, .page-hero, .job-band, .site-footer, .auth-side').forEach(function (el) { animIo.observe(el); });
   }
 
+  // FAQ page: search as you type, highlight the section you're reading, open a question from a link (#fee)
+  var faqSearch = document.querySelector('[data-faq-search]');
+  if (faqSearch) {
+    var items = document.querySelectorAll('[data-faq-item]');
+    var groups = document.querySelectorAll('[data-faq-group]');
+    var empty = document.querySelector('[data-faq-empty]');
+    faqSearch.addEventListener('input', function () {
+      var words = faqSearch.value.toLowerCase().trim().split(/\s+/).filter(Boolean);
+      var shown = 0;
+      items.forEach(function (d) {
+        var text = d.textContent.toLowerCase();
+        var hit = words.every(function (w) { return text.indexOf(w) !== -1; });
+        d.hidden = !hit; if (hit) shown++;
+        if (words.length && hit && words.length) d.open = shown <= 3; // open the best few matches
+        if (!words.length) d.open = false;
+      });
+      groups.forEach(function (g) { g.hidden = !g.querySelector('[data-faq-item]:not([hidden])'); });
+      empty.hidden = shown > 0;
+      empty.querySelector('[data-faq-term]').textContent = faqSearch.value;
+    });
+    var links = document.querySelectorAll('[data-faq-link]');
+    if ('IntersectionObserver' in window) {
+      var gio = new IntersectionObserver(function (entries) {
+        entries.forEach(function (en) {
+          if (en.isIntersecting) links.forEach(function (a) { a.classList.toggle('on', a.getAttribute('data-faq-link') === en.target.id); });
+        });
+      }, { rootMargin: '-30% 0px -60% 0px' });
+      groups.forEach(function (g) { gio.observe(g); });
+    }
+    var openHash = function () {
+      var el = location.hash && document.getElementById(location.hash.slice(1));
+      if (el && el.tagName === 'DETAILS') { el.open = true; el.scrollIntoView({ block: 'center' }); }
+    };
+    window.addEventListener('hashchange', openHash); openHash();
+  }
+
+  // "Copy" buttons (FAQ quick driver response)
+  document.querySelectorAll('[data-copy]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var text = document.getElementById(btn.getAttribute('data-copy')).textContent;
+      var label = btn.querySelector('[data-copy-label]');
+      var done = function () { var old = label.textContent; label.textContent = 'Copied!'; btn.classList.add('copied'); setTimeout(function () { label.textContent = old; btn.classList.remove('copied'); }, 1800); };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, function () { fallback(); });
+      else fallback();
+      function fallback() { var t = document.createElement('textarea'); t.value = text; document.body.appendChild(t); t.select(); try { document.execCommand('copy'); done(); } catch (e) {} t.remove(); }
+    });
+  });
+
   // Ask before destructive actions.
   document.addEventListener('submit', function (ev) {
     var msg = ev.target.getAttribute('data-confirm');

@@ -159,12 +159,11 @@ page_header('', 'home');
   <div class="container narrow">
     <div class="section-head reveal"><span class="eyebrow">Questions</span><h2>Frequently asked</h2></div>
     <div class="faq reveal">
-      <details><summary>What equipment do you dispatch?</summary><p>Cargo vans, Sprinter vans, box trucks (16 to 26 ft) and other qualified equipment. Tell us what you drive in your profile and we'll match you accordingly.</p></details>
-      <details><summary>Do I need my own MC / DOT authority?</summary><p>For freight dispatching, owner-operators usually run under their own authority. If you don't have one yet, contact us. Some daily routes and contracts have different requirements.</p></details>
-      <details><summary>What documents do I need for onboarding?</summary><p>Typically a W-9, certificate of insurance, driver's license and vehicle registration, plus MC / DOT authority if you have it. You can upload everything securely from your dashboard.</p></details>
-      <details><summary>How do daily routes work?</summary><p>When a dedicated or local delivery contract opens, we fill it from drivers who have completed onboarding in that area. Keeping your ZIP code and availability up to date puts you first in line.</p></details>
-      <details><summary>Is creating an account free?</summary><p>Yes. Creating an account and applying for openings is free.</p></details>
+      <?php foreach (['what', 'vehicle', 'start', 'route-pay', 'fee', 'paid-when'] as $k): [$q, $ans] = faq_item($k); ?>
+        <details><summary><?= e($q) ?></summary><div class="faq-a"><?= faq_answer_html($ans) ?></div></details>
+      <?php endforeach; ?>
     </div>
+    <p class="faq-more reveal"><a class="btn btn-ghost" href="<?= e(url('faq.php')) ?>">See all driver questions <?= icon('arrow') ?></a></p>
   </div>
 </section>
 

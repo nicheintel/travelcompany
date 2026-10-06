@@ -41,6 +41,7 @@ $wmCities = walmart_cities();
         </div>
       <?php endif; ?>
       <a class="btn btn-accent btn-block level-bottom" href="<?= e(url('careers.php')) ?>">See open positions <?= icon('arrow') ?></a>
+      <p class="hint center mb-0" style="margin-top:10px">Questions about routes, pay or onboarding? <a href="<?= e(url('faq.php')) ?>">Read the driver FAQ</a></p>
     </div>
   </div>
 </section>

@@ -47,6 +47,7 @@ $phone = (string) config('contact_phone');
         <?php if ($phone !== ''): ?><li><span class="tick"><?= icon('phone') ?></span><span><b>Phone</b><br><a href="<?= e(tel_href($phone)) ?>"><?= e($phone) ?></a></span></li><?php endif; ?>
         <li><span class="tick"><?= icon('users') ?></span><span><b>Already a member?</b><br>Your dedicated support group details are shared after onboarding.</span></li>
         <li><span class="tick"><?= icon('chat') ?></span><span><b>Prefer to chat?</b><br>Tap the Chat button in the corner. We answer there too.</span></li>
+        <li><span class="tick"><?= icon('search') ?></span><span><b>Quick answers</b><br>Routes, pay, onboarding and more in our <a href="<?= e(url('faq.php')) ?>">driver FAQ</a>.</span></li>
       </ul>
       </div>
     </div>
