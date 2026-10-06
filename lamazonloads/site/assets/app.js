@@ -402,6 +402,24 @@
     t.addEventListener('mouseleave', function () { timer = setTimeout(close, 3000); });
   });
 
+  // Applications list: tick rows, then "Delete selected".
+  var bulk = document.querySelector('[data-bulk]');
+  if (bulk) {
+    var boxes = document.querySelectorAll('[data-bulk-box]'), all = document.querySelector('[data-bulk-all]');
+    var bar = document.querySelector('[data-bulk-bar]'), count = document.querySelector('[data-bulk-count]');
+    var sync = function () {
+      var n = 0;
+      boxes.forEach(function (b) { b.closest('.app-item').classList.toggle('is-picked', b.checked); if (b.checked) n++; });
+      count.textContent = n; bar.hidden = n === 0;
+      if (all) { all.checked = n > 0 && n === boxes.length; all.indeterminate = n > 0 && n < boxes.length; }
+      bulk.setAttribute('data-confirm', 'Delete ' + (n === 1 ? 'this application' : 'these ' + n + ' applications') + '? This can’t be undone. Their accounts and documents stay.');
+    };
+    boxes.forEach(function (b) { b.addEventListener('change', sync); });
+    if (all) all.addEventListener('change', function () { boxes.forEach(function (b) { b.checked = all.checked; }); sync(); });
+    document.querySelector('[data-bulk-clear]').addEventListener('click', function () { boxes.forEach(function (b) { b.checked = false; }); sync(); });
+    sync();
+  }
+
   // Ask before destructive actions.
   document.addEventListener('submit', function (ev) {
     var msg = ev.target.getAttribute('data-confirm');

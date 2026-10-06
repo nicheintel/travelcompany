@@ -167,7 +167,10 @@ admin_open('drivers');
         <?= csrf_field() ?><input type="hidden" name="id" value="<?= (int) $a['id'] ?>"><input type="hidden" name="back" value="<?= e($self) ?>">
         <select name="status" aria-label="Status"><?php foreach (APP_STATUSES as $k => $l): ?><option value="<?= e($k) ?>"<?= $a['status'] === $k ? ' selected' : '' ?>><?= e($l) ?></option><?php endforeach; ?></select>
         <input type="text" name="admin_note" maxlength="2000" placeholder="Staff note (private)" value="<?= e($a['admin_note'] ?? '') ?>" aria-label="Staff note">
-        <button class="btn btn-ghost btn-sm" type="submit">Save</button></form></td></tr>
+        <button class="btn btn-ghost btn-sm" type="submit">Save</button></form>
+        <form method="post" action="<?= e(url('admin/applications.php')) ?>" class="inline-form app-del-row" data-confirm="Delete this application? This can’t be undone. Their account and documents stay.">
+          <?= csrf_field() ?><input type="hidden" name="action" value="delete"><input type="hidden" name="id" value="<?= (int) $a['id'] ?>"><input type="hidden" name="back" value="<?= e($self) ?>">
+          <button class="link-btn" type="submit"><?= icon('trash') ?> Delete application</button></form></td></tr>
   <?php endforeach; ?></tbody></table></div>
   <?php endif; ?>
 </div>
