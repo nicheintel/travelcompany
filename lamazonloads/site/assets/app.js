@@ -338,6 +338,17 @@
     window.addEventListener('hashchange', openHash); openHash();
   }
 
+  // Privacy policy: highlight the section you're reading in the side menu
+  var legalLinks = document.querySelectorAll('[data-legal-link]');
+  if (legalLinks.length && 'IntersectionObserver' in window) {
+    var lio = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (en.isIntersecting) legalLinks.forEach(function (a) { a.classList.toggle('on', a.getAttribute('data-legal-link') === en.target.id); });
+      });
+    }, { rootMargin: '-25% 0px -65% 0px' });
+    document.querySelectorAll('.legal-body > section').forEach(function (sec) { lio.observe(sec); });
+  }
+
   // "Copy" buttons (FAQ quick driver response)
   document.querySelectorAll('[data-copy]').forEach(function (btn) {
     btn.addEventListener('click', function () {
