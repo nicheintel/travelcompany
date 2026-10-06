@@ -2,26 +2,7 @@
 declare(strict_types=1);
 require __DIR__ . '/includes/bootstrap.php';
 
-$errors = [];
-$val = ['first_name' => '', 'last_name' => '', 'company' => '', 'job_title' => '', 'email' => '', 'phone' => '',
-    'service' => '', 'location' => '', 'volume' => '', 'best_time' => '', 'message' => '', 'consent' => ''];
-if (isset(PARTNER_SERVICES[(string) ($_GET['service'] ?? '')])) {
-    $val['service'] = (string) $_GET['service'];
-}
-
-if (is_post()) {
-    csrf_check();
-    foreach ($val as $k => $_) {
-        $val[$k] = post($k, $k === 'message' ? 3000 : 190);
-    }
-    if (post('website') !== '') { // hidden field: only bots fill it in
-        redirect('partners.php?sent=1#request-call');
-    }
-    [$id, $errors] = partner_submit($val);
-    if ($id) {
-        redirect('partners.php?sent=1#request-call');
-    }
-}
+[$val, $errors] = partner_form_state('partners.php');
 
 $phone = (string) config('contact_phone');
 $email = (string) config('contact_email');
@@ -43,20 +24,6 @@ $stops = [ // icon, label, x, y, route from the hub
 ];
 $vans = [[0, '7s', '0s'], [1, '8s', '-2.5s'], [3, '6.5s', '-1s'], [4, '7.5s', '-4s'], [5, '9s', '-6s']];
 
-$solutions = [
-    'last_mile' => ['package', 'Last-Mile Delivery',
-        'Fast, friendly final-mile delivery from your store, warehouse or hub to your customer’s door.',
-        ['Same-day, next-day and scheduled delivery windows', 'Multi-stop routes planned around your cut-off times', 'Photo and signature proof of delivery', 'Cargo vans, Sprinter vans and box trucks', 'Courteous couriers who represent your brand well'],
-        ['Retail & e-commerce', 'Furniture & appliances', 'Distributors']],
-    'healthcare' => ['medical', 'Healthcare Delivery Solutions',
-        'Careful, on-time transport for pharmacies, labs, clinics and hospitals, when it really matters.',
-        ['STAT, same-day and scheduled routes', 'Prescription and pharmacy delivery', 'Lab specimens and medical supplies', 'Temperature-sensitive handling on request', 'Chain of custody and proof of delivery on every run', 'Couriers who respect patient privacy'],
-        ['Pharmacies', 'Labs', 'Hospitals & clinics', 'Medical suppliers']],
-    'dedicated' => ['layers', 'Dedicated Fleet & Driver Services',
-        'Your own vans and drivers on your schedule, without the hiring headaches.',
-        ['Dedicated cargo vans, Sprinters and box trucks', 'Vetted drivers, onboarded and supported by us', 'Daily routes, recurring runs and peak-season capacity', 'Scheduling, coverage and replacement drivers handled', 'One point of contact for your account'],
-        ['Distributors', 'Contractors', 'Growing businesses']],
-];
 
 page_header('Partner with us', 'partners', 'Partner with LamazonLoads for last-mile delivery, healthcare delivery and dedicated fleet & driver services. Trusted couriers, in-house developers and real people on support. Request a call.');
 ?>
@@ -135,19 +102,19 @@ page_header('Partner with us', 'partners', 'Partner with LamazonLoads for last-m
       <p class="lead">Three ways to put the LamazonLoads network to work for your business. Start with one, or mix them.</p>
     </div>
     <div class="sol-grid">
-      <?php $n = 0; foreach ($solutions as $key => [$ic, $title, $desc, $points, $for]): $n++; ?>
+      <?php $n = 0; foreach (SOLUTIONS as $key => $sol): $n++; ?>
         <article class="card sol-card reveal" id="sol-<?= e($key) ?>">
-          <div class="sol-top">
+          <a class="sol-top" href="<?= e(url($sol['page'])) ?>">
             <span class="sol-num">0<?= $n ?></span>
-            <span class="sol-ico"><?= icon($ic) ?></span>
-            <h3><?= e($title) ?></h3>
+            <span class="sol-ico"><?= icon($sol['icon']) ?></span>
+            <h3><?= e($sol['title']) ?></h3>
             <span class="sol-line" aria-hidden="true"></span>
-          </div>
+          </a>
           <div class="sol-body">
-            <p><?= e($desc) ?></p>
-            <ul class="sol-list"><?php foreach ($points as $pt): ?><li><?= icon('check') ?><span><?= e($pt) ?></span></li><?php endforeach; ?></ul>
-            <div class="sol-for"><small>Ideal for</small><div class="tags"><?php foreach ($for as $f): ?><span class="tag"><?= e($f) ?></span><?php endforeach; ?></div></div>
-            <a class="btn btn-primary btn-block" href="<?= e(url('partners.php?service=' . $key)) ?>#request-call">Request a call about this <?= icon('arrow') ?></a>
+            <p><?= e($sol['summary']) ?></p>
+            <ul class="sol-list"><?php foreach ($sol['points'] as $pt): ?><li><?= icon('check') ?><span><?= e($pt) ?></span></li><?php endforeach; ?></ul>
+            <div class="sol-for"><small>Ideal for</small><div class="tags"><?php foreach ($sol['for'] as $f): ?><span class="tag"><?= e($f) ?></span><?php endforeach; ?></div></div>
+            <a class="btn btn-primary btn-block" href="<?= e(url($sol['page'])) ?>" aria-label="Learn more about <?= e($sol['title']) ?>">Learn more <?= icon('arrow') ?></a>
           </div>
         </article>
       <?php endforeach; ?>
@@ -217,87 +184,5 @@ page_header('Partner with us', 'partners', 'Partner with LamazonLoads for last-m
   </div>
 </section>
 
-<section class="section section-white rc-section" id="request-call">
-  <div class="container story level rc-layout">
-    <div class="reveal level-col">
-      <span class="eyebrow">Request a call</span>
-      <h2>Let's talk about your deliveries</h2>
-      <p class="lead">Share a few details and our partnerships team will reach out to schedule a call at a time that suits you.</p>
-      <ol class="rc-steps">
-        <li><span><?= icon('phone-call') ?></span><div><b>We call you</b><small>At the time you choose below</small></div></li>
-        <li><span><?= icon('clipboard') ?></span><div><b>We map your needs</b><small>Routes, volumes, windows and handling</small></div></li>
-        <li><span><?= icon('route') ?></span><div><b>You get a plan</b><small>Clear pricing and a pilot route to start</small></div></li>
-      </ol>
-      <ul class="rc-promise">
-        <li><?= icon('user') ?>A real person reviews every request</li>
-        <li><?= icon('handshake') ?>No obligation: the call is free</li>
-        <li><?= icon('route') ?>A pilot route before you commit</li>
-        <li><?= icon('shield') ?>Your details stay private</li>
-      </ul>
-      <h3 class="rc-faq-title">Quick answers</h3>
-    <div class="faq rc-faq">
-        <details><summary>Where do you deliver?</summary><p>We work with businesses across the United States. Tell us your location in the form and we'll confirm coverage for your routes on the call.</p></details>
-        <details><summary>Is there a minimum volume?</summary><p>No fixed minimum. Some partners start with a single daily route, others with a full dedicated fleet. A pilot run lets you see how we work before committing.</p></details>
-        <details><summary>Can you handle medical and pharmacy deliveries?</summary><p>Yes. Healthcare deliveries get careful handling, chain of custody and proof of delivery. Tell us about any temperature or privacy requirements and we'll plan the route around them.</p></details>
-        <details><summary>Can you connect with our systems?</summary><p>Yes. Our in-house developers can send delivery updates to your system, set up a tracking page for your customers or build the reports you need.</p></details>
-      </div>
-      <div class="rc-direct card pad">
-        <b>Prefer to talk now?</b>
-        <?php if ($phone !== ''): ?><a href="<?= e(tel_href($phone)) ?>"><?= icon('phone') ?><?= e($phone) ?></a><?php endif; ?>
-        <?php if ($email !== ''): ?><a href="mailto:<?= e($email) ?>?subject=Partnership"><?= icon('mail') ?><?= e($email) ?></a><?php endif; ?>
-      </div>
-    </div>
-    <div class="card form-card rc-card reveal">
-      <?php if (isset($_GET['sent'])): ?>
-        <div class="center rc-done">
-          <div class="ico-lg" style="margin:0 auto 16px;background:linear-gradient(135deg,#12A150,#0B6B35)"><?= icon('check') ?></div>
-          <h2>Request received</h2>
-          <p class="muted">Thank you for reaching out. We sent a confirmation to your email, and our partnerships team will contact you soon to schedule your call.</p>
-          <?php if ($phone !== ''): ?><p class="muted">Need us sooner? Call <a href="<?= e(tel_href($phone)) ?>"><?= e($phone) ?></a>.</p><?php endif; ?>
-          <a class="btn btn-primary" href="<?= e(url('partners.php')) ?>#solutions">Back to solutions</a>
-        </div>
-      <?php else: ?>
-        <h3 class="rc-title"><?= icon('phone-call') ?>Request a call</h3>
-        <?php if ($errors): ?><ul class="errors"><?php foreach ($errors as $er): ?><li><?= e($er) ?></li><?php endforeach; ?></ul><?php endif; ?>
-        <form method="post" action="<?= e(url('partners.php')) ?>#request-call" class="form-grid" novalidate>
-          <?= csrf_field() ?>
-          <div class="hp-field" aria-hidden="true"><input type="text" name="website" tabindex="-1" autocomplete="off"></div>
-          <div><label for="first_name">First name</label><input id="first_name" name="first_name" type="text" required maxlength="60" value="<?= e($val['first_name']) ?>" autocomplete="given-name"></div>
-          <div><label for="last_name">Last name</label><input id="last_name" name="last_name" type="text" required maxlength="60" value="<?= e($val['last_name']) ?>" autocomplete="family-name"></div>
-          <div><label for="company">Company</label><input id="company" name="company" type="text" required maxlength="120" value="<?= e($val['company']) ?>" autocomplete="organization"></div>
-          <div><label for="job_title">Job title <span class="opt">(optional)</span></label><input id="job_title" name="job_title" type="text" maxlength="100" value="<?= e($val['job_title']) ?>" autocomplete="organization-title"></div>
-          <div><label for="email">Business email</label><input id="email" name="email" type="email" required maxlength="190" value="<?= e($val['email']) ?>" autocomplete="email"></div>
-          <div><label for="phone">Phone</label><input id="phone" name="phone" type="tel" required maxlength="30" value="<?= e($val['phone']) ?>" autocomplete="tel"></div>
-          <div class="full">
-            <span class="label">I'm interested in</span>
-            <div class="svc-pick">
-              <?php foreach (PARTNER_SERVICES as $k => $l): ?>
-                <label class="svc-opt"><input type="radio" name="service" value="<?= e($k) ?>"<?= $val['service'] === $k ? ' checked' : '' ?> required><span><?= icon($solutions[$k][0] ?? 'handshake') ?><?= e($l) ?></span></label>
-              <?php endforeach; ?>
-            </div>
-          </div>
-          <div><label for="location">City, state or area <span class="opt">(optional)</span></label><input id="location" name="location" type="text" maxlength="120" value="<?= e($val['location']) ?>" placeholder="e.g. Atlanta, GA"></div>
-          <div><label for="volume">Deliveries per week <span class="opt">(optional)</span></label><select id="volume" name="volume"><option value="">Choose…</option><?php foreach (PARTNER_VOLUMES as $k => $l): ?><option value="<?= e($k) ?>"<?= $val['volume'] === $k ? ' selected' : '' ?>><?= e($l) ?></option><?php endforeach; ?></select></div>
-          <div class="full"><label for="best_time">Best time to call <span class="opt">(Eastern time)</span></label><select id="best_time" name="best_time"><option value="">Choose…</option><?php foreach (PARTNER_TIMES as $k => $l): ?><option value="<?= e($k) ?>"<?= $val['best_time'] === $k ? ' selected' : '' ?>><?= e($l) ?></option><?php endforeach; ?></select></div>
-          <div class="full"><label for="message">Tell us about your deliveries <span class="opt">(optional)</span></label><textarea id="message" name="message" maxlength="3000" placeholder="What you deliver, where to, how often, and anything special (time windows, temperature, signatures…)"><?= e($val['message']) ?></textarea></div>
-          <div class="full"><label class="check"><input type="checkbox" name="consent" value="1"<?= $val['consent'] !== '' ? ' checked' : '' ?> required><span>LamazonLoads may contact me by phone or email about this request. See our <a href="<?= e(url('privacy.php')) ?>">privacy policy</a>.</span></label></div>
-          <div class="full"><button class="btn btn-accent btn-lg btn-block" type="submit">Request my call <?= icon('arrow') ?></button></div>
-        </form>
-      <?php endif; ?>
-    </div>
-  </div>
-</section>
-
-<section class="section-sm"><div class="container">
-  <div class="cta-band reveal">
-    <div>
-      <h2>Why wait? Let's partner.</h2>
-      <p>Tell us about your deliveries and we'll show you what the LamazonLoads network can do.</p>
-    </div>
-    <div class="btns">
-      <a class="btn btn-accent btn-lg" href="#request-call">Request a call <?= icon('arrow') ?></a>
-      <?php if ($phone !== ''): ?><a class="btn btn-outline-light btn-lg" href="<?= e(tel_href($phone)) ?>"><?= icon('phone') ?><?= e($phone) ?></a><?php endif; ?>
-    </div>
-  </div>
-</div></section>
+<?php partner_call_section($val, $errors, 'partners.php'); partner_cta_band(); ?>
 <?php page_footer();

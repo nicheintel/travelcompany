@@ -128,9 +128,9 @@ page_header('', 'home');
         <a class="btn btn-primary btn-lg" href="<?= e(url('partners.php')) ?>#request-call">Request a call <?= icon('arrow') ?></a>
       </div>
       <div class="biz-list">
-        <a class="biz-item" href="<?= e(url('partners.php')) ?>#sol-last_mile"><span class="who-ico"><?= icon('package') ?></span>Last-Mile Delivery<?= icon('arrow', 'ic ic-go') ?></a>
-        <a class="biz-item" href="<?= e(url('partners.php')) ?>#sol-healthcare"><span class="who-ico"><?= icon('medical') ?></span>Healthcare Delivery Solutions<?= icon('arrow', 'ic ic-go') ?></a>
-        <a class="biz-item" href="<?= e(url('partners.php')) ?>#sol-dedicated"><span class="who-ico"><?= icon('layers') ?></span>Dedicated Fleet &amp; Driver Services<?= icon('arrow', 'ic ic-go') ?></a>
+        <a class="biz-item" href="<?= e(url('last-mile-delivery.php')) ?>"><span class="who-ico"><?= icon('package') ?></span>Last-Mile Delivery<?= icon('arrow', 'ic ic-go') ?></a>
+        <a class="biz-item" href="<?= e(url('healthcare-delivery.php')) ?>"><span class="who-ico"><?= icon('medical') ?></span>Healthcare Delivery Solutions<?= icon('arrow', 'ic ic-go') ?></a>
+        <a class="biz-item" href="<?= e(url('dedicated-fleet.php')) ?>"><span class="who-ico"><?= icon('layers') ?></span>Dedicated Fleet &amp; Driver Services<?= icon('arrow', 'ic ic-go') ?></a>
       </div>
     </div>
   </div>

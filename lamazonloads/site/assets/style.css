@@ -901,3 +901,49 @@ span.label { display: block; font-weight: 600; color: var(--ink); font-size: .92
   .pchip-1 { animation-delay: 1.4s; } .pchip-2 { animation-delay: 1.9s; } .pchip-3 { animation-delay: 2.4s; }
   .sol-card:hover, .ind:hover, .biz-item:hover { transform: none; }
 }
+
+/* Solution cards: whole header opens the "Learn more" page */
+a.sol-top { display: block; color: #fff; text-decoration: none; }
+a.sol-top:hover { text-decoration: none; }
+a.sol-top:hover h3 { text-decoration: underline; text-underline-offset: 4px; }
+
+/* Solution pages (Learn more) */
+.crumbs { position: relative; z-index: 1; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding-top: 26px; font-size: .88rem; color: #9FB4E6; }
+.crumbs a { color: #C9D6F5; }
+.crumbs b { color: #fff; font-weight: 600; }
+.sol-hero .hero-grid { padding-top: 40px; }
+.sol-hero h1 { font-size: clamp(2.2rem, 4.8vw, 3.6rem); }
+.tracker-card { position: relative; background: #fff; color: var(--text); border-radius: 22px; padding: 26px; box-shadow: 14px 14px 0 0 rgba(142, 194, 255, .55), var(--shadow-lg); animation: card-in .9s .5s cubic-bezier(.2, .7, .2, 1) both; }
+.tracker { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
+.tracker li { position: relative; display: grid; grid-template-columns: 42px 1fr; gap: 14px; align-items: center; padding: 10px 0; animation: tr-step .6s ease both; }
+.tracker li + li::before { content: ""; position: absolute; left: 20px; top: -12px; height: 24px; width: 2px; background: linear-gradient(var(--blue), var(--sky)); transform-origin: top; animation: tr-line .5s ease both; animation-delay: inherit; }
+.tr-ico { width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; background: var(--blue-50); color: var(--blue); position: relative; z-index: 1; }
+.tracker li:last-child .tr-ico { background: #E8F8EF; color: var(--green); }
+.tr-ico .ic { width: 21px; height: 21px; }
+.tracker b { display: block; color: var(--ink); font-size: .97rem; }
+.tracker small { color: var(--muted); font-size: .84rem; }
+@keyframes tr-step { from { opacity: 0; transform: translateX(16px); } to { opacity: 1; transform: none; } }
+@keyframes tr-line { from { transform: scaleY(0); } }
+.sol-included h3 { display: flex; align-items: center; gap: 10px; font-size: 1.15rem; margin-bottom: 18px; }
+.sol-included h3 .ic { color: var(--blue); width: 24px; height: 24px; }
+.steps-dark .step { background: rgba(255, 255, 255, .06); border: 1px solid rgba(255, 255, 255, .14); border-radius: var(--radius); }
+.steps-dark .step::before { -webkit-text-stroke-color: var(--sky); }
+.steps-dark .step p { color: #C9D6F5; }
+.ind-grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 960px) { .ind-grid-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 420px) { .ind-grid-3 { grid-template-columns: minmax(0, 1fr); } }
+.more-sol { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+.more-sol-card { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px 18px; align-items: start; padding: 26px; color: var(--text); transition: transform .2s, box-shadow .2s, border-color .2s; }
+.more-sol-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); border-color: #C9DAFF; text-decoration: none; }
+.more-sol-card .sol-ico { margin: 0; background: linear-gradient(135deg, var(--blue), var(--navy)); color: #fff; }
+.more-sol-card b { display: block; font-family: var(--display); font-size: 1.15rem; color: var(--ink); margin-bottom: 4px; }
+.more-sol-card small { color: var(--muted); font-size: .95rem; }
+.more-link { grid-column: 2; display: inline-flex; align-items: center; gap: 6px; font-weight: 700; color: var(--blue); }
+@media (max-width: 760px) { .more-sol { grid-template-columns: minmax(0, 1fr); } }
+@media (prefers-reduced-motion: reduce) {
+  .tracker-card { animation-name: fade-in; }
+  .tracker li { animation-name: fade-in; }
+  .more-sol-card:hover { transform: none; }
+}
+.tracker-card .live { white-space: nowrap; flex: none; }
+.tracker-card .dc-head { gap: 12px; }
