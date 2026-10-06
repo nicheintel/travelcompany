@@ -67,15 +67,10 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 .legal th { background: #f8fafc; }
 
 /* ---------- Motion (turned off for people who ask their device for less motion) ---------- */
-@keyframes ff-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-14px); } }
-@keyframes ff-drift { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(22px, -14px); } }
 @keyframes ff-dash { to { stroke-dashoffset: -220; } }
 @keyframes ff-gold { 0%, 55% { background-position: 120% 0; } 100% { background-position: -20% 0; } }
 @keyframes ff-rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
 
-.hero-plane { animation: ff-float 6s ease-in-out infinite; }
-.hero-blob { animation: ff-drift 14s ease-in-out infinite; }
-.hero-blob-2 { animation-duration: 10s; animation-direction: reverse; }
 .hero-route { animation: ff-dash 9s linear infinite; }
 .hero-flight { opacity: 0.85; }
 .hero-rise { animation: ff-rise 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) 0.1s both; }
@@ -120,8 +115,20 @@ body > header[data-scrolled] { box-shadow: 0 8px 24px -16px rgba(15, 29, 79, 0.3
 .search-wait-title { margin-top: 0.75rem; font-size: 1.125rem; font-weight: 700; color: #0f172a; }
 .search-wait-sub { margin-top: 0.25rem; font-size: 0.875rem; color: #64748b; }
 
+/* Home page photo slideshow */
+@keyframes ff-zoom { from { transform: scale(1); } to { transform: scale(1.08); } }
+.hero-slide { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 1.6s ease; }
+.hero-slide.on { opacity: 1; animation: ff-zoom 9s ease-out both; }
+.hero-caption { display: inline-flex; align-items: center; gap: 0.5rem; border-radius: 9999px; padding: 0.45rem 0.9rem;
+  font-size: 0.875rem; font-weight: 600; color: #fff; background: rgba(15, 29, 79, 0.45); backdrop-filter: blur(6px);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2); transition: background 0.2s ease; }
+.hero-caption:hover { background: rgba(15, 29, 79, 0.65); }
+.hero-dot { height: 0.5rem; width: 0.5rem; border-radius: 9999px; background: rgba(255, 255, 255, 0.45); transition: width 0.3s ease, background 0.3s ease; }
+.hero-dot[aria-current] { width: 1.5rem; background: #e9c46a; }
+
 @media (prefers-reduced-motion: reduce) {
-  .hero-plane, .hero-blob, .hero-route, .gold-text, .hero-rise { animation: none; }
+  .hero-slide, .hero-slide.on { animation: none; transition: none; }
+  .hero-route, .gold-text, .hero-rise { animation: none; }
   .hero-flight { display: none; }
   a.bg-accent-500::after, button.bg-accent-500::after { display: none; }
 }

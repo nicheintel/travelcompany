@@ -17,25 +17,43 @@ $steps = [
 $faq = array_slice(faq_items(), 0, 5);
 $tabs = [['flights', t('Flights'), 'plane'], ['packages', t('Flight + Hotel'), 'package'], ['hotels', t('Hotels'), 'bed']];
 $promos = active_packages();
+// Top banner slideshow: your uploaded destination photo (Admin → Packages), else the one in assets/hero/
+$heroSlides = [];
+$destByCode = array_column(array_map(fn($d) => ['code' => $d[2], 'd' => $d], POPULAR_DESTINATIONS), 'd', 'code');
+foreach (['DPS', 'CDG', 'DXB', 'NRT', 'CUN', 'LHR'] as $code) {
+    [$city, $country] = $destByCode[$code];
+    $own = site_image("dest:$code");
+    $file = strtolower($code);
+    $heroSlides[] = [
+        'place' => "$city, $country",
+        'href' => url('flights.php', ['to' => $code]),
+        'src' => $own ?: asset("hero/$file-1600.webp"),
+        'srcset' => $own ? '' : asset("hero/$file-800.webp") . ' 800w, ' . asset("hero/$file-1600.webp") . ' 1600w',
+    ];
+}
 require __DIR__ . '/includes/header.php';
 ?>
-<section class="relative bg-gradient-to-br from-brand-950 via-brand-800 to-brand-600">
-  <div class="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-  <svg class="pointer-events-none absolute inset-0 h-full w-full opacity-[0.12]" viewBox="0 0 1200 600" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-    <path class="hero-route" d="M-50 430 C 250 330, 520 470, 760 290 S 1080 70, 1300 120" fill="none" stroke="white" stroke-width="2" stroke-dasharray="10 12"/>
-    <circle class="hero-blob" cx="980" cy="120" r="140" fill="white" opacity="0.4"/><circle class="hero-blob hero-blob-2" cx="160" cy="80" r="60" fill="white" opacity="0.3"/>
-  </svg>
-  <svg class="hero-flight pointer-events-none absolute inset-0 h-full w-full" viewBox="0 0 1200 600" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-    <g><animateMotion dur="18s" repeatCount="indefinite" rotate="auto" path="M-50 430 C 250 330, 520 470, 760 290 S 1080 70, 1300 120"/>
-      <g transform="rotate(45) translate(-12 -12) scale(1.6)" fill="#e9c46a" stroke="#e9c46a" stroke-width="1" stroke-linejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></g>
-    </g>
-  </svg>
-  <?= icon('plane', 120, 'hero-plane pointer-events-none absolute right-[8%] top-24 hidden rotate-12 text-white/20 lg:block', 1) ?>
+<section class="relative overflow-hidden bg-gradient-to-br from-brand-950 via-brand-800 to-brand-600" data-hero>
+  <div class="pointer-events-none absolute inset-0" aria-hidden="true">
+    <?php foreach ($heroSlides as $i => $s): ?>
+      <img class="hero-slide<?= $i === 0 ? ' on' : '' ?>" alt="" decoding="async" sizes="100vw" data-place="<?= e($s['place']) ?>" data-href="<?= e($s['href']) ?>"
+        <?= $i === 0 ? 'src="' . e($s['src']) . '" srcset="' . e($s['srcset']) . '" fetchpriority="high"' : 'data-src="' . e($s['src']) . '" data-srcset="' . e($s['srcset']) . '"' ?>>
+    <?php endforeach; ?>
+    <div class="absolute inset-0 bg-gradient-to-r from-brand-950/90 via-brand-950/55 to-brand-950/10"></div>
+    <div class="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-brand-950/80 to-transparent"></div>
+    <svg class="absolute inset-0 h-full w-full opacity-30" viewBox="0 0 1200 600" preserveAspectRatio="xMidYMid slice">
+      <path class="hero-route" d="M-50 430 C 250 330, 520 470, 760 290 S 1080 70, 1300 120" fill="none" stroke="white" stroke-width="2" stroke-dasharray="10 12"/>
+    </svg>
+    <svg class="hero-flight absolute inset-0 h-full w-full" viewBox="0 0 1200 600" preserveAspectRatio="xMidYMid slice">
+      <g><animateMotion dur="18s" repeatCount="indefinite" rotate="auto" path="M-50 430 C 250 330, 520 470, 760 290 S 1080 70, 1300 120"/>
+        <g transform="rotate(45) translate(-12 -12) scale(1.6)" fill="#e9c46a" stroke="#e9c46a" stroke-width="1" stroke-linejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></g>
+      </g>
+    </svg>
   </div>
-  <div class="relative mx-auto max-w-7xl px-4 pb-16 pt-14 sm:px-6 sm:pt-20 lg:pb-24">
+  <div class="relative mx-auto max-w-7xl px-4 pb-12 pt-16 sm:px-6 sm:pt-24 lg:pb-16 lg:pt-28">
     <div class="max-w-2xl text-white">
       <p class="mb-4 inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-sm font-medium ring-1 ring-white/20"><span class="h-2 w-2 rounded-full bg-accent-400"></span><?= e(t('Your personal travel assistant')) ?></p>
-      <h1 class="text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl lg:text-6xl"><?= e(t('Fly further.')) ?> <span class="gold-text text-accent-400"><?= e(t('Pay less.')) ?></span></h1>
+      <h1 class="text-4xl font-extrabold leading-tight tracking-tight drop-shadow-sm sm:text-5xl lg:text-6xl"><?= e(t('Fly further.')) ?> <span class="gold-text text-accent-400"><?= e(t('Pay less.')) ?></span></h1>
       <p class="mt-4 text-lg text-brand-100 sm:text-xl"><?= e(t('Affordable flights, hotels and Flight + Hotel packages — all in one place.')) ?></p>
     </div>
     <div class="hero-rise mt-10 rounded-2xl bg-white shadow-2xl shadow-brand-950/20" data-tabs>
@@ -53,11 +71,19 @@ require __DIR__ . '/includes/header.php';
         <div role="tabpanel" data-panel="hotels" class="hidden"><?= hotel_search_form() ?></div>
       </div>
     </div>
-    <ul class="mt-6 flex flex-wrap gap-x-8 gap-y-2 text-sm text-brand-100">
+    <div class="mt-6 flex flex-wrap items-center justify-between gap-x-8 gap-y-4">
+    <ul class="flex flex-wrap gap-x-8 gap-y-2 text-sm text-brand-100">
       <li class="flex items-center gap-2"><?= icon('shield', 16) ?> <?= e(t('Secure booking')) ?></li>
       <li class="flex items-center gap-2"><?= icon('tag', 16) ?> <?= e(t('No hidden fees')) ?></li>
       <li class="flex items-center gap-2"><?= icon('headset', 16) ?> <?= e(t('24/7 travel support')) ?></li>
     </ul>
+    <div class="flex items-center gap-3">
+      <a href="<?= e($heroSlides[0]['href']) ?>" class="hero-caption" data-hero-caption><?= icon('pin', 15) ?><span data-hero-place><?= e($heroSlides[0]['place']) ?></span><span class="text-accent-400"><?= e(t('See fares →')) ?></span></a>
+      <div class="flex gap-1.5" data-hero-dots>
+        <?php foreach ($heroSlides as $i => $s): ?><button type="button" class="hero-dot" aria-label="<?= e($s['place']) ?>"<?= $i === 0 ? ' aria-current="true"' : '' ?>></button><?php endforeach; ?>
+      </div>
+    </div>
+    </div>
   </div>
 </section>
 

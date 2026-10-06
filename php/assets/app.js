@@ -400,6 +400,38 @@
     items.forEach((el) => { if (!el.classList.contains("is-in")) io.observe(el); });
   }
 
+  // Home page: destination photos change every few seconds; the caption links to that destination's fares.
+  function initHero() {
+    const hero = $("[data-hero]");
+    if (!hero) return;
+    const slides = $$(".hero-slide", hero);
+    const dots = $$(".hero-dot", hero);
+    const cap = $("[data-hero-caption]", hero);
+    if (slides.length < 2) return;
+    let cur = 0, timer = 0;
+    const ready = (img) => img.complete && img.naturalWidth > 0;
+    const show = (i) => {
+      if (i === cur || !ready(slides[i])) return;
+      slides[cur].classList.remove("on");
+      slides[i].classList.add("on");
+      dots.forEach((d, n) => d.toggleAttribute("aria-current", n === i));
+      cap.href = slides[i].dataset.href;
+      $("[data-hero-place]", cap).textContent = slides[i].dataset.place;
+      cur = i;
+    };
+    const next = () => show((cur + 1) % slides.length);
+    const start = () => { clearInterval(timer); if (!calm) timer = setInterval(() => { if (!document.hidden) next(); }, 6500); };
+    dots.forEach((d, n) => d.addEventListener("click", () => { show(n); start(); }));
+    // The other photos download after the page has loaded, so the first view stays fast.
+    const load = () => slides.slice(1).forEach((img) => {
+      if (img.dataset.srcset) img.srcset = img.dataset.srcset;
+      img.src = img.dataset.src;
+    });
+    if (document.readyState === "complete") load();
+    else window.addEventListener("load", load);
+    start();
+  }
+
   function initHeader() {
     const h = $("body > header");
     if (!h) return;
@@ -460,6 +492,7 @@
     initBagSummary();
     initSearchWait();
     initHeader();
+    initHero();
     initReveal();
   });
 })();
