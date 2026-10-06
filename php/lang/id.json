@@ -712,5 +712,7 @@
  "Your message couldn't be sent. Check your connection and try again.": "Pesan Anda tidak dapat dikirim. Periksa koneksi Anda dan coba lagi.",
  "Your name": "Nama Anda",
  "{name} is typing": "{name} sedang mengetik",
- "{name} marked this chat as done.": "{name} menandai chat ini sebagai selesai."
+ "{name} marked this chat as done.": "{name} menandai chat ini sebagai selesai.",
+ "Finding the best prices…": "Mencari harga terbaik…",
+ "This can take a few seconds.": "Ini mungkin memerlukan beberapa detik."
 }

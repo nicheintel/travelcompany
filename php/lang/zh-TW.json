@@ -712,5 +712,7 @@
  "Your message couldn't be sent. Check your connection and try again.": "訊息傳送失敗。請檢查網路連線後再試一次。",
  "Your name": "你的姓名",
  "{name} is typing": "{name} 正在輸入",
- "{name} marked this chat as done.": "{name} 已將此聊天標記為已完成。"
+ "{name} marked this chat as done.": "{name} 已將此聊天標記為已完成。",
+ "Finding the best prices…": "正在尋找最優惠的價格…",
+ "This can take a few seconds.": "這可能需要幾秒鐘。"
 }

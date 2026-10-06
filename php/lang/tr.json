@@ -712,5 +712,7 @@
  "Your message couldn't be sent. Check your connection and try again.": "Mesajınız gönderilemedi. Bağlantınızı kontrol edip tekrar deneyin.",
  "Your name": "Adınız",
  "{name} is typing": "{name} yazıyor",
- "{name} marked this chat as done.": "{name} bu sohbeti tamamlandı olarak işaretledi."
+ "{name} marked this chat as done.": "{name} bu sohbeti tamamlandı olarak işaretledi.",
+ "Finding the best prices…": "En iyi fiyatlar aranıyor…",
+ "This can take a few seconds.": "Bu birkaç saniye sürebilir."
 }

@@ -712,5 +712,7 @@
  "Your message couldn't be sent. Check your connection and try again.": "ส่งข้อความไม่สำเร็จ โปรดตรวจสอบการเชื่อมต่อแล้วลองอีกครั้ง",
  "Your name": "ชื่อของคุณ",
  "{name} is typing": "{name} กำลังพิมพ์",
- "{name} marked this chat as done.": "{name} ทำเครื่องหมายว่าแชทนี้เสร็จสิ้นแล้ว"
+ "{name} marked this chat as done.": "{name} ทำเครื่องหมายว่าแชทนี้เสร็จสิ้นแล้ว",
+ "Finding the best prices…": "กำลังค้นหาราคาที่ดีที่สุด…",
+ "This can take a few seconds.": "อาจใช้เวลาสักครู่"
 }

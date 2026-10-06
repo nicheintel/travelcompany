@@ -42,6 +42,21 @@ $columns = [
 </footer>
 <?php if ($jsStrings = js_strings()): ?><div hidden data-i18n="<?= e(json_encode($jsStrings, JSON_UNESCAPED_UNICODE)) ?>"></div><?php endif; ?>
 <?= chat_bubble() ?>
+<?php if (!empty($GLOBALS['search_wait'])): ?>
+<div class="search-wait" data-search-wait hidden role="status" aria-live="polite">
+  <div class="search-wait-card">
+    <svg viewBox="0 0 240 80" class="search-wait-art" aria-hidden="true">
+      <path d="M30 70 Q 120 -10 210 70" fill="none" stroke="#bcd7ff" stroke-width="2" stroke-dasharray="4 6"/>
+      <circle cx="30" cy="70" r="5" fill="#1c54f0"/><circle cx="210" cy="70" r="5" fill="#d4af37"/>
+      <g><animateMotion dur="2.4s" repeatCount="indefinite" rotate="auto" path="M30 70 Q 120 -10 210 70"/>
+        <g transform="rotate(45) translate(-12 -12)" fill="#1c54f0" stroke="#1c54f0" stroke-width="1" stroke-linejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></g>
+      </g>
+    </svg>
+    <p class="search-wait-title"><?= e(t('Finding the best prices…')) ?></p>
+    <p class="search-wait-sub"><?= e(t('This can take a few seconds.')) ?></p>
+  </div>
+</div>
+<?php endif; ?>
 <script src="<?= e(asset('app.js')) ?>" defer></script>
 </body>
 </html>

@@ -712,5 +712,7 @@
  "Your message couldn't be sent. Check your connection and try again.": "Không gửi được tin nhắn. Hãy kiểm tra kết nối rồi thử lại.",
  "Your name": "Tên của bạn",
  "{name} is typing": "{name} đang nhập",
- "{name} marked this chat as done.": "{name} đã đánh dấu cuộc chat này là hoàn tất."
+ "{name} marked this chat as done.": "{name} đã đánh dấu cuộc chat này là hoàn tất.",
+ "Finding the best prices…": "Đang tìm giá tốt nhất…",
+ "This can take a few seconds.": "Việc này có thể mất vài giây."
 }

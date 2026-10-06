@@ -712,5 +712,7 @@
  "Your message couldn't be sent. Check your connection and try again.": "Ihre Nachricht konnte nicht gesendet werden. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
  "Your name": "Ihr Name",
  "{name} is typing": "{name} schreibt",
- "{name} marked this chat as done.": "{name} hat diesen Chat als erledigt markiert."
+ "{name} marked this chat as done.": "{name} hat diesen Chat als erledigt markiert.",
+ "Finding the best prices…": "Wir suchen die besten Preise…",
+ "This can take a few seconds.": "Das kann ein paar Sekunden dauern."
 }

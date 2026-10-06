@@ -712,5 +712,7 @@
  "Your message couldn't be sent. Check your connection and try again.": "Je bericht kon niet worden verzonden. Controleer je verbinding en probeer het opnieuw.",
  "Your name": "Je naam",
  "{name} is typing": "{name} is aan het typen",
- "{name} marked this chat as done.": "{name} heeft deze chat als afgerond gemarkeerd."
+ "{name} marked this chat as done.": "{name} heeft deze chat als afgerond gemarkeerd.",
+ "Finding the best prices…": "We zoeken de beste prijzen…",
+ "This can take a few seconds.": "Dit kan een paar seconden duren."
 }

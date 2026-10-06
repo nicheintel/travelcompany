@@ -745,5 +745,7 @@
  "Your message couldn't be sent. Check your connection and try again.": "Nie udało się wysłać wiadomości. Sprawdź połączenie i spróbuj ponownie.",
  "Your name": "Twoje imię",
  "{name} is typing": "{name} pisze",
- "{name} marked this chat as done.": "{name} oznaczył(a) ten czat jako zakończony."
+ "{name} marked this chat as done.": "{name} oznaczył(a) ten czat jako zakończony.",
+ "Finding the best prices…": "Szukamy najlepszych cen…",
+ "This can take a few seconds.": "To może potrwać kilka sekund."
 }

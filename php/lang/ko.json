@@ -712,5 +712,7 @@
  "Your message couldn't be sent. Check your connection and try again.": "메시지를 보내지 못했습니다. 연결을 확인한 후 다시 시도해 주세요.",
  "Your name": "이름",
  "{name} is typing": "{name}님이 입력 중",
- "{name} marked this chat as done.": "{name}님이 이 채팅을 완료로 표시했습니다."
+ "{name} marked this chat as done.": "{name}님이 이 채팅을 완료로 표시했습니다.",
+ "Finding the best prices…": "최저가를 찾고 있습니다…",
+ "This can take a few seconds.": "몇 초 정도 걸릴 수 있습니다."
 }

@@ -72,7 +72,7 @@ require __DIR__ . '/includes/header.php';
         </label>
       </div>
       <p class="hidden rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center text-slate-600" data-empty><?= e(t('No hotels match your filters. Try removing some.')) ?></p>
-      <div class="space-y-4" data-list>
+      <div class="space-y-4" data-list data-reveal-stagger>
       <?php foreach ($hotels as $h):
           $total = $h['stay_total'] ?? $h['nightly'] * $s['nights'] * $s['rooms'];
           $score = ($h['rating'] ?? 7) * 10 + $h['stars'] * 3 - $h['nightly'] / 20 + ($h['free_cancel'] ? 5 : 0);

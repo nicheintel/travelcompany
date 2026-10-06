@@ -374,6 +374,56 @@
     });
   }
 
+  // ---------- Motion: reveal on scroll, header shadow, search wait screen ----------
+  const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // [data-reveal] fades up when scrolled into view; [data-reveal-stagger] does it for each child, one after another.
+  function initReveal() {
+    if (calm || !("IntersectionObserver" in window)) return;
+    const items = [...$$("[data-reveal]"), ...$$("[data-reveal-stagger]").flatMap((g) => [...g.children])];
+    if (!items.length) return;
+    const done = (el) => el.classList.add("revealed");
+    // Already on screen: show straight away, no flicker.
+    items.forEach((el) => { if (el.getBoundingClientRect().top < window.innerHeight) { el.classList.add("is-in"); done(el); } });
+    document.documentElement.classList.add("reveal-on");
+    const io = new IntersectionObserver((entries) => {
+      let n = 0;
+      entries.forEach((en) => {
+        if (!en.isIntersecting) return;
+        const el = en.target;
+        io.unobserve(el);
+        el.style.setProperty("--reveal-delay", Math.min(n++, 6) * 90 + "ms");
+        el.classList.add("is-in");
+        setTimeout(() => done(el), 1400);
+      });
+    }, { rootMargin: "0px 0px -6% 0px" });
+    items.forEach((el) => { if (!el.classList.contains("is-in")) io.observe(el); });
+  }
+
+  function initHeader() {
+    const h = $("body > header");
+    if (!h) return;
+    const set = () => h.toggleAttribute("data-scrolled", window.scrollY > 8);
+    set();
+    window.addEventListener("scroll", set, { passive: true });
+  }
+
+  // Flight and hotel searches can take a few seconds: show a "finding prices" screen meanwhile.
+  function initSearchWait() {
+    const wait = $("[data-search-wait]");
+    if (!wait) return;
+    if (calm) $("svg", wait)?.pauseAnimations?.();
+    $$("form[data-search-form=flight], form[data-search-form=hotel]").forEach((f) =>
+      f.addEventListener("submit", (e) => {
+        if (e.defaultPrevented) return;
+        wait.hidden = false;
+        requestAnimationFrame(() => wait.classList.add("on"));
+      }),
+    );
+    // Back button: the page comes back from the browser's cache with the screen still showing.
+    window.addEventListener("pageshow", () => { wait.classList.remove("on"); wait.hidden = true; });
+  }
+
   // Booking page: the trip summary's "Checked bag" line follows the Add checked bag buttons.
   function initBagSummary() {
     const toggles = $$("[data-bag-toggle]");
@@ -408,5 +458,8 @@
     initMenus();
     initForms();
     initBagSummary();
+    initSearchWait();
+    initHeader();
+    initReveal();
   });
 })();

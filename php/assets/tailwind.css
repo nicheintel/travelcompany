@@ -65,3 +65,63 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 .legal table { margin-top: 1rem; width: 100%; font-size: 0.875rem; border-collapse: collapse; }
 .legal th, .legal td { border: 1px solid #e2e8f0; padding: 0.5rem 0.75rem; text-align: left; vertical-align: top; }
 .legal th { background: #f8fafc; }
+
+/* ---------- Motion (turned off for people who ask their device for less motion) ---------- */
+@keyframes ff-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-14px); } }
+@keyframes ff-drift { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(22px, -14px); } }
+@keyframes ff-dash { to { stroke-dashoffset: -220; } }
+@keyframes ff-gold { 0%, 55% { background-position: 120% 0; } 100% { background-position: -20% 0; } }
+@keyframes ff-rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+
+.hero-plane { animation: ff-float 6s ease-in-out infinite; }
+.hero-blob { animation: ff-drift 14s ease-in-out infinite; }
+.hero-blob-2 { animation-duration: 10s; animation-direction: reverse; }
+.hero-route { animation: ff-dash 9s linear infinite; }
+.hero-flight { opacity: 0.85; }
+.hero-rise { animation: ff-rise 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) 0.1s both; }
+.gold-text {
+  background: linear-gradient(100deg, #e9c46a 40%, #fff6d5 50%, #e9c46a 60%) 120% 0 / 250% 100% no-repeat, #e9c46a;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: ff-gold 5s ease-in-out 1s infinite;
+}
+
+/* Fade up when scrolled into view (app.js adds .reveal-on; content always shows without JavaScript) */
+.reveal-on [data-reveal]:not(.revealed),
+.reveal-on [data-reveal-stagger] > :not(.revealed) {
+  transition: opacity 0.7s cubic-bezier(0.2, 0.7, 0.2, 1), transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+.reveal-on [data-reveal]:not(.is-in),
+.reveal-on [data-reveal-stagger] > :not(.is-in) { opacity: 0; transform: translateY(26px); }
+
+/* Gold buttons: a shine sweeps across on hover */
+a.bg-accent-500, button.bg-accent-500 { position: relative; overflow: hidden; isolation: isolate; }
+a.bg-accent-500::after, button.bg-accent-500::after {
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.45) 50%, transparent 70%);
+  transform: translateX(-120%); transition: transform 0.7s ease;
+}
+a.bg-accent-500:hover::after, button.bg-accent-500:hover::after { transform: translateX(120%); }
+
+/* Header gets a soft shadow once you scroll */
+body > header { transition: box-shadow 0.3s ease; }
+body > header[data-scrolled] { box-shadow: 0 8px 24px -16px rgba(15, 29, 79, 0.35); }
+
+/* "Finding the best prices" screen while a search loads */
+.search-wait { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 1rem;
+  background: rgba(15, 29, 79, 0.55); backdrop-filter: blur(4px); opacity: 0; transition: opacity 0.25s ease; }
+.search-wait.on { opacity: 1; }
+.search-wait-card { width: 100%; max-width: 22rem; border-radius: 1.25rem; background: #fff; padding: 1.75rem 1.5rem; text-align: center;
+  box-shadow: 0 30px 60px -20px rgba(15, 29, 79, 0.5); transform: translateY(10px) scale(0.98); transition: transform 0.3s ease; }
+.search-wait.on .search-wait-card { transform: none; }
+.search-wait-art { width: 100%; max-width: 15rem; margin: 0 auto; overflow: visible; }
+.search-wait-title { margin-top: 0.75rem; font-size: 1.125rem; font-weight: 700; color: #0f172a; }
+.search-wait-sub { margin-top: 0.25rem; font-size: 0.875rem; color: #64748b; }
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-plane, .hero-blob, .hero-route, .gold-text, .hero-rise { animation: none; }
+  .hero-flight { display: none; }
+  a.bg-accent-500::after, button.bg-accent-500::after { display: none; }
+}

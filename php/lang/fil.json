@@ -712,5 +712,7 @@
  "Your message couldn't be sent. Check your connection and try again.": "Hindi naipadala ang iyong mensahe. Tingnan ang iyong koneksyon at subukang muli.",
  "Your name": "Ang iyong pangalan",
  "{name} is typing": "Nagta-type si {name}",
- "{name} marked this chat as done.": "Minarkahan ni {name} na tapos na ang chat na ito."
+ "{name} marked this chat as done.": "Minarkahan ni {name} na tapos na ang chat na ito.",
+ "Finding the best prices…": "Hinahanap ang pinakamagandang presyo…",
+ "This can take a few seconds.": "Maaaring tumagal ito nang ilang segundo."
 }

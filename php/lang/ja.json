@@ -712,5 +712,7 @@
  "Your message couldn't be sent. Check your connection and try again.": "メッセージを送信できませんでした。接続を確認して、もう一度お試しください。",
  "Your name": "お名前",
  "{name} is typing": "{name}が入力中",
- "{name} marked this chat as done.": "{name}がこのチャットを完了にしました。"
+ "{name} marked this chat as done.": "{name}がこのチャットを完了にしました。",
+ "Finding the best prices…": "最安値を検索しています…",
+ "This can take a few seconds.": "数秒かかる場合があります。"
 }

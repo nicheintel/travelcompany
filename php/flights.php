@@ -93,7 +93,7 @@ require __DIR__ . '/includes/header.php';
       </div>
       <p class="text-sm text-slate-600"><?= th('Showing {visible} of {total} flights · prices for {travelers}, taxes included', ['total' => count($offers), 'travelers' => tn($people, '{n} traveler', '{n} travelers')], ['visible' => '<span class="font-semibold" data-visible-count>' . count($offers) . '</span>']) ?></p>
       <p class="hidden rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center text-slate-600" data-empty><?= e(t('No flights match your filters. Try removing some.')) ?></p>
-      <div class="space-y-4" data-list>
+      <div class="space-y-4" data-list data-reveal-stagger>
       <?php foreach ($offers as $o):
           $t = $o['outbound']['depart'];
           $time = $t >= 300 && $t < 720 ? 'morning' : ($t >= 720 && $t < 1080 ? 'afternoon' : ($t >= 1080 ? 'evening' : 'night'));

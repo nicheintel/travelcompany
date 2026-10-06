@@ -712,5 +712,7 @@
  "Your message couldn't be sent. Check your connection and try again.": "आपका मैसेज नहीं भेजा जा सका। अपना कनेक्शन जाँचें और फिर से कोशिश करें।",
  "Your name": "आपका नाम",
  "{name} is typing": "{name} लिख रहे हैं",
- "{name} marked this chat as done.": "{name} ने इस चैट को पूरा चिह्नित किया।"
+ "{name} marked this chat as done.": "{name} ने इस चैट को पूरा चिह्नित किया।",
+ "Finding the best prices…": "सबसे अच्छी कीमतें खोजी जा रही हैं…",
+ "This can take a few seconds.": "इसमें कुछ सेकंड लग सकते हैं।"
 }

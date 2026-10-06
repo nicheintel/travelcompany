@@ -31,7 +31,7 @@ require __DIR__ . '/includes/header.php';
       <?php if ($to): ?><a href="<?= e(url('packages.php')) ?>" class="text-sm font-semibold text-brand-700 hover:underline"><?= e(t('See all packages →')) ?></a><?php endif; ?>
     </div>
     <?php if ($shown): ?>
-      <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"><?php foreach ($shown as $p) echo package_card($p); ?></div>
+      <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" data-reveal-stagger><?php foreach ($shown as $p) echo package_card($p); ?></div>
     <?php else: ?>
       <p class="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center text-slate-600"><?= e(t('No promo to {city} right now.', ['city' => $to['city']])) ?></p>
     <?php endif; ?>

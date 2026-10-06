@@ -712,5 +712,7 @@
  "Your message couldn't be sent. Check your connection and try again.": "消息发送失败。请检查网络连接后重试。",
  "Your name": "你的姓名",
  "{name} is typing": "{name} 正在输入",
- "{name} marked this chat as done.": "{name} 已将此聊天标记为已完成。"
+ "{name} marked this chat as done.": "{name} 已将此聊天标记为已完成。",
+ "Finding the best prices…": "正在查找最优价格…",
+ "This can take a few seconds.": "这可能需要几秒钟。"
 }

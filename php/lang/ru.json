@@ -745,5 +745,7 @@
  "Your message couldn't be sent. Check your connection and try again.": "Не удалось отправить сообщение. Проверьте подключение и попробуйте снова.",
  "Your name": "Ваше имя",
  "{name} is typing": "{name} печатает",
- "{name} marked this chat as done.": "{name} отметил(а) этот чат как завершённый."
+ "{name} marked this chat as done.": "{name} отметил(а) этот чат как завершённый.",
+ "Finding the best prices…": "Ищем лучшие цены…",
+ "This can take a few seconds.": "Это может занять несколько секунд."
 }

@@ -22,18 +22,23 @@ require __DIR__ . '/includes/header.php';
 <section class="relative bg-gradient-to-br from-brand-950 via-brand-800 to-brand-600">
   <div class="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
   <svg class="pointer-events-none absolute inset-0 h-full w-full opacity-[0.12]" viewBox="0 0 1200 600" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-    <path d="M-50 480 C 250 380, 450 560, 700 420 S 1100 220, 1300 300" fill="none" stroke="white" stroke-width="2" stroke-dasharray="10 12"/>
-    <circle cx="980" cy="120" r="140" fill="white" opacity="0.4"/><circle cx="160" cy="80" r="60" fill="white" opacity="0.3"/>
+    <path class="hero-route" d="M-50 430 C 250 330, 520 470, 760 290 S 1080 70, 1300 120" fill="none" stroke="white" stroke-width="2" stroke-dasharray="10 12"/>
+    <circle class="hero-blob" cx="980" cy="120" r="140" fill="white" opacity="0.4"/><circle class="hero-blob hero-blob-2" cx="160" cy="80" r="60" fill="white" opacity="0.3"/>
   </svg>
-  <?= icon('plane', 120, 'pointer-events-none absolute right-[8%] top-24 hidden rotate-12 text-white/20 lg:block', 1) ?>
+  <svg class="hero-flight pointer-events-none absolute inset-0 h-full w-full" viewBox="0 0 1200 600" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <g><animateMotion dur="18s" repeatCount="indefinite" rotate="auto" path="M-50 430 C 250 330, 520 470, 760 290 S 1080 70, 1300 120"/>
+      <g transform="rotate(45) translate(-12 -12) scale(1.6)" fill="#e9c46a" stroke="#e9c46a" stroke-width="1" stroke-linejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></g>
+    </g>
+  </svg>
+  <?= icon('plane', 120, 'hero-plane pointer-events-none absolute right-[8%] top-24 hidden rotate-12 text-white/20 lg:block', 1) ?>
   </div>
   <div class="relative mx-auto max-w-7xl px-4 pb-16 pt-14 sm:px-6 sm:pt-20 lg:pb-24">
     <div class="max-w-2xl text-white">
       <p class="mb-4 inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-sm font-medium ring-1 ring-white/20"><span class="h-2 w-2 rounded-full bg-accent-400"></span><?= e(t('Your personal travel assistant')) ?></p>
-      <h1 class="text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl lg:text-6xl"><?= e(t('Fly further.')) ?> <span class="text-accent-400"><?= e(t('Pay less.')) ?></span></h1>
+      <h1 class="text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl lg:text-6xl"><?= e(t('Fly further.')) ?> <span class="gold-text text-accent-400"><?= e(t('Pay less.')) ?></span></h1>
       <p class="mt-4 text-lg text-brand-100 sm:text-xl"><?= e(t('Affordable flights, hotels and Flight + Hotel packages — all in one place.')) ?></p>
     </div>
-    <div class="mt-10 rounded-2xl bg-white shadow-2xl shadow-brand-950/20" data-tabs>
+    <div class="hero-rise mt-10 rounded-2xl bg-white shadow-2xl shadow-brand-950/20" data-tabs>
       <div role="tablist" class="flex overflow-x-auto border-b border-slate-100 px-2 sm:px-4">
         <?php foreach ($tabs as $i => [$id, $label, $ic]): ?>
           <button type="button" role="tab" aria-selected="<?= $i === 0 ? 'true' : 'false' ?>" data-tab="<?= $id ?>"
@@ -57,7 +62,7 @@ require __DIR__ . '/includes/header.php';
 </section>
 
 <section class="mx-auto max-w-7xl px-4 py-14 sm:px-6">
-  <div class="grid gap-4 md:grid-cols-3">
+  <div class="grid gap-4 md:grid-cols-3" data-reveal-stagger>
     <?php foreach ([
         ['packages.php', 'from-accent-400 to-accent-600', 'package', t('Packages'), t('Flight + Hotel'), t('Ready-made trips at one price per person.'), t('See promo packages →')],
         ['flights.php', 'from-sky-500 to-brand-700', 'plane', t('Flights'), t('Compare airlines'), t('Real fares from airlines worldwide.'), t('Search flights →')],
@@ -65,8 +70,8 @@ require __DIR__ . '/includes/header.php';
             ? ['account.php', 'from-emerald-500 to-teal-700', 'user', t('Your account'), t('Hi, {name}!', ['name' => explode(' ', $me['name'])[0]]), $memberPct > 0 ? t('Your {pct}% member discount is applied automatically on flights and hotels.', ['pct' => $memberPct]) : t('Your trips, confirmations and tickets in one place.'), t('My trips →')]
             : ['register.php', 'from-emerald-500 to-teal-700', 'user', t('Members'), $memberPct > 0 ? t('Extra {pct}% off', ['pct' => $memberPct]) : t('Save your trips'), $memberPct > 0 ? t('Free account, member-only prices.') : t('Free account, faster booking.'), t('Create free account →')],
     ] as [$href, $grad, $ic, $kicker, $heading, $text, $cta]): ?>
-      <a href="<?= e(url($href)) ?>" class="group relative overflow-hidden rounded-2xl bg-gradient-to-br <?= $grad ?> p-6 text-white shadow-lg">
-        <?= icon($ic, 120, 'absolute -bottom-4 -right-4 text-white/20') ?>
+      <a href="<?= e(url($href)) ?>" class="group relative overflow-hidden rounded-2xl bg-gradient-to-br <?= $grad ?> p-6 text-white shadow-lg transition hover:-translate-y-1 hover:shadow-xl">
+        <?= icon($ic, 120, 'absolute -bottom-4 -right-4 text-white/20 transition duration-500 group-hover:-rotate-6 group-hover:scale-110') ?>
         <p class="text-sm font-semibold uppercase tracking-wider text-white/80"><?= e($kicker) ?></p>
         <h2 class="mt-2 text-2xl font-bold"><?= e($heading) ?></h2>
         <p class="mt-1 text-white/90"><?= e($text) ?></p>
@@ -84,7 +89,7 @@ require __DIR__ . '/includes/header.php';
     </div>
     <a href="<?= e(url('flights.php')) ?>" class="hidden text-sm font-semibold text-brand-700 hover:underline sm:block"><?= e(t('Explore all flights →')) ?></a>
   </div>
-  <div class="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
+  <div class="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6" data-reveal-stagger>
     <?php foreach (POPULAR_DESTINATIONS as [$city, $country, $code, $grad, $unsplash]): [$photo, $isDefault] = destination_photo($code, $unsplash); ?>
       <a href="<?= e(url('flights.php', ['to' => $code])) ?>" class="group relative flex aspect-[3/4] flex-col justify-end overflow-hidden rounded-2xl bg-gradient-to-br <?= $grad ?> p-4 text-white shadow-md transition hover:-translate-y-1 hover:shadow-xl">
         <img src="<?= e($photo) ?>" alt="<?= e($city) ?>" loading="lazy"<?= $isDefault ? ' referrerpolicy="no-referrer" data-fallback' : '' ?> class="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-105"><span class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" data-photo-shade></span>
@@ -107,7 +112,7 @@ require __DIR__ . '/includes/header.php';
       </div>
       <a href="<?= e(url('packages.php')) ?>" class="text-sm font-semibold text-brand-700 hover:underline"><?= e(t('View all packages →')) ?></a>
     </div>
-    <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+    <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4" data-reveal-stagger>
       <?php foreach (array_slice($promos, 0, 4) as $p) echo package_card($p); ?>
     </div>
   </div>
@@ -116,10 +121,10 @@ require __DIR__ . '/includes/header.php';
 
 <section id="why-us" class="mx-auto max-w-7xl scroll-mt-20 px-4 py-16 sm:px-6">
   <h2 class="text-center text-2xl font-bold text-slate-900 sm:text-3xl"><?= e(t('Why travelers book with us')) ?></h2>
-  <div class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+  <div class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4" data-reveal-stagger>
     <?php foreach ($whyUs as [$ic, $heading, $body]): ?>
-      <div class="rounded-2xl border border-slate-200 bg-white p-6">
-        <span class="grid h-12 w-12 place-items-center rounded-xl bg-brand-50 text-brand-600"><?= icon($ic, 24) ?></span>
+      <div class="group rounded-2xl border border-slate-200 bg-white p-6 transition hover:-translate-y-1 hover:border-brand-200 hover:shadow-lg">
+        <span class="grid h-12 w-12 place-items-center rounded-xl bg-brand-50 text-brand-600 transition group-hover:bg-brand-600 group-hover:text-white"><?= icon($ic, 24) ?></span>
         <h3 class="mt-4 font-semibold text-slate-900"><?= e($heading) ?></h3>
         <p class="mt-2 text-sm leading-relaxed text-slate-600"><?= e($body) ?></p>
       </div>
@@ -130,7 +135,7 @@ require __DIR__ . '/includes/header.php';
 <section class="bg-brand-50 py-16">
   <div class="mx-auto max-w-7xl px-4 sm:px-6">
     <h2 class="text-center text-2xl font-bold text-slate-900 sm:text-3xl"><?= e(t('How it works')) ?></h2>
-    <ol class="mt-10 grid gap-6 md:grid-cols-3">
+    <ol class="mt-10 grid gap-6 md:grid-cols-3" data-reveal-stagger>
       <?php foreach ($steps as $i => [$ic, $heading, $body]): ?>
         <li class="relative rounded-2xl bg-white p-6 shadow-sm">
           <span class="absolute right-5 top-4 text-5xl font-black text-brand-100"><?= $i + 1 ?></span>
@@ -145,7 +150,7 @@ require __DIR__ . '/includes/header.php';
 
 <section id="faq" class="mx-auto max-w-3xl scroll-mt-20 px-4 py-16 sm:px-6">
   <h2 class="text-center text-2xl font-bold text-slate-900 sm:text-3xl"><?= e(t('Frequently asked questions')) ?></h2>
-  <div class="mt-8 divide-y divide-slate-200 rounded-2xl border border-slate-200 bg-white">
+  <div class="mt-8 divide-y divide-slate-200 rounded-2xl border border-slate-200 bg-white" data-reveal>
     <?php foreach ($faq as [$q, $a]): ?>
       <details class="group p-5">
         <summary class="flex cursor-pointer list-none items-center justify-between gap-4 font-semibold text-slate-900"><?= e($q) ?><span class="text-xl text-brand-600 transition group-open:rotate-45">+</span></summary>
@@ -157,7 +162,7 @@ require __DIR__ . '/includes/header.php';
 </section>
 
 <section id="newsletter" class="scroll-mt-20 px-4 pb-16 sm:px-6">
-  <div class="relative mx-auto max-w-7xl overflow-hidden rounded-3xl bg-gradient-to-r from-brand-700 to-brand-500 px-6 py-12 text-white sm:px-12">
+  <div class="relative mx-auto max-w-7xl overflow-hidden rounded-3xl bg-gradient-to-r from-brand-700 to-brand-500 px-6 py-12 text-white sm:px-12" data-reveal>
     <?= icon('car', 200, 'absolute -right-6 -top-6 text-white/10') ?>
     <div class="relative grid items-center gap-8 lg:grid-cols-2">
       <?php if ($me): ?>

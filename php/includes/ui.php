@@ -105,6 +105,7 @@ function travelers_field(int $adults, int $children, ?int $rooms = null, ?string
 
 function search_button(string $label): string
 {
+    $GLOBALS['search_wait'] = true; // footer.php adds the "finding prices" screen
     return '<button type="submit" class="flex h-full min-h-14 w-full items-center justify-center gap-2 rounded-xl bg-accent-500 px-6 text-base font-bold text-white shadow-lg shadow-accent-500/30 transition hover:bg-accent-600">'
         . icon('search', 18) . '<span>' . e($label) . '</span></button>';
 }
