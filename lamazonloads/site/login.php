@@ -7,7 +7,7 @@ if (current_user()) {
     redirect($next);
 }
 $error = '';
-$email = '';
+$email = strtolower(substr(trim((string) ($_GET['email'] ?? '')), 0, 190));
 
 if (is_post()) {
     csrf_check();
@@ -22,7 +22,7 @@ if (is_post()) {
                 db_run('UPDATE users SET password_hash = ? WHERE id = ?', [password_hash($pass, PASSWORD_DEFAULT), $user['id']]);
             }
             login_user($user);
-            redirect($next);
+            redirect(!empty($user['must_change_password']) ? 'set-password.php?next=' . rawurlencode($next) : $next);
         }
         if (!$user) {
             password_verify($pass, '$2y$10$kqYpP4Np/p9Z.kb4cGH3WOaFyA1zfZr26Qe3UXuJ0Uf844QpE7hZW'); // same delay as a real check (a random password nobody knows)
@@ -51,9 +51,9 @@ page_header('Sign in', '', '', 'page-auth');
         <?= csrf_field() ?>
         <input type="hidden" name="next" value="<?= e($next) ?>">
         <label for="email">Email</label>
-        <input id="email" name="email" type="email" required autocomplete="email" value="<?= e($email) ?>" autofocus>
+        <input id="email" name="email" type="email" required autocomplete="email" value="<?= e($email) ?>"<?= $email === '' ? ' autofocus' : '' ?>>
         <label for="password" style="margin-top:16px">Password</label>
-        <input id="password" name="password" type="password" required autocomplete="current-password">
+        <input id="password" name="password" type="password" required autocomplete="current-password"<?= $email !== '' ? ' autofocus' : '' ?>>
         <p class="hint forgot-link"><a href="<?= e(url('forgot-password.php' . ($email !== '' ? '?email=' . rawurlencode($email) : ''))) ?>">Forgot your password?</a></p>
         <button class="btn btn-primary btn-lg btn-block mt" type="submit">Sign in <?= icon('arrow') ?></button>
       </form>

@@ -20,7 +20,7 @@ if ($u && is_post()) {
     if (!$errors) {
         // New password; the link stops working; every other signed-in device is signed out.
         // Opening the link proves they own the email, so it counts as confirmed too.
-        db_run('UPDATE users SET password_hash = ?, session_version = session_version + 1, reset_token = NULL, reset_expires = NULL,
+        db_run('UPDATE users SET password_hash = ?, session_version = session_version + 1, reset_token = NULL, reset_expires = NULL, must_change_password = 0,
             email_verified_at = COALESCE(email_verified_at, NOW()) WHERE id = ?', [password_hash($new, PASSWORD_DEFAULT), $u['id']]);
         db_run('DELETE FROM login_attempts WHERE email = ?', [$u['email']]);
         unset($_SESSION['reset_email']);

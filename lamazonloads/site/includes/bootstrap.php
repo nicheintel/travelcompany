@@ -20,6 +20,7 @@ require __DIR__ . '/partners.php';
 require __DIR__ . '/solutions.php';
 require __DIR__ . '/fleet.php';
 require __DIR__ . '/apply.php';
+require __DIR__ . '/members.php';
 require __DIR__ . '/faq.php';
 require __DIR__ . '/layout.php';
 

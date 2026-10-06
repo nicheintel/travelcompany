@@ -31,6 +31,10 @@ function require_login(): array
         flash('info', 'Please sign in or create a free account to continue.');
         redirect('login.php?next=' . rawurlencode($here));
     }
+    if (!empty($u['must_change_password']) && basename((string) ($_SERVER['SCRIPT_NAME'] ?? '')) !== 'set-password.php') {
+        $here = ltrim(substr((string) ($_SERVER['REQUEST_URI'] ?? ''), strlen(base_path())), '/');
+        redirect('set-password.php?next=' . rawurlencode($here));
+    }
     return $u;
 }
 

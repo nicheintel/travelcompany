@@ -57,7 +57,7 @@ page_hero('Privacy', 'Privacy policy', 'Plain and simple: what we collect, why w
             <li><b>Your driver profile:</b> equipment and vehicle, home ZIP code, service area, availability, years of experience, company name, MC / DOT numbers, insurance company and expiry date, and anything you add in your notes.</li>
             <li><b>Job applications:</b> the openings you apply for, your name, phone, location, vehicles and whether you own, rent or lease them, any Walmart daily route city and daily rate you ask for, your message and, if you add one, your resume.</li>
             <li><b>Documents you upload:</b> such as your W-9, certificate of insurance, driver's license and vehicle registration.</li>
-            <li><b>Documents and details you email us:</b> during onboarding we ask drivers to reply by email with vehicle photos, a W-9, proof of insurance, a photo of their driver's license and Zelle payment details. These stay in our business mailbox.</li>
+            <li><b>Documents and details you email us:</b> during onboarding we ask drivers to reply by email with vehicle photos, a W-9, proof of insurance, a photo of their driver's license and Zelle payment details. These stay in our business mailbox, and our staff may add your documents to your LamazonLoads account (marked “Added by LamazonLoads staff”) so they're in one place.</li>
             <li><b>Availability updates:</b> the ZIP code, vehicle type, dimensions and availability you send to dispatch or support.</li>
             <li><b>Messages:</b> what you send through the contact form, the live chat or by email.</li>
             <li><b>Partner requests:</b> when a business asks for a call: the contact's name, company, job title, email, phone, location, delivery volume, best time to call and message.</li>
@@ -99,7 +99,7 @@ page_hero('Privacy', 'Privacy policy', 'Plain and simple: what we collect, why w
           <h2><span>4</span>Emails we send</h2>
           <p>All our emails come from <b><?= e($email) ?></b>, and you can reply to any of them.</p>
           <ul>
-            <li><b>Account emails:</b> confirming your email address, password reset links and “your password was changed” notices.</li>
+            <li><b>Account emails:</b> if our staff create your account for you, your sign-in details (you choose your own password the first time you sign in); confirming your email address, password reset links and “your password was changed” notices.</li>
             <li><b>Application emails:</b> right after you apply, our Dispatch Services email or our Walmart Daily Route welcome email, plus updates about your application.</li>
             <li><b>Replies:</b> answers to your chat messages, contact form or partner request.</li>
           </ul>

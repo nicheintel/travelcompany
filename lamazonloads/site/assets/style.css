@@ -271,7 +271,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--b
 .dash-nav a.active { background: var(--navy); color: #fff; }
 .dash-nav form { margin: 6px 0 0; padding-top: 6px; border-top: 1px solid var(--line); }
 .dash-main h1 { font-size: 1.9rem; }
-.dash-main > .card + .card { margin-top: 24px; }
+.dash-main > .card + .card, .dash-main > .card + .grid, .dash-main > .grid + .card { margin-top: 24px; }
 @media (max-width: 860px) { .dash { grid-template-columns: 1fr; } .dash-nav { position: static; } }
 .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 16px; margin-bottom: 24px; }
 .stat { padding: 20px; }
@@ -1472,3 +1472,22 @@ a.app-row:hover .ar-go { opacity: 1; transform: translateX(3px); }
   .legal-side .faq-nav a { flex: none; grid-template-columns: 18px auto; }
 }
 @media (max-width: 560px) { .glance-grid { grid-template-columns: minmax(0, 1fr); } .legal-table td:first-child { width: auto; } }
+
+/* =========================================================
+   Admin: add a member, edit their information, add documents they emailed in
+   ========================================================= */
+.admin-head { display: flex; align-items: center; justify-content: space-between; gap: 12px 16px; flex-wrap: wrap; margin-bottom: 14px; }
+.admin-head h1 { margin: 0; }
+.badge-staff { background: var(--blue-50); color: var(--blue); }
+.modal-wide { width: min(780px, 100%); }
+.modal-body h3 { font-size: 1rem; }
+.doc-add { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) auto; gap: 12px 14px; align-items: end; padding: 14px; margin-bottom: 16px; border: 1px dashed #BFD3F8; border-radius: 14px; background: #F7FAFF; }
+.doc-add label { font-size: .85rem; }
+.doc-add input[type=file] { padding: 8px; font-size: .85rem; }
+@media (max-width: 760px) { .doc-add { grid-template-columns: minmax(0, 1fr); } .doc-add .btn { width: 100%; } }
+.doc-staff { display: inline-flex; align-items: center; gap: 5px; margin-top: 4px; padding: 2px 9px 2px 7px; border-radius: 999px; background: var(--blue-50); color: var(--blue); font-size: .74rem; font-weight: 700; white-space: nowrap; }
+.doc-staff svg { width: 13px; height: 13px; }
+.onb-list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.onb-list li { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; background: #F3F5FA; color: var(--muted); font-size: .84rem; font-weight: 600; }
+.onb-list li svg { width: 15px; height: 15px; }
+.onb-list li.ok { background: #E8F7EE; color: #17804A; }

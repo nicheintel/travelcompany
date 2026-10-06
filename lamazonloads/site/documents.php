@@ -65,7 +65,7 @@ dash_open('documents');
       <tbody>
       <?php foreach ($docs as $d): ?>
         <tr>
-          <td><b><?= e(DOC_KINDS[$d['kind']] ?? $d['kind']) ?></b></td>
+          <td><b><?= e(DOC_KINDS[$d['kind']] ?? $d['kind']) ?></b><?php if ($d['added_by']): ?><br><span class="doc-staff"><?= icon('shield') ?> Added by LamazonLoads staff</span><?php endif; ?></td>
           <td><a href="<?= e(url('doc.php?id=' . (int) $d['id'])) ?>"><?= e($d['original_name']) ?></a> <span class="muted">(<?= e(number_format($d['size'] / 1024, 0)) ?> KB)</span></td>
           <td><?= e(fmt_date($d['created_at'])) ?></td>
           <td>

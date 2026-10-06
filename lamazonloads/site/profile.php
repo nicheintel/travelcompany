@@ -3,42 +3,17 @@ declare(strict_types=1);
 require __DIR__ . '/includes/bootstrap.php';
 
 $u = require_verified();
-$fields = ['company_name' => 120, 'mc_number' => 20, 'dot_number' => 20, 'equipment' => 30, 'vehicle' => 120, 'home_zip' => 10,
-    'service_radius' => 40, 'availability' => 30, 'years_experience' => 10, 'insurance_provider' => 120, 'insurance_expires' => 10, 'about' => 2000];
-$p = db_one('SELECT * FROM driver_profiles WHERE user_id = ?', [$u['id']]) ?? array_fill_keys(array_keys($fields), '');
+$p = profile_row((int) $u['id']);
 $errors = [];
 
 if (is_post()) {
     csrf_check();
-    foreach ($fields as $k => $max) {
-        $p[$k] = post($k, $max);
-    }
-    if ($p['equipment'] !== '' && !isset(EQUIPMENT[$p['equipment']])) $errors[] = 'Please choose your equipment from the list.';
-    if ($p['availability'] !== '' && !isset(AVAILABILITY[$p['availability']])) $errors[] = 'Please choose your availability from the list.';
-    if ($p['home_zip'] !== '' && !preg_match('/^\d{5}(-\d{4})?$/', $p['home_zip'])) $errors[] = 'Please enter a 5-digit ZIP code.';
-    if ($p['mc_number'] !== '' && !preg_match('/^(MC-?)?\d{1,8}$/i', $p['mc_number'])) $errors[] = 'MC number should be digits only (e.g. 123456).';
-    if ($p['dot_number'] !== '' && !preg_match('/^\d{1,9}$/', $p['dot_number'])) $errors[] = 'USDOT number should be digits only.';
-    if ($p['insurance_expires'] !== '' && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $p['insurance_expires'])) $errors[] = 'Please pick a valid insurance expiry date.';
+    $errors = profile_from_post($p);
     if (!$errors) {
-        $vals = array_map(fn ($k) => $k === 'insurance_expires' && $p[$k] === '' ? null : $p[$k], array_keys($fields));
-        $cols = implode(', ', array_keys($fields));
-        $marks = implode(', ', array_fill(0, count($fields), '?'));
-        $upd = implode(', ', array_map(fn ($k) => "$k = VALUES($k)", array_keys($fields)));
-        db_run("INSERT INTO driver_profiles (user_id, $cols, updated_at) VALUES (?, $marks, NOW()) ON DUPLICATE KEY UPDATE $upd, updated_at = NOW()",
-            array_merge([$u['id']], $vals));
-        auto_review_user((int) $u['id']);
+        profile_save((int) $u['id'], $p);
         flash('success', 'Driver profile saved.');
         redirect('profile.php');
     }
-}
-
-function sel(string $name, array $opts, string $cur): string
-{
-    $h = '<select id="' . $name . '" name="' . $name . '"><option value="">Choose…</option>';
-    foreach ($opts as $k => $l) {
-        $h .= '<option value="' . e($k) . '"' . ($cur === $k ? ' selected' : '') . '>' . e($l) . '</option>';
-    }
-    return $h . '</select>';
 }
 
 page_header('Driver profile');
@@ -51,11 +26,11 @@ dash_open('profile');
   <?= csrf_field() ?>
   <h3 class="mt-0">Equipment &amp; area</h3>
   <div class="form-grid">
-    <div><label for="equipment">Equipment</label><?= sel('equipment', EQUIPMENT, (string) $p['equipment']) ?></div>
+    <div><label for="equipment">Equipment</label><?= select_html('equipment', EQUIPMENT, (string) $p['equipment']) ?></div>
     <div><label for="vehicle">Year, make &amp; model <span class="opt">(optional)</span></label><input id="vehicle" name="vehicle" type="text" maxlength="120" placeholder="2021 Ford Transit 250 High Roof" value="<?= e($p['vehicle']) ?>"></div>
     <div><label for="home_zip">Home ZIP code</label><input id="home_zip" name="home_zip" type="text" inputmode="numeric" maxlength="10" placeholder="30301" value="<?= e($p['home_zip']) ?>"></div>
     <div><label for="service_radius">How far will you run? <span class="opt">(optional)</span></label><input id="service_radius" name="service_radius" type="text" maxlength="40" placeholder="Local, 300 mi, OTR…" value="<?= e($p['service_radius']) ?>"></div>
-    <div><label for="availability">Availability</label><?= sel('availability', AVAILABILITY, (string) $p['availability']) ?></div>
+    <div><label for="availability">Availability</label><?= select_html('availability', AVAILABILITY, (string) $p['availability']) ?></div>
     <div><label for="years_experience">Years of experience <span class="opt">(optional)</span></label><input id="years_experience" name="years_experience" type="text" maxlength="10" value="<?= e($p['years_experience']) ?>"></div>
   </div>
   <h3 class="mt">Business &amp; insurance</h3>

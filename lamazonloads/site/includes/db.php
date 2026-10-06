@@ -75,7 +75,10 @@ function migrate(PDO $pdo): void
     }
     add_missing_columns($pdo, 'users', ['verify_token' => 'CHAR(64) NULL', 'verify_expires' => 'DATETIME NULL', 'verify_sent_at' => 'DATETIME NULL',
         // Forgot password: one-time link (only a hash of it is stored)
-        'reset_token' => 'CHAR(64) NULL', 'reset_expires' => 'DATETIME NULL', 'reset_sent_at' => 'DATETIME NULL']);
+        'reset_token' => 'CHAR(64) NULL', 'reset_expires' => 'DATETIME NULL', 'reset_sent_at' => 'DATETIME NULL',
+        // Members added by staff: who added them, and a generated password they must replace at first sign-in
+        'must_change_password' => 'TINYINT(1) NOT NULL DEFAULT 0', 'added_by' => 'INT UNSIGNED NULL']);
+    add_missing_columns($pdo, 'documents', ['added_by' => 'INT UNSIGNED NULL']); // staff member who added it for the driver
     add_missing_columns($pdo, 'applications', [
         'resume_doc_id' => 'INT UNSIGNED NULL', 'reminded_at' => 'DATETIME NULL', 'auto_note' => "VARCHAR(255) NOT NULL DEFAULT ''",
         // Driver application form (vehicles, Walmart daily route) and the onboarding email that went out
