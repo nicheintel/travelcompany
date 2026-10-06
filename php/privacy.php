@@ -32,7 +32,7 @@ echo legal_page('Privacy policy', "This policy explains what personal informatio
         <tr><td>Hotels, via our hotel supplier LiteAPI</td><td>To search rates and book your room (guest names and contact details).</td></tr>
         <tr><td>PayPal (or Stripe)</td><td>To process your payment on their secure pages.</td></tr>
         <tr><td>Hostinger</td><td>Hosts this website, its database and our email.</td></tr>
-        <tr><td>Unsplash</td><td>Delivers some of the website\'s photos; your browser connects to it directly, which shares your IP address with it.</td></tr>
+        <tr><td>Our hotel supplier\'s photo servers</td><td>Hotel photos in search results load from there; your browser connects to them directly, which shares your IP address with them.</td></tr>
         </table>
         <p>We may also share information when the law requires it, or to protect our customers and business from fraud. Airlines and hotels use your information under their own privacy policies.</p>'],
     'abroad' => ['International transfers', '<p>Our suppliers and your airlines and hotels may be located in other countries, including outside the Philippines and the European Union. We only share what\'s needed for your trip, and we use established providers that protect personal information.</p>'],

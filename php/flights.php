@@ -31,8 +31,9 @@ $description = 'Compare live fares from airlines worldwide and book with help fr
 $title = $s ? t('{from} to {to} flights', ['from' => $s['from']['city'], 'to' => $s['to']['city']]) : 'Cheap flights';
 require __DIR__ . '/includes/header.php';
 ?>
-<section class="bg-gradient-to-br from-brand-900 to-brand-700 pb-8 pt-8">
-  <div class="mx-auto max-w-7xl px-4 sm:px-6">
+<section class="relative overflow-hidden bg-gradient-to-br from-brand-900 to-brand-700 pb-10 pt-10">
+  <?= photo_backdrop('flights', 'bg-gradient-to-r from-brand-950/85 via-brand-900/60 to-brand-900/25') ?>
+  <div class="relative mx-auto max-w-7xl px-4 sm:px-6">
     <div class="mb-5 text-white">
       <?php if ($s): ?>
         <h1 class="flex flex-wrap items-center gap-3 text-2xl font-bold sm:text-3xl"><?= e($s['from']['city']) ?> <?= icon('plane', 20, 'rotate-45 text-accent-400') ?> <?= e($s['to']['city']) ?></h1>

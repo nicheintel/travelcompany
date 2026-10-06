@@ -85,18 +85,22 @@ require __DIR__ . '/includes/header.php';
 <section class="mx-auto max-w-7xl px-4 py-14 sm:px-6">
   <div class="grid gap-4 md:grid-cols-3" data-reveal-stagger>
     <?php foreach ([
-        ['packages.php', 'from-accent-400 to-accent-600', 'package', t('Packages'), t('Flight + Hotel'), t('Ready-made trips at one price per person.'), t('See promo packages →')],
+        ['packages.php', 'from-accent-500 to-accent-700', 'package', t('Packages'), t('Flight + Hotel'), t('Ready-made trips at one price per person.'), t('See promo packages →')],
         ['flights.php', 'from-sky-500 to-brand-700', 'plane', t('Flights'), t('Compare airlines'), t('Real fares from airlines worldwide.'), t('Search flights →')],
         $me
             ? ['account.php', 'from-emerald-500 to-teal-700', 'user', t('Your account'), t('Hi, {name}!', ['name' => explode(' ', $me['name'])[0]]), $memberPct > 0 ? t('Your {pct}% member discount is applied automatically on flights and hotels.', ['pct' => $memberPct]) : t('Your trips, confirmations and tickets in one place.'), t('My trips →')]
             : ['register.php', 'from-emerald-500 to-teal-700', 'user', t('Members'), $memberPct > 0 ? t('Extra {pct}% off', ['pct' => $memberPct]) : t('Save your trips'), $memberPct > 0 ? t('Free account, member-only prices.') : t('Free account, faster booking.'), t('Create free account →')],
-    ] as [$href, $grad, $ic, $kicker, $heading, $text, $cta]): ?>
-      <a href="<?= e(url($href)) ?>" class="group relative overflow-hidden rounded-2xl bg-gradient-to-br <?= $grad ?> p-6 text-white shadow-lg transition hover:-translate-y-1 hover:shadow-xl">
+    ] as $tileNo => [$href, $grad, $ic, $kicker, $heading, $text, $cta]): ?>
+      <a href="<?= e(url($href)) ?>" class="group relative isolate overflow-hidden rounded-2xl bg-gradient-to-br <?= $grad ?> p-6 text-white shadow-lg transition hover:-translate-y-1 hover:shadow-xl">
+        <?= photo_fill(['tile-packages', 'tile-flights', 'tile-members'][$tileNo]) ?>
+        <div class="absolute inset-0 bg-gradient-to-br <?= $grad ?> opacity-80"></div>
         <?= icon($ic, 120, 'absolute -bottom-4 -right-4 text-white/20 transition duration-500 group-hover:-rotate-6 group-hover:scale-110') ?>
-        <p class="text-sm font-semibold uppercase tracking-wider text-white/80"><?= e($kicker) ?></p>
-        <h2 class="mt-2 text-2xl font-bold"><?= e($heading) ?></h2>
-        <p class="mt-1 text-white/90"><?= e($text) ?></p>
-        <span class="mt-4 inline-block font-semibold underline-offset-4 group-hover:underline"><?= e($cta) ?></span>
+        <div class="relative">
+          <p class="text-sm font-semibold uppercase tracking-wider text-white/80"><?= e($kicker) ?></p>
+          <h2 class="mt-2 text-2xl font-bold drop-shadow-sm"><?= e($heading) ?></h2>
+          <p class="mt-1 text-white/90"><?= e($text) ?></p>
+          <span class="mt-4 inline-block font-semibold underline-offset-4 group-hover:underline"><?= e($cta) ?></span>
+        </div>
       </a>
     <?php endforeach; ?>
   </div>
@@ -113,7 +117,7 @@ require __DIR__ . '/includes/header.php';
   <div class="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6" data-reveal-stagger>
     <?php foreach (POPULAR_DESTINATIONS as [$city, $country, $code, $grad, $unsplash]): [$photo, $isDefault] = destination_photo($code, $unsplash); ?>
       <a href="<?= e(url('flights.php', ['to' => $code])) ?>" class="group relative flex aspect-[3/4] flex-col justify-end overflow-hidden rounded-2xl bg-gradient-to-br <?= $grad ?> p-4 text-white shadow-md transition hover:-translate-y-1 hover:shadow-xl">
-        <img src="<?= e($photo) ?>" alt="<?= e($city) ?>" loading="lazy"<?= $isDefault ? ' referrerpolicy="no-referrer" data-fallback' : '' ?> class="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-105"><span class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" data-photo-shade></span>
+        <picture><?php if ($isDefault): ?><source type="image/avif" srcset="<?= e(asset('photos/dest-' . strtolower($code) . '.avif')) ?>"><?php endif; ?><img src="<?= e($photo) ?>" alt="<?= e($city) ?>" loading="lazy" decoding="async" class="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-105"></picture><span class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent"></span>
         <span class="absolute right-3 top-3 rounded-md bg-black/20 px-2 py-0.5 font-mono text-xs font-semibold backdrop-blur"><?= $code ?></span>
         <p class="relative text-xs font-medium text-white/80"><?= e($country) ?></p>
         <p class="relative text-lg font-bold"><?= e($city) ?></p>

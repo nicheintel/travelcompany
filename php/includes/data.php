@@ -33,7 +33,6 @@ function distance_km(array $a, array $b): float
  * Default photos are free-to-use Unsplash photos (unsplash.com/license); a photo uploaded on
  * Admin → Packages replaces them.
  */
-const UNSPLASH = 'https://images.unsplash.com/photo-%s?auto=format&fit=crop&w=600&h=800&q=70';
 const POPULAR_DESTINATIONS = [
     ['Paris', 'France', 'CDG', 'from-rose-400 to-purple-700', '1502602898657-3e91760cbb34'],
     ['Tokyo', 'Japan', 'NRT', 'from-fuchsia-500 to-red-600', '1540959733332-eab4deabeeaf'],
@@ -43,11 +42,11 @@ const POPULAR_DESTINATIONS = [
     ['London', 'United Kingdom', 'LHR', 'from-slate-400 to-indigo-800', '1513635269975-59663e0ac1ad'],
 ];
 
-/** Uploaded photo for a destination card, else the default one. */
+/** Uploaded photo for a destination card, else the default one (Unsplash photo $unsplashId, stored in assets/photos/). */
 function destination_photo(string $code, string $unsplashId): array
 {
     $own = site_image("dest:$code");
-    return $own ? [$own, false] : [sprintf(UNSPLASH, $unsplashId), true];
+    return $own ? [$own, false] : [asset('photos/dest-' . strtolower($code) . '.webp'), true];
 }
 
 // i18n-keys: 'Economy', 'Premium Economy', 'Business', 'First'

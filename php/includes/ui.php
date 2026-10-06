@@ -103,6 +103,23 @@ function travelers_field(int $adults, int $children, ?int $rooms = null, ?string
     return $html . '<button type="button" class="mt-4 w-full rounded-lg bg-brand-600 py-2 text-sm font-semibold text-white hover:bg-brand-700" data-travelers-done>' . e(t('Done')) . '</button></div></div>';
 }
 
+/** Background photo from assets/photos/ ($name-1080 and -1600, AVIF with WebP for older browsers) under a colour shade. */
+function photo_backdrop(string $name, string $shade): string
+{
+    $set = fn(string $ext) => asset("photos/$name-1080.$ext") . ' 1080w, ' . asset("photos/$name-1600.$ext") . ' 1600w';
+    return '<div class="pointer-events-none absolute inset-0" aria-hidden="true"><picture>'
+        . '<source type="image/avif" sizes="100vw" srcset="' . e($set('avif')) . '">'
+        . '<img src="' . e(asset("photos/$name-1600.webp")) . '" srcset="' . e($set('webp')) . '" sizes="100vw" alt="" decoding="async" fetchpriority="high" class="h-full w-full object-cover">'
+        . '</picture><div class="absolute inset-0 ' . $shade . '"></div></div>';
+}
+
+/** Small photo (assets/photos/$name.avif / .webp) filling a card; zooms a little on hover. */
+function photo_fill(string $name): string
+{
+    return '<picture><source type="image/avif" srcset="' . e(asset("photos/$name.avif")) . '">'
+        . '<img src="' . e(asset("photos/$name.webp")) . '" alt="" loading="lazy" decoding="async" class="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105"></picture>';
+}
+
 function search_button(string $label): string
 {
     $GLOBALS['search_wait'] = true; // footer.php adds the "finding prices" screen

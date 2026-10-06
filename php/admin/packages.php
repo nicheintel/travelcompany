@@ -223,7 +223,7 @@ $label = 'block text-sm font-medium text-slate-700';
         <?php foreach (POPULAR_DESTINATIONS as [$city, $country, $code, $grad, $unsplash]): [$shown, $isDefault] = destination_photo($code, $unsplash); $photo = $isDefault ? null : $shown; ?>
           <form method="post" enctype="multipart/form-data" class="overflow-hidden rounded-xl border border-slate-200 bg-white">
             <?= csrf_field() ?><input type="hidden" name="action" value="dest_photo"><input type="hidden" name="code" value="<?= e($code) ?>">
-            <div class="relative h-32 bg-gradient-to-br <?= $grad ?>"><img src="<?= e($shown) ?>" alt=""<?= $isDefault ? ' referrerpolicy="no-referrer" data-fallback' : '' ?> class="h-full w-full object-cover">
+            <div class="relative h-32 bg-gradient-to-br <?= $grad ?>"><img src="<?= e($shown) ?>" alt="" loading="lazy" class="h-full w-full object-cover">
               <span class="absolute bottom-2 left-3 font-bold text-white drop-shadow"><?= e($city) ?></span>
               <span class="absolute right-2 top-2 rounded bg-black/50 px-2 py-0.5 text-xs font-semibold text-white"><?= $isDefault ? 'Default photo' : 'Your photo' ?></span></div>
             <div class="space-y-2 p-4">

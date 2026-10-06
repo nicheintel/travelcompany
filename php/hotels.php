@@ -10,8 +10,9 @@ $description = 'Find hotels worldwide at live rates and book them with help from
 $title = $s ? t('Hotels in {city}', ['city' => $s['city']['city']]) : 'Hotels';
 require __DIR__ . '/includes/header.php';
 ?>
-<section class="bg-gradient-to-br from-teal-700 via-brand-800 to-brand-900 pb-8 pt-8">
-  <div class="mx-auto max-w-7xl px-4 sm:px-6">
+<section class="relative overflow-hidden bg-gradient-to-br from-teal-700 via-brand-800 to-brand-900 pb-10 pt-10">
+  <?= photo_backdrop('hotels', 'bg-gradient-to-r from-brand-950/85 via-brand-950/55 to-teal-900/20') ?>
+  <div class="relative mx-auto max-w-7xl px-4 sm:px-6">
     <div class="mb-5 text-white">
       <?php if ($s): ?>
         <h1 class="text-2xl font-bold sm:text-3xl"><?= e(t('Hotels in {city}', ['city' => $s['city']['city']])) ?></h1>
