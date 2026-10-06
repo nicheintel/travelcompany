@@ -190,7 +190,7 @@ echo admin_open('bookings');
             <form method="post" class="space-y-3"><?= csrf_field() ?><input type="hidden" name="action" value="paylink">
               <label class="block text-xs font-medium text-slate-500">Personal message (optional)
                 <textarea name="message" rows="2" maxlength="500" placeholder="e.g. Great talking to you! Here's the link to confirm your trip." class="<?= $input ?> mt-1"></textarea></label>
-              <button type="submit" class="w-full rounded-lg bg-accent-500 px-4 py-2 text-sm font-semibold text-white hover:bg-accent-600">Email payment link</button>
+              <button type="submit" class="w-full rounded-lg bg-accent-500 px-4 py-2 text-sm font-semibold text-brand-950 hover:bg-accent-600">Email payment link</button>
             </form>
           <?php else: ?>
             <p class="mt-1 text-sm text-slate-500">Connect PayPal on <a class="font-semibold text-brand-700 hover:underline" href="<?= e(url('admin/settings.php')) ?>">Site settings</a> to email customers a payment link.</p>
