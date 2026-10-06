@@ -6,3 +6,10 @@
     Require all granted
 </FilesMatch>
 Options -Indexes
+
+# Security policy, also set here because some hosts (Hostinger's "Force HTTPS")
+# add a weak Content-Security-Policy header that replaces the one from PHP.
+# Keep in step with the Content-Security-Policy in includes/bootstrap.php.
+<IfModule mod_headers.c>
+    Header always set Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self' https://www.paypal.com https://www.sandbox.paypal.com https://checkout.stripe.com; frame-ancestors 'none'"
+</IfModule>

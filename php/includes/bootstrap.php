@@ -80,6 +80,7 @@ if (PHP_SAPI !== 'cli') {
         header('Strict-Transport-Security: max-age=31536000');
     }
     // Content Security Policy: the browser only runs our own scripts, so injected code can't run.
+    // .htaccess sets the same policy too (hosts can override this one); keep both in step.
     // Forms may only post to this site; after posting, the payment page sends you to PayPal/Stripe.
     $formTargets = ["'self'", 'https://www.paypal.com', 'https://www.sandbox.paypal.com', 'https://checkout.stripe.com'];
     foreach (['paypal_api_base', 'stripe_api_base'] as $testBase) { // fake payment servers in automated tests
