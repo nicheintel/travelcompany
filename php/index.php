@@ -17,30 +17,25 @@ $steps = [
 $faq = array_slice(faq_items(), 0, 5);
 $tabs = [['flights', t('Flights'), 'plane'], ['packages', t('Flight + Hotel'), 'package'], ['hotels', t('Hotels'), 'bed']];
 $promos = active_packages();
-// Top banner slideshow: your uploaded destination photo (Admin → Packages), else the one in assets/hero/
+// Top banner slideshow: photos in assets/hero/ (AVIF, with WebP for older browsers); the caption links to fares there.
 $heroSlides = [];
-$destByCode = array_column(array_map(fn($d) => ['code' => $d[2], 'd' => $d], POPULAR_DESTINATIONS), 'd', 'code');
-foreach (['DPS', 'CDG', 'DXB', 'NRT', 'CUN', 'LHR'] as $code) {
-    [$city, $country] = $destByCode[$code];
-    $own = site_image("dest:$code");
-    $file = strtolower($code);
-    $heroSlides[] = [
-        'place' => "$city, $country",
-        'href' => url('flights.php', ['to' => $code]),
-        'src' => $own ?: asset("hero/$file-1600.webp"),
-        'srcset' => $own ? '' : asset("hero/$file-800.webp") . ' 800w, ' . asset("hero/$file-1600.webp") . ' 1600w',
-    ];
+foreach ([['maldives', 'Maldives', 'MLE'], ['santorini', 'Santorini, Greece', 'JTR'], ['krabi', 'Krabi, Thailand', 'KBV'],
+          ['bali', 'Bali, Indonesia', 'DPS'], ['halong', 'Ha Long Bay, Vietnam', 'HAN']] as [$file, $place, $code]) {
+    $set = fn(string $ext) => asset("hero/$file-1080.$ext") . ' 1080w, ' . asset("hero/$file-2000.$ext") . ' 2000w';
+    $heroSlides[] = ['place' => $place, 'href' => url('flights.php', ['to' => $code]), 'avif' => $set('avif'), 'webp' => $set('webp'), 'src' => asset("hero/$file-2000.webp")];
 }
 require __DIR__ . '/includes/header.php';
 ?>
 <section class="relative overflow-hidden bg-gradient-to-br from-brand-950 via-brand-800 to-brand-600" data-hero>
   <div class="pointer-events-none absolute inset-0" aria-hidden="true">
-    <?php foreach ($heroSlides as $i => $s): ?>
-      <img class="hero-slide<?= $i === 0 ? ' on' : '' ?>" alt="" decoding="async" sizes="100vw" data-place="<?= e($s['place']) ?>" data-href="<?= e($s['href']) ?>"
-        <?= $i === 0 ? 'src="' . e($s['src']) . '" srcset="' . e($s['srcset']) . '" fetchpriority="high"' : 'data-src="' . e($s['src']) . '" data-srcset="' . e($s['srcset']) . '"' ?>>
+    <?php foreach ($heroSlides as $i => $s): $lazy = $i > 0 ? 'data-' : ''; ?>
+      <picture class="hero-slide<?= $i === 0 ? ' on' : '' ?>" data-place="<?= e($s['place']) ?>" data-href="<?= e($s['href']) ?>">
+        <source type="image/avif" sizes="100vw" <?= $lazy ?>srcset="<?= e($s['avif']) ?>">
+        <img alt="" decoding="async" sizes="100vw" <?= $lazy ?>srcset="<?= e($s['webp']) ?>" <?= $lazy ?>src="<?= e($s['src']) ?>"<?= $i === 0 ? ' fetchpriority="high"' : '' ?>>
+      </picture>
     <?php endforeach; ?>
-    <div class="absolute inset-0 bg-gradient-to-r from-brand-950/90 via-brand-950/55 to-brand-950/10"></div>
-    <div class="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-brand-950/80 to-transparent"></div>
+    <div class="absolute inset-0 bg-gradient-to-r from-brand-950/85 via-brand-950/45 to-transparent"></div>
+    <div class="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-brand-950/75 to-transparent"></div>
     <svg class="absolute inset-0 h-full w-full opacity-30" viewBox="0 0 1200 600" preserveAspectRatio="xMidYMid slice">
       <path class="hero-route" d="M-50 430 C 250 330, 520 470, 760 290 S 1080 70, 1300 120" fill="none" stroke="white" stroke-width="2" stroke-dasharray="10 12"/>
     </svg>

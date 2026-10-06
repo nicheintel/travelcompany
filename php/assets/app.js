@@ -401,6 +401,7 @@
   }
 
   // Home page: destination photos change every few seconds; the caption links to that destination's fares.
+  // (Changes gently even for "reduce motion": a slow fade, without the zoom.)
   function initHero() {
     const hero = $("[data-hero]");
     if (!hero) return;
@@ -409,7 +410,7 @@
     const cap = $("[data-hero-caption]", hero);
     if (slides.length < 2) return;
     let cur = 0, timer = 0;
-    const ready = (img) => img.complete && img.naturalWidth > 0;
+    const ready = (pic) => { const img = $("img", pic); return img.complete && img.naturalWidth > 0; };
     const show = (i) => {
       if (i === cur || !ready(slides[i])) return;
       slides[cur].classList.remove("on");
@@ -419,14 +420,13 @@
       $("[data-hero-place]", cap).textContent = slides[i].dataset.place;
       cur = i;
     };
-    const next = () => show((cur + 1) % slides.length);
-    const start = () => { clearInterval(timer); if (!calm) timer = setInterval(() => { if (!document.hidden) next(); }, 6500); };
+    const start = () => { clearInterval(timer); timer = setInterval(() => { if (!document.hidden) show((cur + 1) % slides.length); }, calm ? 9000 : 6500); };
     dots.forEach((d, n) => d.addEventListener("click", () => { show(n); start(); }));
     // The other photos download after the page has loaded, so the first view stays fast.
-    const load = () => slides.slice(1).forEach((img) => {
-      if (img.dataset.srcset) img.srcset = img.dataset.srcset;
-      img.src = img.dataset.src;
-    });
+    const load = () => slides.slice(1).forEach((pic) => $$("[data-srcset]", pic).forEach((el) => {
+      el.srcset = el.dataset.srcset;
+      if (el.dataset.src) el.src = el.dataset.src;
+    }));
     if (document.readyState === "complete") load();
     else window.addEventListener("load", load);
     start();
