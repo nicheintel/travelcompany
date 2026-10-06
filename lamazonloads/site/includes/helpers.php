@@ -124,6 +124,20 @@ const EQUIPMENT = [
     'other'     => 'Other qualified equipment',
 ];
 
+/** US numbers as (555) 123-4567 (a leading 1 / +1 is dropped); anything else is kept as typed. */
+function format_phone(string $phone): string
+{
+    $phone = trim($phone);
+    $d = (string) preg_replace('/\D+/', '', $phone);
+    if (strlen($d) === 11 && $d[0] === '1') {
+        $d = substr($d, 1);
+    }
+    if (strlen($d) === 10 && !(str_starts_with($phone, '+') && !str_starts_with($phone, '+1'))) {
+        return '(' . substr($d, 0, 3) . ') ' . substr($d, 3, 3) . '-' . substr($d, 6);
+    }
+    return $phone;
+}
+
 const ACCOUNT_TYPES = [
     'owner_operator' => 'Owner-operator',
     'driver'         => 'Driver (looking for routes or a truck to drive)',

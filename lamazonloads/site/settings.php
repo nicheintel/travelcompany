@@ -10,7 +10,7 @@ if (is_post()) {
     $action = $_POST['action'] ?? '';
     if ($action === 'details') {
         $name = post('name', 100);
-        $phone = post('phone', 25);
+        $phone = format_phone(post('phone', 25));
         $type = post('account_type', 30);
         if ($name === '') $errors[] = 'Please enter your name.';
         if (!preg_match('/^[0-9+()\-. ]{7,25}$/', $phone)) $errors[] = 'Please enter a valid phone number.';

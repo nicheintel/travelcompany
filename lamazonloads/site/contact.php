@@ -12,6 +12,7 @@ if (is_post()) {
     foreach ($val as $k => $_) {
         $val[$k] = post($k, $k === 'message' ? 4000 : 190);
     }
+    $val['phone'] = format_phone($val['phone']);
     if (post('website') !== '') { // hidden field: only bots fill it in
         redirect('contact.php?sent=1');
     }

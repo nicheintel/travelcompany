@@ -25,6 +25,7 @@ if (is_post()) {
     if ($val['name'] === '' || mb_strlen($val['name']) > 100) $errors[] = 'Please enter your full name.';
     if (!filter_var($val['email'], FILTER_VALIDATE_EMAIL)) $errors[] = 'Please enter a valid email address.';
     elseif (($problem = email_signup_problem($val['email'])) !== '') $errors[] = $problem;
+    $val['phone'] = format_phone($val['phone']);
     if (!preg_match('/^[0-9+()\-. ]{7,25}$/', $val['phone'])) $errors[] = 'Please enter a valid phone number.';
     if (!isset(ACCOUNT_TYPES[$val['account_type']])) $errors[] = 'Please choose what describes you best.';
     if (strlen($pass) < 8) $errors[] = 'Your password needs at least 8 characters.';

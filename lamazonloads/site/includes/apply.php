@@ -66,6 +66,7 @@ function apply_form_values(array $user): array
             'ownership_other' => 80, 'walmart_city' => 80, 'rate_requested' => 40, 'message' => 3000] as $k => $max) {
             $v[$k] = post($k, $max);
         }
+        $v['phone'] = format_phone($v['phone']);
         $v['vehicles'] = array_values(array_intersect(array_keys(APPLY_VEHICLES), array_map('strval', (array) ($_POST['vehicles'] ?? []))));
         $v['walmart'] = !empty($_POST['walmart']);
     }

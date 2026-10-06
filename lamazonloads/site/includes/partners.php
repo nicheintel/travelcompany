@@ -32,6 +32,7 @@ function partner_submit(array $in): array
         $f[$k] = mb_substr(trim((string) ($in[$k] ?? '')), 0, $max);
     }
     $f['email'] = strtolower($f['email']);
+    $f['phone'] = format_phone($f['phone']);
     $errors = [];
     if ($f['first_name'] === '' || $f['last_name'] === '') $errors[] = 'Please enter your first and last name.';
     if ($f['company'] === '') $errors[] = 'Please enter your company name.';

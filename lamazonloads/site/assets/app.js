@@ -250,6 +250,45 @@
     });
   });
 
+  // Phone boxes: format US numbers while typing, e.g. 5551234567 -> (555) 123-4567.
+  // Numbers starting with + (other countries) are left as typed.
+  var fmtPhone = function (d) {
+    if (d.length > 10 && d.charAt(0) === '1') d = d.slice(1);
+    d = d.slice(0, 10);
+    if (!d) return '';
+    if (d.length <= 3) return '(' + d;
+    if (d.length <= 6) return '(' + d.slice(0, 3) + ') ' + d.slice(3);
+    return '(' + d.slice(0, 3) + ') ' + d.slice(3, 6) + '-' + d.slice(6);
+  };
+  document.querySelectorAll('input[type=tel]').forEach(function (input) {
+    if (!input.placeholder) input.placeholder = '(555) 123-4567';
+    var last = input.value;
+    var apply = function (e) {
+      var v = input.value;
+      if (/^\s*\+/.test(v) && !/^\s*\+\s*1/.test(v)) { last = v; return; }
+      var caret = input.selectionStart === null ? v.length : input.selectionStart;
+      var before = v.slice(0, caret).replace(/\D/g, '').length; // digits before the cursor
+      var all = v.replace(/\D/g, '');
+      var deleting = e && e.inputType && e.inputType.indexOf('delete') === 0;
+      // Backspace on "(", ")", " " or "-" removes the digit before it instead of doing nothing
+      if (deleting && e.inputType === 'deleteContentBackward' && all === last.replace(/\D/g, '') && before > 0) {
+        all = all.slice(0, before - 1) + all.slice(before);
+        before--;
+      }
+      if (all.length > 10 && all.charAt(0) === '1' && v.replace(/\s/g, '').charAt(0) !== '(') before = Math.max(0, before - 1);
+      var out = fmtPhone(all);
+      last = out;
+      if (out === v) return;
+      input.value = out;
+      var pos = 0, seen = 0;
+      while (pos < out.length && seen < before) { if (/\d/.test(out.charAt(pos))) seen++; pos++; }
+      if (seen > 0) while (pos < out.length && /\D/.test(out.charAt(pos))) pos++; // hop over ") " and "-"
+      if (document.activeElement === input) input.setSelectionRange(pos, pos);
+    };
+    input.addEventListener('input', apply);
+    if (input.value) apply();
+  });
+
   // Ask before destructive actions.
   document.addEventListener('submit', function (ev) {
     var msg = ev.target.getAttribute('data-confirm');
