@@ -292,7 +292,7 @@ function solution_page(string $key): void
       <div class="dc-head"><h3><?= e($trTitle) ?></h3><span class="live"><?= e($trStatus) ?></span></div>
       <ol class="tracker">
         <?php foreach ($trSteps as $i => [$ic, $t, $d]): ?>
-          <li style="animation-delay:<?= 1 + $i * .7 ?>s"><span class="tr-ico"><?= icon($ic) ?></span><div><b><?= e($t) ?></b><small><?= e($d) ?></small></div></li>
+          <li style="animation-delay:<?= .35 + $i * .3 ?>s"><span class="tr-ico"><?= icon($ic) ?></span><div><b><?= e($t) ?></b><small><?= e($d) ?></small></div></li>
         <?php endforeach; ?>
       </ol>
       <div class="dc-foot"><span>LamazonLoads · <?= e($s['title']) ?></span><b style="color:var(--blue)">Live</b></div>

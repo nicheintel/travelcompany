@@ -22,7 +22,7 @@
     if (!('IntersectionObserver' in window)) { fn(el); return; }
     var io = new IntersectionObserver(function (entries) {
       entries.forEach(function (en) { if (en.isIntersecting) { io.unobserve(en.target); fn(en.target); } });
-    }, { rootMargin: margin || '0px 0px -40px 0px' });
+    }, { rootMargin: margin || '0px 0px 8% 0px' }); // start just before it scrolls into view
     io.observe(el);
   }
 
@@ -30,7 +30,7 @@
   document.querySelectorAll('.reveal').forEach(function (el) {
     var sibs = el.parentElement ? Array.prototype.filter.call(el.parentElement.children, function (c) { return c.classList.contains('reveal'); }) : [];
     var i = sibs.indexOf(el);
-    if (i > 0) el.style.transitionDelay = (i % 4) * 110 + 'ms';
+    if (i > 0) el.style.transitionDelay = (i % 4) * 60 + 'ms';
     whenVisible(el, function (t) { t.classList.add('in'); });
   });
 
@@ -288,6 +288,19 @@
     input.addEventListener('input', apply);
     if (input.value) apply();
   });
+
+  // Pause looping animations (map, road stripes, cursor…) while they are off screen, so scrolling stays smooth.
+  if ('IntersectionObserver' in window) {
+    var animIo = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        en.target.classList.toggle('anim-paused', !en.isIntersecting);
+        en.target.querySelectorAll('svg').forEach(function (svg) {
+          if (svg.pauseAnimations) { if (en.isIntersecting) svg.unpauseAnimations(); else svg.pauseAnimations(); }
+        });
+      });
+    }, { rootMargin: '100px 0px' });
+    document.querySelectorAll('.hero, .sol-grid, .code-card, .page-hero, .job-band, .site-footer, .auth-side').forEach(function (el) { animIo.observe(el); });
+  }
 
   // Ask before destructive actions.
   document.addEventListener('submit', function (ev) {

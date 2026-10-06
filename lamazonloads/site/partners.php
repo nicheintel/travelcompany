@@ -57,7 +57,7 @@ page_header('Partner with us', 'partners', 'Partner with LamazonLoads for last-m
           <?php foreach ($stops as [, , , , $d]): ?><path d="<?= $d ?>"/><?php endforeach; ?>
         </g>
         <?php foreach ($stops as $i => [$ic, $label, $x, $y]): ?>
-          <g class="pm-stop" style="animation-delay:<?= .6 + $i * .12 ?>s">
+          <g class="pm-stop" style="animation-delay:<?= .2 + $i * .06 ?>s">
             <circle class="pm-ring" cx="<?= $x ?>" cy="<?= $y ?>" r="25" style="animation-delay:<?= $i * .7 ?>s"/>
             <circle cx="<?= $x ?>" cy="<?= $y ?>" r="25" fill="#fff"/>
             <g color="#1E63E9"><?= map_icon($ic, $x, $y) ?></g>
