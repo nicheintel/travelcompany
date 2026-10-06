@@ -34,6 +34,17 @@ function icon(string $name, string $class = 'ic'): string
         'user'      => '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
         'trash'     => '<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>',
         'download'  => '<path d="M12 4v12M7 11l5 5 5-5"/><path d="M4 20h16"/>',
+        'package'   => '<path d="M12 2.5l8.5 4.5v10L12 21.5 3.5 17V7z"/><path d="M3.5 7L12 11.5 20.5 7M12 11.5v10M7.8 4.8l8.5 4.6"/>',
+        'medical'   => '<rect x="3" y="3" width="18" height="18" rx="4"/><path d="M12 8v8M8 12h8"/>',
+        'thermo'    => '<path d="M14 14.8V5a2 2 0 0 0-4 0v9.8a4 4 0 1 0 4 0z"/><path d="M12 9v7"/>',
+        'code'      => '<path d="M8 8l-4 4 4 4M16 8l4 4-4 4M14 5l-4 14"/>',
+        'building'  => '<rect x="4" y="3" width="16" height="18" rx="1.5"/><path d="M9 7h1M14 7h1M9 11h1M14 11h1M9 15h1M14 15h1M11 21v-3h2v3"/>',
+        'layers'    => '<path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/>',
+        'cart'      => '<circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2.5 3.5h3l2.4 11.2a1.5 1.5 0 0 0 1.5 1.2h8.3a1.5 1.5 0 0 0 1.5-1.2L21 7H6.2"/>',
+        'wrench'    => '<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3.5 17.5a1.8 1.8 0 0 0 2.5 2.5l5.8-5.8a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.4-.6-.6-2.4z"/>',
+        'leaf'      => '<path d="M5 19c0-8 5-13 15-14-1 10-6 15-14 15"/><path d="M5 19l7-7"/>',
+        'home'      => '<path d="M3 11l9-7 9 7"/><path d="M5 9.5V20h14V9.5"/><path d="M10 20v-5h4v5"/>',
+        'phone-call'=> '<path d="M5 3h4l2 5-2.5 1.5a11 11 0 0 0 6 6L16 13l5 2v4a2 2 0 0 1-2 2A17 17 0 0 1 3 5a2 2 0 0 1 2-2z"/><path d="M15 3a6 6 0 0 1 6 6M15 7a2 2 0 0 1 2 2"/>',
     ];
     return '<svg class="' . e($class) . '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
         . ($paths[$name] ?? '') . '</svg>';
@@ -61,6 +72,7 @@ function page_header(string $title, string $active = '', string $description = '
         'drivers' => ['drivers.php', 'Drive with us'],
         'careers' => ['careers.php', 'Careers'],
         'about' => ['about.php', 'About'],
+        'partners' => ['partners.php', 'Partners'],
         'contact' => ['contact.php', 'Contact'],
     ];
     ?><!doctype html>
@@ -94,8 +106,8 @@ function page_header(string $title, string $active = '', string $description = '
           <li><a href="<?= e(url($href)) ?>"<?= $active === $key ? ' class="active" aria-current="page"' : '' ?>><?= e($label) ?></a></li>
         <?php endforeach; ?>
       </ul>
-      <div class="nav-actions">
-        <?php if ((string) config('contact_phone') !== ''): ?><a class="nav-phone" href="<?= e(tel_href((string) config('contact_phone'))) ?>" aria-label="Call LamazonLoads"><?= icon('phone') ?><?= e(config('contact_phone')) ?></a><?php endif; ?>
+      <div class="nav-actions<?= $user ? ' signed-in' : '' ?>">
+        <?php if ((string) config('contact_phone') !== ''): ?><a class="nav-phone" href="<?= e(tel_href((string) config('contact_phone'))) ?>" aria-label="Call LamazonLoads"><?= icon('phone') ?><span class="nav-phone-num"><?= e(config('contact_phone')) ?></span></a><?php endif; ?>
         <?php if ($user): ?>
           <?php if ($user['is_admin']): ?><a class="btn btn-ghost btn-sm" href="<?= e(url('admin/')) ?>">Admin</a><?php endif; ?>
           <a class="btn btn-primary btn-sm" href="<?= e(url('account.php')) ?>"><?= icon('user') ?> My dashboard</a>
@@ -138,6 +150,7 @@ function page_footer(): void
         <li><a href="<?= e(url('about.php')) ?>">About us</a></li>
         <li><a href="<?= e(url('services.php')) ?>">Services</a></li>
         <li><a href="<?= e(url('careers.php')) ?>">Careers</a></li>
+        <li><a href="<?= e(url('partners.php')) ?>">Partner with us</a></li>
         <li><a href="<?= e(url('contact.php')) ?>">Contact</a></li>
       </ul>
     </div>
@@ -284,6 +297,7 @@ function admin_open(string $active): void
         'jobs' => ['admin/jobs.php', 'briefcase', 'Job posts', 0],
         'drivers' => ['admin/drivers.php', 'truck', 'Drivers & members', 0],
         'chats' => ['admin/chats.php', 'chat', 'Support chats', chat_unread_total()],
+        'partners' => ['admin/partners.php', 'handshake', 'Partner requests', (int) db_val("SELECT COUNT(*) FROM partner_requests WHERE status = 'new'")],
         'messages' => ['admin/messages.php', 'mail', 'Messages', $unread],
         'email' => ['admin/email.php', 'shield', 'Email check', 0],
     ];

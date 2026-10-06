@@ -16,6 +16,7 @@ require __DIR__ . '/mail.php';
 require __DIR__ . '/emailcheck.php';
 require __DIR__ . '/chat.php';
 require __DIR__ . '/jobs.php';
+require __DIR__ . '/partners.php';
 require __DIR__ . '/layout.php';
 
 if (PHP_SAPI !== 'cli') {

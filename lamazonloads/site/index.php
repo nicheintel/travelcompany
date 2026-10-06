@@ -118,6 +118,24 @@ page_header('', 'home');
   </div>
 </section>
 
+<section class="section-sm">
+  <div class="container">
+    <div class="biz-band reveal">
+      <div>
+        <span class="eyebrow">For businesses</span>
+        <h2>Need deliveries handled? Partner with LamazonLoads.</h2>
+        <p class="lead">Trusted couriers, our own developers and a support team that knows your account. Tell us what you deliver and we'll build the route around it.</p>
+        <a class="btn btn-primary btn-lg" href="<?= e(url('partners.php')) ?>#request-call">Request a call <?= icon('arrow') ?></a>
+      </div>
+      <div class="biz-list">
+        <a class="biz-item" href="<?= e(url('partners.php')) ?>#sol-last_mile"><span class="who-ico"><?= icon('package') ?></span>Last-Mile Delivery<?= icon('arrow', 'ic ic-go') ?></a>
+        <a class="biz-item" href="<?= e(url('partners.php')) ?>#sol-healthcare"><span class="who-ico"><?= icon('medical') ?></span>Healthcare Delivery Solutions<?= icon('arrow', 'ic ic-go') ?></a>
+        <a class="biz-item" href="<?= e(url('partners.php')) ?>#sol-dedicated"><span class="who-ico"><?= icon('layers') ?></span>Dedicated Fleet &amp; Driver Services<?= icon('arrow', 'ic ic-go') ?></a>
+      </div>
+    </div>
+  </div>
+</section>
+
 <section class="section section-white" id="faq">
   <div class="container narrow">
     <div class="section-head reveal"><span class="eyebrow">Questions</span><h2>Frequently asked</h2></div>

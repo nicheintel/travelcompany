@@ -192,3 +192,25 @@ CREATE TABLE IF NOT EXISTS saved_jobs (
   PRIMARY KEY (user_id, job_id),
   CONSTRAINT fk_saved_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- "Partner with us": businesses asking for a call (last mile, healthcare, dedicated fleet…)
+CREATE TABLE IF NOT EXISTS partner_requests (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  first_name VARCHAR(60) NOT NULL,
+  last_name VARCHAR(60) NOT NULL,
+  company VARCHAR(120) NOT NULL,
+  job_title VARCHAR(100) NOT NULL DEFAULT '',
+  email VARCHAR(190) NOT NULL,
+  phone VARCHAR(30) NOT NULL,
+  service VARCHAR(20) NOT NULL,
+  location VARCHAR(120) NOT NULL DEFAULT '',
+  volume VARCHAR(20) NOT NULL DEFAULT '',
+  best_time VARCHAR(20) NOT NULL DEFAULT '',
+  message TEXT NULL,
+  status VARCHAR(20) NOT NULL DEFAULT 'new',
+  admin_note TEXT NULL,
+  ip VARCHAR(45) NOT NULL DEFAULT '',
+  created_at DATETIME NOT NULL,
+  updated_at DATETIME NOT NULL,
+  KEY idx_partner_status (status, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

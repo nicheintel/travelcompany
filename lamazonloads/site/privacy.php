@@ -3,7 +3,7 @@ declare(strict_types=1);
 require __DIR__ . '/includes/bootstrap.php';
 
 $email = (string) config('contact_email');
-page_header('Privacy policy', '', 'How LamazonLoads handles your information: accounts, driver documents, job applications, contact messages and the live chat.');
+page_header('Privacy policy', '', 'How LamazonLoads handles your information: accounts, driver documents, job applications, contact messages, partner requests and the live chat.');
 page_hero('Privacy', 'Privacy policy', 'Plain and simple: what we collect, why, and what we do with it.');
 ?>
 <section class="section">
@@ -18,6 +18,7 @@ page_hero('Privacy', 'Privacy policy', 'Plain and simple: what we collect, why, 
         <li><b>Your documents:</b> files you upload, such as your W-9, insurance certificate and driver's license.</li>
         <li><b>Your applications:</b> the openings you apply for and the message you send with them.</li>
         <li><b>Contact form:</b> your name, email, phone (optional) and message.</li>
+        <li><b>Partner requests:</b> when a business asks for a call, the contact's name, company, job title, email, phone and the details shared about their deliveries.</li>
         <li><b>Live chat:</b> see "Live chat" below.</li>
       </ul>
 
