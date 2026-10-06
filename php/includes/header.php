@@ -10,6 +10,8 @@ $pkHere = current_path_with_query();
 $pkLang = current_lang();
 $pkCur = current_currency();
 $pkFxOn = (bool) fx_rates();
+// Admin pages always stay in English and US dollars, so the language/currency menu isn't shown there.
+$pkShowPrefs = !str_contains(str_replace('\\', '/', (string) ($_SERVER['SCRIPT_NAME'] ?? '')), '/admin/');
 $initials = $user ? implode('', array_map(fn($p) => mb_strtoupper(mb_substr($p, 0, 1)), array_slice(preg_split('/\s+/', trim($user['name'])), 0, 2))) : '';
 $flashMessage = take_flash();
 ?><!doctype html>
@@ -56,6 +58,7 @@ $flashMessage = take_flash();
       <?php endforeach; ?>
     </nav>
     <div class="hidden items-center gap-2 md:flex">
+      <?php if ($pkShowPrefs): ?>
       <div class="relative" data-menu>
         <button type="button" aria-expanded="false" aria-haspopup="menu" aria-label="<?= e(t('Language and currency')) ?>" class="flex items-center gap-2 rounded-full px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100" data-menu-toggle data-prefs-toggle>
           <?= lang_flag($pkLang) ?><span><?= e($pkCur === 'USD' ? '$ USD' : CURRENCIES[$pkCur][0]) ?></span>
@@ -86,6 +89,7 @@ $flashMessage = take_flash();
           <p class="mt-3 border-t border-slate-100 pt-3 text-xs text-slate-500"><?= e(t('You always pay in US dollars. Other currencies are estimates using today\'s exchange rate.')) ?></p>
         </div>
       </div>
+      <?php endif; ?>
       <?php if ($user): ?>
         <div class="relative" data-menu>
           <button type="button" aria-expanded="false" aria-haspopup="menu" class="flex items-center gap-2 rounded-full py-1 pl-1 pr-3 hover:bg-slate-100" data-menu-toggle>
@@ -115,6 +119,7 @@ $flashMessage = take_flash();
     <button type="button" class="rounded-lg p-2 text-slate-700 hover:bg-slate-100 md:hidden" aria-label="<?= e(t('Open menu')) ?>" aria-expanded="false" data-mobile-toggle><?= icon('menu') ?></button>
   </div>
   <div class="hidden border-t border-slate-200 bg-white px-4 pb-4 md:hidden" data-mobile-menu>
+    <?php if ($pkShowPrefs): ?>
     <form method="get" action="<?= e(url('prefs.php')) ?>" class="grid grid-cols-[1fr_1fr_auto] items-end gap-2 border-b border-slate-100 py-3">
       <input type="hidden" name="next" value="<?= e($pkHere) ?>">
       <label class="text-xs font-semibold text-slate-500"><?= e(t('Language')) ?>
@@ -127,6 +132,7 @@ $flashMessage = take_flash();
         </select></label>
       <button type="submit" class="rounded-lg bg-slate-900 px-3 py-2 text-sm font-semibold text-white"><?= e(t('Apply')) ?></button>
     </form>
+    <?php endif; ?>
     <nav class="flex flex-col py-2">
       <?php foreach ($nav as [$href, $label, $ic]): ?>
         <a href="<?= e(url($href)) ?>" class="flex items-center gap-3 rounded-lg px-3 py-3 text-slate-700 hover:bg-slate-100"><?= icon($ic, 18) ?><?= $label ?></a>
