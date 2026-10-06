@@ -289,7 +289,7 @@ function solution_page(string $key): void
       </div>
     </div>
     <div class="tracker-card" aria-label="Example: <?= e($trTitle) ?>">
-      <div class="dc-head"><h3><?= e($trTitle) ?></h3><span class="live"><?= e($trStatus) ?></span></div>
+      <div class="dc-head"><h2><?= e($trTitle) ?></h2><span class="live"><?= e($trStatus) ?></span></div>
       <ol class="tracker">
         <?php foreach ($trSteps as $i => [$ic, $t, $d]): ?>
           <li style="animation-delay:<?= .35 + $i * .3 ?>s"><span class="tr-ico"><?= icon($ic) ?></span><div><b><?= e($t) ?></b><small><?= e($d) ?></small></div></li>

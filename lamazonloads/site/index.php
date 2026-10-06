@@ -24,7 +24,7 @@ page_header('', 'home');
       </div>
     </div>
     <div class="dispatch-card" aria-label="How LamazonLoads dispatch works">
-      <div class="dc-head"><h3>Your dispatch desk</h3><span class="live" data-live>Working for you</span></div>
+      <div class="dc-head"><h2>Your dispatch desk</h2><span class="live" data-live>Working for you</span></div>
       <div class="dc-bar" aria-hidden="true"><span></span></div>
       <ul class="dc-steps" data-dispatch>
         <li data-status="Finding freight…"><span class="ico"><?= icon('search', 'ic ic-main') ?><?= icon('check', 'ic ic-done') ?></span><div><b>We find the freight</b><small>Load boards, brokers &amp; contracts worked daily</small></div></li>

@@ -39,8 +39,8 @@ if (PHP_SAPI !== 'cli') {
     header('X-Frame-Options: DENY');
     // Content Security Policy: only our own scripts run, nothing can be loaded from or sent to other sites
     // (except Google Fonts), and no other site can show our pages in a frame.
-    header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
-        . "font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; form-action 'self'; "
+    header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; "
+        . "font-src 'self'; img-src 'self' data:; connect-src 'self'; form-action 'self'; "
         . "frame-ancestors 'none'; base-uri 'self'; object-src 'none'; upgrade-insecure-requests"); // same policy is also set in .htaccess
     header('Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()');
     header('Cross-Origin-Opener-Policy: same-origin');

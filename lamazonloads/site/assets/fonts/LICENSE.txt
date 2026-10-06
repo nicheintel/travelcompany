@@ -1,0 +1,4 @@
+Inter (https://rsms.me/inter/) and Montserrat (https://github.com/JulietaUla/Montserrat)
+are licensed under the SIL Open Font License 1.1: https://openfontlicense.org
+These are the Latin and Latin Extended subsets from Google Fonts, served from this site so pages
+don't wait on another server before showing text.

@@ -31,6 +31,7 @@ page_hero('Careers & opportunities', 'Open opportunities', 'Create a free accoun
       <?php endforeach; ?>
       <?php if ($me): ?><a href="<?= e(url('careers.php?saved=1')) ?>"<?= $savedOnly ? ' class="on"' : '' ?>>♥ Saved (<?= count($savedIds) ?>)</a><?php endif; ?>
     </div>
+    <h2 class="sr-only">Openings</h2>
     <div class="jc-grid">
       <?php foreach ($jobs as $j) echo job_card($j); ?>
       <?php if ($showNetwork) echo job_card(network_job()); ?>

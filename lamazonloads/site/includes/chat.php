@@ -303,7 +303,7 @@ function chat_bubble(): string
     $has = $thread && !((int) $thread['ended_at'] > 0 && (int) $thread['rated_at'] > 0);
     return '<div class="chat" data-chat data-endpoint="' . e(url('chat.php')) . '" data-csrf="' . e(csrf_token()) . '" data-member="' . (current_user() ? '1' : '0') . '"'
         . ' data-has="' . ($has ? '1' : '0') . '" data-help="' . e(url('#faq')) . '" data-admin="' . e(chat_admin_name()) . '">'
-        . '<button type="button" class="chat-fab" data-chat-open aria-expanded="false" aria-controls="chat-panel">'
+        . '<button type="button" class="chat-fab" data-chat-open aria-label="Chat with us" aria-expanded="false" aria-controls="chat-panel">'
         . icon('chat', 'ic') . '<span>Chat</span><b class="chat-dot" data-chat-dot hidden></b></button>'
         . '</div><script src="' . e(asset('chat.js')) . '" defer></script>';
 }

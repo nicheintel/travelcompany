@@ -60,7 +60,7 @@ function tel_href(string $phone): string
 
 function logo_html(string $class = ''): string
 {
-    return '<img class="logo ' . e($class) . '" src="' . e(asset('brand/logo.png')) . '" alt="LamazonLoads: Why wait? Let\'s freight." width="364" height="204">';
+    return '<img class="logo ' . e($class) . '" src="' . e(asset('brand/logo.webp')) . '" alt="LamazonLoads: Why wait? Let\'s freight." width="364" height="204">';
 }
 
 function page_header(string $title, string $active = '', string $description = '', string $bodyClass = ''): void
@@ -89,9 +89,8 @@ function page_header(string $title, string $active = '', string $description = '
 <meta property="og:type" content="website">
 <?php if (preg_match('/^[a-z0-9.\-:]+$/i', (string) ($_SERVER['HTTP_HOST'] ?? ''))): ?><meta property="og:image" content="<?= e('https://' . $_SERVER['HTTP_HOST'] . asset('brand/logo.png')) ?>"><?php endif; ?>
 <link rel="icon" href="<?= e(asset('favicon.png')) ?>" type="image/png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,600;0,700;0,800;0,900;1,800;1,900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="preload" href="<?= e(url('assets/fonts/inter-latin.woff2')) ?>" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="<?= e(url('assets/fonts/montserrat-italic-latin.woff2')) ?>" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="<?= e(asset('style.css')) ?>">
 <?php if (($pre = preload_photo()) !== null): [$preSet] = photo_set($pre); ?><link rel="preload" as="image" href="<?= e($preSet[0][0]) ?>" imagesrcset="<?= e(implode(', ', array_map(fn ($s) => $s[0] . ' ' . $s[1] . 'w', $preSet))) ?>" imagesizes="<?= e(BANNER_SIZES) ?>" fetchpriority="high">
 <?php endif; ?>

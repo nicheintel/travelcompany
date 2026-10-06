@@ -117,7 +117,7 @@ page_header('Partner with us', 'partners', 'Partner with LamazonLoads for last-m
             <p><?= e($sol['summary']) ?></p>
             <ul class="sol-list"><?php foreach ($sol['points'] as $pt): ?><li><?= icon('check') ?><span><?= e($pt) ?></span></li><?php endforeach; ?></ul>
             <div class="sol-for"><small>Ideal for</small><div class="tags"><?php foreach ($sol['for'] as $f): ?><span class="tag"><?= e($f) ?></span><?php endforeach; ?></div></div>
-            <a class="btn btn-primary btn-block" href="<?= e(url($sol['page'])) ?>" aria-label="Learn more about <?= e($sol['title']) ?>">Learn more <?= icon('arrow') ?></a>
+            <a class="btn btn-primary btn-block" href="<?= e(url($sol['page'])) ?>">Learn more<span class="sr-only"> about <?= e($sol['title']) ?></span> <?= icon('arrow') ?></a>
           </div>
         </article>
       <?php endforeach; ?>
