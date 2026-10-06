@@ -26,12 +26,12 @@ function deliver_email(string $to, array $mail): ?string
                 $from = (string) config('email_from') ?: config('site_name') . ' <onboarding@resend.dev>';
                 $res = http_json('POST', 'https://api.resend.com/emails', ['Authorization: Bearer ' . config('resend_api_key')], [
                     'from' => $from, 'to' => $to, 'subject' => $mail['subject'], 'text' => $mail['text'], 'html' => $mail['html'],
-                ], 20);
+                ] + (!empty($mail['reply_to']) && valid_email($mail['reply_to']) ? ['reply_to' => $mail['reply_to']] : []), 20);
                 return $res['status'] < 300 ? null : 'Resend error ' . $res['status'] . ': ' . ($res['json']['message'] ?? 'request failed');
             case 'smtp':
                 return smtp_send($to, $mail);
             default:
-                $entry = sprintf("[%s] To: %s\nSubject: %s\n%s\n\n", gmdate('c'), $to, $mail['subject'], $mail['text']);
+                $entry = sprintf("[%s] To: %s\n%sSubject: %s\n%s\n\n", gmdate('c'), $to, !empty($mail['reply_to']) ? "Reply-To: {$mail['reply_to']}\n" : '', $mail['subject'], $mail['text']);
                 // A .php file starting with exit, so it can't be read from the web even where .htaccess is ignored.
                 $file = dirname(__DIR__) . '/storage/emails.log.php';
                 clearstatcache(true, $file);
@@ -133,6 +133,7 @@ function smtp_message(string $from, string $to, array $mail): string
         'Subject: =?UTF-8?B?' . base64_encode(str_replace(["\r", "\n"], ' ', $mail['subject'])) . '?=',
         'Date: ' . date('r'),
         'Message-ID: <' . bin2hex(random_bytes(16)) . "@$domain>",
+        ...(!empty($mail['reply_to']) && valid_email($mail['reply_to']) ? ['Reply-To: <' . $mail['reply_to'] . '>'] : []),
         'MIME-Version: 1.0',
         "Content-Type: multipart/alternative; boundary=\"$boundary\"",
     ];

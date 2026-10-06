@@ -14,6 +14,7 @@ echo legal_page('Privacy policy', "This policy explains what personal informatio
         <li><strong>Booking details:</strong> each traveler\'s name, date of birth, gender and nationality as shown on their passport or ID; any frequent flyer number and baggage requests you give us; a contact name, email and phone number; and the trip you chose and its price. Airlines require these details to issue tickets.</li>
         <li><strong>Payment details:</strong> payments are made on PayPal\'s (or Stripe\'s) own secure pages. We receive confirmation that you paid and a payment reference — <strong>never your card number</strong>. If you pay by GCash, we keep the GCash reference number and amount you send so we can match your payment.</li>
         <li><strong>Messages:</strong> anything you send us by email, WhatsApp or phone, and notes our travel assistants add to your booking to help you.</li>
+        <li><strong>Chat messages:</strong> if you use the Chat button, we keep your messages and, if you\'re not signed in, the name and email you give us, so we can answer you, by email if you\'ve left the website. If you rate a chat, we keep the rating and comment.</li>
         <li><strong>Technical information:</strong> your IP address, used briefly to protect the site against password guessing and abuse, and one cookie that keeps you signed in (see our <a href="' . e(url('cookies.php')) . '">Cookie policy</a>). We don\'t use advertising or tracking tools.</li>
     </ul>'],
     'use' => ['How we use it', '<ul>
@@ -24,6 +25,7 @@ echo legal_page('Privacy policy', "This policy explains what personal informatio
         <li>To keep the website and your account secure, and to meet legal, tax and accounting obligations.</li>
     </ul><p>We do <strong>not</strong> sell your personal information, and we don\'t send marketing emails unless you ask us to.</p>'],
     'basis' => ['Why we\'re allowed to use it', '<p>We use your information because we need it to provide the bookings and account you asked for (performing our agreement with you), to meet legal obligations, and for our legitimate interest in keeping the service secure. Where the law requires your consent, we ask for it, and you can withdraw it at any time.</p>'],
+    'chat' => ['Live chat', '<p>Messages you send with the Chat button stay on our website and are only read by our travel assistants. They aren\'t shared with any other company and no outside chat service is used. If you\'re not signed in, your name and email are used only to reply to you. A cookie with a random number (<code>tc_chat</code>) remembers your chat on this browser; we only store a scrambled copy of it. Chats are deleted after 180 days without new messages, and with your account if it is deleted.</p>'],
     'share' => ['Who we share it with', '<p>Only with the companies needed to provide your trip and run this website:</p>
         <table><tr><th>Who</th><th>Why</th></tr>
         <tr><td>Airlines, via our flight suppliers (Duffel and LiteAPI)</td><td>To search fares and issue your tickets (traveler names, dates of birth, gender, nationality and contact details).</td></tr>

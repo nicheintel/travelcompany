@@ -81,6 +81,7 @@ if (is_post() && post('action') === 'gcash_qr') {
             save_setting('app_url', $site);
         }
     }
+    if (!config_fixed('chat_name')) save_setting('chat_name', mb_substr(trim(preg_replace('/\s+/', ' ', (string) ($_POST['chat_name'] ?? ''))), 0, 40));
     // GCash account customers send money to (a Philippine mobile number).
     if (!config_fixed('gcash_name')) save_setting('gcash_name', mb_substr(trim(preg_replace('/\s+/', ' ', (string) ($_POST['gcash_name'] ?? ''))), 0, 80));
     if (!config_fixed('gcash_number')) {
@@ -252,6 +253,14 @@ $fixedNote = '<p class="mt-1 text-xs text-amber-700">Set in config.local.php or 
         </div>
       <?php endforeach; ?>
     </div>
+  </section>
+
+  <section class="rounded-xl border border-slate-200 bg-white p-6">
+    <h2 class="text-lg font-semibold text-slate-900">Live chat</h2>
+    <p class="mt-1 text-sm text-slate-500">Customers chat with you using the Chat button on every page. Answer them on <a class="font-semibold text-brand-700 hover:underline" href="<?= e(url('admin/chats.php')) ?>">Support chats</a>.</p>
+    <div class="mt-5 sm:w-1/2"><label for="s_chat_name" class="block text-sm font-medium text-slate-700">Name shown in the chat</label>
+      <input id="s_chat_name" name="chat_name" maxlength="40" value="<?= e(is_post() ? (string) ($_POST['chat_name'] ?? '') : (string) config('chat_name')) ?>" placeholder="<?= e(chat_admin_name()) ?>" class="<?= $input ?> mt-1"<?= config_fixed('chat_name') ? ' disabled' : '' ?>>
+      <p class="mt-1 text-xs text-slate-500">e.g. "Angel is typing". Empty = your first name.</p></div>
   </section>
 
   <section class="rounded-xl border border-slate-200 bg-white p-6">

@@ -126,3 +126,48 @@ CREATE TABLE IF NOT EXISTS flight_offers (
   expires_at DATETIME     NOT NULL,
   INDEX flight_offers_expires (expires_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Live support chat: the Chat button on the website and Admin → Support chats.
+-- Times are Unix seconds. Signed-in customers are linked to their account (deleted with it);
+-- visitors are recognised by a random cookie, of which only a SHA-256 hash is stored.
+CREATE TABLE IF NOT EXISTS support_threads (
+  id                INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  account_type      VARCHAR(10)  NOT NULL,            -- 'member' or 'visitor'
+  user_id           INT UNSIGNED NULL,
+  visitor_hash      CHAR(64)     NOT NULL DEFAULT '',
+  name              VARCHAR(80)  NOT NULL,
+  email             VARCHAR(190) NOT NULL,
+  status            VARCHAR(10)  NOT NULL DEFAULT 'open',   -- 'open' or 'done'
+  created_at        INT UNSIGNED NOT NULL,
+  updated_at        INT UNSIGNED NOT NULL,
+  last_from         VARCHAR(10)  NOT NULL DEFAULT 'user',   -- 'user' or 'admin'
+  admin_unread      INT UNSIGNED NOT NULL DEFAULT 0,
+  user_unread       INT UNSIGNED NOT NULL DEFAULT 0,
+  user_seen_at      INT UNSIGNED NOT NULL DEFAULT 0,
+  admin_notified_at INT UNSIGNED NOT NULL DEFAULT 0,
+  user_notified_at  INT UNSIGNED NOT NULL DEFAULT 0,
+  page              VARCHAR(120) NOT NULL DEFAULT '',
+  user_typing_at    INT UNSIGNED NOT NULL DEFAULT 0,
+  admin_typing_at   INT UNSIGNED NOT NULL DEFAULT 0,
+  admin_read_id     INT UNSIGNED NOT NULL DEFAULT 0,      -- last message id each side has seen ("Seen")
+  user_read_id      INT UNSIGNED NOT NULL DEFAULT 0,
+  ended_at          INT UNSIGNED NOT NULL DEFAULT 0,
+  ended_by          VARCHAR(10)  NOT NULL DEFAULT '',
+  rating            TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  feedback          VARCHAR(500) NOT NULL DEFAULT '',
+  rated_at          INT UNSIGNED NOT NULL DEFAULT 0,
+  INDEX support_threads_user (user_id),
+  INDEX support_threads_visitor (visitor_hash),
+  INDEX support_threads_status (status, updated_at),
+  CONSTRAINT support_threads_user_fk FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS support_messages (
+  id         INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  thread_id  INT UNSIGNED NOT NULL,
+  sender     VARCHAR(10)  NOT NULL,                    -- 'user' or 'admin'
+  body       TEXT         NOT NULL,
+  created_at INT UNSIGNED NOT NULL,
+  INDEX support_messages_thread (thread_id, id),
+  CONSTRAINT support_messages_thread_fk FOREIGN KEY (thread_id) REFERENCES support_threads(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

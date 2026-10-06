@@ -40,6 +40,7 @@ $flashMessage = take_flash();
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="<?= e(asset('app.css')) ?>">
+  <link rel="stylesheet" href="<?= e(asset('chat.css')) ?>">
   <link rel="icon" href="<?= e(asset('favicon.svg')) ?>" type="image/svg+xml">
 </head>
 <body class="flex min-h-full flex-col font-sans antialiased">
