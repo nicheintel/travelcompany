@@ -19,6 +19,7 @@ require __DIR__ . '/jobs.php';
 require __DIR__ . '/partners.php';
 require __DIR__ . '/solutions.php';
 require __DIR__ . '/fleet.php';
+require __DIR__ . '/apply.php';
 require __DIR__ . '/layout.php';
 
 if (PHP_SAPI !== 'cli') {

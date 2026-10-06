@@ -150,6 +150,28 @@
     }
   });
 
+  // Application form: show the "Other" boxes and the Walmart cities only when needed.
+  // SUV / other vehicles only: we only have Walmart routes for them, so tick it for the driver.
+  document.querySelectorAll('[data-apply]').forEach(function (f) {
+    var show = function (name, on) { f.querySelectorAll('[data-show-if="' + name + '"]').forEach(function (el) { el.hidden = !on; }); };
+    var wasOnlySuv = null;
+    var update = function () {
+      var veh = Array.prototype.filter.call(f.querySelectorAll('[data-vehicle]'), function (i) { return i.checked; }).map(function (i) { return i.value; });
+      show('vehicle-other', veh.indexOf('other') !== -1);
+      var own = f.querySelector('[data-ownership]:checked');
+      show('ownership-other', !!own && own.value === 'other');
+      var onlySuv = veh.length > 0 && veh.every(function (v) { return v === 'suv' || v === 'other'; });
+      var note = f.querySelector('[data-suv-note]');
+      if (note) note.hidden = !onlySuv;
+      var wm = f.querySelector('[data-walmart]');
+      if (wm && onlySuv && wasOnlySuv === false && !wm.checked) wm.checked = true; // only when the driver changes vehicles
+      wasOnlySuv = onlySuv;
+      show('walmart', !!wm && wm.checked);
+    };
+    f.addEventListener('change', update);
+    update();
+  });
+
   // Ask before destructive actions.
   document.addEventListener('submit', function (ev) {
     var msg = ev.target.getAttribute('data-confirm');

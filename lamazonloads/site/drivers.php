@@ -3,8 +3,10 @@ declare(strict_types=1);
 require __DIR__ . '/includes/bootstrap.php';
 
 preload_photo('banner_drivers');
-page_header('Drive with us', 'drivers', 'Join the LamazonLoads driver network: owner-operators, cargo van, Sprinter and box truck drivers. See what you need for onboarding.');
+page_header('Drive with us', 'drivers', 'Join the LamazonLoads driver network: owner-operators, cargo van, Sprinter and box truck drivers. See open positions and Walmart daily routes.');
 page_hero('Drive with LamazonLoads', 'Join the network. <span style="color:var(--sky)">Stay loaded.</span>', 'Owner-operators, van drivers and box truck drivers: onboard once and get access to loads, daily routes and new openings.', 'banner_drivers', 'center 30%');
+$openJobs = (int) db_val("SELECT COUNT(*) FROM jobs WHERE status = 'open'") + (network_enabled() ? 1 : 0);
+$wmCities = walmart_cities();
 ?>
 <section class="section">
   <div class="container story level">
@@ -23,24 +25,22 @@ page_hero('Drive with LamazonLoads', 'Join the network. <span style="color:var(-
         <?php endforeach; ?>
       </div>
     </div>
-    <div class="card pad reveal level-card">
-      <h3>What you'll need for onboarding</h3>
-      <p class="muted">Have these ready. You can upload them securely from your dashboard after you sign up.</p>
-      <ul class="checklist">
-        <?php foreach ([
-            "Valid driver's license",
-            'Qualified vehicle: cargo van, Sprinter, box truck or other',
-            'Vehicle registration',
-            'Certificate of insurance (commercial auto / cargo)',
-            'Signed W-9',
-            'MC / DOT authority (owner-operators, if you have it)',
-            'Home ZIP code and your availability',
-            'Smartphone for rate confirmations and updates',
-        ] as $item): ?>
-          <li><span class="tick"><?= icon('check') ?></span><span><?= e($item) ?></span></li>
-        <?php endforeach; ?>
-      </ul>
-      <a class="btn btn-accent btn-block level-bottom" href="<?= e(url(current_user() ? 'profile.php' : 'register.php')) ?>"><?= current_user() ? 'Complete my onboarding' : 'Start onboarding' ?> <?= icon('arrow') ?></a>
+    <div class="card pad reveal level-card opp-card">
+      <span class="eyebrow">Open opportunities</span>
+      <h3>Find your next job on our Careers page</h3>
+      <p class="muted">Browse every open position, then tap <b>View &amp; apply</b>. Applying takes about two minutes: your name, phone, location and vehicle.</p>
+      <div class="opp-stats">
+        <div><b><?= $openJobs ?></b><small>open position<?= $openJobs === 1 ? '' : 's' ?></small></div>
+        <div><b><?= count($wmCities) ?></b><small>Walmart route cit<?= count($wmCities) === 1 ? 'y' : 'ies' ?></small></div>
+      </div>
+      <?php if ($wmCities): ?>
+        <div class="opp-walmart">
+          <p><?= icon('route') ?><b>Walmart daily routes</b><span class="opp-wm-sub"><?= e(walmart_headline()) ?></span></p>
+          <div class="tags"><?php foreach (array_slice($wmCities, 0, 8) as $c): ?><span class="tag"><?= icon('pin') ?><?= e($c) ?></span><?php endforeach; ?>
+            <?php if (count($wmCities) > 8): ?><span class="tag tag-solid">+<?= count($wmCities) - 8 ?> more</span><?php endif; ?></div>
+        </div>
+      <?php endif; ?>
+      <a class="btn btn-accent btn-block level-bottom" href="<?= e(url('careers.php')) ?>">See open positions <?= icon('arrow') ?></a>
     </div>
   </div>
 </section>

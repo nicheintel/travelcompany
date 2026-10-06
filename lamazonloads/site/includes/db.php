@@ -76,7 +76,25 @@ function migrate(PDO $pdo): void
     add_missing_columns($pdo, 'users', ['verify_token' => 'CHAR(64) NULL', 'verify_expires' => 'DATETIME NULL', 'verify_sent_at' => 'DATETIME NULL']);
     add_missing_columns($pdo, 'applications', [
         'resume_doc_id' => 'INT UNSIGNED NULL', 'reminded_at' => 'DATETIME NULL', 'auto_note' => "VARCHAR(255) NOT NULL DEFAULT ''",
+        // Driver application form (vehicles, Walmart daily route) and the onboarding email that went out
+        'first_name' => "VARCHAR(60) NOT NULL DEFAULT ''", 'last_name' => "VARCHAR(60) NOT NULL DEFAULT ''",
+        'phone' => "VARCHAR(30) NOT NULL DEFAULT ''", 'location' => "VARCHAR(120) NOT NULL DEFAULT ''",
+        'vehicles' => "VARCHAR(120) NOT NULL DEFAULT ''", 'vehicle_other' => "VARCHAR(80) NOT NULL DEFAULT ''",
+        'ownership' => "VARCHAR(20) NOT NULL DEFAULT ''", 'ownership_other' => "VARCHAR(80) NOT NULL DEFAULT ''",
+        'walmart' => 'TINYINT(1) NOT NULL DEFAULT 0', 'walmart_city' => "VARCHAR(80) NOT NULL DEFAULT ''",
+        'rate_requested' => "VARCHAR(40) NOT NULL DEFAULT ''",
+        'email_sent' => "VARCHAR(20) NOT NULL DEFAULT ''", 'email_sent_at' => 'DATETIME NULL',
     ]);
+    // Walmart daily route program: starting cities
+    if (!$pdo->query("SELECT v FROM meta WHERE k = 'walmart_seeded'")->fetchColumn()) {
+        $st = $pdo->prepare('INSERT INTO walmart_routes (city, active, created_at) VALUES (?, 1, NOW())');
+        foreach (['Apopka, FL', 'Oldsmar, FL', 'Novi, MI', 'California, MD', 'Huntersville, NC', 'Marietta, OH', 'Huntington, WV',
+            'Kendall, FL', 'Fort Wayne, IN', 'Jacksonville, NC', 'Grand Rapids, MI', 'Morgantown, WV'] as $city) {
+            $st->execute([$city]);
+        }
+        $pdo->exec("INSERT INTO meta (k, v) VALUES ('walmart_seeded', '1'), ('walmart_start', 'November'), ('walmart_rate', '$275 per day'), ('walmart_on', '1')
+            ON DUPLICATE KEY UPDATE v = v");
+    }
     $seeded = $pdo->query("SELECT v FROM meta WHERE k = 'seeded'")->fetchColumn();
     if (!$seeded) {
         seed_jobs($pdo);

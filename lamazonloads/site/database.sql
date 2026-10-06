@@ -225,3 +225,12 @@ CREATE TABLE IF NOT EXISTS site_photos (
   created_at DATETIME NOT NULL,
   KEY idx_photo_slot (slot, sort)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Walmart daily route program: cities drivers can choose when they apply (Admin -> Walmart routes)
+CREATE TABLE IF NOT EXISTS walmart_routes (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  city VARCHAR(80) NOT NULL,
+  active TINYINT(1) NOT NULL DEFAULT 1,
+  created_at DATETIME NOT NULL,
+  KEY idx_walmart_active (active, city)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

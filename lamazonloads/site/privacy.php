@@ -16,7 +16,7 @@ page_hero('Privacy', 'Privacy policy', 'Plain and simple: what we collect, why, 
         <li><b>Your account:</b> name, email, phone number, what describes you (owner-operator, driver, dispatcher…) and a scrambled copy of your password (we can't read it).</li>
         <li><b>Your driver profile:</b> equipment, vehicle, home ZIP code, availability, MC / DOT numbers, insurance company and expiry date, and anything you add in the notes.</li>
         <li><b>Your documents:</b> files you upload, such as your W-9, insurance certificate and driver's license.</li>
-        <li><b>Your applications:</b> the openings you apply for and the message you send with them.</li>
+        <li><b>Your applications:</b> the openings you apply for, your name, phone number, location, vehicle and whether you own, rent or lease it, any Walmart daily route city and pay rate you choose, and the message you send.</li>
         <li><b>Contact form:</b> your name, email, phone (optional) and message.</li>
         <li><b>Partner requests:</b> when a business asks for a call, the contact's name, company, job title, email, phone and the details shared about their deliveries.</li>
         <li><b>Live chat:</b> see "Live chat" below.</li>

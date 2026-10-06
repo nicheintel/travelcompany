@@ -93,7 +93,7 @@ function onboarding_missing(int $userId): array
     return $out;
 }
 
-/** Right after someone applies: alert staff, welcome the applicant, maybe move to In review. */
+/** Right after someone applies: send the Dispatch or Walmart onboarding email, alert staff, maybe move to In review. */
 function on_new_application(int $appId): void
 {
     $a = db_one('SELECT a.*, u.name, u.email, u.phone FROM applications a JOIN users u ON u.id = a.user_id WHERE a.id = ?', [$appId]);
@@ -104,28 +104,23 @@ function on_new_application(int $appId): void
     if (!$job) {
         return;
     }
+    // The onboarding email (Dispatch or Walmart) replaces the old welcome email
+    $sent = send_onboarding_email($appId);
+    $a = db_one('SELECT a.*, u.name, u.email, u.phone AS account_phone FROM applications a JOIN users u ON u.id = a.user_id WHERE a.id = ?', [$appId]);
     // Application updates: email staff about each new application
     if ((int) $job['notify_on']) {
         $to = emails_in((string) $job['notify_emails']) ?: emails_in(support_email());
-        $p = db_one('SELECT * FROM driver_profiles WHERE user_id = ?', [$a['user_id']]);
-        $lines = [$a['name'] . ' applied for ' . $job['title'] . '.',
-            'Email: ' . $a['email'] . ' · Phone: ' . $a['phone']
-            . ($p && $p['equipment'] !== '' ? ' · Equipment: ' . (EQUIPMENT[$p['equipment']] ?? $p['equipment']) : '')
-            . ($p && $p['home_zip'] !== '' ? ' · ZIP: ' . $p['home_zip'] : '')];
+        $name = trim($a['first_name'] . ' ' . $a['last_name']) ?: $a['name'];
+        $lines = [$name . ' applied for ' . $job['title'] . '.',
+            'Email: ' . $a['email'] . ' · Phone: ' . ($a['phone'] ?: $a['account_phone']) . ($a['location'] !== '' ? ' · Location: ' . $a['location'] : ''),
+            'Vehicle: ' . (vehicles_label($a) ?: 'not given') . ($a['ownership'] !== '' ? ' (' . ownership_label($a) . ')' : '')
+            . ((int) $a['walmart'] ? ' · Walmart daily route: ' . $a['walmart_city'] . ($a['rate_requested'] !== '' ? ', asking ' . $a['rate_requested'] . ' a day' : '') : ''),
+            $sent !== '' ? 'We sent them the ' . ONBOARDING_EMAILS[$sent] . '.' : 'No onboarding email was sent.'];
         $lines[] = trim((string) $a['message']) !== '' ? mb_strimwidth((string) $a['message'], 0, 800, '…') : 'No message.';
         [$text, $html] = email_body('New application', $lines, 'See the applicant', abs_url('admin/driver.php?id=' . (int) $a['user_id']),
             $a['resume_doc_id'] ? 'A resume is attached to the application in your dashboard.' : '');
         foreach ($to as $addr) {
             send_mail($addr, 'New application: ' . $job['title'] . ': ' . $a['name'], $text, $html, (string) $a['email']);
-        }
-    }
-    // Automation: welcome email
-    if ((int) $job['auto_welcome']) {
-        $msg = trim((string) $job['welcome_message']) !== '' ? (string) $job['welcome_message'] : DEFAULT_WELCOME;
-        $msg = strtr($msg, ['{first_name}' => chat_first_name((string) $a['name']), '{job_title}' => (string) $job['title']]);
-        [$text, $html] = email_body('Thanks for applying', [$msg], 'Finish my onboarding', abs_url('account.php'));
-        if (send_mail((string) $a['email'], 'We got your application: ' . $job['title'], $text, $html, support_email())) {
-            app_auto_note($appId, 'Welcome email sent');
         }
     }
     auto_review_user((int) $a['user_id']);

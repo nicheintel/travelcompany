@@ -199,9 +199,8 @@ admin_open('jobs');
     <h2 class="jp-h"><span>4</span>Get started with automations</h2>
     <p class="muted">Save time and focus on responsive candidates.</p>
     <div class="auto-list">
-      <label class="auto"><input type="checkbox" name="auto_welcome" value="1"<?= $checked('auto_welcome') ?>>
-        <span><b>Welcome new applicants</b><small>Email each applicant right after they apply, with a link to finish onboarding.</small></span></label>
-      <div class="auto-extra"><label for="welcome_message">Welcome message</label><textarea id="welcome_message" name="welcome_message" rows="6" maxlength="3000"><?= e($form['welcome_message']) ?></textarea><p class="hint">{first_name} and {job_title} are filled in for you.</p></div>
+      <div class="auto auto-on"><span class="auto-tick"><?= icon('check') ?></span>
+        <span><b>Onboarding email: always on</b><small>Right after someone applies, they get the Dispatch email (box truck, cargo van or Sprinter) or the Walmart daily route email (SUV / other), from info@lamazonloads.com. Cities and pay rate: <a href="<?= e(url('admin/walmart.php')) ?>">Admin → Walmart routes</a>.</small></span></div>
       <label class="auto"><input type="checkbox" name="auto_review" value="1"<?= $checked('auto_review') ?>>
         <span><b>Move complete applicants to "In review"</b><small>As soon as an applicant has their profile, W-9, insurance and driver's license on file.</small></span></label>
       <label class="auto"><input type="checkbox" name="auto_remind" value="1"<?= $checked('auto_remind') ?>>
@@ -235,7 +234,7 @@ admin_open('jobs');
   <?php if (!$jobs): ?><div class="empty">No job posts yet. Click <b>+ New job post</b> to add one.</div><?php else: ?>
   <div class="table-wrap"><table>
     <thead><tr><th>Job</th><th>Type</th><th>Hiring</th><th>Status</th><th>Applicants</th><th></th></tr></thead>
-    <tbody><?php foreach ($jobs as $j): $autos = array_filter(['Welcome' => $j['auto_welcome'], 'In review' => $j['auto_review'], 'Reminder' => $j['auto_remind'], 'Not selected' => $j['auto_decline'], 'Auto-close' => $j['auto_close']]); ?>
+    <tbody><?php foreach ($jobs as $j): $autos = array_filter(['In review' => $j['auto_review'], 'Reminder' => $j['auto_remind'], 'Not selected' => $j['auto_decline'], 'Auto-close' => $j['auto_close']]); ?>
       <tr>
         <td><b><?= e($j['title']) ?></b><br><span class="muted"><?= e(JOB_CATEGORIES[$j['category']] ?? $j['category']) ?><?= $j['location'] !== '' ? ' · ' . e($j['location']) : '' ?></span>
           <?php if ($autos): ?><br><span class="hint">⚡ <?= e(implode(' · ', array_keys($autos))) ?></span><?php endif; ?></td>

@@ -351,6 +351,7 @@ function admin_open(string $active): void
         'jobs' => ['admin/jobs.php', 'briefcase', 'Job posts', 0],
         'drivers' => ['admin/drivers.php', 'truck', 'Drivers & members', 0],
         'chats' => ['admin/chats.php', 'chat', 'Support chats', chat_unread_total()],
+        'walmart' => ['admin/walmart.php', 'route', 'Walmart routes', 0],
         'partners' => ['admin/partners.php', 'handshake', 'Partner requests', (int) db_val("SELECT COUNT(*) FROM partner_requests WHERE status = 'new'")],
         'messages' => ['admin/messages.php', 'mail', 'Messages', $unread],
         'photos' => ['admin/photos.php', 'upload', 'Site photos', 0],

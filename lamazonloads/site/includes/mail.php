@@ -149,7 +149,7 @@ function abs_url(string $path): string
 }
 
 /** The look of every LamazonLoads email: logo, heading, text, blue button. Returns [text, html]. */
-function email_body(string $heading, array $paragraphs, ?string $button = null, ?string $link = null, string $footnote = ''): array
+function email_body(string $heading, array $paragraphs, ?string $button = null, ?string $link = null, string $footnote = '', bool $letter = false): array
 {
     $logo = rtrim((string) config('app_url'), '/') . url('assets/brand/logo.png');
     $domain = parse_url((string) config('app_url'), PHP_URL_HOST) ?: 'lamazonloads.com';
@@ -157,9 +157,9 @@ function email_body(string $heading, array $paragraphs, ?string $button = null, 
         . '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F5F7FB;padding:32px 12px;"><tr><td align="center">'
         . '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#ffffff;border-radius:14px;border:1px solid #E1E7F0;font-family:Arial,Helvetica,sans-serif;color:#0B1733;">'
         . '<tr><td style="padding:26px 32px 6px;"><img src="' . e($logo) . '" width="120" height="67" alt="LamazonLoads" style="display:block;"></td></tr>'
-        . '<tr><td style="padding:8px 32px 0;"><h1 style="margin:0 0 12px;font-size:22px;line-height:1.3;color:#0A2463;">' . e($heading) . '</h1>';
+        . '<tr><td style="padding:8px 32px 0;">' . ($heading !== '' ? '<h1 style="margin:0 0 12px;font-size:22px;line-height:1.3;color:#0A2463;">' . e($heading) . '</h1>' : '');
     foreach ($paragraphs as $i => $p) {
-        $quote = $i === count($paragraphs) - 1 && count($paragraphs) > 1;
+        $quote = !$letter && $i === count($paragraphs) - 1 && count($paragraphs) > 1;
         $html .= $quote
             ? '<p style="margin:0 0 14px;padding:12px 14px;border-left:4px solid #1E63E9;background:#EEF4FF;border-radius:8px;font-size:15px;line-height:1.55;color:#24304A;white-space:pre-wrap;">' . e($p) . '</p>'
             : '<p style="margin:0 0 14px;font-size:15px;line-height:1.55;color:#24304A;white-space:pre-wrap;">' . e($p) . '</p>';
@@ -171,12 +171,13 @@ function email_body(string $heading, array $paragraphs, ?string $button = null, 
     if ($footnote !== '') {
         $html .= '<p style="margin:18px 0 0;font-size:13px;line-height:1.5;color:#5E6B85;">' . e($footnote) . '</p>';
     }
-    $html .= '<p style="margin:22px 0 0;font-size:15px;line-height:1.55;color:#0A2463;">The LamazonLoads Team<br><span style="color:#1E63E9;font-weight:bold;font-style:italic;">Why wait? Let\'s freight.</span></p>'
+    $html .= ($letter ? '<p style="margin:8px 0 0;font-size:14px;color:#1E63E9;font-weight:bold;font-style:italic;">Why wait? Let\'s freight.</p>'
+            : '<p style="margin:22px 0 0;font-size:15px;line-height:1.55;color:#0A2463;">The LamazonLoads Team<br><span style="color:#1E63E9;font-weight:bold;font-style:italic;">Why wait? Let\'s freight.</span></p>')
         . '</td></tr><tr><td style="padding:24px 32px 26px;font-size:12px;color:#8A96AD;">&copy; ' . date('Y') . ' LamazonLoads &middot; ' . e($domain) . '</td></tr>'
         . '</table></td></tr></table></body></html>';
-    $text = $heading . "\n\n" . implode("\n\n", $paragraphs)
+    $text = ($heading !== '' ? $heading . "\n\n" : '') . implode("\n\n", $paragraphs)
         . ($button && $link ? "\n\n$button: $link" : '')
         . ($footnote !== '' ? "\n\n$footnote" : '')
-        . "\n\nThe LamazonLoads Team\nWhy wait? Let's freight.\n" . $domain . "\n";
+        . ($letter ? "\n\n" . $domain . "\n" : "\n\nThe LamazonLoads Team\nWhy wait? Let's freight.\n" . $domain . "\n");
     return [$text, $html];
 }
