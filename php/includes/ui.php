@@ -107,7 +107,7 @@ function travelers_field(int $adults, int $children, ?int $rooms = null, ?string
 function photo_backdrop(string $name, string $shade): string
 {
     $set = fn(string $ext) => asset("photos/$name-1080.$ext") . ' 1080w, ' . asset("photos/$name-1600.$ext") . ' 1600w';
-    return '<div class="pointer-events-none absolute inset-0" aria-hidden="true"><picture>'
+    return '<div class="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true"><picture>'
         . '<source type="image/avif" sizes="100vw" srcset="' . e($set('avif')) . '">'
         . '<img src="' . e(asset("photos/$name-1600.webp")) . '" srcset="' . e($set('webp')) . '" sizes="100vw" alt="" decoding="async" fetchpriority="high" class="h-full w-full object-cover">'
         . '</picture><div class="absolute inset-0 ' . $shade . '"></div></div>';

@@ -10,6 +10,8 @@
   try { const box = document.querySelector("[data-i18n]"); STR = JSON.parse((box && box.dataset.i18n) || "{}"); } catch (e) { STR = {}; }
   const tr = (s, v = {}) => (STR[s] || s).replace(/\{(\w+)\}/g, (m, k) => (k in v ? v[k] : m));
   const LOCALE = document.documentElement.lang || "en";
+  const FINE_POINTER = window.matchMedia("(pointer: fine)").matches;
+  const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches; // device asks for less motion
 
   // ---------- Dates (visitor's timezone) ----------
   function todayIso() {
@@ -110,8 +112,11 @@
         });
         list.appendChild(li);
       });
+      const opening = list.classList.contains("hidden") && results.length > 0;
       list.classList.toggle("hidden", results.length === 0);
       input.setAttribute("aria-expanded", String(results.length > 0));
+      // On a computer, scroll a little if the list opens below the bottom of the screen (phones handle this themselves).
+      if (opening && FINE_POINTER && list.getBoundingClientRect().bottom > window.innerHeight) list.scrollIntoView({ block: "nearest", behavior: calm ? "auto" : "smooth" });
     };
     const choose = (a) => {
       code.value = a.code;
@@ -377,7 +382,6 @@
   }
 
   // ---------- Motion: reveal on scroll, header shadow, search wait screen ----------
-  const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   // [data-reveal] fades up when scrolled into view; [data-reveal-stagger] does it for each child, one after another.
   // With "reduce motion" on, it's a plain fade without the movement.

@@ -8,9 +8,9 @@ $description = 'Flight + Hotel promo packages put together by FareFinders travel
 $title = 'Promo packages — Flight + Hotel';
 require __DIR__ . '/includes/header.php';
 ?>
-<section class="relative overflow-hidden bg-gradient-to-br from-accent-600 via-rose-500 to-brand-700">
+<section class="relative bg-gradient-to-br from-accent-600 via-rose-500 to-brand-700">
   <?= photo_backdrop('packages', 'bg-gradient-to-r from-brand-950/85 via-brand-950/45 to-transparent') ?>
-  <div class="relative mx-auto max-w-7xl px-4 pb-14 pt-12 sm:px-6 sm:pt-16">
+  <div class="relative z-20 mx-auto max-w-7xl px-4 pb-14 pt-12 sm:px-6 sm:pt-16">
     <div class="max-w-2xl text-white">
       <p class="mb-3 inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-sm font-semibold ring-1 ring-white/25 backdrop-blur"><?= e(t('Promo packages')) ?></p>
       <h1 class="text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl"><?= e(t('Flight + Hotel.')) ?><br><span class="gold-text text-accent-400"><?= e(t('One booking, one price.')) ?></span></h1>

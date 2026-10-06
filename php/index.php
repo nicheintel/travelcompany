@@ -26,8 +26,8 @@ foreach ([['maldives', 'Maldives', 'MLE'], ['santorini', 'Santorini, Greece', 'J
 }
 require __DIR__ . '/includes/header.php';
 ?>
-<section class="relative overflow-hidden bg-gradient-to-br from-brand-950 via-brand-800 to-brand-600" data-hero>
-  <div class="pointer-events-none absolute inset-0" aria-hidden="true">
+<section class="relative bg-gradient-to-br from-brand-950 via-brand-800 to-brand-600" data-hero>
+  <div class="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
     <?php foreach ($heroSlides as $i => $s): $lazy = $i > 0 ? 'data-' : ''; ?>
       <picture class="hero-slide<?= $i === 0 ? ' on' : '' ?>" data-place="<?= e($s['place']) ?>" data-href="<?= e($s['href']) ?>">
         <source type="image/avif" sizes="100vw" <?= $lazy ?>srcset="<?= e($s['avif']) ?>">
@@ -45,7 +45,7 @@ require __DIR__ . '/includes/header.php';
       </g>
     </svg>
   </div>
-  <div class="relative mx-auto max-w-7xl px-4 pb-12 pt-16 sm:px-6 sm:pt-24 lg:pb-16 lg:pt-28">
+  <div class="relative z-20 mx-auto max-w-7xl px-4 pb-12 pt-16 sm:px-6 sm:pt-24 lg:pb-16 lg:pt-28">
     <div class="max-w-2xl text-white">
       <p class="mb-4 inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-sm font-medium ring-1 ring-white/20"><span class="h-2 w-2 rounded-full bg-accent-400"></span><?= e(t('Your personal travel assistant')) ?></p>
       <h1 class="text-4xl font-extrabold leading-tight tracking-tight drop-shadow-sm sm:text-5xl lg:text-6xl"><?= e(t('Fly further.')) ?> <span class="gold-text text-accent-400"><?= e(t('Pay less.')) ?></span></h1>
