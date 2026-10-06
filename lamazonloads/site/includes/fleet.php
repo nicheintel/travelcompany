@@ -64,20 +64,57 @@ const PAGE_PHOTOS = [
     'overview_dedicated'  => ['Solution pages', 'Dedicated Fleet: overview photo', 'van-unloading', 'Next to the Dedicated Fleet overview'],
 ];
 
-/** [small URL, large URL, uploaded photo row or null, small file on disk] for a photo spot (or a stock photo name). */
-function photo_urls(string $name): array
+/** Where each original stock photo came from (free Pexels / Unsplash licenses, no credit required). */
+const STOCK_SOURCES = [
+    'home-sprinter-courier' => 'https://www.pexels.com/photo/6868160/',
+    'driver-van-window'     => 'https://www.pexels.com/photo/6869065/',
+    'courier-smile'         => 'https://www.pexels.com/photo/6868175/',
+    'van-loaded'            => 'https://www.pexels.com/photo/5025638/',
+    'van-loading'           => 'https://www.pexels.com/photo/5025665/',
+    'truck-driver-cab'      => 'https://www.pexels.com/photo/14797990/',
+    'van-sorting'           => 'https://www.pexels.com/photo/6699411/',
+    'van-unloading'         => 'https://www.pexels.com/photo/6169010/',
+    'doorstep-handoff'      => 'https://www.pexels.com/photo/13456097/',
+    'woman-courier'         => 'https://www.pexels.com/photo/7363118/',
+    'pharmacy-gloves'       => 'https://www.pexels.com/photo/4046996/',
+    'warehouse-team'        => 'https://www.pexels.com/photo/4487361/',
+    'support-agent'         => 'https://www.pexels.com/photo/8204409/',
+    'driver-wheel'          => 'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d',
+    'handshake'             => 'https://images.unsplash.com/photo-1521791136064-7986c2920216',
+    'developers'            => 'https://images.unsplash.com/photo-1531482615713-2afd69097998',
+    'medical-supplies'      => 'https://images.unsplash.com/photo-1607227063002-677dc5fdf96f',
+    'nurse-care'            => 'https://images.unsplash.com/photo-1631815589968-fdb09a223b1e',
+];
+
+/**
+ * Sizes of a photo spot (or stock photo name), smallest first: [[url, width, file on disk], ...],
+ * plus the uploaded photo row (or null). All WebP: 800 px for phones, 1200 px for laptops, 1600+ px for big screens.
+ */
+function photo_set(string $name): array
 {
     $root = dirname(__DIR__);
     if (isset(PAGE_PHOTOS[$name])) {
         $up = site_photo($name);
         if ($up) {
-            $small = preg_replace('/\.(webp|jpg)$/', '-800.$1', $up['file']);
-            $small = is_file($root . '/media/' . $small) ? $small : $up['file'];
-            return [media_url($small), media_url($up['file']), $up, $root . '/media/' . $small];
+            $set = [];
+            foreach (['800', '1200'] as $w) {
+                $f = preg_replace('/\.(webp|jpg)$/', '-' . $w . '.$1', $up['file']);
+                if (is_file($root . '/media/' . $f)) {
+                    $set[] = [media_url($f), (int) $w, $root . '/media/' . $f];
+                }
+            }
+            $set[] = [media_url($up['file']), 1800, $root . '/media/' . $up['file']];
+            return [$set, $up];
         }
         $name = PAGE_PHOTOS[$name][2];
     }
-    return [asset('photos/' . $name . '-800.webp'), asset('photos/' . $name . '-1600.webp'), null, $root . '/assets/photos/' . $name . '-800.webp'];
+    $set = [];
+    foreach ([800, 1200, 1600] as $w) {
+        if ($w === 800 || is_file($root . '/assets/photos/' . $name . '-' . $w . '.webp')) {
+            $set[] = [asset('photos/' . $name . '-' . $w . '.webp'), $w, $root . '/assets/photos/' . $name . '-' . $w . '.webp'];
+        }
+    }
+    return [$set, null];
 }
 
 /**
@@ -278,7 +315,7 @@ function save_site_photo(?array $f): array
         imagepalettetotruecolor($img);
         imagealphablending($img, true);
         imagesavealpha($img, true);
-        $ok = imagewebp($img, $dir . '/' . $name, 82);
+        $ok = imagewebp($img, $dir . '/' . $name, 72);
     } else {
         $bg = imagecreatetruecolor(imagesx($img), imagesy($img));
         imagefill($bg, 0, 0, imagecolorallocate($bg, 255, 255, 255));
@@ -288,13 +325,15 @@ function save_site_photo(?array $f): array
     if (!$ok) {
         return ['', 'Could not save the photo. Please check that the media folder can be written to.'];
     }
-    // Smaller copy for phones
+    // Smaller copies for phones (800 px) and laptops (1200 px)
     $w = imagesx($img);
-    if ($w > 900) {
-        $small = imagescale($img, 800, (int) round(imagesy($img) * 800 / $w), IMG_BICUBIC);
-        if ($small) {
-            $smallName = preg_replace('/\.(webp|jpg)$/', '-800.$1', $name);
-            $webp ? imagewebp($small, $dir . '/' . $smallName, 80) : imagejpeg($small, $dir . '/' . $smallName, 85);
+    foreach ([800 => 70, 1200 => 68] as $tw => $q) {
+        if ($w > $tw + 100) {
+            $copy = imagescale($img, $tw, (int) round(imagesy($img) * $tw / $w), IMG_BICUBIC);
+            if ($copy) {
+                $copyName = preg_replace('/\.(webp|jpg)$/', '-' . $tw . '.$1', $name);
+                $webp ? imagewebp($copy, $dir . '/' . $copyName, $q) : imagejpeg($copy, $dir . '/' . $copyName, 82);
+            }
         }
     }
     return [$name, ''];
@@ -305,6 +344,7 @@ function delete_site_photo_file(string $file): void
     if (preg_match('/^([a-f0-9]{24})\.(webp|jpg)$/', $file, $m)) {
         @unlink(dirname(__DIR__) . '/media/' . $file);
         @unlink(dirname(__DIR__) . '/media/' . $m[1] . '-800.' . $m[2]);
+        @unlink(dirname(__DIR__) . '/media/' . $m[1] . '-1200.' . $m[2]);
     }
 }
 

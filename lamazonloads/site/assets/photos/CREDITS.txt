@@ -5,13 +5,12 @@ these notes are kept for reference only.
 
 Pexels (https://www.pexels.com/photo/<id>/)
   home-sprinter-courier  6868160   driver-van-window  6869065   courier-smile      6868175
-  van-loaded             5025638   van-loading        5025665   van-checklist      5025636
+  van-loaded             5025638   van-loading        5025665 
   truck-driver-cab       14797990  van-sorting        6699411   van-unloading      6169010
-  doorstep-handoff       13456097  woman-courier      7363118   pharmacy-gloves    4046996
-  pills-scrubs           4021801   warehouse-handshake 4481534  warehouse-team     4487361
+  doorstep-handoff       13456097  woman-courier      7363118   pharmacy-gloves    4046996   warehouse-team     4487361
   support-agent          8204409
 
 Unsplash (https://images.unsplash.com/photo-<id>)
   driver-wheel      1449965408869-eaa3f722e40d   handshake       1521791136064-7986c2920216
   developers        1531482615713-2afd69097998   medical-supplies 1607227063002-677dc5fdf96f
-  nurse-care        1631815589968-fdb09a223b1e   warehouse-aisle 1553413077-190dd305871c
+  nurse-care        1631815589968-fdb09a223b1e 

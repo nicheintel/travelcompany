@@ -1109,3 +1109,6 @@ img.ph { background-repeat: no-repeat; }
 @view-transition { navigation: auto; }
 .site-header { view-transition-name: site-header; }
 ::view-transition-old(root), ::view-transition-new(root) { animation-duration: .25s; }
+.ph-meta { display: grid; gap: 4px; font-size: .8rem; color: var(--muted); }
+.ph-meta span { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.ph-meta .ic { width: 14px; height: 14px; color: var(--blue); }

@@ -51,6 +51,12 @@ foreach (PAGE_PHOTOS as $key => $p) {
     $groups[$p[0]][$key] = $p;
 }
 
+/** "41 KB" for a file on disk. */
+function photo_kb(string $file): string
+{
+    return is_file($file) ? max(1, (int) round(filesize($file) / 1024)) . ' KB' : '?';
+}
+
 /** Upload / restore controls for one spot. */
 function photo_spot_forms(string $slot, ?array $current, string $uploadLabel, string $restoreLabel, string $confirm): void
 {
@@ -73,6 +79,7 @@ page_header('Site photos');
 admin_open('photos');
 ?>
 <h1>Site photos</h1>
+<p class="muted">Every photo is saved as a compressed WebP in three sizes (phones get the smallest). Originals are free stock photos from Pexels and Unsplash, free for business use with no credit needed; each one shows its source link.</p>
 <p class="muted">Change any photo on the website. Upload a JPG, PNG or WebP (up to 12 MB). Photos from your phone are turned the right way up and resized automatically, and banners get the blue LamazonLoads overlay. You can always go back to the original photo.</p>
 
 <?php $gi = 0; foreach ($groups as $group => $spots): $gi++;
@@ -81,11 +88,20 @@ admin_open('photos');
   <details class="card ph-group"<?= $open ? ' open' : '' ?>>
     <summary><span><b><?= e($group) ?></b> <span class="muted"><?= count($spots) ?> photos<?= $custom ? ' · ' . $custom . ' replaced' : '' ?></span></span><?= icon('arrow', 'ic ph-chev') ?></summary>
     <div class="ph-slots">
-      <?php foreach ($spots as $key => [, $label, , $where]): $cur = site_photo($key); [$small] = photo_urls($key); ?>
+      <?php foreach ($spots as $key => [, $label, $stock, $where]): $cur = site_photo($key); [$set] = photo_set($key); $small = $set[0][0];
+          $big = end($set); $src = STOCK_SOURCES[$stock] ?? ''; ?>
         <div class="ph-slot<?= $openSpot === $key ? ' ph-hl' : '' ?>" id="spot-<?= e($key) ?>">
           <div class="ph-preview ph-photo"><img src="<?= e($small) ?>" alt="" loading="lazy"></div>
           <div><b><?= e($label) ?></b> <span class="badge <?= $cur ? 'badge-approved' : 'badge-closed' ?>"><?= $cur ? 'Your photo' : 'Original' ?></span></div>
           <small class="muted"><?= e($where) ?></small>
+          <div class="ph-meta">
+            <span title="File sizes visitors download"><?= icon('download') ?>WebP · <?= e(photo_kb($set[0][2])) ?> phone · <?= e(photo_kb($big[2])) ?> computer</span>
+            <?php if ($cur): ?>
+              <span><?= icon('upload') ?>Your upload · <a href="<?= e($big[0]) ?>" target="_blank" rel="noopener">View full size</a></span>
+            <?php elseif ($src !== ''): ?>
+              <span><?= icon('link') ?>Source: <a href="<?= e($src) ?>" target="_blank" rel="noopener noreferrer"><?= str_contains($src, 'pexels') ? 'Pexels' : 'Unsplash' ?></a> · <a href="<?= e($big[0]) ?>" target="_blank" rel="noopener">View full size</a></span>
+            <?php endif; ?>
+          </div>
           <?php photo_spot_forms($key, $cur, $cur ? 'Replace again' : 'Replace photo', 'Restore original', 'Go back to the original photo?'); ?>
         </div>
       <?php endforeach; ?>

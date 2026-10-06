@@ -44,6 +44,7 @@ function icon(string $name, string $class = 'ic'): string
         'wrench'    => '<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3.5 17.5a1.8 1.8 0 0 0 2.5 2.5l5.8-5.8a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.4-.6-.6-2.4z"/>',
         'leaf'      => '<path d="M5 19c0-8 5-13 15-14-1 10-6 15-14 15"/><path d="M5 19l7-7"/>',
         'home'      => '<path d="M3 11l9-7 9 7"/><path d="M5 9.5V20h14V9.5"/><path d="M10 20v-5h4v5"/>',
+        'link'      => '<path d="M10 14a4.5 4.5 0 0 0 6.4 0l3.2-3.2a4.5 4.5 0 0 0-6.4-6.4L11.6 6"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3.2 3.2a4.5 4.5 0 0 0 6.4 6.4l1.6-1.6"/>',
         'phone-call'=> '<path d="M5 3h4l2 5-2.5 1.5a11 11 0 0 0 6 6L16 13l5 2v4a2 2 0 0 1-2 2A17 17 0 0 1 3 5a2 2 0 0 1 2-2z"/><path d="M15 3a6 6 0 0 1 6 6M15 7a2 2 0 0 1 2 2"/>',
     ];
     return '<svg class="' . e($class) . '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
@@ -92,7 +93,7 @@ function page_header(string $title, string $active = '', string $description = '
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,600;0,700;0,800;0,900;1,800;1,900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="<?= e(asset('style.css')) ?>">
-<?php if (($pre = preload_photo()) !== null): [$preSmall, $preLarge] = photo_urls($pre); ?><link rel="preload" as="image" href="<?= e($preSmall) ?>" imagesrcset="<?= e($preSmall) ?> 800w, <?= e($preLarge) ?> 1600w" imagesizes="100vw" fetchpriority="high">
+<?php if (($pre = preload_photo()) !== null): [$preSet] = photo_set($pre); ?><link rel="preload" as="image" href="<?= e($preSet[0][0]) ?>" imagesrcset="<?= e(implode(', ', array_map(fn ($s) => $s[0] . ' ' . $s[1] . 'w', $preSet))) ?>" imagesizes="<?= e(BANNER_SIZES) ?>" fetchpriority="high">
 <?php endif; ?>
 <script src="<?= e(asset('app.js')) ?>" defer></script>
 <script type="speculationrules">{"prefetch":[{"where":{"selector_matches":".site-nav a, .site-footer a, a.btn, .jc-title a, a.sol-top, a.more-sol-card, a.biz-item, .crumbs a"},"eagerness":"moderate"}]}</script>
@@ -204,7 +205,9 @@ function page_hero(string $eyebrow, string $title, string $lead = '', string $ph
 /** A photo spot from PAGE_PHOTOS (your upload from Admin → Site photos, or the original stock photo), or a stock photo name. */
 function photo(string $name, string $alt, string $class = '', string $sizes = '(max-width: 900px) 100vw, 50vw', string $pos = 'center', bool $eager = false): string
 {
-    [$small, $large, $up, $file] = photo_urls($name);
+    [$set, $up] = photo_set($name);
+    $file = $set[0][2];
+    $srcset = implode(', ', array_map(fn ($s) => $s[0] . ' ' . $s[1] . 'w', $set));
     if ($up) { // a photo uploaded in Admin → Site photos: centred, with its own description
         $pos = 'center';
         $alt = $alt !== '' && $up['caption'] !== '' ? $up['caption'] : $alt;
@@ -212,11 +215,13 @@ function photo(string $name, string $alt, string $class = '', string $sizes = '(
     $blur = photo_placeholder($file);
     $style = ($blur !== '' ? 'background-image:url(' . $blur . ');background-size:cover;background-position:' . $pos . ';' : '')
         . ($pos !== 'center' ? 'object-position:' . $pos . ';' : '');
-    return '<img class="' . e(trim('ph ' . $class)) . '" src="' . e($small) . '" srcset="'
-        . e($small) . ' 800w, ' . e($large) . ' 1600w" sizes="' . e($sizes) . '" alt="' . e($alt) . '"'
+    return '<img class="' . e(trim('ph ' . $class)) . '" src="' . e($set[0][0]) . '" srcset="' . e($srcset) . '" sizes="' . e($sizes) . '" alt="' . e($alt) . '"'
         . ($style !== '' ? ' style="' . e($style) . '"' : '')
         . ($eager ? ' fetchpriority="high" decoding="sync"' : ' loading="lazy" decoding="async"') . '>';
 }
+
+/** Banner photos sit under a blue overlay, so 1200 px is plenty even on big screens. */
+const BANNER_SIZES = '(max-width: 1200px) 100vw, 1200px';
 
 /** Ask the browser to fetch a page's top banner photo straight away (call before page_header). */
 function preload_photo(?string $name = null): ?string
@@ -242,7 +247,7 @@ function photo_band(array $items, string $class = ''): string
 /** Full-width background photo for a hero; the blue overlay comes from CSS. */
 function bg_photo(string $name, string $pos = 'center'): string
 {
-    return '<div class="bg-photo" aria-hidden="true">' . photo($name, '', '', '100vw', $pos, true) . '</div>';
+    return '<div class="bg-photo" aria-hidden="true">' . photo($name, '', '', BANNER_SIZES, $pos, true) . '</div>';
 }
 
 /** Saved and applied job ids for the signed-in member (for the hearts and "Applied" on job cards). */
