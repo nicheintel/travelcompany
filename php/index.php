@@ -166,7 +166,7 @@ require __DIR__ . '/includes/header.php';
           <p class="mt-2 text-brand-100"><?= e($memberPct > 0 ? t('Your {pct}% member discount is applied automatically when you book flights and hotels.', ['pct' => $memberPct]) : t('Ready for your next trip? Your bookings and tickets are waiting in My trips.')) ?></p>
         </div>
         <div class="flex flex-col gap-3 sm:flex-row lg:justify-end">
-          <a href="<?= e(url('flights.php')) ?>" class="rounded-xl bg-accent-500 px-6 py-3 text-center font-bold text-brand-950 shadow-lg hover:bg-accent-600"><?= e(t('Search flights')) ?></a>
+          <a href="<?= e(url('flights.php')) ?>" class="rounded-xl bg-accent-500 px-6 py-3 text-center font-bold text-white shadow-lg hover:bg-accent-600"><?= e(t('Search flights')) ?></a>
           <a href="<?= e(url('account.php')) ?>" class="rounded-xl bg-white/10 px-6 py-3 text-center font-semibold text-white ring-1 ring-white/30 hover:bg-white/20"><?= e(t('My trips')) ?></a>
         </div>
       <?php else: ?>
@@ -175,7 +175,7 @@ require __DIR__ . '/includes/header.php';
           <p class="mt-2 text-brand-100"><?= e(t('Create a free account to book faster, keep all your trips in one place and get member prices.')) ?></p>
         </div>
         <div class="flex flex-col gap-3 sm:flex-row lg:justify-end">
-          <a href="<?= e(url('register.php')) ?>" class="rounded-xl bg-accent-500 px-6 py-3 text-center font-bold text-brand-950 shadow-lg hover:bg-accent-600"><?= e(t('Create free account')) ?></a>
+          <a href="<?= e(url('register.php')) ?>" class="rounded-xl bg-accent-500 px-6 py-3 text-center font-bold text-white shadow-lg hover:bg-accent-600"><?= e(t('Create free account')) ?></a>
           <a href="<?= e(url('signin.php')) ?>" class="rounded-xl bg-white/10 px-6 py-3 text-center font-semibold text-white ring-1 ring-white/30 hover:bg-white/20"><?= e(t('I already have an account')) ?></a>
         </div>
       <?php endif; ?>

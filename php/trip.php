@@ -210,7 +210,7 @@ $check = '<span class="grid h-10 w-10 shrink-0 place-items-center rounded-full b
                   ? t("Pay {total} securely with your PayPal account or any debit/credit card. You'll be taken to PayPal and brought back here afterwards.", ['total' => money($booking['total'])])
                   : t("Pay {total} securely by card. You'll be taken to our payment partner Stripe and brought back here afterwards.", ['total' => money($booking['total'])])) ?></p>
               <form method="post" class="mt-4 sm:w-72"><?= csrf_field() ?><input type="hidden" name="action" value="pay">
-                <button type="submit" class="w-full rounded-xl bg-accent-500 py-3 font-bold text-brand-950 shadow-sm hover:bg-accent-600"><?= e($provider === 'paypal' ? t('Pay {total} with PayPal', ['total' => money($booking['total'])]) : t('Pay {total}', ['total' => money($booking['total'])])) ?></button>
+                <button type="submit" class="w-full rounded-xl bg-accent-500 py-3 font-bold text-white shadow-sm hover:bg-accent-600"><?= e($provider === 'paypal' ? t('Pay {total} with PayPal', ['total' => money($booking['total'])]) : t('Pay {total}', ['total' => money($booking['total'])])) ?></button>
               </form>
               <?php if (current_currency() !== 'USD'): ?><p class="mt-2 text-xs text-slate-500"><?= e(t('You will be charged in US dollars.')) ?></p><?php endif; ?>
             </div>

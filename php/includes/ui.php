@@ -105,7 +105,7 @@ function travelers_field(int $adults, int $children, ?int $rooms = null, ?string
 
 function search_button(string $label): string
 {
-    return '<button type="submit" class="flex h-full min-h-14 w-full items-center justify-center gap-2 rounded-xl bg-accent-500 px-6 text-base font-bold text-brand-950 shadow-lg shadow-accent-500/30 transition hover:bg-accent-600">'
+    return '<button type="submit" class="flex h-full min-h-14 w-full items-center justify-center gap-2 rounded-xl bg-accent-500 px-6 text-base font-bold text-white shadow-lg shadow-accent-500/30 transition hover:bg-accent-600">'
         . icon('search', 18) . '<span>' . e($label) . '</span></button>';
 }
 
@@ -326,7 +326,7 @@ function results_notice(array $result, string $what): string
     if (!empty($result['on_hold'])) {
         $c = support_contacts();
         $btn = (isset($c['whatsapp']) ? '<a href="https://wa.me/' . e(preg_replace('/\D/', '', $c['whatsapp'])) . '" target="_blank" rel="noopener" class="rounded-xl bg-emerald-600 px-5 py-3 font-semibold text-white hover:bg-emerald-700">' . e(t('WhatsApp us')) . '</a>' : '')
-            . (isset($c['email']) ? '<a href="mailto:' . e($c['email']) . '?subject=' . rawurlencode('Flight request') . '" class="rounded-xl bg-accent-500 px-5 py-3 font-semibold text-brand-950 hover:bg-accent-600">' . e(t('Ask for a flight quote')) . '</a>' : '');
+            . (isset($c['email']) ? '<a href="mailto:' . e($c['email']) . '?subject=' . rawurlencode('Flight request') . '" class="rounded-xl bg-accent-500 px-5 py-3 font-semibold text-white hover:bg-accent-600">' . e(t('Ask for a flight quote')) . '</a>' : '');
         return '<div class="mb-4 rounded-2xl border border-slate-200 bg-white p-8 text-center">'
             . '<p class="text-lg font-semibold text-slate-900">' . e(t('Online flight booking is coming soon')) . '</p>'
             . '<p class="mx-auto mt-1 max-w-xl text-slate-600">' . e(t('Tell us where and when you\'d like to fly, and our travel assistants will find you the best fare.')) . '</p>'
@@ -525,7 +525,7 @@ function no_packages_box(): string
         $buttons .= '<a href="https://wa.me/' . e(preg_replace('/\D/', '', $c['whatsapp'])) . '" target="_blank" rel="noopener" class="flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 font-semibold text-white hover:bg-emerald-700">' . icon('chat', 18) . ' ' . e(t('WhatsApp us')) . '</a>';
     }
     if (isset($c['email'])) {
-        $buttons .= '<a href="mailto:' . e($c['email']) . '?subject=' . rawurlencode('Custom flight + hotel trip') . '" class="flex items-center justify-center gap-2 rounded-xl bg-accent-500 px-5 py-3 font-semibold text-brand-950 hover:bg-accent-600">' . icon('mail', 18) . ' ' . e(t('Ask for a custom trip')) . '</a>';
+        $buttons .= '<a href="mailto:' . e($c['email']) . '?subject=' . rawurlencode('Custom flight + hotel trip') . '" class="flex items-center justify-center gap-2 rounded-xl bg-accent-500 px-5 py-3 font-semibold text-white hover:bg-accent-600">' . icon('mail', 18) . ' ' . e(t('Ask for a custom trip')) . '</a>';
     }
     if (!current_user()) {
         $buttons .= '<a href="' . e(url('register.php')) . '" class="flex items-center justify-center rounded-xl px-5 py-3 font-semibold text-brand-700 ring-1 ring-brand-200 hover:bg-brand-50">' . e(t('Create free account')) . '</a>';

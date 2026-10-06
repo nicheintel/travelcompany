@@ -28,7 +28,7 @@ require __DIR__ . '/includes/header.php';
           <p class="mt-1 max-w-sm text-sm text-slate-600"><?= e(t('When you book a flight, hotel or package it will show up here.')) ?></p>
           <div class="mt-6 flex flex-wrap justify-center gap-3">
             <a href="<?= e(url('flights.php')) ?>" class="flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-700"><?= icon('plane', 16) ?> <?= e(t('Find flights')) ?></a>
-            <a href="<?= e(url('packages.php')) ?>" class="flex items-center gap-2 rounded-xl bg-accent-500 px-4 py-2.5 text-sm font-semibold text-brand-950 hover:bg-accent-600"><?= icon('package', 16) ?> <?= e(t('Browse packages')) ?></a>
+            <a href="<?= e(url('packages.php')) ?>" class="flex items-center gap-2 rounded-xl bg-accent-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-accent-600"><?= icon('package', 16) ?> <?= e(t('Browse packages')) ?></a>
             <a href="<?= e(url('hotels.php')) ?>" class="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-brand-700 ring-1 ring-brand-200 hover:bg-brand-50"><?= icon('bed', 16) ?> <?= e(t('Hotels')) ?></a>
           </div>
         </div>
