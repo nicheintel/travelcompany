@@ -172,6 +172,51 @@
     update();
   });
 
+  // Pop-up windows (the job application form): smooth zoom in, blurred page behind,
+  // close with the X, the Esc key or a click outside. Without JavaScript the #apply link still opens it.
+  document.querySelectorAll('[data-modal]').forEach(function (m) {
+    var lastFocus = null;
+    var focusables = function () { return Array.prototype.filter.call(m.querySelectorAll('a[href], button, input:not([type=hidden]), select, textarea'), function (el) { return el.offsetParent !== null; }); };
+    var open = function () {
+      lastFocus = document.activeElement;
+      m.classList.remove('is-closing'); m.classList.add('is-open'); m.removeAttribute('aria-hidden');
+      document.documentElement.classList.add('modal-lock');
+      setTimeout(function () {
+        var err = m.querySelector('.errors');
+        var first = m.querySelector('.modal-body input:not([type=hidden]):not([type=checkbox]):not([type=radio]), .modal-body .btn');
+        if (err) err.scrollIntoView({ block: 'nearest' });
+        if (first && !err) first.focus({ preventScroll: true });
+      }, 80);
+    };
+    var close = function () {
+      if (!m.classList.contains('is-open')) return;
+      m.classList.add('is-closing');
+      setTimeout(function () {
+        m.classList.remove('is-open', 'is-closing'); m.setAttribute('aria-hidden', 'true');
+        document.documentElement.classList.remove('modal-lock');
+        if (lastFocus && lastFocus.focus) lastFocus.focus({ preventScroll: true });
+      }, 220);
+      var search = location.search.replace(/([?&])apply=1(&|$)/, function (all, a, b) { return b ? a : ''; });
+      if (location.hash === '#' + m.id || search !== location.search) history.replaceState(null, '', location.pathname + search);
+    };
+    document.querySelectorAll('[data-modal-open="' + m.id + '"]').forEach(function (b) {
+      b.addEventListener('click', function (e) { e.preventDefault(); open(); });
+    });
+    m.querySelectorAll('[data-modal-close]').forEach(function (b) {
+      b.addEventListener('click', function (e) { e.preventDefault(); close(); });
+    });
+    document.addEventListener('keydown', function (e) {
+      if (!m.classList.contains('is-open')) return;
+      if (e.key === 'Escape') { close(); return; }
+      if (e.key === 'Tab') { // keep the keyboard inside the pop-up
+        var f = focusables(); if (!f.length) return;
+        if (e.shiftKey && document.activeElement === f[0]) { e.preventDefault(); f[f.length - 1].focus(); }
+        else if (!e.shiftKey && document.activeElement === f[f.length - 1]) { e.preventDefault(); f[0].focus(); }
+      }
+    });
+    if (m.classList.contains('is-open') || location.hash === '#' + m.id) open();
+  });
+
   // Ask before destructive actions.
   document.addEventListener('submit', function (ev) {
     var msg = ev.target.getAttribute('data-confirm');

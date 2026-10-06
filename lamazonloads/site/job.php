@@ -84,31 +84,29 @@ $here = 'job.php?id=' . $id;
   <p class="lead"><?= e(job_excerpt($job, 220)) ?></p>
 </div></section>
 
-<section class="section">
-  <div class="container story job-layout">
-    <div class="card pad prose">
+<section class="section job-section">
+  <div class="container job-wrap">
+    <article class="card pad prose job-card">
       <div class="tags job-badges">
         <?php foreach ($types as $t): ?><span class="tag"><?= icon('briefcase') ?><?= e($t) ?></span><?php endforeach; ?>
         <span class="tag"><?= icon('users') ?><?= e(job_hiring_label($job)) ?></span>
         <?php if ((int) $job['fair_chance']): ?><span class="tag tag-fair"><?= icon('handshake') ?>Fair chance</span><?php endif; ?>
       </div>
       <div class="job-meta">
-        <?php foreach (['Location' => $job['location'], 'Equipment' => $job['equipment'], 'Pay' => $job['pay']] as $k => $v): if ($v === '' || $v === 'Not applicable') continue; ?>
-          <div><small><?= e($k) ?></small><b><?= e($v) ?></b></div>
+        <?php foreach (['Location' => [$job['location'], 'pin'], 'Equipment' => [$job['equipment'], 'truck'], 'Pay' => [$job['pay'], 'dollar']] as $k => [$v, $ic]): if ($v === '' || $v === 'Not applicable') continue; ?>
+          <div><span class="jm-ico"><?= icon($ic) ?></span><span><small><?= e($k) ?></small><b><?= e($v) ?></b></span></div>
         <?php endforeach; ?>
       </div>
-      <h3>About this opportunity</h3>
-      <?php foreach (preg_split('/\R{2,}/', trim((string) $job['description'])) as $para): if ($para === '') continue; ?>
-        <p><?= nl2br(e($para)) ?></p>
-      <?php endforeach; ?>
+      <h2 class="job-h">About this opportunity</h2>
+      <div class="job-desc"><?= job_description_html((string) $job['description']) ?></div>
       <?php $reqs = array_filter(array_map('trim', preg_split('/\R/', (string) $job['requirements']))); if ($reqs): ?>
-        <h3 class="mt">Requirements</h3>
+        <h2 class="job-h">Requirements</h2>
         <ul class="checklist">
-          <?php foreach ($reqs as $r): ?><li><span class="tick"><?= icon('check') ?></span><span><?= e(ltrim($r, "-•* ")) ?></span></li><?php endforeach; ?>
+          <?php foreach ($reqs as $r): ?><li><span class="tick"><?= icon('check') ?></span><span><?= e(ltrim($r, "-•●* ")) ?></span></li><?php endforeach; ?>
         </ul>
       <?php endif; ?>
       <?php if ((int) $job['background_check'] || (int) $job['fair_chance'] || $job['hiring_timeline'] !== ''): ?>
-        <h3 class="mt">Good to know</h3>
+        <h2 class="job-h">Good to know</h2>
         <ul class="checklist">
           <?php if ((int) $job['background_check']): ?><li><span class="tick"><?= icon('shield') ?></span><span>This job requires a background check.</span></li><?php endif; ?>
           <?php if ((int) $job['fair_chance']): ?><li><span class="tick"><?= icon('handshake') ?></span><span>Fair chance employer: we're open to hiring people with a criminal record.</span></li><?php endif; ?>
@@ -118,32 +116,48 @@ $here = 'job.php?id=' . $id;
       <?php if ((int) $job['contact_by_email'] && $job['contact_email'] !== ''): ?>
         <p class="mt job-contact"><?= icon('mail') ?> Questions about this job? Email <a href="mailto:<?= e($job['contact_email']) ?>?subject=<?= rawurlencode('Question: ' . $job['title']) ?>"><?= e($job['contact_email']) ?></a></p>
       <?php endif; ?>
-    </div>
+    </article>
 
-    <aside class="card pad apply-box" id="apply">
+    <div class="card job-cta" id="apply-now">
       <?php if ($existing): ?>
-        <h3>You've applied</h3>
-        <p>Status: <?= status_badge($existing['status']) ?></p>
-        <p class="muted">Applied on <?= e(fmt_date($existing['created_at'])) ?>. Keep your profile and documents up to date so we can move fast.</p>
-        <a class="btn btn-primary btn-block" href="<?= e(url('account.php')) ?>">Go to my dashboard</a>
+        <div><span class="eyebrow">Your application</span><h2>You've applied</h2>
+          <p class="muted mb-0">Applied on <?= e(fmt_date($existing['created_at'])) ?> · Status: <?= status_badge($existing['status']) ?></p></div>
+        <a class="btn btn-primary btn-lg" href="<?= e(url('account.php')) ?>">Go to my dashboard <?= icon('arrow') ?></a>
       <?php elseif ($job['status'] !== 'open'): ?>
-        <h3>This opening is closed</h3>
-        <a class="btn btn-ghost btn-block" href="<?= e(url('careers.php')) ?>">See current openings</a>
+        <div><span class="eyebrow">Closed</span><h2>This opening is closed</h2><p class="muted mb-0">It may have been filled. New openings are posted on our Careers page.</p></div>
+        <a class="btn btn-ghost btn-lg" href="<?= e(url('careers.php')) ?>">See current openings</a>
       <?php elseif ($external): ?>
-        <h3>Apply for this job</h3>
-        <p class="muted">Applications for this job are taken on another website.</p>
-        <a class="btn btn-accent btn-block" href="<?= e($job['apply_url']) ?>" target="_blank" rel="noopener nofollow">Apply on the company site <?= icon('arrow') ?></a>
-      <?php elseif ($user && !is_verified($user)): ?>
-        <h3>Confirm your email to apply</h3>
-        <p class="muted">We sent a link to <b><?= e($user['email']) ?></b>. Once you confirm, you can apply in one click.</p>
-        <a class="btn btn-accent btn-block" href="<?= e(url('verify.php')) ?>">Confirm my email</a>
-      <?php elseif (!$user): ?>
-        <h3>Apply in one click</h3>
-        <p class="muted">Create a free account or sign in, then fill out a short form: your name, phone, location and vehicle. It takes about two minutes.</p>
-        <a class="btn btn-accent btn-block" href="<?= e(url('register.php?next=' . rawurlencode($here))) ?>">Create account &amp; apply</a>
-        <a class="btn btn-ghost btn-block mt" href="<?= e(url('login.php?next=' . rawurlencode($here))) ?>">I already have an account</a>
+        <div><span class="eyebrow">Interested?</span><h2>Apply for this job</h2><p class="muted mb-0">Applications for this job are taken on another website.</p></div>
+        <a class="btn btn-accent btn-lg" href="<?= e($job['apply_url']) ?>" target="_blank" rel="noopener nofollow">Apply on the company site <?= icon('arrow') ?></a>
       <?php else: ?>
-        <h3>Apply now</h3>
+        <div><span class="eyebrow">Interested?</span><h2>Ready to roll with LamazonLoads?</h2>
+          <p class="muted mb-0">Applying takes about two minutes: your name, phone, location and vehicle.</p></div>
+        <a class="btn btn-accent btn-lg" href="#apply" data-modal-open="apply">Apply now <?= icon('arrow') ?></a>
+      <?php endif; ?>
+    </div>
+  </div>
+</section>
+
+<?php if (!$existing && $job['status'] === 'open' && !$external): ?>
+<?php $openNow = $errors || isset($_GET['apply']); ?>
+<div class="modal<?= $openNow ? ' is-open' : '' ?>" id="apply" data-modal role="dialog" aria-modal="true" aria-labelledby="apply-title"<?= $openNow ? '' : ' aria-hidden="true"' ?>>
+  <a class="modal-backdrop" href="#apply-now" data-modal-close aria-label="Close"></a>
+  <div class="modal-panel">
+    <header class="modal-head">
+      <div><span class="eyebrow">Apply now</span><h2 id="apply-title"><?= e($job['title']) ?></h2></div>
+      <a class="modal-x" href="#apply-now" data-modal-close aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></a>
+    </header>
+    <div class="modal-body">
+      <?php if ($user && !is_verified($user)): ?>
+        <div class="modal-msg"><div class="verify-ico"><?= icon('mail') ?></div><h3>Confirm your email to apply</h3>
+          <p class="muted">We sent a link to <b><?= e($user['email']) ?></b>. Once you confirm, you can apply in about two minutes.</p>
+          <a class="btn btn-accent btn-block" href="<?= e(url('verify.php')) ?>">Confirm my email</a></div>
+      <?php elseif (!$user): ?>
+        <div class="modal-msg"><div class="verify-ico"><?= icon('user') ?></div><h3>Sign in to apply</h3>
+          <p class="muted">Create a free account or sign in, then fill out a short form: your name, phone, location and vehicle. It takes about two minutes.</p>
+          <a class="btn btn-accent btn-block" href="<?= e(url('register.php?next=' . rawurlencode($here . '&apply=1'))) ?>">Create account &amp; apply</a>
+          <a class="btn btn-ghost btn-block mt" href="<?= e(url('login.php?next=' . rawurlencode($here . '&apply=1'))) ?>">I already have an account</a></div>
+      <?php else: ?>
         <?php if ($errors): ?><ul class="errors"><?php foreach ($errors as $er): ?><li><?= e($er) ?></li><?php endforeach; ?></ul><?php endif; ?>
         <form method="post" action="<?= e(url($here)) ?>#apply" enctype="multipart/form-data" class="apply-form" data-apply novalidate>
           <?= csrf_field() ?>
@@ -208,7 +222,8 @@ $here = 'job.php?id=' . $id;
           <button class="btn btn-accent btn-block" type="submit">Send application <?= icon('arrow') ?></button>
         </form>
       <?php endif; ?>
-    </aside>
+    </div>
   </div>
-</section>
+</div>
+<?php endif; ?>
 <?php page_footer();

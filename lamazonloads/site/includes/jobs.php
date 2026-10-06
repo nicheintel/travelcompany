@@ -54,6 +54,42 @@ function job_excerpt(array $job, int $len = 160, bool $whole = false): string
     return mb_strimwidth((string) preg_replace('/\s+/', ' ', $first), 0, $len, '…');
 }
 
+/**
+ * Job description as tidy HTML: lines starting with ●, •, -, * become a check list,
+ * short lines ending with ":" (like "What We Offer:") become small headings, the rest are paragraphs.
+ */
+function job_description_html(string $text): string
+{
+    $html = '';
+    $list = [];
+    $flush = function () use (&$list, &$html): void {
+        if ($list) {
+            $html .= '<ul class="checklist job-list">';
+            foreach ($list as $li) {
+                $html .= '<li><span class="tick">' . icon('check') . '</span><span>' . e($li) . '</span></li>';
+            }
+            $html .= '</ul>';
+            $list = [];
+        }
+    };
+    foreach (preg_split('/\R/', trim($text)) as $line) {
+        $line = trim($line);
+        if ($line === '') {
+            continue;
+        }
+        if (preg_match('/^(?:[●•·▪◦*\-–]|\d+[.)])\s*(.+)$/u', $line, $m)) {
+            $list[] = $m[1];
+            continue;
+        }
+        $flush();
+        $html .= mb_strlen($line) <= 60 && str_ends_with($line, ':')
+            ? '<h3 class="job-sub">' . e(rtrim($line, ':')) . '</h3>'
+            : '<p>' . e($line) . '</p>';
+    }
+    $flush();
+    return $html;
+}
+
 function job_hiring_label(array $job): string
 {
     $n = (string) ($job['hires_needed'] ?? '1');
