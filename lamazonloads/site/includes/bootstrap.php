@@ -60,5 +60,17 @@ if (PHP_SAPI !== 'cli') {
     ]);
     ini_set('session.use_strict_mode', '1');
     ini_set('session.use_only_cookies', '1');
+    // Keep sessions 12 hours (the hosting default is 24 minutes, which made long forms "expire"),
+    // stored in our own folder so other sites' cleanup on the server can't remove them.
+    ini_set('session.gc_maxlifetime', '43200');
+    $sessDir = __DIR__ . '/../storage/sessions';
+    if (!is_dir($sessDir)) {
+        @mkdir($sessDir, 0700, true);
+    }
+    if (is_dir($sessDir) && is_writable($sessDir)) {
+        session_save_path($sessDir);
+        ini_set('session.gc_probability', '1');
+        ini_set('session.gc_divisor', '200');
+    }
     session_start();
 }

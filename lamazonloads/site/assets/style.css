@@ -1403,3 +1403,21 @@ a.app-row:hover .ar-go { opacity: 1; transform: translateX(3px); }
   .faq-a { padding-left: 0; }
 }
 .faq .faq-a p, .faq .faq-a li { color: var(--text); }
+
+/* Messages: drop-down notices at the top instead of a strip that pushes the page */
+.toasts { position: fixed; top: 96px; left: 50%; z-index: 900; transform: translateX(-50%); width: min(560px, calc(100% - 32px)); display: grid; gap: 10px; pointer-events: none; }
+.toast { pointer-events: auto; display: grid; grid-template-columns: 32px minmax(0, 1fr) 28px; gap: 12px; align-items: center; padding: 12px 12px 12px 14px; border-radius: 16px; font-weight: 600; line-height: 1.4;
+  box-shadow: 0 18px 40px rgba(10, 36, 99, .18); animation: toast-in .35s cubic-bezier(.2, .9, .3, 1.2) both; }
+.toast.is-leaving { animation: toast-out .26s ease both; }
+.toast-ico { width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; background: currentColor; }
+.toast-ico .ic { width: 17px; height: 17px; color: #fff; }
+.toast.alert-success { background: #F2FCF6; border-color: #B6EBCB; }
+.toast.alert-error { background: #FFF5F5; border-color: #F6C9C9; }
+.toast.alert-info { background: #F5F8FF; border-color: #C9DAFF; }
+.toast-x { width: 28px; height: 28px; border: 0; border-radius: 50%; background: transparent; color: inherit; cursor: pointer; display: grid; place-items: center; opacity: .6; }
+.toast-x:hover { opacity: 1; background: rgba(0, 0, 0, .06); }
+.toast-x svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; }
+@keyframes toast-in { from { opacity: 0; transform: translateY(-14px) scale(.97); } }
+@keyframes toast-out { to { opacity: 0; transform: translateY(-10px) scale(.97); } }
+@media (max-width: 1180px) { .toasts { top: 92px; } }
+@media (prefers-reduced-motion: reduce) { .toast, .toast.is-leaving { animation-name: fade-in; } .toast.is-leaving { animation-name: fade-out; } }

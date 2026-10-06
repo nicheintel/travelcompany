@@ -127,9 +127,12 @@ function page_header(string $title, string $active = '', string $description = '
 <?php
     $flashes = take_flashes();
     if ($flashes) {
-        echo '<div class="container flashes">';
+        echo '<div class="toasts" aria-live="polite">';
         foreach ($flashes as [$type, $msg]) {
-            echo '<div class="alert alert-' . e($type) . '" role="status">' . e($msg) . '</div>';
+            echo '<div class="toast alert alert-' . e($type) . '" role="' . ($type === 'error' ? 'alert' : 'status') . '" data-toast>'
+                . '<span class="toast-ico">' . icon($type === 'success' ? 'check' : ($type === 'error' ? 'shield' : 'mail')) . '</span>'
+                . '<span class="toast-msg">' . e($msg) . '</span>'
+                . '<button type="button" class="toast-x" aria-label="Close" data-toast-close><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>';
         }
         echo '</div>';
     }

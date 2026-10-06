@@ -81,7 +81,7 @@ function csrf_check(): void
     $sent = $_POST['csrf'] ?? '';
     if (!is_string($sent) || !hash_equals(csrf_token(), $sent)) {
         http_response_code(400);
-        flash('error', 'Your session expired. Please try again.');
+        flash('error', 'For your security, this page needed a quick refresh. Please try again.');
         redirect(ltrim(substr((string) ($_SERVER['REQUEST_URI'] ?? ''), strlen(base_path())), '/') ?: '');
     }
 }

@@ -350,6 +350,47 @@
     });
   });
 
+  // Keep form tokens fresh: when someone comes back to an old tab, uses Back, or submits a form that has been
+  // open a long time, quietly fetch the current token first so they never see "please try again".
+  var csrfUrl = (document.querySelector('a.brand') || {}).getAttribute ? document.querySelector('a.brand').getAttribute('href').replace(/\/?$/, '/') + 'csrf.php' : 'csrf.php';
+  var loadedAt = Date.now(), hiddenAt = 0;
+  var refreshCsrf = function () {
+    return fetch(csrfUrl, { credentials: 'same-origin', cache: 'no-store' })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (!d || !d.csrf) return;
+        document.querySelectorAll('input[name=csrf]').forEach(function (i) { i.value = d.csrf; });
+        document.querySelectorAll('[data-csrf]').forEach(function (el) { el.setAttribute('data-csrf', d.csrf); });
+        loadedAt = Date.now();
+      })
+      .catch(function () {});
+  };
+  window.addEventListener('pageshow', function (e) { if (e.persisted) refreshCsrf(); });
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) hiddenAt = Date.now();
+    else if (hiddenAt && Date.now() - hiddenAt > 5 * 60 * 1000) refreshCsrf();
+  });
+  document.addEventListener('submit', function (e) {
+    var form = e.target;
+    if (e.defaultPrevented || !form.querySelector('input[name=csrf]') || Date.now() - loadedAt < 10 * 60 * 1000 || form.getAttribute('data-fresh')) return;
+    e.preventDefault();
+    var submitter = e.submitter;
+    refreshCsrf().then(function () {
+      form.setAttribute('data-fresh', '1');
+      if (form.requestSubmit) form.requestSubmit(submitter && submitter.form === form ? submitter : undefined); else form.submit();
+      form.removeAttribute('data-fresh');
+    });
+  }, true);
+
+  // Messages ("Saved", "Application sent", errors) drop in at the top and tidy themselves away
+  document.querySelectorAll('[data-toast]').forEach(function (t, i) {
+    var close = function () { t.classList.add('is-leaving'); setTimeout(function () { t.remove(); }, 260); };
+    t.querySelector('[data-toast-close]').addEventListener('click', close);
+    var wait = (t.classList.contains('alert-error') ? 12000 : 7000) + i * 600, timer = setTimeout(close, wait);
+    t.addEventListener('mouseenter', function () { clearTimeout(timer); });
+    t.addEventListener('mouseleave', function () { timer = setTimeout(close, 3000); });
+  });
+
   // Ask before destructive actions.
   document.addEventListener('submit', function (ev) {
     var msg = ev.target.getAttribute('data-confirm');

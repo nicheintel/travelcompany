@@ -66,3 +66,4 @@ next-env.d.ts
 !/lamazonloads/site/media/.htaccess
 !/lamazonloads/site/media/.gitkeep
 /lamazonloads/site/storage/lqip/
+/lamazonloads/site/storage/sessions/

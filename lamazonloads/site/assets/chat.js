@@ -74,7 +74,7 @@
       ta.addEventListener('input', function () {   // tell the admin "… is typing" (at most every 3 seconds)
         if (!has || !ta.value.trim() || Date.now() - typedAt < 3000) return;
         typedAt = Date.now();
-        var fd = new FormData(); fd.append('a', 'typing'); fd.append('csrf', csrf);
+        var fd = new FormData(); fd.append('a', 'typing'); fd.append('csrf', box.getAttribute('data-csrf') || csrf);
         fetch(API, { method: 'POST', body: fd, credentials: 'same-origin' }).catch(function () {});
       });
       panel.appendChild(form);
@@ -85,7 +85,7 @@
       list.scrollTop = list.scrollHeight;
     }
     function post(params) {
-      var fd = new FormData(); for (var k in params) fd.append(k, params[k]); fd.append('csrf', csrf);
+      var fd = new FormData(); for (var k in params) fd.append(k, params[k]); fd.append('csrf', box.getAttribute('data-csrf') || csrf);
       return fetch(API, { method: 'POST', body: fd, credentials: 'same-origin', headers: { Accept: 'application/json' } }).then(function (r) { return r.json(); });
     }
     // The chat ended (they clicked End chat, or the admin marked it as done): ask for a rating instead of the message box
@@ -155,7 +155,7 @@
     function send(form) {
       var text = ta.value.trim(); if (!text || busy) return;
       busy = true; sendBtn.disabled = true; err.hidden = true;
-      var fd = new FormData(form); fd.append('a', 'send'); fd.append('csrf', csrf); fd.append('after', last);
+      var fd = new FormData(form); fd.append('a', 'send'); fd.append('csrf', box.getAttribute('data-csrf') || csrf); fd.append('after', last);
       fd.append('page', location.pathname.split('/').pop() || 'home');
       fetch(API, { method: 'POST', body: fd, credentials: 'same-origin', headers: { Accept: 'application/json' } })
         .then(function (r) { return r.json(); })
