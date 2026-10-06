@@ -32,6 +32,52 @@ const FLEET = [
 const PHOTO_SLOTS = ['cargo_van' => 'Cargo Van', 'sprinter' => 'Sprinter Van', 'box_truck' => 'Box Truck', 'gallery' => 'On the road (gallery)'];
 const GALLERY_MAX = 12;
 
+/** Every stock photo on the website: spot => [group, name in Admin, original photo in assets/photos, where it shows]. */
+const PAGE_PHOTOS = [
+    'home_hero'           => ['Home page', 'Top banner', 'home-sprinter-courier', 'Behind “Why wait? Let’s freight.” and the dispatch desk'],
+    'home_mosaic_1'       => ['Home page', 'Photo grid: large photo', 'driver-van-window', '“Support on every route”'],
+    'home_mosaic_2'       => ['Home page', 'Photo grid: 2', 'van-sorting', '“Loads that fit your van”'],
+    'home_mosaic_3'       => ['Home page', 'Photo grid: 3', 'woman-courier', '“Drivers of every kind”'],
+    'home_mosaic_4'       => ['Home page', 'Photo grid: 4', 'truck-driver-cab', '“Box trucks welcome”'],
+    'home_mosaic_5'       => ['Home page', 'Photo grid: 5', 'doorstep-handoff', '“Delivered with care”'],
+    'banner_services'     => ['Page banners', 'Services', 'van-loaded', 'Top of the Services page'],
+    'banner_drivers'      => ['Page banners', 'Drive with us', 'driver-van-window', 'Top of the Drive with us page'],
+    'banner_careers'      => ['Page banners', 'Careers', 'courier-smile', 'Top of the Careers page'],
+    'banner_about'        => ['Page banners', 'About', 'driver-wheel', 'Top of the About page'],
+    'banner_contact'      => ['Page banners', 'Contact', 'support-agent', 'Top of the Contact page'],
+    'drivers_band_1'      => ['Drive with us & About', 'Drive with us: photo 1', 'van-loading', '“Onboard once”'],
+    'drivers_band_2'      => ['Drive with us & About', 'Drive with us: photo 2', 'courier-smile', '“Get matched”'],
+    'drivers_band_3'      => ['Drive with us & About', 'Drive with us: photo 3', 'truck-driver-cab', '“Stay loaded”'],
+    'about_band_1'        => ['Drive with us & About', 'About: photo 1', 'truck-driver-cab', '“Drivers first”'],
+    'about_band_2'        => ['Drive with us & About', 'About: photo 2', 'warehouse-team', '“Organized logistics”'],
+    'about_band_3'        => ['Drive with us & About', 'About: photo 3', 'support-agent', '“Real people on support”'],
+    'partners_hero'       => ['Partners', 'Top banner', 'handshake', 'Behind “Your deliveries. Our network.”'],
+    'partners_developers' => ['Partners', 'Developers photo', 'developers', 'Next to “Developers behind the scenes”'],
+    'card_last_mile'      => ['Partners', 'Card: Last-Mile Delivery', 'van-loading', 'Header of the Last-Mile Delivery card'],
+    'card_healthcare'     => ['Partners', 'Card: Healthcare', 'pharmacy-gloves', 'Header of the Healthcare card'],
+    'card_dedicated'      => ['Partners', 'Card: Dedicated Fleet', 'warehouse-team', 'Header of the Dedicated Fleet card'],
+    'hero_last_mile'      => ['Solution pages', 'Last-Mile: top banner', 'doorstep-handoff', 'Top of the Last-Mile Delivery page'],
+    'overview_last_mile'  => ['Solution pages', 'Last-Mile: overview photo', 'van-sorting', 'Next to the Last-Mile overview'],
+    'hero_healthcare'     => ['Solution pages', 'Healthcare: top banner', 'medical-supplies', 'Top of the Healthcare page'],
+    'overview_healthcare' => ['Solution pages', 'Healthcare: overview photo', 'nurse-care', 'Next to the Healthcare overview'],
+    'hero_dedicated'      => ['Solution pages', 'Dedicated Fleet: top banner', 'truck-driver-cab', 'Top of the Dedicated Fleet page'],
+    'overview_dedicated'  => ['Solution pages', 'Dedicated Fleet: overview photo', 'van-unloading', 'Next to the Dedicated Fleet overview'],
+];
+
+/** [small URL, large URL, uploaded photo row or null] for a photo spot (or a stock photo name). */
+function photo_urls(string $name): array
+{
+    if (isset(PAGE_PHOTOS[$name])) {
+        $up = site_photo($name);
+        if ($up) {
+            $small = preg_replace('/\.(webp|jpg)$/', '-800.$1', $up['file']);
+            return [is_file(dirname(__DIR__) . '/media/' . $small) ? media_url($small) : media_url($up['file']), media_url($up['file']), $up];
+        }
+        $name = PAGE_PHOTOS[$name][2];
+    }
+    return [asset('photos/' . $name . '-800.webp'), asset('photos/' . $name . '-1600.webp'), null];
+}
+
 /** One wheel, centred on (0, 0): placed with translate so CSS can spin the inner group. */
 function vehicle_wheel(float $cx, float $cy): string
 {
@@ -211,13 +257,23 @@ function save_site_photo(?array $f): array
     if (!$ok) {
         return ['', 'Could not save the photo. Please check that the media folder can be written to.'];
     }
+    // Smaller copy for phones
+    $w = imagesx($img);
+    if ($w > 900) {
+        $small = imagescale($img, 800, (int) round(imagesy($img) * 800 / $w), IMG_BICUBIC);
+        if ($small) {
+            $smallName = preg_replace('/\.(webp|jpg)$/', '-800.$1', $name);
+            $webp ? imagewebp($small, $dir . '/' . $smallName, 80) : imagejpeg($small, $dir . '/' . $smallName, 85);
+        }
+    }
     return [$name, ''];
 }
 
 function delete_site_photo_file(string $file): void
 {
-    if (preg_match('/^[a-f0-9]{24}\.(webp|jpg)$/', $file)) {
+    if (preg_match('/^([a-f0-9]{24})\.(webp|jpg)$/', $file, $m)) {
         @unlink(dirname(__DIR__) . '/media/' . $file);
+        @unlink(dirname(__DIR__) . '/media/' . $m[1] . '-800.' . $m[2]);
     }
 }
 

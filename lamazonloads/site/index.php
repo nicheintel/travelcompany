@@ -6,7 +6,7 @@ $jobs = db_all("SELECT * FROM jobs WHERE status = 'open' ORDER BY created_at DES
 page_header('', 'home');
 ?>
 <section class="hero has-photo">
-  <?= bg_photo('home-sprinter-courier', '70% center') ?>
+  <?= bg_photo('home_hero', '70% center') ?>
   <div class="container hero-grid">
     <div class="hero-copy">
       <span class="pill"><span class="dot"><?= icon('truck') ?></span>Built by drivers, for drivers</span>
@@ -73,11 +73,11 @@ page_header('', 'home');
   <div class="container">
     <div class="section-head reveal"><span class="eyebrow">Real people. Real routes.</span><h2>The network behind every delivery</h2><p class="lead">Drivers, dispatchers and support working together so freight keeps moving and drivers keep earning.</p></div>
     <?= photo_band([
-        ['driver-van-window', 'Support on every route', 'A real person a call or message away.'],
-        ['van-sorting', 'Loads that fit your van', 'Matched to your equipment and your area.'],
-        ['woman-courier', 'Drivers of every kind', 'Owner-operators, route drivers and new drivers.'],
-        ['truck-driver-cab', 'Box trucks welcome', '16 to 26 ft straight trucks.'],
-        ['doorstep-handoff', 'Delivered with care', 'From pickup to proof of delivery.'],
+        ['home_mosaic_1', 'Support on every route', 'A real person a call or message away.'],
+        ['home_mosaic_2', 'Loads that fit your van', 'Matched to your equipment and your area.'],
+        ['home_mosaic_3', 'Drivers of every kind', 'Owner-operators, route drivers and new drivers.'],
+        ['home_mosaic_4', 'Box trucks welcome', '16 to 26 ft straight trucks.'],
+        ['home_mosaic_5', 'Delivered with care', 'From pickup to proof of delivery.'],
     ], 'mosaic') ?>
   </div>
 </section>

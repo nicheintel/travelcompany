@@ -1088,3 +1088,15 @@ a.sol-top:hover h3 { text-decoration: underline; text-underline-offset: 4px; }
 .sol-included .checklist { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 32px; }
 @media (max-width: 900px) { .sol-photo img { aspect-ratio: 16 / 10; height: auto; } }
 @media (max-width: 640px) { .sol-included .checklist { grid-template-columns: minmax(0, 1fr); } }
+/* Admin → Site photos: groups of photo spots */
+.ph-group { padding: 0; margin-bottom: 16px; }
+.ph-group > summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 18px 22px; cursor: pointer; list-style: none; }
+.ph-group > summary::-webkit-details-marker { display: none; }
+.ph-group > summary b { color: var(--ink); font-size: 1.05rem; margin-right: 6px; }
+.ph-chev { color: var(--blue); transform: rotate(90deg); transition: transform .2s; }
+.ph-group[open] .ph-chev { transform: rotate(-90deg); }
+.ph-group .ph-slots { padding: 0 22px 22px; margin: 0; }
+.ph-photo { padding: 0; background: #E9EEF8; }
+.ph-photo img { border-radius: 0; }
+.ph-hl { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(30, 99, 233, .18); }
+.dash-main > .ph-group + .card.pad { margin-top: 0; }

@@ -3,7 +3,7 @@ declare(strict_types=1);
 require __DIR__ . '/includes/bootstrap.php';
 
 page_header('Drive with us', 'drivers', 'Join the LamazonLoads driver network: owner-operators, cargo van, Sprinter and box truck drivers. See what you need for onboarding.');
-page_hero('Drive with LamazonLoads', 'Join the network. <span style="color:var(--sky)">Stay loaded.</span>', 'Owner-operators, van drivers and box truck drivers: onboard once and get access to loads, daily routes and new openings.', 'driver-van-window', 'center 30%');
+page_hero('Drive with LamazonLoads', 'Join the network. <span style="color:var(--sky)">Stay loaded.</span>', 'Owner-operators, van drivers and box truck drivers: onboard once and get access to loads, daily routes and new openings.', 'banner_drivers', 'center 30%');
 ?>
 <section class="section">
   <div class="container story level">
@@ -47,9 +47,9 @@ page_hero('Drive with LamazonLoads', 'Join the network. <span style="color:var(-
 <section class="section-sm">
   <div class="container">
     <?= photo_band([
-        ['van-loading', 'Onboard once', 'Profile, vehicle and documents in one place.'],
-        ['courier-smile', 'Get matched', 'Loads, daily routes and openings that fit.'],
-        ['truck-driver-cab', 'Stay loaded', 'Dispatch and support stay with you on the road.'],
+        ['drivers_band_1', 'Onboard once', 'Profile, vehicle and documents in one place.'],
+        ['drivers_band_2', 'Get matched', 'Loads, daily routes and openings that fit.'],
+        ['drivers_band_3', 'Stay loaded', 'Dispatch and support stay with you on the road.'],
     ]) ?>
   </div>
 </section>

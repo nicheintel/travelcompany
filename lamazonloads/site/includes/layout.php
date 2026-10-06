@@ -198,11 +198,16 @@ function page_hero(string $eyebrow, string $title, string $lead = '', string $ph
         . ($lead !== '' ? '<p class="lead">' . e($lead) . '</p>' : '') . '</div></section>';
 }
 
-/** Stock photo from assets/photos (800 and 1600 px WebP), e.g. photo('van-loaded', 'Courier with a loaded van'). */
+/** A photo spot from PAGE_PHOTOS (your upload from Admin → Site photos, or the original stock photo), or a stock photo name. */
 function photo(string $name, string $alt, string $class = '', string $sizes = '(max-width: 900px) 100vw, 50vw', string $pos = 'center', bool $eager = false): string
 {
-    return '<img class="' . e($class) . '" src="' . e(asset('photos/' . $name . '-800.webp')) . '" srcset="'
-        . e(asset('photos/' . $name . '-800.webp')) . ' 800w, ' . e(asset('photos/' . $name . '-1600.webp')) . ' 1600w" sizes="' . e($sizes) . '" alt="' . e($alt) . '"'
+    [$small, $large, $up] = photo_urls($name);
+    if ($up) { // a photo uploaded in Admin → Site photos: centred, with its own description
+        $pos = 'center';
+        $alt = $alt !== '' && $up['caption'] !== '' ? $up['caption'] : $alt;
+    }
+    return '<img class="' . e($class) . '" src="' . e($small) . '" srcset="'
+        . e($small) . ' 800w, ' . e($large) . ' 1600w" sizes="' . e($sizes) . '" alt="' . e($alt) . '"'
         . ($pos !== 'center' ? ' style="object-position:' . e($pos) . '"' : '')
         . ($eager ? ' fetchpriority="high"' : ' loading="lazy"') . ' decoding="async">';
 }

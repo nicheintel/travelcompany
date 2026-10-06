@@ -3,7 +3,7 @@ declare(strict_types=1);
 require __DIR__ . '/includes/bootstrap.php';
 
 page_header('Services', 'services', 'Freight dispatching, daily routes, driver onboarding, support, load coordination and community for independent drivers and owner-operators.');
-page_hero('What we do', 'Services built to keep you loaded', 'Dispatching is where we start. Support, routes and community are what keep you moving.', 'van-loaded', 'center 18%');
+page_hero('What we do', 'Services built to keep you loaded', 'Dispatching is where we start. Support, routes and community are what keep you moving.', 'banner_services', 'center 18%');
 
 $services = [
     ['truck', 'Freight dispatching', 'We search, negotiate and book loads so you can focus on driving.', ['Load board and broker searches every day', 'Rate negotiation on your behalf', 'Booking, rate confirmations and broker setup packets', 'Lanes planned around your home time']],

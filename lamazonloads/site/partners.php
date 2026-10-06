@@ -28,7 +28,7 @@ $vans = [[0, '7s', '0s'], [1, '8s', '-2.5s'], [3, '6.5s', '-1s'], [4, '7.5s', '-
 page_header('Partner with us', 'partners', 'Partner with LamazonLoads for last-mile delivery, healthcare delivery and dedicated fleet & driver services. Trusted couriers, in-house developers and real people on support. Request a call.');
 ?>
 <section class="hero partner-hero has-photo">
-  <?= bg_photo('handshake', 'center 40%') ?>
+  <?= bg_photo('partners_hero', 'center 40%') ?>
   <div class="container hero-grid">
     <div class="hero-copy">
       <span class="pill"><span class="dot"><?= icon('handshake') ?></span>Partner with LamazonLoads</span>
@@ -131,7 +131,7 @@ page_header('Partner with us', 'partners', 'Partner with LamazonLoads for last-m
       <h2>Trusted couriers on the road. Developers behind the scenes.</h2>
       <p>Most delivery partners give you drivers. We give you drivers <b>and</b> the technology team to plug them into the way you already work, plus a support team that knows your account by name.</p>
       <div class="dev-visual">
-        <?= photo('developers', 'LamazonLoads developers at work', 'dev-photo') ?>
+        <?= photo('partners_developers', 'LamazonLoads developers at work', 'dev-photo') ?>
         <div class="code-card" aria-label="Example of a live delivery update sent to a partner's system">
           <div class="code-head"><span></span><span></span><span></span><small>delivery-update.json</small></div>
 <pre><code>{

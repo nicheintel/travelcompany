@@ -30,7 +30,7 @@ if (is_post()) {
 }
 
 page_header('Contact', 'contact', 'Contact LamazonLoads dispatch and driver support.');
-page_hero('Contact us', 'Talk to dispatch', "Questions about dispatching, daily routes or onboarding? Send us a message and a real person will get back to you.", 'support-agent', 'center 25%');
+page_hero('Contact us', 'Talk to dispatch', "Questions about dispatching, daily routes or onboarding? Send us a message and a real person will get back to you.", 'banner_contact', 'center 25%');
 $email = (string) config('contact_email');
 $phone = (string) config('contact_phone');
 ?>

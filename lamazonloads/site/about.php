@@ -3,7 +3,7 @@ declare(strict_types=1);
 require __DIR__ . '/includes/bootstrap.php';
 
 page_header('About us', 'about', "LamazonLoads was created from a driver's perspective to advocate for independent drivers and owner-operators and keep them loaded.");
-page_hero('About LamazonLoads', "Created from the driver's seat", 'LamazonLoads is a transportation and logistics company focused on helping independent drivers and owner-operators stay moving and get access to freight opportunities.', 'driver-wheel', 'center 40%');
+page_hero('About LamazonLoads', "Created from the driver's seat", 'LamazonLoads is a transportation and logistics company focused on helping independent drivers and owner-operators stay moving and get access to freight opportunities.', 'banner_about', 'center 40%');
 ?>
 <section class="section">
   <div class="container story level">
@@ -26,9 +26,9 @@ page_hero('About LamazonLoads', "Created from the driver's seat", 'LamazonLoads 
 <section class="section-sm">
   <div class="container">
     <?= photo_band([
-        ['truck-driver-cab', 'Drivers first', 'Every decision starts with the driver.'],
-        ['warehouse-team', 'Organized logistics', 'Dispatch, routes and freight booking under one roof.'],
-        ['support-agent', 'Real people on support', 'Talk to someone who knows your name.'],
+        ['about_band_1', 'Drivers first', 'Every decision starts with the driver.'],
+        ['about_band_2', 'Organized logistics', 'Dispatch, routes and freight booking under one roof.'],
+        ['about_band_3', 'Real people on support', 'Talk to someone who knows your name.'],
     ]) ?>
   </div>
 </section>
