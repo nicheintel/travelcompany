@@ -87,6 +87,10 @@ $here = 'job.php?id=' . $id;
 <section class="section job-section">
   <div class="container job-wrap">
     <article class="card pad prose job-card">
+      <header class="job-title-row">
+        <h2 class="job-title"><?= e($job['title']) ?></h2>
+        <p class="job-where">LamazonLoads &ndash; <?= e(trim((string) $job['location']) !== '' ? $job['location'] : 'United States') ?></p>
+      </header>
       <div class="tags job-badges">
         <?php foreach ($types as $t): ?><span class="tag"><?= icon('briefcase') ?><?= e($t) ?></span><?php endforeach; ?>
         <span class="tag"><?= icon('users') ?><?= e(job_hiring_label($job)) ?></span>
