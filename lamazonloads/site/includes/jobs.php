@@ -51,6 +51,9 @@ function job_excerpt(array $job, int $len = 160, bool $whole = false): string
     if ($first === '') {
         $first = (string) ($job['summary'] ?? '');
     }
+    $first = (string) preg_replace('/(^|\R)\s*(?:[●•·▪◦*\-–]|\d+[.)])\s+/u', '$1', $first); // drop list bullets
+    $first = (string) preg_replace('/:\s*\R/u', ': ', $first);
+    $first = (string) preg_replace('/\R+/u', ' · ', trim($first));                   // list lines read as "a · b · c"
     return mb_strimwidth((string) preg_replace('/\s+/', ' ', $first), 0, $len, '…');
 }
 
@@ -88,6 +91,22 @@ function job_description_html(string $text): string
     }
     $flush();
     return $html;
+}
+
+/** "Posted today", "Posted 3 days ago", "Posted 2 weeks ago" or "Posted Oct 5, 2026"; the network application is "Always open". */
+function job_posted_label(array $job): string
+{
+    if ((int) ($job['id'] ?? 0) === 0 || empty($job['created_at'])) {
+        return 'Always open';
+    }
+    $days = (int) floor((strtotime(date('Y-m-d')) - strtotime(substr((string) $job['created_at'], 0, 10))) / 86400);
+    return match (true) {
+        $days <= 0 => 'Posted today',
+        $days === 1 => 'Posted yesterday',
+        $days < 14 => "Posted $days days ago",
+        $days < 31 => 'Posted ' . intdiv($days, 7) . ' weeks ago',
+        default => 'Posted ' . fmt_date((string) $job['created_at']),
+    };
 }
 
 function job_hiring_label(array $job): string

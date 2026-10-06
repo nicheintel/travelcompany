@@ -1296,3 +1296,45 @@ html.modal-lock { overflow: hidden; }
 .reset-steps { list-style: none; margin: 18px 0; padding: 14px 16px; display: grid; gap: 10px; text-align: left; border-radius: 14px; background: var(--blue-50); }
 .reset-steps li { display: flex; align-items: center; gap: 10px; font-size: .94rem; }
 .reset-steps span { width: 24px; height: 24px; flex: none; border-radius: 50%; display: grid; place-items: center; background: var(--blue); color: #fff; font-size: .78rem; font-weight: 800; }
+
+/* Posted date on job boxes and the job page */
+.jc-where { margin-bottom: 4px; }
+.jc-posted { display: flex; align-items: center; gap: 6px; margin: 0 0 12px; font-size: .8rem; font-weight: 600; color: #12804A; }
+.jc-posted .ic { width: 14px; height: 14px; }
+.job-posted { display: flex; align-items: center; gap: 6px; margin: 6px 0 0; font-size: .88rem; font-weight: 600; color: #12804A; }
+.job-posted .ic { width: 16px; height: 16px; }
+
+/* Admin → Applications: compact list, details in a pop-up */
+.app-count { margin: 4px 0 12px; }
+.app-list { padding: 6px; overflow: hidden; }
+.app-row { display: grid; grid-template-columns: minmax(0, 1.8fr) minmax(0, 1.4fr) minmax(0, 1fr) 56px minmax(150px, 1.4fr) 104px 18px; gap: 14px; align-items: center;
+  padding: 12px 14px; border-radius: 12px; color: var(--text); font-size: .9rem; transition: background .15s; }
+a.app-row:hover { background: var(--blue-50); text-decoration: none; }
+a.app-row + a.app-row { border-top: 1px solid var(--line); }
+a.app-row:hover + a.app-row { border-top-color: transparent; }
+.app-row-head { padding-top: 8px; padding-bottom: 8px; font-size: .7rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.app-row > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ar-name b { display: block; color: var(--ink); overflow: hidden; text-overflow: ellipsis; }
+.ar-name small { display: block; color: var(--muted); overflow: hidden; text-overflow: ellipsis; }
+.app-row.is-new .ar-name b::before { content: ""; display: inline-block; width: 8px; height: 8px; margin-right: 7px; border-radius: 50%; background: var(--blue); vertical-align: 1px; }
+.ar-go { color: var(--blue); opacity: .5; transition: opacity .15s, transform .15s; }
+a.app-row:hover .ar-go { opacity: 1; transform: translateX(3px); }
+.ar-go .ic { width: 18px; height: 18px; }
+.mail-dot { display: inline-flex; align-items: center; gap: 6px; font-size: .82rem; font-weight: 700; }
+.mail-dot::before { content: ""; width: 8px; height: 8px; border-radius: 50%; flex: none; }
+.mail-dot.dispatch { color: #1D4BB0; } .mail-dot.dispatch::before { background: var(--blue); }
+.mail-dot.walmart { color: #0B6B35; } .mail-dot.walmart::before { background: var(--green); }
+.mail-dot.none { color: var(--muted); } .mail-dot.none::before { background: #B8C1D3; }
+.pager { display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 16px; }
+.app-modal .modal-panel { width: min(720px, 100%); }
+.modal-sub { margin: 4px 0 0; font-size: .86rem; color: #C9D6F5; }
+.app-modal .mb { margin-bottom: 14px; }
+.app-links { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 14px; font-size: .9rem; font-weight: 600; }
+.app-links a { display: inline-flex; align-items: center; gap: 6px; }
+.app-links .ic { width: 16px; height: 16px; }
+@media (max-width: 1100px) {
+  .app-row-head { display: none; }
+  .app-row { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "name status" "job job" "meta mail"; gap: 4px 12px; }
+  .ar-name { grid-area: name; } .ar-status { grid-area: status; } .ar-job { grid-area: job; color: var(--muted); font-size: .85rem; }
+  .ar-veh { display: none; } .ar-date { grid-area: meta; font-size: .82rem; color: var(--muted); } .ar-mail { grid-area: mail; text-align: right; } .ar-go { display: none; }
+}

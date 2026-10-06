@@ -277,6 +277,7 @@ function job_card(array $job): string
     return '<article class="card jc reveal">'
         . '<h3 class="jc-title"><a href="' . $href . '">' . e($job['title']) . '</a></h3>'
         . '<p class="jc-where">LamazonLoads &ndash; ' . e($where) . '</p>'
+        . '<p class="jc-posted">' . icon('clock') . e(job_posted_label($job)) . '</p>'
         . '<p class="jc-desc">' . e(job_excerpt($job, 260, true)) . '</p>'
         . '<div class="jc-actions">'
         . ($applied

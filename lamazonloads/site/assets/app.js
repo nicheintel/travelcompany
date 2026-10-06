@@ -196,15 +196,17 @@
         document.documentElement.classList.remove('modal-lock');
         if (lastFocus && lastFocus.focus) lastFocus.focus({ preventScroll: true });
       }, 220);
-      var search = location.search.replace(/([?&])apply=1(&|$)/, function (all, a, b) { return b ? a : ''; });
+      var param = m.getAttribute('data-modal-param') || 'apply';
+      var search = location.search.replace(new RegExp('([?&])' + param + '=[^&]*(&|$)'), function (all, a, b) { return b ? a : ''; });
       if (location.hash === '#' + m.id || search !== location.search) history.replaceState(null, '', location.pathname + search);
     };
     document.querySelectorAll('[data-modal-open="' + m.id + '"]').forEach(function (b) {
       b.addEventListener('click', function (e) { e.preventDefault(); open(); });
     });
-    m.querySelectorAll('[data-modal-close]').forEach(function (b) {
-      b.addEventListener('click', function (e) { e.preventDefault(); close(); });
+    m.addEventListener('click', function (e) { // also works for content loaded later
+      if (e.target.closest('[data-modal-close]')) { e.preventDefault(); close(); }
     });
+    m.addEventListener('modal:open', open);
     document.addEventListener('keydown', function (e) {
       if (!m.classList.contains('is-open')) return;
       if (e.key === 'Escape') { close(); return; }
@@ -215,6 +217,24 @@
       }
     });
     if (m.classList.contains('is-open') || location.hash === '#' + m.id) open();
+  });
+
+  // Admin → Applications: tap a row to see the full application in the pop-up (no page reload).
+  var appModal = document.getElementById('app');
+  document.querySelectorAll('[data-app-open]').forEach(function (row) {
+    row.addEventListener('click', function (e) {
+      if (!appModal || e.metaKey || e.ctrlKey || e.shiftKey) return;
+      e.preventDefault();
+      var href = row.getAttribute('href');
+      fetch(href + (href.indexOf('?') === -1 ? '?' : '&') + 'partial=1', { credentials: 'same-origin' })
+        .then(function (r) { if (!r.ok) throw new Error(); return r.text(); })
+        .then(function (html) {
+          appModal.querySelector('[data-modal-content]').innerHTML = html;
+          history.replaceState(null, '', href);
+          appModal.dispatchEvent(new Event('modal:open'));
+        })
+        .catch(function () { window.location.href = href; });
+    });
   });
 
   // "Back to all jobs": if the visitor came from the Careers page, go back in history so the list

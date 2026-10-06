@@ -89,6 +89,7 @@ $here = 'job.php?id=' . $id;
       <header class="job-title-row">
         <h1 class="job-title"><?= e($job['title']) ?></h1>
         <p class="job-where">LamazonLoads &ndash; <?= e(trim((string) $job['location']) !== '' ? $job['location'] : 'United States') ?></p>
+        <p class="job-posted"><?= icon('clock') ?><?= e(job_posted_label($job)) ?><?= $id !== 0 && !empty($job['created_at']) ? ' · ' . e(fmt_date((string) $job['created_at'], 'F j, Y')) : '' ?></p>
       </header>
       <div class="tags job-badges">
         <?php foreach ($types as $t): ?><span class="tag"><?= icon('briefcase') ?><?= e($t) ?></span><?php endforeach; ?>
