@@ -86,7 +86,7 @@ require __DIR__ . '/includes/header.php';
             <?php else: ?>
               <?= icon('bed', 48, 'absolute right-4 top-4 text-white/30') ?>
             <?php endif; ?>
-            <?php if ($h['original']): ?><span class="absolute left-3 top-3 z-10 rounded-full bg-accent-500 px-2.5 py-1 text-xs font-bold"><?= e(t('Deal −{percent}%', ['percent' => round((1 - $h['nightly'] / $h['original']) * 100)])) ?></span><?php endif; ?>
+            <?php if ($h['original']): ?><span class="absolute left-3 top-3 z-10 rounded-full bg-accent-700 px-2.5 py-1 text-xs font-bold text-white"><?= e(t('Deal −{percent}%', ['percent' => round((1 - $h['nightly'] / $h['original']) * 100)])) ?></span><?php endif; ?>
             <span class="relative text-xs font-medium"><?= e($h['room']) ?></span>
           </div>
           <div class="flex flex-col gap-4 p-5 md:flex-row md:justify-between">
@@ -109,7 +109,7 @@ require __DIR__ . '/includes/header.php';
             </div>
             <div class="flex shrink-0 flex-row items-end justify-between gap-3 md:flex-col md:text-right">
               <div>
-                <?php if ($h['original']): ?><p class="text-sm text-slate-400 line-through"><?= e(price($h['original'])) ?></p><?php endif; ?>
+                <?php if ($h['original']): ?><p class="text-sm text-slate-500 line-through"><?= e(price($h['original'])) ?></p><?php endif; ?>
                 <p class="text-2xl font-extrabold text-slate-900"><?= e(price($h['nightly'])) ?></p>
                 <p class="text-xs text-slate-500"><?= e(t('per night')) ?></p>
                 <p class="mt-1 text-xs text-slate-600"><?= e($h['stay_total'] ? t('{price} total incl. taxes', ['price' => price($total)]) : t('{price} total + taxes', ['price' => price($total)])) ?></p>

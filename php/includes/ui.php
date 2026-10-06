@@ -48,7 +48,7 @@ function airport_field(string $name, string $label, string $placeholder, ?string
 {
     $a = airport($code);
     $display = $a ? "{$a['city']} ({$a['code']})" : '';
-    return '<div class="relative" data-airport>'
+    return '<div class="relative" data-airport data-airport-src="' . e(asset('airports.js')) . '">'
         . '<label class="' . FIELD_BOX . '"><span class="' . FIELD_LABEL . '">' . e($label) . '</span>'
         . '<span class="flex items-center gap-2">' . icon('pin', 16, 'shrink-0 text-brand-500')
         . '<input type="text" autocomplete="off" role="combobox" aria-expanded="false" placeholder="' . e($placeholder) . '" value="' . e($display) . '" class="' . FIELD_INPUT . ' truncate" data-airport-input></span></label>'
@@ -179,17 +179,17 @@ function package_card(array $p): string
     return '<article id="' . e($p['slug']) . '" class="group flex scroll-mt-24 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl">'
         . '<div class="relative h-48 overflow-hidden p-4 text-white">' . $top
         . '<div class="relative flex items-start justify-between">' . ($p['badge'] ? '<span class="rounded-full bg-white/95 px-3 py-1 text-xs font-bold text-slate-900 shadow">' . e($p['badge']) . '</span>' : '<span></span>')
-        . ($save ? '<span class="rounded-full bg-accent-500 px-3 py-1 text-xs font-bold shadow">-' . (int) round($save / $p['was_price'] * 100) . '%</span>' : '') . '</div>'
+        . ($save ? '<span class="rounded-full bg-accent-700 px-3 py-1 text-xs font-bold text-white shadow">-' . (int) round($save / $p['was_price'] * 100) . '%</span>' : '') . '</div>'
         . '<div class="absolute bottom-4 left-4 right-4"><p class="text-sm font-medium text-white/90">' . e($p['country']) . ' · ' . e(tn((int) $p['nights'], '{n} night', '{n} nights')) . '</p><h3 class="text-xl font-bold drop-shadow">' . e($p['destination']) . '</h3></div></div>'
-        . '<div class="flex flex-1 flex-col p-5"><h4 class="font-semibold text-slate-900">' . e($p['title']) . '</h4>'
+        . '<div class="flex flex-1 flex-col p-5"><h3 class="font-semibold text-slate-900">' . e($p['title']) . '</h3>'
         . '<div class="mt-1 flex items-center gap-2 text-sm text-slate-600">' . ($p['stars'] ? '<span class="flex text-amber-400">' . star_icons($p['stars']) . '</span>' : '') . '<span class="truncate">' . e($p['hotel']) . '</span></div>'
         . '<p class="mt-1 text-xs text-slate-500">' . e(t('From {city} · travel {start} – {end}', ['city' => $p['from_city'], 'start' => fmt_date($first), 'end' => fmt_date($last)])) . '</p>'
         . '<div class="mt-3 flex flex-wrap gap-1.5 text-xs font-medium">' . $chip('plane', t('Flight')) . $chip('bed', t('Hotel')) . ($p['car'] ? $chip('car', t('Car')) : '') . '</div>'
         . ($perks ? '<ul class="mt-3 space-y-1 text-sm text-slate-600">' . $perks . '</ul>' : '')
         . '<div class="mt-auto flex flex-wrap items-end justify-between gap-3 pt-5"><div>'
-        . ($save ? '<p class="text-sm text-slate-400 line-through">' . price($p['was_price']) . '</p>' : '')
+        . ($save ? '<p class="text-sm text-slate-500 line-through">' . price($p['was_price']) . '</p>' : '')
         . '<p class="whitespace-nowrap text-2xl font-extrabold text-slate-900">' . price($p['price']) . '<span class="text-xs font-medium text-slate-500"> ' . e(t('/person')) . '</span></p>'
-        . ($save ? '<p class="text-xs font-semibold text-emerald-600">' . e(t('You save {amount}', ['amount' => price($save)])) . '</p>' : '') . '</div>'
+        . ($save ? '<p class="text-xs font-semibold text-emerald-700">' . e(t('You save {amount}', ['amount' => price($save)])) . '</p>' : '') . '</div>'
         . '<a href="' . e(url('book.php', ['kind' => 'package', 'id' => $p['slug']])) . '" class="shrink-0 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-700">' . e(t('Book deal')) . '</a></div></div></article>';
 }
 
@@ -204,9 +204,9 @@ function leg_row(array $leg, string $label): string
         . '<p class="text-lg font-bold text-slate-900">' . fmt_time($leg['depart']) . '</p><p class="text-sm text-slate-500">' . e($leg['from']) . '</p></div>'
         . '<div class="text-center"><p class="text-xs text-slate-500">' . fmt_duration($leg['duration']) . '</p>'
         . '<div class="relative my-1 flex items-center"><span class="h-px flex-1 bg-slate-300"></span>' . $dots . icon('plane', 14, 'ml-1 rotate-45 text-slate-400') . '</div>'
-        . '<p class="text-xs font-medium ' . ($leg['stops'] === 0 ? 'text-emerald-600' : 'text-accent-600') . '">' . e($stopText) . '</p></div>'
+        . '<p class="text-xs font-medium ' . ($leg['stops'] === 0 ? 'text-emerald-700' : 'text-accent-700') . '">' . e($stopText) . '</p></div>'
         . '<div class="text-right"><p class="text-xs font-medium uppercase text-slate-400">' . e($leg['flight_number']) . '</p>'
-        . '<p class="text-lg font-bold text-slate-900">' . fmt_time($leg['arrive']) . ($leg['day_offset'] > 0 ? '<sup class="ml-0.5 text-xs text-accent-600">+' . $leg['day_offset'] . '</sup>' : '') . '</p>'
+        . '<p class="text-lg font-bold text-slate-900">' . fmt_time($leg['arrive']) . ($leg['day_offset'] > 0 ? '<sup class="ml-0.5 text-xs text-accent-700">+' . $leg['day_offset'] . '</sup>' : '') . '</p>'
         . '<p class="text-sm text-slate-500">' . e($leg['to']) . '</p></div></div>';
 }
 
@@ -364,7 +364,7 @@ function auth_shell_open(string $heading, string $subtitle, ?string $notice = nu
         . '<div class="relative"><p class="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-sm font-medium ring-1 ring-white/20"><span class="h-2 w-2 rounded-full bg-accent-400"></span>' . e(t('Free membership')) . '</p>'
         . '<h2 class="mt-6 text-3xl font-extrabold leading-tight">' . th('Travel smarter with your {free_account}', [], ['free_account' => '<span class="text-accent-400">' . e(t('free account')) . '</span>']) . '</h2><ul class="mt-8 space-y-4">' . $li . '</ul></div></div>'
         . '<div class="mx-auto w-full max-w-md self-center">'
-        . ($notice ? '<p class="mb-5 rounded-xl bg-accent-500/10 px-4 py-3 text-sm font-medium text-accent-600 ring-1 ring-accent-500/30">' . e($notice) . '</p>' : '')
+        . ($notice ? '<p class="mb-5 rounded-xl bg-accent-500/10 px-4 py-3 text-sm font-medium text-accent-700 ring-1 ring-accent-500/30">' . e($notice) . '</p>' : '')
         . '<h1 class="text-3xl font-bold text-slate-900">' . e($heading) . '</h1><p class="mt-2 text-slate-600">' . e($subtitle) . '</p><div class="mt-8">';
 }
 

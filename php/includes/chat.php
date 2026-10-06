@@ -315,7 +315,7 @@ function chat_bubble(): string
     return '<div class="chat' . ($auth ? ' chat-auth' : '') . '" data-chat data-endpoint="' . e(url('chat.php')) . '" data-csrf="' . e(csrf_token()) . '"'
         . ' data-member="' . ($owner[0] === 'member' ? '1' : '0') . '" data-has="' . ($has ? '1' : '0') . '" data-help="' . e(url('help.php')) . '"'
         . ' data-admin="' . e($admin) . '" data-site="' . e($site) . '" data-strings="' . e(json_encode($strings, JSON_UNESCAPED_UNICODE)) . '">'
-        . '<button type="button" class="chat-fab" data-chat-open aria-expanded="false" aria-controls="chat-panel">'
+        . '<button type="button" class="chat-fab" data-chat-open aria-expanded="false" aria-controls="chat-panel" aria-label="' . e(t('Chat with {site}', ['site' => $site])) . '">'
         . '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg><span>' . e(t('Chat')) . '</span><b class="chat-dot" data-chat-dot hidden></b></button>'
         . '</div><script src="' . e(asset('chat.js')) . '" defer></script>';
 }

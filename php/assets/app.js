@@ -43,10 +43,18 @@
   // ---------- Airport autocomplete ----------
   // Every airport with scheduled flights (assets/airports.js), main airports first.
   const fold = (s) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-  const AIRPORTS = (window.AIRPORT_ROWS || []).map(([code, city, country, name, size, words = ""]) => ({ code, city, country, name, size, key: fold(`${city} ${name} ${country} ${words}`) }));
+  // Downloaded after the page has loaded (or when a box is tapped), so pages show sooner.
+  let airportList, airportsLoading;
+  const airports = () => airportList || (window.AIRPORT_ROWS ? (airportList = window.AIRPORT_ROWS.map(([code, city, country, name, size, words = ""]) => ({ code, city, country, name, size, key: fold(`${city} ${name} ${country} ${words}`) }))) : []);
+  const loadAirports = (src) => window.AIRPORT_ROWS ? Promise.resolve() : (airportsLoading ??= new Promise((resolve) => {
+    const s = document.createElement("script");
+    s.src = src;
+    s.onload = s.onerror = resolve;
+    document.head.appendChild(s);
+  }));
   function searchAirports(q) {
     q = fold(q.trim());
-    if (!q) return AIRPORTS.slice(0, 8);
+    if (!q) return airports().slice(0, 8);
     const score = (a) => {
       if (a.code.toLowerCase() === q) return 0;
       const city = fold(a.city);
@@ -56,7 +64,7 @@
       return -1;
     };
     const out = [];
-    for (const a of AIRPORTS) {
+    for (const a of airports()) {
       const s = score(a);
       if (s >= 0) out.push([s, a]);
     }
@@ -70,6 +78,14 @@
     const list = $("[data-airport-list]", box);
     let results = [];
     let hi = 0;
+    let query = "";
+    const ready = () => loadAirports(box.dataset.airportSrc).then(() => {
+      if (document.activeElement !== input) return;
+      results = searchAirports(query);
+      render();
+    });
+    if (document.readyState === "complete") ready();
+    else window.addEventListener("load", ready);
     const close = () => {
       list.classList.add("hidden");
       input.setAttribute("aria-expanded", "false");
@@ -104,12 +120,15 @@
     };
     input.addEventListener("focus", () => {
       input.select();
-      results = searchAirports("");
+      query = "";
+      results = searchAirports(query);
       hi = 0;
       render();
+      ready();
     });
     input.addEventListener("input", () => {
-      results = searchAirports(input.value);
+      query = input.value;
+      results = searchAirports(query);
       hi = 0;
       render();
     });
@@ -121,10 +140,11 @@
       else if (e.key === "Escape") close();
     });
     input.addEventListener("blur", () => {
+      if (!window.AIRPORT_ROWS) return close(); // list not downloaded yet: keep what's shown
       // Accept a typed code like "LHR", otherwise show the last chosen airport again.
-      const typed = AIRPORTS.find((a) => a.code === input.value.trim().toUpperCase());
+      const typed = airports().find((a) => a.code === input.value.trim().toUpperCase());
       if (typed) code.value = typed.code;
-      const current = AIRPORTS.find((a) => a.code === code.value);
+      const current = airports().find((a) => a.code === code.value);
       input.value = current ? label(current) : "";
       close();
     });

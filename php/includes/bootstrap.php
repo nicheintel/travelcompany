@@ -90,7 +90,7 @@ if (PHP_SAPI !== 'cli') {
         }
     }
     header("Content-Security-Policy: default-src 'self'; script-src 'self' 'nonce-" . csp_nonce() . "'; "
-        . "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; "
+        . "style-src 'self' 'unsafe-inline'; font-src 'self'; "
         . "img-src 'self' data: https:; connect-src 'self'; object-src 'none'; base-uri 'self'; "
         . 'form-action ' . implode(' ', $formTargets) . "; frame-ancestors 'none'"
         . (request_is_https() ? '; upgrade-insecure-requests' : ''));

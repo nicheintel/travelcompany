@@ -42,7 +42,6 @@ $columns = [
 </footer>
 <?php if ($jsStrings = js_strings()): ?><div hidden data-i18n="<?= e(json_encode($jsStrings, JSON_UNESCAPED_UNICODE)) ?>"></div><?php endif; ?>
 <?= chat_bubble() ?>
-<script src="<?= e(asset('airports.js')) ?>" defer></script>
 <script src="<?= e(asset('app.js')) ?>" defer></script>
 </body>
 </html>

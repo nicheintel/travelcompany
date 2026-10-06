@@ -38,9 +38,7 @@ $flashMessage = take_flash();
     <meta property="og:url" content="<?= e($canonical) ?>">
   <?php endif; ?>
   <?php if (!empty($noReferrer)): ?><meta name="referrer" content="no-referrer"><?php endif; ?>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="preload" href="<?= e(url('assets/fonts/geist-latin.woff2')) ?>" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="<?= e(asset('app.css')) ?>">
   <link rel="stylesheet" href="<?= e(asset('chat.css')) ?>">
   <link rel="icon" href="<?= e(asset('favicon.svg')) ?>" type="image/svg+xml">
@@ -50,7 +48,7 @@ $flashMessage = take_flash();
   <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
     <a href="<?= e(url()) ?>" class="flex items-center gap-2 text-xl font-bold tracking-tight">
       <span class="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 text-white shadow-md"><?= icon('plane', 18) ?></span>
-      <span class="text-slate-900">Fare<span class="text-accent-500">Finders</span></span>
+      <span class="text-slate-900">Fare<span class="text-accent-600">Finders</span></span>
     </a>
     <nav class="hidden items-center gap-1 md:flex">
       <?php foreach ($nav as [$href, $label, $ic]): $active = $current === $href; ?>
@@ -69,7 +67,7 @@ $flashMessage = take_flash();
               <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500"><?= e(t('Language')) ?></p>
               <div class="max-h-80 overflow-y-auto pr-1">
                 <?php foreach (LANGUAGES as $pkCode => [$pkName]): ?>
-                  <a role="menuitem" lang="<?= e(LANGUAGES[$pkCode][2]) ?>" href="<?= e(url('prefs.php', ['lang' => $pkCode, 'next' => $pkHere])) ?>" class="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm <?= $pkCode === $pkLang ? 'bg-brand-50 font-semibold text-brand-700' : 'text-slate-700 hover:bg-slate-50' ?>"><?= lang_flag($pkCode) ?><?= e($pkName) ?></a>
+                  <a role="menuitem" lang="<?= e(LANGUAGES[$pkCode][2]) ?>" href="<?= e(url('prefs.php', ['lang' => $pkCode, 'next' => $pkHere])) ?>" class="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm <?= $pkCode === $pkLang ? 'bg-brand-50 font-semibold text-brand-700' : 'text-slate-700 hover:bg-slate-50' ?>"><?= lang_flag($pkCode, true) ?><?= e($pkName) ?></a>
                 <?php endforeach; ?>
               </div>
             </div>

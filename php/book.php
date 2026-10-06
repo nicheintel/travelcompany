@@ -187,7 +187,7 @@ parse_str($quote['query'], $qp);
                         <?php else: ?>
                           <div class="group/bag">
                             <div class="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-                              <span class="font-semibold text-accent-600 group-has-[:checked]/bag:hidden"><?= e($bag ? t('No free checked bag') : t('Not confirmed yet')) ?></span>
+                              <span class="font-semibold text-accent-700 group-has-[:checked]/bag:hidden"><?= e($bag ? t('No free checked bag') : t('Not confirmed yet')) ?></span>
                               <span class="hidden font-semibold text-brand-700 group-has-[:checked]/bag:inline">✓ <?= e(t('Checked bag requested')) ?></span>
                               <label class="relative inline-flex cursor-pointer select-none items-center rounded-lg border border-brand-300 bg-white text-sm font-semibold text-brand-700 hover:bg-brand-50 has-[:checked]:border-slate-300 has-[:checked]:text-slate-600 has-[:checked]:hover:bg-slate-50 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand-300">
                                 <input type="checkbox" name="t<?= $i ?>_bag" value="1"<?= !empty($values["t{$i}_bag"]) ? ' checked' : '' ?> class="peer sr-only" data-bag-toggle aria-label="<?= e(t('Add a checked bag for {traveler}', ['traveler' => slot_label($slot['label'])])) ?>">

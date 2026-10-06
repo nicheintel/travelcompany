@@ -68,7 +68,7 @@ require __DIR__ . '/includes/header.php';
       <a href="<?= e(url($href)) ?>" class="group relative overflow-hidden rounded-2xl bg-gradient-to-br <?= $grad ?> p-6 text-white shadow-lg">
         <?= icon($ic, 120, 'absolute -bottom-4 -right-4 text-white/20') ?>
         <p class="text-sm font-semibold uppercase tracking-wider text-white/80"><?= e($kicker) ?></p>
-        <h3 class="mt-2 text-2xl font-bold"><?= e($heading) ?></h3>
+        <h2 class="mt-2 text-2xl font-bold"><?= e($heading) ?></h2>
         <p class="mt-1 text-white/90"><?= e($text) ?></p>
         <span class="mt-4 inline-block font-semibold underline-offset-4 group-hover:underline"><?= e($cta) ?></span>
       </a>
@@ -102,7 +102,7 @@ require __DIR__ . '/includes/header.php';
   <div class="mx-auto max-w-7xl px-4 sm:px-6">
     <div class="mb-6 flex items-end justify-between gap-4">
       <div>
-        <p class="text-sm font-semibold uppercase tracking-wider text-accent-600"><?= e(t('Promo packages')) ?></p>
+        <p class="text-sm font-semibold uppercase tracking-wider text-accent-700"><?= e(t('Promo packages')) ?></p>
         <h2 class="text-2xl font-bold text-slate-900 sm:text-3xl"><?= e(t('Current package deals')) ?></h2>
       </div>
       <a href="<?= e(url('packages.php')) ?>" class="text-sm font-semibold text-brand-700 hover:underline"><?= e(t('View all packages →')) ?></a>

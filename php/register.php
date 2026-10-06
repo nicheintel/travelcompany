@@ -43,7 +43,7 @@ echo auth_shell_open(t('Create your free account'), t('It takes less than a minu
     <?= text_field('password', t('Password'), '', 'password', $errors['password'] ?? null, ['autocomplete' => 'new-password', 'data-password-rules' => '']) ?>
     <ul class="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs" data-rules>
       <?php foreach (['len' => t('At least 8 characters'), 'letter' => t('A letter'), 'number' => t('A number')] as $k => $label): ?>
-        <li class="flex items-center gap-1 text-slate-500 data-[ok]:text-emerald-600" data-rule="<?= $k ?>"><?= icon('check', 12) ?><?= e($label) ?></li>
+        <li class="flex items-center gap-1 text-slate-500 data-[ok]:text-emerald-700" data-rule="<?= $k ?>"><?= icon('check', 12) ?><?= e($label) ?></li>
       <?php endforeach; ?>
     </ul>
   </div>

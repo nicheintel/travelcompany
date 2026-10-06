@@ -147,10 +147,10 @@ function html_lang(): string
     return LANGUAGES[current_lang()][2];
 }
 
-function lang_flag(string $code): string
+function lang_flag(string $code, bool $lazy = false): string
 {
     $flag = LANGUAGES[$code][1] ?? 'gb';
-    return '<img src="' . e(asset('flags/' . $flag . '.svg')) . '" alt="" width="20" height="15" class="h-[15px] w-5 shrink-0 rounded-sm object-cover ring-1 ring-black/10">';
+    return '<img src="' . e(asset('flags/' . $flag . '.svg')) . '" alt="" width="20" height="15"' . ($lazy ? ' loading="lazy"' : '') . ' class="h-[15px] w-5 shrink-0 rounded-sm object-cover ring-1 ring-black/10">';
 }
 
 /** Localized date, e.g. "Mon, Oct 5" in English or "lun., 5 oct." in French. */

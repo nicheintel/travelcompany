@@ -126,7 +126,7 @@ echo admin_open('bookings');
                     !empty($t['nationality']) ? 'Nationality ' . country_name($t['nationality']) : null,
                     !empty($t['frequent_flyer']) ? 'Frequent flyer ' . $t['frequent_flyer'] : null,
                 ]))) ?></p>
-                <?php if (!empty($t['extra_bag'])): ?><p class="text-xs font-semibold text-accent-600">+ Checked bag requested</p><?php endif; ?></td>
+                <?php if (!empty($t['extra_bag'])): ?><p class="text-xs font-semibold text-accent-700">+ Checked bag requested</p><?php endif; ?></td>
               <td class="py-2 text-right text-slate-600"><?= !empty($t['dob']) ? 'DOB ' . e(fmt_dob($t['dob'])) : '' ?></td></tr>
           <?php endforeach; ?>
         </tbody></table>
