@@ -96,7 +96,6 @@ function page_header(string $title, string $active = '', string $description = '
 <?php if (($pre = preload_photo()) !== null): [$preSet] = photo_set($pre); ?><link rel="preload" as="image" href="<?= e($preSet[0][0]) ?>" imagesrcset="<?= e(implode(', ', array_map(fn ($s) => $s[0] . ' ' . $s[1] . 'w', $preSet))) ?>" imagesizes="<?= e(BANNER_SIZES) ?>" fetchpriority="high">
 <?php endif; ?>
 <script src="<?= e(asset('app.js')) ?>" defer></script>
-<script type="speculationrules">{"prefetch":[{"where":{"selector_matches":".site-nav a, .site-footer a, a.btn, .jc-title a, a.sol-top, a.more-sol-card, a.biz-item, .crumbs a"},"eagerness":"moderate"}]}</script>
 </head>
 <body<?= $bodyClass !== '' ? ' class="' . e($bodyClass) . '"' : '' ?>>
 <a class="skip" href="#main">Skip to content</a>
