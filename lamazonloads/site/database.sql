@@ -214,3 +214,14 @@ CREATE TABLE IF NOT EXISTS partner_requests (
   updated_at DATETIME NOT NULL,
   KEY idx_partner_status (status, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Site photos uploaded in Admin -> Site photos (vehicle pictures and the "On the road" gallery)
+CREATE TABLE IF NOT EXISTS site_photos (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  slot VARCHAR(20) NOT NULL,
+  file VARCHAR(60) NOT NULL,
+  caption VARCHAR(160) NOT NULL DEFAULT '',
+  sort INT NOT NULL DEFAULT 0,
+  created_at DATETIME NOT NULL,
+  KEY idx_photo_slot (slot, sort)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

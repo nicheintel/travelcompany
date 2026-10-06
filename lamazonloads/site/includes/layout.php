@@ -299,6 +299,7 @@ function admin_open(string $active): void
         'chats' => ['admin/chats.php', 'chat', 'Support chats', chat_unread_total()],
         'partners' => ['admin/partners.php', 'handshake', 'Partner requests', (int) db_val("SELECT COUNT(*) FROM partner_requests WHERE status = 'new'")],
         'messages' => ['admin/messages.php', 'mail', 'Messages', $unread],
+        'photos' => ['admin/photos.php', 'upload', 'Site photos', 0],
         'email' => ['admin/email.php', 'shield', 'Email check', 0],
     ];
     echo '<div class="container dash"><aside class="card dash-nav"><div class="who"><b>Admin</b><small>LamazonLoads staff</small></div>';

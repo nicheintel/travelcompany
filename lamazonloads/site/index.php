@@ -68,6 +68,8 @@ page_header('', 'home');
   </div>
 </section>
 
+<?php fleet_showcase(); ?>
+
 <section class="section section-dark">
   <div class="container story">
     <div class="reveal">
@@ -135,6 +137,8 @@ page_header('', 'home');
     </div>
   </div>
 </section>
+
+<?php gallery_section('section'); ?>
 
 <section class="section section-white" id="faq">
   <div class="container narrow">

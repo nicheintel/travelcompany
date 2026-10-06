@@ -122,6 +122,34 @@
     });
   });
 
+  // "Meet the fleet": the current vehicle drives off, the chosen one drives in. Plays by itself until someone picks one.
+  document.querySelectorAll('[data-fleet]').forEach(function (fleet) {
+    var cars = fleet.querySelectorAll('[data-fleet-car]');
+    var tabs = fleet.querySelectorAll('[data-fleet-tab]');
+    var infos = fleet.querySelectorAll('[data-fleet-info]');
+    var cur = 0, auto = null, visible = false;
+    var show = function (i) {
+      if (i === cur) return;
+      var out = cars[cur], inn = cars[i];
+      out.classList.remove('is-on', 'moving'); out.classList.add('leave');
+      setTimeout(function () { out.classList.remove('leave'); }, 750);
+      inn.classList.add('is-on', 'moving');
+      setTimeout(function () { inn.classList.remove('moving'); }, 1700);
+      tabs.forEach(function (t, k) { t.classList.toggle('on', k === i); t.setAttribute('aria-selected', k === i ? 'true' : 'false'); });
+      infos.forEach(function (box, k) { box.hidden = k !== i; });
+      cur = i;
+    };
+    var stop = function () { if (auto) { clearInterval(auto); auto = null; } };
+    var start = function () { if (!auto && visible) auto = setInterval(function () { show((cur + 1) % cars.length); }, 6500); };
+    tabs.forEach(function (t, k) { t.addEventListener('click', function () { stop(); fleet.setAttribute('data-picked', ''); show(k); }); });
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(function (en) {
+        visible = en[0].isIntersecting;
+        if (visible && !fleet.hasAttribute('data-picked')) start(); else stop();
+      }, { threshold: .35 }).observe(fleet);
+    }
+  });
+
   // Ask before destructive actions.
   document.addEventListener('submit', function (ev) {
     var msg = ev.target.getAttribute('data-confirm');

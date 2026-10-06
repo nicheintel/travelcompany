@@ -44,7 +44,9 @@ page_hero('Drive with LamazonLoads', 'Join the network. <span style="color:var(-
   </div>
 </section>
 
-<section class="section section-white">
+<?php fleet_showcase('What you can drive', 'Bring your van or truck', 'We dispatch cargo vans, Sprinter vans and box trucks. See where each one fits best.', 'section section-white'); ?>
+
+<section class="section">
   <div class="container">
     <div class="section-head reveal"><span class="eyebrow">Why drivers choose us</span><h2>We're in your corner</h2></div>
     <div class="grid grid-3">

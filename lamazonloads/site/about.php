@@ -35,4 +35,4 @@ page_hero('About LamazonLoads', "Created from the driver's seat", 'LamazonLoads 
   </div>
 </section>
 
-<?php cta_band(); page_footer();
+<?php gallery_section(); cta_band(); page_footer();

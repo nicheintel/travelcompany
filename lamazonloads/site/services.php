@@ -27,20 +27,6 @@ $services = [
   </div>
 </section>
 
-<section class="section section-white">
-  <div class="container">
-    <div class="section-head reveal"><span class="eyebrow">Equipment</span><h2>What we dispatch</h2><p class="lead">If your equipment is qualified and insured, we want to talk.</p></div>
-    <div class="grid grid-4">
-      <?php foreach ([
-          ['van', 'Cargo Vans', 'Expedited, same-day and multi-stop freight.'],
-          ['van', 'Sprinter Vans', 'High-roof vans for expedited and partial loads.'],
-          ['truck', 'Box Trucks', '16 to 26 ft straight trucks for LTL, partials and dedicated work.'],
-          ['route', 'Other equipment', 'Hotshot and other qualified equipment, ask us.'],
-      ] as [$ic, $t, $d]): ?>
-        <div class="card feature reveal center"><div class="ico" style="margin-inline:auto"><?= icon($ic) ?></div><h3><?= e($t) ?></h3><p><?= e($d) ?></p></div>
-      <?php endforeach; ?>
-    </div>
-  </div>
-</section>
+<?php fleet_showcase('Equipment', 'What we dispatch', 'Cargo vans, Sprinter vans and box trucks, plus hotshot and other qualified equipment. If it\'s qualified and insured, we want to talk.'); ?>
 
 <?php cta_band(); page_footer();

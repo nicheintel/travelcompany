@@ -62,3 +62,6 @@ next-env.d.ts
 !/lamazonloads/site/uploads/.gitkeep
 /lamazonloads/site/storage/mail/
 /lamazonloads/site/storage/disposable_domains.txt*
+/lamazonloads/site/media/*
+!/lamazonloads/site/media/.htaccess
+!/lamazonloads/site/media/.gitkeep

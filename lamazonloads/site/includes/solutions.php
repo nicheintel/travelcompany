@@ -326,6 +326,8 @@ function solution_page(string $key): void
   </div>
 </section>
 
+<?php if ($key === 'dedicated') fleet_showcase('Your fleet', 'Vehicles we can run for you', 'Pick the mix that fits your routes. We supply the drivers, and the vehicles too if you need them.', 'section'); ?>
+
 <section class="section section-dark">
   <div class="container">
     <div class="section-head reveal"><span class="eyebrow">How it works</span><h2>Up and running in four steps</h2></div>

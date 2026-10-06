@@ -1,0 +1,8 @@
+# Public site photos (uploaded in Admin -> Site photos). Pictures only: nothing in here may ever run as code.
+Options -Indexes -ExecCGI
+<FilesMatch "(?i)\.(php|phtml|php\d|phar|pl|py|cgi|sh|shtml|html?|svg)$">
+    Require all denied
+</FilesMatch>
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+</IfModule>
