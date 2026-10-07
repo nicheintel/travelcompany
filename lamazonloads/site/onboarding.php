@@ -36,7 +36,7 @@ if ($row && !onboarding_unlocked($row)) {
     <div class="card onb-locked ss ss-card">
       <div class="ss-ico" aria-hidden="true"><?= icon('mail') ?></div>
       <h2 class="ss-title">Check your email</h2>
-      <p class="ss-lead">Your onboarding opens from the link we emailed you.</p>
+      <p class="ss-lead">Open the link we emailed you to get started.</p>
       <?= ss_chip((string) $u['email']) ?>
       <?= ss_steps([
           ['Open our email', 'From ' . mail_from()],
@@ -132,7 +132,7 @@ if (!$row): ?>
   <div class="card onb-empty ss ss-card">
     <div class="ss-ico" aria-hidden="true"><?= icon('clipboard') ?></div>
     <h2 class="ss-title">Your onboarding starts when you apply</h2>
-    <p class="ss-lead">Apply to an opening and this page becomes your checklist.</p>
+    <p class="ss-lead">Apply to an opening to unlock your checklist.</p>
     <ul class="ss-tags" aria-label="What's on the checklist"><li>Upload documents</li><li>Get approved</li><li>Sign agreement</li><li>Join Telegram</li></ul>
     <div class="ss-acts ss-acts-inline">
       <a class="btn btn-accent" href="<?= e(url('careers.php')) ?>">See open opportunities <?= icon('arrow') ?></a>
@@ -229,8 +229,9 @@ $stage = $row['stage'];
   <div class="card ss ss-card">
     <div class="ss-ico" aria-hidden="true"><?= icon('clock') ?></div>
     <h2 class="ss-title">We’re reviewing your documents</h2>
-    <p class="ss-lead"><?= $row['submitted_at'] ? 'Sent ' . e(fmt_date((string) $row['submitted_at'], 'M j')) . '. ' : '' ?>We usually finish within one business day and email you right away.</p>
+    <p class="ss-lead">We usually reply within one business day.</p>
     <?= ss_chip((string) $u['email']) ?>
+    <?php if ($row['submitted_at']): ?><?= ss_hint('Sent ' . e(fmt_date((string) $row['submitted_at'], 'M j, Y')) . '. We’ll email you when it’s done.', 'check') ?><?php endif; ?>
   </div>
   <section class="card pad">
     <h3 class="mt-0">What you sent</h3>

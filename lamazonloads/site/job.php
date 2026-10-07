@@ -10,7 +10,7 @@ if ($id === 0 && !network_enabled()) {
 if (!$job || ($job['status'] !== 'open' && !is_admin())) {
     http_response_code(404);
     page_header('Opening not found', 'careers');
-    echo '<section class="section"><div class="container narrow"><div class="card pad ss ss-card"><div class="ss-ico" aria-hidden="true">' . icon('briefcase') . '</div><h1 class="ss-title">This opening is closed</h1><p class="ss-lead">It may have been filled. New openings are posted on our Careers page.</p><div class="ss-acts ss-acts-inline"><a class="btn btn-primary" href="' . e(url('careers.php')) . '">See current openings</a></div></div></div></section>';
+    echo '<section class="section"><div class="container narrow"><div class="card pad ss ss-card"><div class="ss-ico" aria-hidden="true">' . icon('briefcase') . '</div><h1 class="ss-title">This opening is closed</h1><p class="ss-lead">It may have been filled. See what’s open now.</p><div class="ss-acts ss-acts-inline"><a class="btn btn-primary" href="' . e(url('careers.php')) . '">See current openings</a></div></div></div></section>';
     page_footer();
     exit;
 }
@@ -179,13 +179,13 @@ $here = 'job.php?id=' . $id;
     <div class="modal-body">
       <?php if ($user && !is_verified($user)): ?>
         <div class="ss modal-ss"><div class="ss-ico" aria-hidden="true"><?= icon('mail') ?></div><h3 class="ss-title" tabindex="-1" data-autofocus>Confirm your email first</h3>
-          <p class="ss-lead">We sent a confirmation link to</p>
+          <p class="ss-lead">Check your inbox for our confirmation link.</p>
           <?= ss_chip((string) $user['email']) ?>
           <?= ss_hint('After that, applying takes about 2 minutes.', 'clock') ?>
           <div class="ss-acts"><a class="btn btn-accent btn-block" href="<?= e(url('verify.php')) ?>">Confirm my email <?= icon('arrow') ?></a></div></div>
       <?php elseif (!$user): ?>
         <div class="ss modal-ss"><div class="ss-ico" aria-hidden="true"><?= icon('user') ?></div><h3 class="ss-title" tabindex="-1" data-autofocus>Sign in to apply</h3>
-          <p class="ss-lead">Use a free LamazonLoads account. The form takes about 2 minutes.</p>
+          <p class="ss-lead">It’s free, and the form takes about 2 minutes.</p>
           <ul class="ss-tags" aria-label="We'll ask for"><li>Name</li><li>Phone</li><li>Location</li><li>Vehicle</li></ul>
           <div class="ss-acts">
             <a class="btn btn-accent btn-block" href="<?= e(url('register.php?next=' . rawurlencode($here . '&apply=1'))) ?>">Create account &amp; apply</a>

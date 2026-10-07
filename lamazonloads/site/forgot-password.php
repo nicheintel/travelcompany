@@ -45,7 +45,7 @@ page_header('Reset your password', '', '', 'page-auth');
         <div class="ss reset-done">
           <div class="ss-ico" aria-hidden="true"><?= icon('mail') ?></div>
           <h1 class="ss-title">Check your email</h1>
-          <p class="ss-lead">If this email has a LamazonLoads account, we sent it a reset link.</p>
+          <p class="ss-lead">If it has an account, a reset link is on its way.</p>
           <?php if ($shown !== ''): ?><?= ss_chip($shown) ?><?php endif; ?>
           <?= ss_steps([
               ['Open our email', 'From ' . mail_from()],

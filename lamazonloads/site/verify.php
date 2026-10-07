@@ -93,7 +93,7 @@ page_header('Confirm your email', '', '', 'page-auth');
       <div class="ss verify-ss">
         <div class="ss-ico" aria-hidden="true"><?= icon('mail') ?></div>
         <h1 class="ss-title">Confirm your email</h1>
-        <p class="ss-lead">You’re almost in. We sent a confirmation link to</p>
+        <p class="ss-lead">You’re almost in. Check your inbox for our link.</p>
         <?= ss_chip((string) $u['email']) ?>
         <?= ss_steps([
             ['Open our email', 'From ' . mail_from()],

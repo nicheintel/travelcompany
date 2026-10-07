@@ -53,7 +53,7 @@ page_header('Choose a new password', '', '', 'page-auth');
         <div class="ss reset-done">
           <div class="ss-ico is-warn" aria-hidden="true"><?= icon('clock') ?></div>
           <h1 class="ss-title">This link has expired</h1>
-          <p class="ss-lead">Reset links work once, for 1 hour. Get a new one and use the newest email.</p>
+          <p class="ss-lead">Reset links work once, for 1 hour.</p>
           <div class="ss-acts">
             <a class="btn btn-primary btn-block" href="<?= e(url('forgot-password.php')) ?>">Send a new link <?= icon('arrow') ?></a>
             <a class="btn btn-ghost btn-block" href="<?= e(url('login.php')) ?>">Back to sign in</a>
