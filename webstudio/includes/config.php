@@ -34,6 +34,8 @@ function config(string $key, mixed $default = null): mixed
         ];
         $local = dirname(__DIR__) . '/config.local.php';
         if (is_file($local)) {
+            // Read the file fresh after you edit it (PHP's cache would keep the old copy for a while).
+            if (function_exists('opcache_invalidate')) @opcache_invalidate($local);
             $settings = array_merge($settings, (array) require $local);
         }
         foreach (array_keys($settings) as $name) {
