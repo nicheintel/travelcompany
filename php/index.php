@@ -28,12 +28,14 @@ require __DIR__ . '/includes/header.php';
 ?>
 <section class="relative bg-gradient-to-br from-brand-950 via-brand-800 to-brand-600" data-hero>
   <div class="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+    <div class="absolute inset-0 isolate"><?php /* photos stay in their own layer, under the blue shade and the plane */ ?>
     <?php foreach ($heroSlides as $i => $s): $lazy = $i > 0 ? 'data-' : ''; ?>
       <picture class="hero-slide<?= $i === 0 ? ' on' : '' ?>" data-place="<?= e($s['place']) ?>" data-href="<?= e($s['href']) ?>">
         <source type="image/avif" sizes="100vw" <?= $lazy ?>srcset="<?= e($s['avif']) ?>">
         <img alt="" decoding="async" sizes="100vw" <?= $lazy ?>srcset="<?= e($s['webp']) ?>" <?= $lazy ?>src="<?= e($s['src']) ?>"<?= $i === 0 ? ' fetchpriority="high"' : '' ?>>
       </picture>
     <?php endforeach; ?>
+    </div>
     <div class="absolute inset-0 bg-gradient-to-r from-brand-950/85 via-brand-950/45 to-transparent"></div>
     <div class="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-brand-950/75 to-transparent"></div>
     <svg class="absolute inset-0 h-full w-full opacity-30" viewBox="0 0 1200 600" preserveAspectRatio="xMidYMid slice">
