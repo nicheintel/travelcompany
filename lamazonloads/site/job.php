@@ -59,7 +59,7 @@ if (is_post() && !$external) {
         $errors = apply_validate($form);
     }
     if (!$errors && $resumeMode !== 'no') { // resume is always optional on this form
-        $choice = (string) ($_POST['resume_choice'] ?? '');
+        $choice = as_str($_POST['resume_choice'] ?? '');
         if ($choice === 'file' && $onFile) {
             $resumeId = (int) $onFile['id'];
         } elseif (($_FILES['resume']['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
@@ -133,7 +133,7 @@ $here = 'job.php?id=' . $id;
       </div>
       <h2 class="job-h">About this opportunity</h2>
       <div class="job-desc"><?= job_description_html((string) $job['description']) ?></div>
-      <?php $reqs = array_filter(array_map('trim', preg_split('/\R/', (string) $job['requirements']))); if ($reqs): ?>
+      <?php $reqs = array_filter(array_map('trim', preg_split('/\R/u', (string) $job['requirements']))); if ($reqs): ?>
         <h2 class="job-h">Requirements</h2>
         <ul class="checklist">
           <?php foreach ($reqs as $r): ?><li><span class="tick"><?= icon('check') ?></span><span><?= e(ltrim($r, "-•●* ")) ?></span></li><?php endforeach; ?>

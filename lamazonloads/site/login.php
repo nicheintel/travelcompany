@@ -2,17 +2,17 @@
 declare(strict_types=1);
 require __DIR__ . '/includes/bootstrap.php';
 
-$next = safe_next((string) ($_GET['next'] ?? $_POST['next'] ?? 'account.php'));
+$next = safe_next(as_str($_GET['next'] ?? $_POST['next'] ?? 'account.php'));
 if (current_user()) {
     redirect($next);
 }
 $error = '';
-$email = strtolower(substr(trim((string) ($_GET['email'] ?? '')), 0, 190));
+$email = strtolower(substr(trim(as_str($_GET['email'] ?? '')), 0, 190));
 
 if (is_post()) {
     csrf_check();
     $email = strtolower(post('email', 190));
-    $pass = (string) ($_POST['password'] ?? '');
+    $pass = as_str($_POST['password'] ?? '');
     if (login_locked($email)) {
         $error = 'Too many attempts. Please wait 15 minutes and try again.';
     } else {

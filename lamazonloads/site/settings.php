@@ -8,9 +8,9 @@ $errors = [];
 $action = '';
 if (is_post()) {
     csrf_check();
-    $action = (string) ($_POST['action'] ?? '');
+    $action = as_str($_POST['action'] ?? '');
     if ($action === 'details') {
-        $name = post('name', 100);
+        $name = post_line('name', 100);
         $phone = format_phone(post('phone', 25));
         $type = post('account_type', 30);
         $city = post('city', 120);
@@ -29,8 +29,8 @@ if (is_post()) {
             redirect('settings.php');
         }
     } elseif ($action === 'password') {
-        $cur = (string) ($_POST['current'] ?? '');
-        $new = (string) ($_POST['new'] ?? '');
+        $cur = as_str($_POST['current'] ?? '');
+        $new = as_str($_POST['new'] ?? '');
         if (login_locked((string) $u['email'])) { // same limit as signing in, so the current password can't be guessed here
             $errors[] = 'Too many attempts. Please wait 15 minutes and try again.';
         } elseif (!password_verify($cur, $u['password_hash'])) {
@@ -50,7 +50,7 @@ if (is_post()) {
         // The member deletes their own account: password to confirm, a goodbye email, and a note to staff
         if (login_locked((string) $u['email'])) {
             $errors[] = 'Too many attempts. Please wait 15 minutes and try again.';
-        } elseif (!password_verify((string) ($_POST['confirm_password'] ?? ''), $u['password_hash'])) {
+        } elseif (!password_verify(as_str($_POST['confirm_password'] ?? ''), $u['password_hash'])) {
             record_failed_login((string) $u['email']);
             $errors[] = 'That password is not correct, so your account was not deleted.';
         } else {

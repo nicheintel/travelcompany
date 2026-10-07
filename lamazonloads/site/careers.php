@@ -2,7 +2,7 @@
 declare(strict_types=1);
 require __DIR__ . '/includes/bootstrap.php';
 
-$cat = (string) ($_GET['category'] ?? '');
+$cat = as_str($_GET['category'] ?? '');
 if (!isset(JOB_CATEGORIES[$cat])) {
     $cat = '';
 }

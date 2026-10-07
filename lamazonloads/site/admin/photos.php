@@ -6,8 +6,8 @@ require_full_admin();
 $slotName = fn (string $slot): string => PHOTO_SLOTS[$slot] ?? (isset(PAGE_PHOTOS[$slot]) ? PAGE_PHOTOS[$slot][0] . ' → ' . PAGE_PHOTOS[$slot][1] : $slot);
 if (is_post()) {
     csrf_check();
-    $action = (string) ($_POST['action'] ?? '');
-    $slot = (string) ($_POST['slot'] ?? '');
+    $action = as_str($_POST['action'] ?? '');
+    $slot = as_str($_POST['slot'] ?? '');
     $back = 'admin/photos.php';
     if ($action === 'upload' && (isset(PHOTO_SLOTS[$slot]) || isset(PAGE_PHOTOS[$slot]))) {
         $back .= $slot === 'gallery' ? '#gallery' : '?spot=' . $slot . '#spot-' . $slot;
@@ -45,7 +45,7 @@ if (is_post()) {
     redirect($back);
 }
 $gallery = gallery_photos();
-$openSpot = (string) ($_GET['spot'] ?? '');
+$openSpot = as_str($_GET['spot'] ?? '');
 $groups = [];
 foreach (PAGE_PHOTOS as $key => $p) {
     $groups[$p[0]][$key] = $p;

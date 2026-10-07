@@ -24,5 +24,9 @@ if ($doc['mime'] !== 'application/pdf') {
 }
 header('Cache-Control: private, no-store');
 header('X-Robots-Tag: noindex');
-header('Content-Disposition: ' . ($download ? 'attachment' : 'inline') . '; filename="' . str_replace('"', '', $doc['original_name']) . '"');
+// The file name keeps the uploader's wording but always ends in the file's real type (never .exe, .hta, .cmd…)
+$fname = trim((string) preg_replace(['/[^\w .()\-]+/u', '/\.(pdf|jpe?g|png|docx?)$/i'], ['_', ''], trim((string) pathinfo((string) $doc['original_name'], PATHINFO_FILENAME), ' .')), ' .') ?: 'document';
+$fname .= '.' . pathinfo((string) $doc['stored_name'], PATHINFO_EXTENSION);
+$ascii = (string) preg_replace('/[^A-Za-z0-9 ._()\-]+/', '_', $fname);
+header('Content-Disposition: ' . ($download ? 'attachment' : 'inline') . '; filename="' . $ascii . '"; filename*=UTF-8\'\'' . rawurlencode($fname));
 readfile($path);

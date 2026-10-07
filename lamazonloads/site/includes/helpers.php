@@ -40,9 +40,10 @@ function asset(string $path): string
     return url('assets/' . $path) . $v;
 }
 
+/** Sends the visitor to a page on this site (never to another website). */
 function redirect(string $path): never
 {
-    header('Location: ' . (preg_match('#^https?://#', $path) ? $path : url($path)));
+    header('Location: ' . url(ltrim(str_replace(["\r", "\n", '\\'], '', $path), '/')));
     exit;
 }
 
@@ -75,6 +76,34 @@ function limit_ip(): string
         return (string) inet_ntop(substr($bin, 0, 8) . str_repeat("\0", 8)) . '/64';
     }
     return $ip;
+}
+
+/** A plain email address (letters, digits and . _ + - before the @), stricter than PHP's own check, so nothing
+ *  unusual (quotes, ?bcc=, extra addresses) can end up in "Reply by email" links or email headers. */
+function email_valid(string $e): bool
+{
+    return strlen($e) <= 190 && filter_var($e, FILTER_VALIDATE_EMAIL) !== false
+        && preg_match('/^[A-Za-z0-9._+\-]+@[A-Za-z0-9\-]+(\.[A-Za-z0-9\-]+)*\.[A-Za-z]{2,}$/', $e) === 1;
+}
+
+/** The first name for greetings ("Hi Maria,"). Only plain names are used, so nobody can put a link or a message
+ *  into an email we send; anything else gets the fallback. */
+function first_name(string $name, string $fallback = 'there'): string
+{
+    $f = trim((string) strtok(trim($name), ' '));
+    return preg_match("/^\p{L}[\p{L}'’\-]{0,29}$/u", $f) ? $f : $fallback;
+}
+
+/** A request value as text ('' when someone sends a list like ?t[]=1 instead of a single value). */
+function as_str(mixed $v): string
+{
+    return is_scalar($v) ? (string) $v : '';
+}
+
+/** A one-line form field (names, companies…): line breaks and control characters become plain spaces. */
+function post_line(string $key, int $max = 190): string
+{
+    return trim((string) preg_replace('/[\s\x00-\x1F\x7F]+/u', ' ', post($key, $max)));
 }
 
 function post(string $key, int $max = 2000): string

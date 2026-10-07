@@ -4,7 +4,7 @@ require __DIR__ . '/includes/bootstrap.php';
 
 // First sign-in with a password staff generated (Add member, or a staff password reset): the member picks their own.
 $u = require_login();
-$next = safe_next((string) ($_GET['next'] ?? $_POST['next'] ?? 'account.php'));
+$next = safe_next(as_str($_GET['next'] ?? $_POST['next'] ?? 'account.php'));
 if (empty($u['must_change_password'])) {
     redirect($next);
 }
@@ -12,8 +12,8 @@ $errors = [];
 
 if (is_post()) {
     csrf_check();
-    $new = (string) ($_POST['password'] ?? '');
-    $again = (string) ($_POST['password2'] ?? '');
+    $new = as_str($_POST['password'] ?? '');
+    $again = as_str($_POST['password2'] ?? '');
     if (strlen($new) < 8) {
         $errors[] = 'Your new password needs at least 8 characters.';
     } elseif (($pp = password_format_problem($new)) !== '') {
@@ -34,7 +34,7 @@ if (is_post()) {
     }
 }
 
-$first = trim((string) strtok((string) $u['name'], ' ')) ?: 'driver';
+$first = first_name((string) $u['name'], 'driver');
 page_header('Choose your password', '', '', 'page-auth');
 ?>
 <div class="auth-wrap">

@@ -191,9 +191,10 @@ function contract_needed(string $track): bool
 function contract_fill(string $text, array $u, string $company = '', ?int $time = null): string
 {
     $t = $time ?? time();
+    $line = fn (string $v): string => trim((string) preg_replace('/[\s\x00-\x1F\x7F]+/u', ' ', $v));
     return strtr($text, [
-        '{driver_name}' => (string) $u['name'],
-        '{company_name}' => $company !== '' ? $company : 'N/A',
+        '{driver_name}' => $line((string) $u['name']),
+        '{company_name}' => $company !== '' ? $line($company) : 'N/A',
         '{day}' => date('jS', $t),
         '{month}' => date('F', $t),
         '{year}' => date('Y', $t),
@@ -239,7 +240,7 @@ function contract_html(string $text): string
 
 function onb_first(array $u): string
 {
-    return trim((string) strtok((string) $u['name'], ' ')) ?: 'there';
+    return first_name((string) $u['name']);
 }
 
 /** Emails staff (the support inbox). */
@@ -360,10 +361,10 @@ function onboarding_sign(array $u): array
         return ['This agreement isn’t ready to sign.'];
     }
     $c = contract_get($row['track']);
-    $name = post('signed_name', 120);
-    $company = post('signed_company', 120);
-    $sig = (string) ($_POST['signature'] ?? '');
-    $em = ['emergency_name' => post('emergency_name', 120), 'emergency_relation' => post('emergency_relation', 60), 'emergency_phone' => format_phone(post('emergency_phone', 30))];
+    $name = post_line('signed_name', 120);
+    $company = post_line('signed_company', 120);
+    $sig = as_str($_POST['signature'] ?? '');
+    $em = ['emergency_name' => post_line('emergency_name', 120), 'emergency_relation' => post_line('emergency_relation', 60), 'emergency_phone' => format_phone(post_line('emergency_phone', 30))];
     $errors = [];
     if (mb_strlen($name) < 3) $errors[] = 'Please type your full name.';
     if (!str_starts_with($sig, 'data:image/png;base64,') || strlen($sig) > 400000

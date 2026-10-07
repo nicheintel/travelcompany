@@ -42,7 +42,7 @@ function send_mail(string $to, string $subject, string $text, string $html, stri
         return false;
     }
     $subject = str_replace(["\r", "\n"], ' ', $subject);
-    $replyTo = filter_var($replyTo, FILTER_VALIDATE_EMAIL) ? $replyTo : '';
+    $replyTo = email_valid($replyTo) ? $replyTo : '';
     $transport = mail_transport();
     try {
         [$headers, $body] = build_message($to, $subject, $text, $html, $replyTo);
@@ -85,7 +85,7 @@ function build_message(string $to, string $subject, string $text, string $html, 
         $headers[] = 'Reply-To: <' . $replyTo . '>';
     }
     $part = fn (string $type, string $body) => "--$b\r\nContent-Type: $type; charset=UTF-8\r\nContent-Transfer-Encoding: quoted-printable\r\n\r\n"
-        . quoted_printable_encode((string) preg_replace('/\R/', "\r\n", $body)) . "\r\n";
+        . quoted_printable_encode((string) preg_replace('/\R/u', "\r\n", $body)) . "\r\n";
     return [$headers, $part('text/plain', $text) . $part('text/html', $html) . "--$b--\r\n"];
 }
 

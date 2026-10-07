@@ -84,8 +84,7 @@ function chat_is_typing(array $thread, string $who): bool
 
 function chat_first_name(string $name): string
 {
-    $first = trim((string) strtok(trim($name), ' '));
-    return $first !== '' ? $first : 'there';
+    return first_name($name);
 }
 
 /** The first admin's first name, shown in the chat ("Lamar is typing"). */
@@ -152,7 +151,7 @@ function chat_send(string $body, string $name, string $email, string $page): arr
             if ($name === '' || mb_strlen($name) > 80) {
                 return [null, 'Enter your name.'];
             }
-            if (!filter_var($email, FILTER_VALIDATE_EMAIL) || mb_strlen($email) > 190) {
+            if (!email_valid($email)) {
                 return [null, 'Enter a valid email, so we can reply if you leave.'];
             }
             if (rate_limited('chat-new', limit_ip(), CHAT_NEW_PER_HOUR, 3600)) {

@@ -5,7 +5,7 @@ require dirname(__DIR__) . '/includes/bootstrap.php';
 require_admin();
 if (is_post()) {
     csrf_check();
-    $action = (string) ($_POST['action'] ?? '');
+    $action = as_str($_POST['action'] ?? '');
     $id = (int) ($_POST['id'] ?? 0);
     if (in_array($action, ['settings', 'delete'], true)) {
         require_full_admin_action('admin/walmart.php'); // pay rate, start month and removing cities: admins only

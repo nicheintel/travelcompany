@@ -71,7 +71,7 @@ if (is_post()) {
     if ($form['apply_method'] === 'url' && !preg_match('#^https?://[^\s]+$#i', $form['apply_url'])) $errors[] = 'Please enter the full web address where people apply (starting with https://).';
     if (!isset(RESUME_OPTIONS[$form['resume']])) $form['resume'] = 'optional';
     if ($form['notify_on'] && !emails_in($form['notify_emails'])) $errors[] = 'Please enter at least one email for application updates.';
-    if ($form['contact_by_email'] && !filter_var($form['contact_email'], FILTER_VALIDATE_EMAIL)) $errors[] = 'Please enter the email candidates can contact.';
+    if ($form['contact_by_email'] && !email_valid($form['contact_email'])) $errors[] = 'Please enter the email candidates can contact.';
     if ($form['hiring_timeline'] !== '' && !isset(HIRING_TIMELINES[$form['hiring_timeline']])) $form['hiring_timeline'] = '';
     if ($form['auto_close'] && !ctype_digit($form['hires_needed'])) $errors[] = 'Closing the post automatically needs an exact number of people to hire (1 to 10).';
     if ($form['auto_decline'] && !$form['auto_remind']) $errors[] = '"Mark as Not selected" works together with the onboarding reminder. Turn the reminder on too.';

@@ -12,7 +12,7 @@ $out = function (array $d, int $code = 200): never {
     echo json_encode($d, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     exit;
 };
-$a = (string) ($_GET['a'] ?? $_POST['a'] ?? 'poll');
+$a = as_str($_GET['a'] ?? $_POST['a'] ?? 'poll');
 $csrfOk = fn (): bool => is_post() && is_string($_POST['csrf'] ?? null) && hash_equals(csrf_token(), $_POST['csrf']);
 
 // Staff: live view of Support chats (not until they've replaced a temporary password)
@@ -74,7 +74,7 @@ if ($a === 'end' || $a === 'rate') {
         chat_end($th);
         $out(['ok' => true]);
     }
-    $err = chat_rate(chat_thread((int) $th['id']), (int) ($_POST['rating'] ?? 0), (string) ($_POST['comment'] ?? ''), ($_POST['skip'] ?? '') === '1');
+    $err = chat_rate(chat_thread((int) $th['id']), (int) ($_POST['rating'] ?? 0), as_str($_POST['comment'] ?? ''), ($_POST['skip'] ?? '') === '1');
     $out($err === '' ? ['ok' => true] : ['error' => $err], $err === '' ? 200 : 422);
 }
 
@@ -85,7 +85,7 @@ if ($a === 'send') {
     if (post('website') !== '') { // a field only bots fill in
         $out(['ok' => true, 'messages' => []]);
     }
-    [$thread, $err] = chat_send((string) ($_POST['text'] ?? ''), post('name', 100), post('email', 190), post('page', 80));
+    [$thread, $err] = chat_send(as_str($_POST['text'] ?? ''), post('name', 100), post('email', 190), post('page', 80));
     if ($err !== '') {
         $out(['error' => $err], 422);
     }

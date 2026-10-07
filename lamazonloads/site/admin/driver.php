@@ -17,7 +17,7 @@ $docErrors = [];
 
 if (is_post()) {
     csrf_check();
-    $action = $_POST['action'] ?? '';
+    $action = as_str($_POST['action'] ?? '');
     $onbBack = 'admin/driver.php?id=' . $id . '#onboarding';
     if (!$canManage || in_array($action, ['admin', 'password', 'delete', 'remove_doc', 'onb_restart'], true)) {
         require_full_admin_action('admin/driver.php?id=' . $id);
@@ -28,11 +28,11 @@ if (is_post()) {
         flash('error', 'This is the owner’s account (or the only admin), so it can’t be demoted or deleted from the website.');
         redirect('admin/driver.php?id=' . $id);
     }
-    if ($action === 'onb_start' && isset(ONB_TRACKS[$_POST['track'] ?? ''])) {
+    if ($action === 'onb_start' && isset(ONB_TRACKS[as_str($_POST['track'] ?? '')])) {
         onboarding_start($id, (string) $_POST['track']);
         flash('success', 'Onboarding started (' . ONB_TRACKS[$_POST['track']] . '). Add their documents below or ask them to upload on their onboarding page.');
         redirect($onbBack);
-    } elseif ($action === 'onb_track' && isset(ONB_TRACKS[$_POST['track'] ?? ''])) {
+    } elseif ($action === 'onb_track' && isset(ONB_TRACKS[as_str($_POST['track'] ?? '')])) {
         db_run('UPDATE onboarding SET track = ?, updated_at = NOW() WHERE user_id = ?', [$_POST['track'], $id]);
         flash('success', 'Program changed to ' . ONB_TRACKS[$_POST['track']] . '.');
         redirect($onbBack);
@@ -59,7 +59,7 @@ if (is_post()) {
         if ($sent) db_run('UPDATE onboarding SET telegram_sent_at = NOW() WHERE user_id = ?', [$id]);
         flash($sent ? 'success' : 'error', $sent ? 'Telegram link sent to ' . $u['email'] . '.' : 'The email could not be sent.');
         redirect($onbBack);
-    } elseif ($action === 'onb_mark_done' && isset(ONB_TRACKS[$_POST['track'] ?? ''])) {
+    } elseif ($action === 'onb_mark_done' && isset(ONB_TRACKS[as_str($_POST['track'] ?? '')])) {
         onboarding_mark_done($id, (string) $_POST['track'], (int) $me['id']);
         $sent = !empty($_POST['notify']) && onboarding_send_telegram($u, 'You’re all set: our team has completed your LamazonLoads onboarding.');
         if ($sent) db_run('UPDATE onboarding SET telegram_sent_at = NOW() WHERE user_id = ?', [$id]);
@@ -73,7 +73,7 @@ if (is_post()) {
         redirect($onbBack);
     } elseif ($action === 'details') {
         // Staff fill in the member's details and driver profile (same checks as the member's own pages)
-        $edit = profile_row($id) + ['name' => post('name', 100), 'phone' => format_phone(post('phone', 25)), 'account_type' => post('account_type', 30),
+        $edit = profile_row($id) + ['name' => post_line('name', 100), 'phone' => format_phone(post('phone', 25)), 'account_type' => post('account_type', 30),
             'city' => post('city', 120)];
         [$edit['vehicle_types'], $edit['vehicle_other']] = posted_vehicles(); // 'vehicle' is the profile's year, make & model
         $editErrors = profile_from_post($edit);
@@ -117,7 +117,7 @@ if (is_post()) {
             flash('success', (DOC_KINDS[$doc['kind']] ?? 'Document') . ' removed.');
         }
         redirect('admin/driver.php?id=' . $id . '#documents');
-    } elseif ($action === 'admin' && $id !== (int) $me['id'] && in_array($role = (string) ($_POST['role'] ?? ''), ['', 'moderator', 'admin'], true)) {
+    } elseif ($action === 'admin' && $id !== (int) $me['id'] && in_array($role = as_str($_POST['role'] ?? ''), ['', 'moderator', 'admin'], true)) {
         // Staff access: none, moderator or admin. They're signed out so the new access applies at their next sign-in.
         db_run('UPDATE users SET is_admin = ?, staff_role = ?, session_version = session_version + 1 WHERE id = ?', [$role === '' ? 0 : 1, $role, $id]);
         flash('success', match ($role) { 'admin' => $u['name'] . ' is now an admin.', 'moderator' => $u['name'] . ' is now a moderator.', default => $u['name'] . ' no longer has staff access.' });

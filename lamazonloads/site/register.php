@@ -2,7 +2,7 @@
 declare(strict_types=1);
 require __DIR__ . '/includes/bootstrap.php';
 
-$next = safe_next((string) ($_GET['next'] ?? $_POST['next'] ?? 'account.php'));
+$next = safe_next(as_str($_GET['next'] ?? $_POST['next'] ?? 'account.php'));
 if (current_user()) {
     redirect($next);
 }
@@ -14,10 +14,10 @@ $vehicleOther = '';
 if (is_post()) {
     csrf_check();
     foreach ($val as $k => $_) {
-        $val[$k] = post($k, 190);
+        $val[$k] = post_line($k, 190);
     }
     $val['email'] = strtolower($val['email']);
-    $pass = (string) ($_POST['password'] ?? '');
+    $pass = as_str($_POST['password'] ?? '');
     if (post('website') !== '') { // a field only bots fill in
         redirect('');
     }
@@ -26,7 +26,7 @@ if (is_post()) {
     }
     record_hit('register_try', limit_ip()); // every try counts, so the form can't be used to check which emails have accounts
     if ($val['name'] === '' || mb_strlen($val['name']) > 100) $errors[] = 'Please enter your full name.';
-    if (!filter_var($val['email'], FILTER_VALIDATE_EMAIL)) $errors[] = 'Please enter a valid email address.';
+    if (!email_valid($val['email'])) $errors[] = 'Please enter a valid email address.';
     elseif (($problem = email_signup_problem($val['email'])) !== '') $errors[] = $problem;
     $val['phone'] = format_phone($val['phone']);
     if (!preg_match('/^[0-9+()\-. ]{7,25}$/', $val['phone'])) $errors[] = 'Please enter a valid phone number.';

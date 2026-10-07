@@ -65,7 +65,7 @@ if (is_post()) {
     } elseif ($action === 'change') {
         record_hit('email_change', 'u' . $u['id']); // every try counts, so this can't be used to look up other people's emails
         $email = strtolower(post('email', 190));
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        if (!email_valid($email)) {
             $errors[] = 'Please enter a valid email address.';
         } elseif (($problem = email_signup_problem($email)) !== '') {
             $errors[] = $problem;

@@ -11,13 +11,13 @@ $filters = ['open' => 'Open', 'done' => 'Done', 'all' => 'All'];
 if (is_post()) {
     csrf_check();
     $id = (int) ($_POST['t'] ?? 0);
-    $f = isset($filters[$_POST['f'] ?? '']) ? $_POST['f'] : 'open';
-    $action = (string) ($_POST['action'] ?? '');
+    $f = isset($filters[as_str($_POST['f'] ?? '')]) ? as_str($_POST['f']) : 'open';
+    $action = as_str($_POST['action'] ?? '');
     if ($action === 'reply') {
-        $err = chat_reply($id, (string) ($_POST['text'] ?? ''));
+        $err = chat_reply($id, as_str($_POST['text'] ?? ''));
         if ($err !== '') {
             flash('error', $err);
-            $_SESSION['chat_draft'] = (string) ($_POST['text'] ?? '');
+            $_SESSION['chat_draft'] = as_str($_POST['text'] ?? '');
         }
     } elseif ($action === 'done' || $action === 'open') {
         chat_set_status($id, $action);
@@ -31,7 +31,7 @@ if (is_post()) {
     redirect('admin/chats.php?f=' . $f . '&t=' . $id . '#reply');
 }
 
-$f = isset($filters[$_GET['f'] ?? '']) ? $_GET['f'] : 'open';
+$f = isset($filters[as_str($_GET['f'] ?? '')]) ? as_str($_GET['f']) : 'open';
 $tid = (int) ($_GET['t'] ?? 0);
 if ($tid) { // read, before the list is drawn
     db_run('UPDATE support_threads SET admin_unread = 0, admin_read_id = (SELECT COALESCE(MAX(id), 0) FROM support_messages WHERE thread_id = ?) WHERE id = ?', [$tid, $tid]);

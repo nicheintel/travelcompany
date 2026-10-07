@@ -7,7 +7,7 @@ $u = require_verified();
 $uid = (int) $u['id'];
 $row = onboarding_row($uid);
 // Opened from the personal link in their email: unlock their onboarding (it stays hidden until then)
-$key = (string) ($_GET['k'] ?? '');
+$key = as_str($_GET['k'] ?? '');
 if ($row && $key !== '') {
     if (preg_match('/^[a-f0-9]{32}$/', $key) && hash_equals((string) $row['access_token'], $key)) {
         if (!onboarding_unlocked($row)) {

@@ -10,14 +10,14 @@ $val = ['name' => $u['name'] ?? '', 'email' => $u['email'] ?? '', 'phone' => $u[
 if (is_post()) {
     csrf_check();
     foreach ($val as $k => $_) {
-        $val[$k] = post($k, $k === 'message' ? 4000 : 190);
+        $val[$k] = $k === 'message' ? post($k, 4000) : post_line($k, 190);
     }
     $val['phone'] = format_phone($val['phone']);
     if (post('website') !== '') { // hidden field: only bots fill it in
         redirect('contact.php?sent=1');
     }
     if ($val['name'] === '') $errors[] = 'Please enter your name.';
-    if (!filter_var($val['email'], FILTER_VALIDATE_EMAIL)) $errors[] = 'Please enter a valid email address.';
+    if (!email_valid($val['email'])) $errors[] = 'Please enter a valid email address.';
     if (!isset($topics[$val['topic']])) $val['topic'] = 'other';
     if (mb_strlen($val['message']) < 5) $errors[] = 'Please write a short message.';
     $recent = (int) db_val('SELECT COUNT(*) FROM messages WHERE email = ? AND created_at > NOW() - INTERVAL 1 HOUR', [$val['email']]);

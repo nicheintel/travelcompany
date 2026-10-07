@@ -71,7 +71,7 @@ function apply_form_values(array $user): array
     if (is_post()) {
         foreach (['first_name' => 60, 'last_name' => 60, 'phone' => 30, 'location' => 120, 'vehicle_other' => 80, 'ownership' => 20,
             'ownership_other' => 80, 'walmart_city' => 80, 'rate_requested' => 40, 'message' => 3000] as $k => $max) {
-            $v[$k] = post($k, $max);
+            $v[$k] = $k === 'message' ? post($k, $max) : post_line($k, $max);
         }
         $v['phone'] = format_phone($v['phone']);
         $v['vehicles'] = array_values(array_intersect(array_keys(APPLY_VEHICLES), array_map('strval', (array) ($_POST['vehicles'] ?? []))));

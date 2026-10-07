@@ -1,11 +1,9 @@
 # Keep code, settings, database files and leftovers (old zips, backups) private
 Options -Indexes
 ServerSignature Off
-<FilesMatch "(^\.|^config\.local.*\.php$|\.(sql|md|log|txt|json|ini|sh|bat|zip|tar|gz|tgz|rar|7z|bak|old|orig|save|swp|tmp|dist|env|lock|yml|yaml)$|~$)">
+# (robots.txt and the city list for the sign-up picker are the only public text files)
+<FilesMatch "^(?!(?:robots|us-cities)\.txt$)(?:\..*|config\.local.*\.php|error_log|php_errors?\.log|.*\.(?:sql|md|log|txt|json|ini|sh|bat|zip|tar|gz|tgz|rar|7z|bak|old|orig|save|swp|tmp|dist|env|lock|yml|yaml|phps|inc)|.*~)$">
     Require all denied
-</FilesMatch>
-<FilesMatch "^(robots|us-cities)\.txt$">
-    Require all granted
 </FilesMatch>
 
 # Always use https
@@ -17,6 +15,8 @@ ServerSignature Off
     # Only normal page requests: block odd methods (TRACE etc.)
     RewriteCond %{REQUEST_METHOD} !^(GET|POST|HEAD)$
     RewriteRule ^ - [F]
+    # Hidden folders and files (.git, .env, editor leftovers…) are never served
+    RewriteRule (^|/)\.(?!well-known(/|$)) - [F]
 </IfModule>
 
 # Speed: browsers keep images, fonts, styles and scripts for a year (file names change when they do),
@@ -48,9 +48,12 @@ AddType image/x-icon .ico
 # Security policy (same as the one the PHP pages send). Set here with "always" so Hostinger's own one-line
 # "upgrade-insecure-requests" policy from Force HTTPS can't replace it; upgrade-insecure-requests is included.
 <IfModule mod_headers.c>
-    Header unset Content-Security-Policy
+    <FilesMatch "^(?!doc\.php$)">
+        Header unset Content-Security-Policy
+    </FilesMatch>
     Header always set Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; upgrade-insecure-requests"
-    # Documents (doc.php): shown in this site's own pop-up viewer, so they may be framed by this site only
+    # Documents (doc.php): shown in this site's own pop-up viewer, so they may be framed by this site only.
+    # doc.php's own stricter policy for photos (sandbox, nothing else allowed) is kept and applies too.
     <Files "doc.php">
         Header always set Content-Security-Policy "frame-ancestors 'self'"
     </Files>

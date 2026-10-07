@@ -29,14 +29,15 @@ function partner_submit(array $in): array
     $f = [];
     foreach (['first_name' => 60, 'last_name' => 60, 'company' => 120, 'job_title' => 100, 'email' => 190, 'phone' => 30,
         'service' => 20, 'location' => 120, 'volume' => 20, 'best_time' => 20, 'message' => 3000] as $k => $max) {
-        $f[$k] = mb_substr(trim((string) ($in[$k] ?? '')), 0, $max);
+        $v = mb_substr(trim((string) ($in[$k] ?? '')), 0, $max);
+        $f[$k] = $k === 'message' ? $v : trim((string) preg_replace('/[\s\x00-\x1F\x7F]+/u', ' ', $v)); // one-line fields stay one line
     }
     $f['email'] = strtolower($f['email']);
     $f['phone'] = format_phone($f['phone']);
     $errors = [];
     if ($f['first_name'] === '' || $f['last_name'] === '') $errors[] = 'Please enter your first and last name.';
     if ($f['company'] === '') $errors[] = 'Please enter your company name.';
-    if (!filter_var($f['email'], FILTER_VALIDATE_EMAIL)) {
+    if (!email_valid($f['email'])) {
         $errors[] = 'Please enter a valid business email.';
     } elseif (domain_is_disposable(email_domain($f['email']))) {
         $errors[] = 'Please use your company or permanent email address.';
@@ -72,9 +73,8 @@ function partner_submit(array $in): array
     // Thank-you to the business
     $phone = (string) config('contact_phone');
     [$text, $html] = email_body('Thanks for reaching out', [
-        'Hi ' . $f['first_name'] . ',',
+        'Hi ' . first_name($f['first_name']) . ',',
         'Thank you for your interest in partnering with LamazonLoads. We received your request about ' . PARTNER_SERVICES[$f['service']] . ' and our partnerships team will contact you to schedule a call.',
-        'Your request: ' . ($f['message'] !== '' ? $f['message'] : PARTNER_SERVICES[$f['service']]),
     ], 'Visit LamazonLoads', abs_url('partners.php'),
         $phone !== '' ? "Need us sooner? Call $phone or just reply to this email." : 'Need us sooner? Just reply to this email.');
     send_mail($f['email'], 'We received your request – LamazonLoads', $text, $html, support_email());

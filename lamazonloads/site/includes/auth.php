@@ -245,7 +245,7 @@ function send_verification(array $u): bool
     $raw = bin2hex(random_bytes(32));
     db_run('UPDATE users SET verify_token = ?, verify_expires = NOW() + INTERVAL ' . VERIFY_HOURS . ' HOUR, verify_sent_at = NOW() WHERE id = ?',
         [hash('sha256', $raw), $u['id']]);
-    $first = trim((string) strtok((string) $u['name'], ' ')) ?: 'there';
+    $first = first_name((string) $u['name']);
     [$text, $html] = email_body('Confirm your email', [
         "Hi $first,",
         'Thanks for creating your LamazonLoads account. Please confirm your email address so we can reach you about loads, daily routes and job openings.',
@@ -262,7 +262,7 @@ function send_password_reset(array $u): bool
     $raw = bin2hex(random_bytes(32));
     db_run('UPDATE users SET reset_token = ?, reset_expires = NOW() + INTERVAL ' . RESET_MINUTES . ' MINUTE, reset_sent_at = NOW() WHERE id = ?',
         [hash('sha256', $raw), $u['id']]);
-    $first = trim((string) strtok((string) $u['name'], ' ')) ?: 'there';
+    $first = first_name((string) $u['name']);
     [$text, $html] = email_body('Reset your password', [
         "Hi $first,",
         'We got a request to reset the password for your LamazonLoads account. Click the button below to choose a new one.',

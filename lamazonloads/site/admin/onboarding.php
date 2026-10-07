@@ -6,7 +6,7 @@ $me = require_admin();
 $setErrors = [];
 if (is_post()) {
     csrf_check();
-    $action = $_POST['action'] ?? '';
+    $action = as_str($_POST['action'] ?? '');
     require_full_admin_action('admin/onboarding.php'); // every action here is a setting (Telegram link, QR code)
     if ($action === 'settings') {
         $link = trim(post('telegram_link', 200));
@@ -44,7 +44,7 @@ if (is_post()) {
 }
 
 $counts = array_column(db_all('SELECT stage, COUNT(*) n FROM onboarding GROUP BY stage'), 'n', 'stage');
-$stage = (string) ($_GET['stage'] ?? '');
+$stage = as_str($_GET['stage'] ?? '');
 if (!isset(ONB_STAGES[$stage]) && $stage !== 'all') {
     $stage = !empty($counts['review']) ? 'review' : 'all';
 }

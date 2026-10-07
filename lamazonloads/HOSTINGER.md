@@ -2,7 +2,11 @@
 
 You need: a Hostinger plan with **lamazonloads.com** connected to it. About 15 minutes.
 Use **`lamazonloads-hostinger.zip`**. It holds the website files plus a `config.local.php` ready to fill in.
-(To build it yourself: zip the *contents* of the `site` folder and add a copy of `config.local.example.php` named `config.local.php`.)
+(To build it yourself, use only the committed files, never a folder you've tested in: from the repository root run
+`git archive --format=zip -o lamazonloads-site.zip HEAD:lamazonloads/site`, then add a copy of `config.local.example.php`
+named `config.local.php`. A tested folder holds test emails, sessions and uploads that must not go online.)
+
+**Also in hPanel:** Advanced → PHP Configuration → set **display_errors** to Off (the site turns it off too).
 
 ## 1. Set PHP to 8.2
 hPanel → **Websites** → lamazonloads.com → **Advanced → PHP Configuration** → choose **PHP 8.2** (8.1 or newer) → Save.

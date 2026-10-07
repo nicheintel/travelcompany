@@ -87,7 +87,7 @@ function create_member(array $v, int $staffId): array
 /** "Your LamazonLoads account is ready": sign-in email and the generated password. */
 function send_member_welcome(array $u, string $pass): bool
 {
-    $first = trim((string) strtok((string) $u['name'], ' ')) ?: 'there';
+    $first = first_name((string) $u['name']);
     $intro = !empty($u['is_admin'])
         ? 'Welcome to the LamazonLoads team! We created your staff account (' . (STAFF_ROLES[staff_role($u)] ?? 'Staff') . '). After you sign in, open Admin from the menu to get to your tools.'
         : 'Welcome to LamazonLoads! We created your driver account so you can check your onboarding, documents and applications in one place.';
@@ -117,7 +117,7 @@ function delete_member(int $userId): void
  */
 function send_account_closed(array $u, string $how): bool
 {
-    $first = trim((string) strtok((string) $u['name'], ' ')) ?: 'there';
+    $first = first_name((string) $u['name']);
     $self = $how === 'self';
     [$text, $html] = email_body($self ? 'Your account was deleted' : 'Your account has been closed', [
         "Hi $first,",

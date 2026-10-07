@@ -10,11 +10,11 @@ $addErrors = [];
 if (is_post() && ($_POST['action'] ?? '') === 'add') {
     csrf_check();
     foreach (['first_name' => 50, 'last_name' => 50, 'email' => 190, 'phone' => 25, 'account_type' => 30, 'onboarded' => 20, 'access' => 20] as $k => $max) {
-        $add[$k] = post($k, $max);
+        $add[$k] = post_line($k, $max);
     }
     $add['email'] = strtolower($add['email']);
     $add['phone'] = format_phone($add['phone']);
-    if (!filter_var($add['email'], FILTER_VALIDATE_EMAIL)) {
+    if (!email_valid($add['email'])) {
         $addErrors[] = 'Please enter a valid email address.';
     } elseif ($have = db_one('SELECT id, name FROM users WHERE email = ?', [$add['email']])) {
         flash('info', $have['name'] . ' already has an account with ' . $add['email'] . '. No email was sent and their password wasn\'t changed. You can add their information and documents here.');
@@ -40,18 +40,18 @@ if (is_post() && ($_POST['action'] ?? '') === 'add') {
     }
 }
 
-$q = trim((string) ($_GET['q'] ?? ''));
-$equip = (string) ($_GET['equipment'] ?? '');
-$onbF = (string) ($_GET['onb'] ?? '');  // onboarded · not (yet) · progress · none
-$loc = (string) ($_GET['loc'] ?? '');   // "st:GA" (whole state) or "c:Atlanta, GA"
-$type = (string) ($_GET['type'] ?? ''); // what they told us they are, or "staff"
+$q = trim(as_str($_GET['q'] ?? ''));
+$equip = as_str($_GET['equipment'] ?? '');
+$onbF = as_str($_GET['onb'] ?? '');  // onboarded · not (yet) · progress · none
+$loc = as_str($_GET['loc'] ?? '');   // "st:GA" (whole state) or "c:Atlanta, GA"
+$type = as_str($_GET['type'] ?? ''); // what they told us they are, or "staff"
 // "Drivers" is everyone who drives, owner-operators included; "Owner-operators" narrows it to those who own their vehicle
 const TYPE_FILTERS = ['driver' => 'Drivers', 'owner_operator' => '· Owner-operators', 'dispatcher' => 'Dispatchers / support', 'recruiter' => 'Driver recruiters',
     'other' => 'Entrepreneurs / other', 'staff' => 'Staff (admins & moderators)'];
 const ONB_FILTERS = ['onboarded' => 'Onboarded', 'not' => 'Not onboarded yet', 'progress' => '· In onboarding now', 'none' => '· Not started'];
 $where = [];
 $args = [];
-if ($q !== '') { $where[] = '(u.name LIKE ? OR u.email LIKE ? OR u.phone LIKE ? OR u.city LIKE ? OR p.home_zip LIKE ?)'; array_push($args, "%$q%", "%$q%", "%$q%", "%$q%", "$q%"); }
+if ($q !== '') { $where[] = '(u.name LIKE ? OR u.email LIKE ? OR u.phone LIKE ? OR u.city LIKE ? OR p.home_zip LIKE ?)'; $ql = addcslashes($q, '%_\\'); array_push($args, "%$ql%", "%$ql%", "%$ql%", "%$ql%", "$ql%"); }
 if (isset(EQUIPMENT[$equip])) { $where[] = 'p.equipment = ?'; $args[] = $equip; }
 if ($type === 'staff') $where[] = 'u.is_admin = 1';
 elseif ($type === 'driver') $where[] = "u.is_admin = 0 AND u.account_type IN ('driver', 'owner_operator')";

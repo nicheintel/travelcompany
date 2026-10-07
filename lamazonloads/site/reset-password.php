@@ -2,14 +2,14 @@
 declare(strict_types=1);
 require __DIR__ . '/includes/bootstrap.php';
 
-$token = (string) ($_GET['t'] ?? $_POST['t'] ?? '');
+$token = as_str($_GET['t'] ?? $_POST['t'] ?? '');
 $u = user_by_reset_token($token);
 $errors = [];
 
 if ($u && is_post()) {
     csrf_check();
-    $new = (string) ($_POST['password'] ?? '');
-    $again = (string) ($_POST['password2'] ?? '');
+    $new = as_str($_POST['password'] ?? '');
+    $again = as_str($_POST['password2'] ?? '');
     if (strlen($new) < 8) {
         $errors[] = 'Your new password needs at least 8 characters.';
     } elseif (($pp = password_format_problem($new)) !== '') {
@@ -29,7 +29,7 @@ if ($u && is_post()) {
         $fresh = db_one('SELECT * FROM users WHERE id = ?', [$u['id']]);
         if (promote_first_admin($fresh)) $fresh = db_one('SELECT * FROM users WHERE id = ?', [$u['id']]); // the reset link proved they own the email
         login_user($fresh);
-        $first = trim((string) strtok((string) $u['name'], ' ')) ?: 'there';
+        $first = first_name((string) $u['name']);
         [$text, $html] = email_body('Your password was changed', [
             "Hi $first,",
             'The password for your LamazonLoads account was just changed, and you were signed out on your other devices.',

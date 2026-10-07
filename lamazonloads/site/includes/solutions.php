@@ -144,7 +144,7 @@ function partner_form_state(string $page, string $preselect = ''): array
 {
     $val = ['first_name' => '', 'last_name' => '', 'company' => '', 'job_title' => '', 'email' => '', 'phone' => '',
         'service' => '', 'location' => '', 'volume' => '', 'best_time' => '', 'message' => '', 'consent' => ''];
-    $get = (string) ($_GET['service'] ?? '');
+    $get = as_str($_GET['service'] ?? '');
     $val['service'] = isset(PARTNER_SERVICES[$get]) ? $get : $preselect;
     $errors = [];
     if (is_post()) {

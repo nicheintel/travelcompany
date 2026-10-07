@@ -5,7 +5,7 @@ require __DIR__ . '/includes/bootstrap.php';
 if (current_user()) {
     redirect('settings.php');
 }
-$email = strtolower(trim((string) ($_GET['email'] ?? '')));
+$email = strtolower(trim(as_str($_GET['email'] ?? '')));
 $error = '';
 $sent = isset($_GET['sent']);
 

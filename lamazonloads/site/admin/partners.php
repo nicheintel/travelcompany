@@ -12,7 +12,7 @@ if (is_post()) {
         flash('success', 'Partner request deleted.');
         redirect('admin/partners.php');
     }
-    $status = (string) ($_POST['status'] ?? '');
+    $status = as_str($_POST['status'] ?? '');
     if (isset(PARTNER_STATUSES[$status])) {
         db_run('UPDATE partner_requests SET status = ?, admin_note = ?, updated_at = NOW() WHERE id = ?', [$status, post('admin_note', 3000), $id]);
         flash('success', 'Partner request updated.');
@@ -22,7 +22,7 @@ if (is_post()) {
 
 $id = (int) ($_GET['id'] ?? 0);
 $req = $id ? db_one('SELECT * FROM partner_requests WHERE id = ?', [$id]) : null;
-$filter = (string) ($_GET['status'] ?? '');
+$filter = as_str($_GET['status'] ?? '');
 if (!isset(PARTNER_STATUSES[$filter])) {
     $filter = '';
 }

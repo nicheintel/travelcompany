@@ -4,7 +4,7 @@ require dirname(__DIR__) . '/includes/bootstrap.php';
 
 // Agreements drivers sign online after approval. Signed copies keep the exact version each driver signed.
 $me = require_full_admin();
-$track = isset(ONB_TRACKS[$_GET['t'] ?? '']) ? (string) $_GET['t'] : (isset(ONB_TRACKS[$_POST['track'] ?? '']) ? (string) $_POST['track'] : 'dispatch');
+$track = isset(ONB_TRACKS[as_str($_GET['t'] ?? '')]) ? as_str($_GET['t']) : (isset(ONB_TRACKS[as_str($_POST['track'] ?? '')]) ? as_str($_POST['track']) : 'dispatch');
 $c = contract_get($track);
 $errors = [];
 $form = $c;
@@ -12,7 +12,7 @@ $form = $c;
 if (is_post()) {
     csrf_check();
     $form['title'] = post('title', 190);
-    $form['body'] = str_replace("\r\n", "\n", (string) ($_POST['body'] ?? ''));
+    $form['body'] = str_replace("\r\n", "\n", as_str($_POST['body'] ?? ''));
     $form['required'] = !empty($_POST['required']) ? 1 : 0;
     $form['ask_emergency'] = !empty($_POST['ask_emergency']) ? 1 : 0;
     if ($form['title'] === '') $errors[] = 'Please give the agreement a title.';

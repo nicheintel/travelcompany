@@ -6,7 +6,7 @@ require_admin();
 if (is_post()) {
     csrf_check();
     $status = post('status', 20);
-    if (in_array($_POST['action'] ?? '', ['delete', 'delete_many'], true)) {
+    if (in_array(as_str($_POST['action'] ?? ''), ['delete', 'delete_many'], true)) {
         require_full_admin_action(($b = safe_next(post('back', 300))) === 'account.php' ? 'admin/applications.php' : $b);
         // Delete one application (from its pop-up) or the ticked ones in the list. The member's account,
         // profile and documents (including a resume) stay; they can apply to that opening again.
@@ -28,11 +28,11 @@ if (is_post()) {
 
 const APPS_PER_PAGE = 50;
 $f = [
-    'q' => trim((string) ($_GET['q'] ?? '')),
-    'status' => (string) ($_GET['status'] ?? ''),
-    'sent' => (string) ($_GET['sent'] ?? ''),
-    'city' => (string) ($_GET['city'] ?? ''),
-    'job' => (string) ($_GET['job'] ?? ''),
+    'q' => trim(as_str($_GET['q'] ?? '')),
+    'status' => as_str($_GET['status'] ?? ''),
+    'sent' => as_str($_GET['sent'] ?? ''),
+    'city' => as_str($_GET['city'] ?? ''),
+    'job' => as_str($_GET['job'] ?? ''),
 ];
 $page = max(1, (int) ($_GET['page'] ?? 1));
 /** This page's address with the current filters (plus/minus some values). */
@@ -125,7 +125,8 @@ if ($f['city'] !== '') { $where[] = 'a.walmart = 1 AND a.walmart_city = ?'; $arg
 if ($f['q'] !== '') {
     $q = $f['q'];
     $where[] = '(u.name LIKE ? OR u.email LIKE ? OR a.first_name LIKE ? OR a.last_name LIKE ? OR a.phone LIKE ? OR a.location LIKE ? OR p.home_zip LIKE ?)';
-    array_push($args, "%$q%", "%$q%", "%$q%", "%$q%", "%$q%", "%$q%", "$q%");
+    $ql = addcslashes($q, '%_\\'); // % and _ are searched as plain characters
+    array_push($args, "%$ql%", "%$ql%", "%$ql%", "%$ql%", "%$ql%", "%$ql%", "$ql%");
 }
 $whereSql = $where ? ' WHERE ' . implode(' AND ', $where) : '';
 $total = (int) db_val('SELECT COUNT(*) FROM applications a JOIN users u ON u.id = a.user_id LEFT JOIN driver_profiles p ON p.user_id = a.user_id' . $whereSql, $args);

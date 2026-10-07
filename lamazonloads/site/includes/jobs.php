@@ -75,7 +75,7 @@ function job_description_html(string $text): string
             $list = [];
         }
     };
-    foreach (preg_split('/\R/', trim($text)) as $line) {
+    foreach (preg_split('/\R/u', trim($text)) as $line) {
         $line = trim($line);
         if ($line === '') {
             continue;
@@ -290,7 +290,8 @@ function save_upload(?array $f, int $userId, string $kind): array
     if ($f['error'] !== UPLOAD_ERR_OK || !is_uploaded_file($f['tmp_name'])) {
         return [0, 'The upload did not finish. Please try again.'];
     }
-    if ((int) db_val('SELECT COUNT(*) FROM documents WHERE user_id = ?', [$userId]) >= 40) {
+    $have = db_one('SELECT COUNT(*) n, COALESCE(SUM(size), 0) bytes FROM documents WHERE user_id = ?', [$userId]);
+    if ((int) $have['n'] >= 40 || (int) $have['bytes'] + (int) $f['size'] > 80 * 1024 * 1024) { // 40 files and 80 MB per member
         return [0, 'You have reached the document limit. Remove old documents first.'];
     }
     // Check what the file really is, not just its name. (Some servers report .docx files as zip.)
@@ -301,14 +302,65 @@ function save_upload(?array $f, int $userId, string $kind): array
     if (!isset($allowed[$mime])) {
         return [0, $kind === 'resume' ? 'Please upload your resume as a PDF, Word (DOC/DOCX), JPG or PNG file.' : 'Please upload a PDF, JPG or PNG file.'];
     }
+    if ($allowed[$mime] === 'docx' && class_exists('ZipArchive')) { // a real Word document, without macros
+        $z = new ZipArchive();
+        $opened = $z->open($f['tmp_name']) === true;
+        $okDocx = $opened && $z->locateName('word/document.xml') !== false && $z->locateName('word/vbaProject.bin') === false;
+        if ($opened) $z->close();
+        if (!$okDocx) {
+            return [0, 'That Word file couldn’t be read. Please save it again as DOCX or PDF and upload it.'];
+        }
+    }
     $stored = bin2hex(random_bytes(16)) . '.' . $allowed[$mime];
-    if (!move_uploaded_file($f['tmp_name'], dirname(__DIR__) . '/uploads/' . $stored)) {
+    $path = dirname(__DIR__) . '/uploads/' . $stored;
+    if (!move_uploaded_file($f['tmp_name'], $path)) {
         return [0, 'Could not save the file. Please try again.'];
     }
-    $name = mb_substr(preg_replace('/[^\w .()\-]+/u', '_', basename((string) $f['name'])) ?: 'document', 0, 190);
+    if ($mime === 'image/jpeg' || $mime === 'image/png') {
+        strip_image_metadata($path, $mime);
+    }
+    // The name shown and used for downloads keeps their wording, but always ends in the file's real type
+    $base = (string) pathinfo(basename((string) $f['name']), PATHINFO_FILENAME);
+    $base = trim((string) preg_replace(['/[^\w .()\-]+/u', '/\.(pdf|jpe?g|png|docx?)$/i'], ['_', ''], trim($base, ' .')), ' .');
+    $name = mb_substr($base !== '' ? $base : 'document', 0, 180) . '.' . $allowed[$mime];
+    clearstatcache(true, $path);
     db_run('INSERT INTO documents (user_id, kind, stored_name, original_name, mime, size, created_at) VALUES (?, ?, ?, ?, ?, ?, NOW())',
-        [$userId, $kind, $stored, $name, $mime, (int) $f['size']]);
+        [$userId, $kind, $stored, $name, $mime, (int) (filesize($path) ?: $f['size'])]);
     return [(int) db()->lastInsertId(), ''];
+}
+
+/**
+ * Phone photos carry hidden details (GPS location, camera). Saves the picture again without them, turned upright.
+ * Keeps the original when the server can't do it safely.
+ */
+function strip_image_metadata(string $path, string $mime): void
+{
+    if (!function_exists('imagecreatefromstring') || ($mime === 'image/jpeg' && !function_exists('exif_read_data'))) {
+        return; // without EXIF support a sideways phone photo would lose its rotation
+    }
+    $info = @getimagesize($path);
+    if (!$info || $info[0] * $info[1] > 40_000_000) {
+        return;
+    }
+    $img = @imagecreatefromstring((string) file_get_contents($path));
+    if (!$img) {
+        return;
+    }
+    if ($mime === 'image/jpeg') {
+        $rot = [3 => 180, 6 => -90, 8 => 90][(int) ((@exif_read_data($path) ?: [])['Orientation'] ?? 1)] ?? 0;
+        if ($rot) {
+            $img = imagerotate($img, $rot, 0) ?: $img;
+        }
+    } else {
+        imagesavealpha($img, true);
+    }
+    $tmp = $path . '.tmp';
+    $ok = $mime === 'image/jpeg' ? @imagejpeg($img, $tmp, 90) : @imagepng($img, $tmp, 6);
+    if ($ok && @filesize($tmp) > 0) {
+        @rename($tmp, $path);
+    } else {
+        @unlink($tmp);
+    }
 }
 
 /**
