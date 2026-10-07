@@ -45,15 +45,13 @@ AddType image/x-icon .ico
     AddOutputFilterByType DEFLATE text/html text/css text/plain text/javascript application/javascript application/json application/xml image/svg+xml
 </IfModule>
 
-# Security policy (same as the one the PHP pages send). Set here with "always" so Hostinger's own one-line
+# Security policy (the same one the PHP pages send). Set here with "always" so Hostinger's own one-line
 # "upgrade-insecure-requests" policy from Force HTTPS can't replace it; upgrade-insecure-requests is included.
+# Nothing is unset first: on LiteSpeed (Hostinger) an unset inside a <FilesMatch> runs last and would remove it.
 <IfModule mod_headers.c>
-    <FilesMatch "^(?!doc\.php$)">
-        Header unset Content-Security-Policy
-    </FilesMatch>
     Header always set Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; upgrade-insecure-requests"
     # Documents (doc.php): shown in this site's own pop-up viewer, so they may be framed by this site only.
-    # doc.php's own stricter policy for photos (sandbox, nothing else allowed) is kept and applies too.
+    # (Where the server keeps doc.php's own header too, its stricter policy for photos applies as well.)
     <Files "doc.php">
         Header always set Content-Security-Policy "frame-ancestors 'self'"
     </Files>
