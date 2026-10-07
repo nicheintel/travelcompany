@@ -294,6 +294,36 @@ function onboarding_approve(int $userId, int $staffId): string
     return $stage;
 }
 
+/**
+ * Staff mark a driver as onboarded by hand, e.g. someone they added who already finished onboarding with the team.
+ * They skip the remaining steps; their onboarding page shows the Telegram step as complete.
+ */
+function onboarding_mark_done(int $userId, string $track, int $staffId): void
+{
+    if (!isset(ONB_TRACKS[$track])) {
+        return;
+    }
+    onboarding_start($userId, $track);
+    db_run("UPDATE onboarding SET track = ?, stage = 'done', approved_at = COALESCE(approved_at, NOW()), reviewed_at = NOW(), reviewed_by = ?, review_note = NULL,
+        opened_at = COALESCE(opened_at, NOW()), marked_at = NOW(), marked_by = ?, updated_at = NOW() WHERE user_id = ?", [$track, $staffId, $staffId, $userId]);
+}
+
+/** The "Mark as onboarded" panel on a member's page (and its program choice). */
+function onboarding_mark_form(string $action, string $track, string $name): string
+{
+    $opts = '';
+    foreach (ONB_TRACKS as $k => $l) {
+        $opts .= '<option value="' . e($k) . '"' . ($k === $track ? ' selected' : '') . '>' . e($l) . '</option>';
+    }
+    return '<details class="onb-changes onb-mark"><summary class="btn btn-ghost">' . icon('check') . ' Mark as onboarded</summary>'
+        . '<form method="post" action="' . e($action) . '" data-confirm="Mark ' . e($name) . ' as onboarded? Any steps they haven’t finished are skipped." data-confirm-ok="Mark as onboarded">'
+        . csrf_field() . '<input type="hidden" name="action" value="onb_mark_done">'
+        . '<p class="hint mt-0">For drivers who finished onboarding with our team outside the website. They’ll show as Onboarded, and the job page asks them to message us on Telegram instead of applying.</p>'
+        . '<label for="mark-track">Program</label><select id="mark-track" name="track">' . $opts . '</select>'
+        . '<label class="check-inline mt"><input type="checkbox" name="notify" value="1"> Email them the Telegram link</label>'
+        . '<button class="btn btn-primary btn-sm mt" type="submit">' . icon('check') . ' Mark as onboarded</button></form></details>';
+}
+
 function onboarding_send_telegram(array $u, string $lead): bool
 {
     [$text, $html] = email_body('Welcome to LamazonLoads!', [

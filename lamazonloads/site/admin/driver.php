@@ -47,10 +47,16 @@ if (is_post()) {
         if ($sent) db_run('UPDATE onboarding SET telegram_sent_at = NOW() WHERE user_id = ?', [$id]);
         flash($sent ? 'success' : 'error', $sent ? 'Telegram link sent to ' . $u['email'] . '.' : 'The email could not be sent.');
         redirect($onbBack);
+    } elseif ($action === 'onb_mark_done' && isset(ONB_TRACKS[$_POST['track'] ?? ''])) {
+        onboarding_mark_done($id, (string) $_POST['track'], (int) $me['id']);
+        $sent = !empty($_POST['notify']) && onboarding_send_telegram($u, 'You’re all set: our team has completed your LamazonLoads onboarding.');
+        if ($sent) db_run('UPDATE onboarding SET telegram_sent_at = NOW() WHERE user_id = ?', [$id]);
+        flash('success', $u['name'] . ' is marked as onboarded' . ($sent ? ', and we emailed them the Telegram link.' : '.'));
+        redirect($onbBack);
     } elseif ($action === 'onb_restart') {
         db_run("UPDATE onboarding SET stage = 'documents', submitted_at = NULL, review_note = NULL, approved_at = NULL, contract_version = NULL, contract_title = NULL,
             contract_text = NULL, signed_at = NULL, signed_name = NULL, signed_company = NULL, signature = NULL, signed_ip = NULL, emergency_name = NULL,
-            emergency_relation = NULL, emergency_phone = NULL, telegram_sent_at = NULL, updated_at = NOW() WHERE user_id = ?", [$id]);
+            emergency_relation = NULL, emergency_phone = NULL, telegram_sent_at = NULL, marked_at = NULL, marked_by = NULL, updated_at = NOW() WHERE user_id = ?", [$id]);
         flash('success', 'Onboarding restarted from "Upload documents".');
         redirect($onbBack);
     } elseif ($action === 'details') {
@@ -159,10 +165,13 @@ admin_open('drivers');
     <div class="row-actions">
       <?php foreach (ONB_TRACKS as $tk => $tl): ?><form method="post" action="<?= e(url($self)) ?>" class="inline-form"><?= csrf_field() ?><input type="hidden" name="action" value="onb_start"><input type="hidden" name="track" value="<?= e($tk) ?>"><button class="btn btn-ghost btn-sm" type="submit"><?= icon('plus') ?> Start <?= e($tl) ?></button></form><?php endforeach; ?>
     </div>
+    <div class="onb-actions"><?= onboarding_mark_form(url($self), 'dispatch', (string) $u['name']) ?></div>
   <?php else: $oItems = onboarding_items($id); $oDone = count(array_filter($oItems, fn ($i) => $i[2])); ?>
+    <?php if (!$onb['marked_at']): // drivers marked as onboarded by staff never needed the email link ?>
     <div class="onb-linkstate<?= onboarding_unlocked($onb) ? ' is-open' : '' ?>"><?= icon(onboarding_unlocked($onb) ? 'check' : 'mail') ?>
       <span><?= onboarding_unlocked($onb) ? 'Opened their onboarding from the email link on ' . e(fmt_date((string) $onb['opened_at'], 'M j, g:i a')) . '.' : 'Hasn’t opened the onboarding link in their email yet.' ?></span>
       <?php if (in_array($onb['stage'], ['documents', 'changes'], true)): ?><form method="post" action="<?= e(url($self)) ?>" class="inline-form"><?= csrf_field() ?><input type="hidden" name="action" value="onb_link"><button class="link-btn" type="submit">Email them the link</button></form><?php endif; ?></div>
+    <?php endif; ?>
     <ol class="onb-steps onb-steps-sm" aria-label="Onboarding steps">
       <?php $n = 0; foreach (onboarding_steps_view($onb) as [$label, $state]): $n++; ?><li class="is-<?= e($state) ?>"><span class="onb-dot"><?= $state === 'done' ? icon('check') : $n ?></span><span><?= e($label) ?></span></li><?php endforeach; ?>
     </ol>
@@ -177,6 +186,10 @@ admin_open('drivers');
           </div></div>
       <?php endforeach; ?>
     </div>
+    <?php if ($onb['stage'] === 'done' && $onb['marked_at']): $markedBy = (string) db_val('SELECT name FROM users WHERE id = ?', [(int) $onb['marked_by']]); ?>
+      <div class="onb-signed onb-marked"><?= icon('check') ?><div><b>Marked as onboarded by <?= e($markedBy !== '' ? $markedBy : 'staff') ?></b>
+        <small><?= e(fmt_date((string) $onb['marked_at'], 'M j, Y g:i a')) ?> · finished onboarding with our team outside the website</small></div></div>
+    <?php endif; ?>
     <?php if ($onb['signed_at']): ?>
       <div class="onb-signed"><?= icon('file') ?><div><b>Signed <?= e((string) $onb['contract_title']) ?></b>
         <small><?= e(fmt_date((string) $onb['signed_at'], 'M j, Y g:i a')) ?> by <?= e((string) $onb['signed_name']) ?><?= $onb['emergency_name'] ? ' · Emergency contact: ' . e((string) $onb['emergency_name']) . ' (' . e((string) $onb['emergency_relation']) . ') ' . e((string) $onb['emergency_phone']) : '' ?></small></div>
@@ -191,8 +204,10 @@ admin_open('drivers');
             <label for="onb-note">What should they fix? (emailed to them)</label>
             <textarea id="onb-note" name="note" maxlength="2000" rows="3" placeholder="e.g. Your insurance card is expired. Please upload your current one."></textarea>
             <button class="btn btn-primary btn-sm mt" type="submit">Send to driver</button></form></details>
+        <?= onboarding_mark_form(url($self), (string) $onb['track'], (string) $u['name']) ?>
       <?php elseif ($onb['stage'] === 'contract'): ?>
         <span class="muted">Approved<?= $onb['approved_at'] ? ' ' . e(fmt_date((string) $onb['approved_at'], 'M j')) : '' ?>. Waiting for them to sign.</span>
+        <?= onboarding_mark_form(url($self), (string) $onb['track'], (string) $u['name']) ?>
       <?php else: ?>
         <form method="post" action="<?= e(url($self)) ?>" class="inline-form"><?= csrf_field() ?><input type="hidden" name="action" value="onb_telegram"><button class="btn btn-ghost" type="submit"><?= icon('send') ?> Email the Telegram link again</button></form>
       <?php endif; ?>

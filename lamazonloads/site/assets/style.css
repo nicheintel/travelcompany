@@ -2278,6 +2278,11 @@ div.kpi:hover { transform: none; box-shadow: var(--shadow); border-color: var(--
 .onb-signed > .ic { width: 22px; height: 22px; }
 .onb-signed > div { flex: 1; min-width: 200px; }
 .onb-signed small { display: block; color: #5B4A99; }
+.onb-signed.onb-marked { background: #E8F7EE; color: #17804A; }
+.onb-signed.onb-marked small { color: #3C7A57; }
+.onb-mark form select { margin-bottom: 2px; }
+.onb-mark .check-inline { display: flex; margin-top: 14px; color: var(--text); }
+.onb-mark form .btn { display: flex; width: fit-content; margin-top: 14px; }
 .onb-actions { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 10px; margin-top: 16px; padding-top: 16px; border-top: 1px dashed var(--line); }
 .onb-changes { position: relative; }
 .onb-changes summary { list-style: none; }

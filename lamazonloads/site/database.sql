@@ -263,6 +263,8 @@ CREATE TABLE IF NOT EXISTS onboarding (
   emergency_relation VARCHAR(60) NULL,
   emergency_phone VARCHAR(30) NULL,
   telegram_sent_at DATETIME NULL,
+  marked_at DATETIME NULL,          -- marked as onboarded by staff (e.g. a driver onboarded outside the website)
+  marked_by INT UNSIGNED NULL,
   created_at DATETIME NOT NULL,
   updated_at DATETIME NOT NULL,
   KEY idx_onb_stage (stage),

@@ -5,11 +5,11 @@ require dirname(__DIR__) . '/includes/bootstrap.php';
 $me = require_admin();
 
 // Add member: create the account and email the sign-in details. If the email is already a member, just open their page.
-$add = ['first_name' => '', 'last_name' => '', 'email' => '', 'phone' => '', 'account_type' => 'driver'];
+$add = ['first_name' => '', 'last_name' => '', 'email' => '', 'phone' => '', 'account_type' => 'driver', 'onboarded' => ''];
 $addErrors = [];
 if (is_post() && ($_POST['action'] ?? '') === 'add') {
     csrf_check();
-    foreach (['first_name' => 50, 'last_name' => 50, 'email' => 190, 'phone' => 25, 'account_type' => 30] as $k => $max) {
+    foreach (['first_name' => 50, 'last_name' => 50, 'email' => 190, 'phone' => 25, 'account_type' => 30, 'onboarded' => 20] as $k => $max) {
         $add[$k] = post($k, $max);
     }
     $add['email'] = strtolower($add['email']);
@@ -23,8 +23,10 @@ if (is_post() && ($_POST['action'] ?? '') === 'add') {
     if ($add['first_name'] === '') $addErrors[] = 'Please enter their first name.';
     if ($add['phone'] !== '' && !preg_match('/^[0-9+()\-. ]{7,25}$/', $add['phone'])) $addErrors[] = 'Please enter a valid phone number, or leave it empty.';
     if (!isset(ACCOUNT_TYPES[$add['account_type']])) $addErrors[] = 'Please choose what describes them best.';
+    if (!isset(ONB_TRACKS[$add['onboarded']])) $add['onboarded'] = ''; // already onboarded with our team: the program
     if (!$addErrors) {
         [$newId, $pass] = create_member($add, (int) $me['id']);
+        if ($add['onboarded'] !== '') onboarding_mark_done($newId, $add['onboarded'], (int) $me['id']);
         $new = db_one('SELECT * FROM users WHERE id = ?', [$newId]);
         if (send_member_welcome($new, $pass)) {
             flash('success', 'Account created for ' . $new['name'] . '. Their sign-in details were emailed to ' . $new['email'] . '.');
@@ -133,6 +135,9 @@ admin_open('drivers');
         <div class="full"><label for="am-email">Email</label><input id="am-email" name="email" type="email" maxlength="190" required autocomplete="off" value="<?= e($add['email']) ?>"></div>
         <div><label for="am-phone">Phone <span class="opt">(optional)</span></label><input id="am-phone" name="phone" type="tel" maxlength="25" autocomplete="off" placeholder="(555) 123-4567" value="<?= e($add['phone']) ?>"></div>
         <div><label for="account_type">I am a…</label><?= select_html('account_type', ACCOUNT_TYPES, $add['account_type']) ?></div>
+        <div class="full"><label for="am-onb">Onboarding</label><select id="am-onb" name="onboarded"><option value="">Not yet: they’ll onboard on the website</option>
+          <?php foreach (ONB_TRACKS as $tk => $tl): ?><option value="<?= e($tk) ?>"<?= $add['onboarded'] === $tk ? ' selected' : '' ?>>Already onboarded: <?= e($tl) ?></option><?php endforeach; ?></select>
+          <p class="hint">Choose “Already onboarded” for drivers who finished onboarding with our team.</p></div>
         <div class="full"><button class="btn btn-accent btn-block" type="submit"><?= icon('mail') ?> Create account &amp; email password</button></div>
       </form>
     </div>
