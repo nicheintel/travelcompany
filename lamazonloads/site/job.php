@@ -60,11 +60,10 @@ if (is_post() && !$external) {
             db_run('UPDATE users SET phone = ? WHERE id = ?', [$form['phone'], $user['id']]);
         }
         on_new_application($appId);
-        if (onboarding_row((int) $user['id'])) { // next step right away: upload documents
-            flash('success', 'Application sent! Next step: upload your documents below. We also emailed you this link from info@lamazonloads.com.');
-            redirect('onboarding.php#steps');
-        }
-        flash('success', 'Application sent! We will review it and contact you.');
+        $sent = (string) db_val('SELECT email_sent FROM applications WHERE id = ?', [$appId]);
+        flash('success', 'Application sent! ' . ($sent !== ''
+            ? 'Please check your email: we sent your next steps from info@lamazonloads.com (if you don’t see it, check your spam folder).'
+            : 'We will review it and contact you.'));
         redirect('account.php');
     }
 }

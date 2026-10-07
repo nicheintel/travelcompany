@@ -2049,3 +2049,9 @@ div.kpi:hover { transform: none; box-shadow: var(--shadow); border-color: var(--
   background: linear-gradient(180deg, rgba(10, 36, 99, 0) 55%, rgba(7, 26, 74, .55) 100%), linear-gradient(90deg, rgba(10, 36, 99, .18), rgba(10, 36, 99, 0) 40%); }
 .fleet-stage:has(.fleet-car.has-photo.is-on) .fleet-floor, .fleet-stage:has(.fleet-car.has-photo.is-on) .fleet-lights { opacity: 0; transition: opacity .4s; }
 @media (prefers-reduced-motion: reduce) { .fleet-car.has-photo, .fleet-car.has-photo.is-on, .fleet-car.has-photo.leave { transform: none; } }
+.onb-linkstate { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; margin: 0 0 12px; padding: 10px 12px; border-radius: 10px; background: #FFF7E6; color: #6B4A00; font-size: .88rem; font-weight: 600; }
+.onb-linkstate .ic { width: 17px; height: 17px; }
+.onb-linkstate.is-open { background: #E8F7EE; color: #0B6B35; }
+.onb-linkstate .link-btn { font-weight: 700; }
+.onb-linkstate form { margin-left: auto; }
+.onb-locked .row-actions, .onb-locked form { justify-content: center; }

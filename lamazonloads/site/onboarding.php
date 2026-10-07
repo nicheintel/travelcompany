@@ -6,6 +6,44 @@ require __DIR__ . '/includes/bootstrap.php';
 $u = require_verified();
 $uid = (int) $u['id'];
 $row = onboarding_row($uid);
+// Opened from the personal link in their email: unlock their onboarding (it stays hidden until then)
+$key = (string) ($_GET['k'] ?? '');
+if ($row && $key !== '') {
+    if (preg_match('/^[a-f0-9]{32}$/', $key) && hash_equals((string) $row['access_token'], $key)) {
+        if (!onboarding_unlocked($row)) {
+            db_run('UPDATE onboarding SET opened_at = NOW() WHERE user_id = ?', [$uid]);
+        }
+        redirect('onboarding.php#steps');
+    }
+}
+if ($row && !onboarding_unlocked($row)) {
+    // Not opened from the email yet: point them to their inbox (and let them get the email again)
+    if (is_post() && ($_POST['action'] ?? '') === 'resend_link') {
+        csrf_check();
+        if (rate_limited('onb_link', (string) $uid, 3, 3600)) {
+            flash('error', 'We already sent it a few times. Please check your inbox and spam folder, or contact us.');
+        } else {
+            record_hit('onb_link', (string) $uid);
+            $ok = onboarding_send_link($u);
+            flash($ok ? 'success' : 'error', $ok ? 'Sent! Check your inbox at ' . $u['email'] . ' for “Your LamazonLoads onboarding link”.' : 'The email could not be sent. Please contact us.');
+        }
+        redirect('onboarding.php');
+    }
+    page_header('Check your email');
+    dash_open('overview');
+    ?>
+    <div class="card onb-state onb-locked">
+      <span class="onb-state-ico"><?= icon('mail') ?></span>
+      <h2>Check your email for your next steps</h2>
+      <p class="muted">We emailed your onboarding instructions to <b><?= e($u['email']) ?></b> from info@lamazonloads.com. Open that email and tap <b>Upload my documents</b> to start. If you don’t see it, check your spam or promotions folder.</p>
+      <form method="post" action="<?= e(url('onboarding.php')) ?>" class="mt"><?= csrf_field() ?><input type="hidden" name="action" value="resend_link">
+        <button class="btn btn-ghost" type="submit"><?= icon('mail') ?> Email me the link again</button></form>
+    </div>
+    <?php
+    dash_close();
+    page_footer();
+    return;
+}
 $canEdit = $row && in_array($row['stage'], ['documents', 'changes'], true);
 $errors = [];
 $payErrors = [];

@@ -19,7 +19,7 @@ dash_open('overview');
 <h1>Hi, <?= e(explode(' ', $u['name'])[0]) ?> 👋</h1>
 <p class="muted">Here's where you stand with LamazonLoads.</p>
 
-<?php if ($onb = onboarding_row((int) $u['id'])):
+<?php if (($onb = onboarding_row((int) $u['id'])) && onboarding_unlocked($onb)):
     $onbSteps = onboarding_steps_view($onb);
     $onbNow = array_search('now', array_column($onbSteps, 1), true);
     $onbText = match ($onb['stage']) {
@@ -37,14 +37,14 @@ dash_open('overview');
 <?php endif; ?>
 
 <div class="stats">
-  <div class="card stat"><small>Onboarding</small><b><?= $pct ?>%</b></div>
+  <div class="card stat"><small>Profile complete</small><b><?= $pct ?>%</b></div>
   <div class="card stat"><small>Applications</small><b><?= count($apps) ?></b></div>
   <div class="card stat"><small>Documents on file</small><b><?= $docCount ?></b></div>
 </div>
 
 <div class="card pad">
-  <h3 class="mt-0">Onboarding checklist</h3>
-  <div class="progress" aria-label="Onboarding <?= $pct ?>% complete"><span style="width:<?= $pct ?>%"></span></div>
+  <h3 class="mt-0">Profile checklist</h3>
+  <div class="progress" aria-label="Profile <?= $pct ?>% complete"><span style="width:<?= $pct ?>%"></span></div>
   <ul class="checklist">
     <?php foreach ($steps as [$label, $ok, $href]): ?>
       <li><span class="tick<?= $ok ? '' : ' todo' ?>"><?= $ok ? icon('check') : icon('clock') ?></span>

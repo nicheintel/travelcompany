@@ -38,6 +38,10 @@ if (is_post()) {
             flash('success', 'We emailed ' . $u['name'] . ' your note and the link to update their documents.');
         }
         redirect($onbBack);
+    } elseif ($action === 'onb_link') {
+        $sent = onboarding_send_link($u);
+        flash($sent ? 'success' : 'error', $sent ? 'We emailed ' . $u['name'] . ' their onboarding link.' : 'The email could not be sent.');
+        redirect($onbBack);
     } elseif ($action === 'onb_telegram') {
         $sent = onboarding_send_telegram($u, 'Here is your link to join the LamazonLoads driver onboarding group.');
         if ($sent) db_run('UPDATE onboarding SET telegram_sent_at = NOW() WHERE user_id = ?', [$id]);
@@ -146,6 +150,9 @@ admin_open('drivers');
       <?php foreach (ONB_TRACKS as $tk => $tl): ?><form method="post" action="<?= e(url($self)) ?>" class="inline-form"><?= csrf_field() ?><input type="hidden" name="action" value="onb_start"><input type="hidden" name="track" value="<?= e($tk) ?>"><button class="btn btn-ghost btn-sm" type="submit"><?= icon('plus') ?> Start <?= e($tl) ?></button></form><?php endforeach; ?>
     </div>
   <?php else: $oItems = onboarding_items($id); $oDone = count(array_filter($oItems, fn ($i) => $i[2])); ?>
+    <div class="onb-linkstate<?= onboarding_unlocked($onb) ? ' is-open' : '' ?>"><?= icon(onboarding_unlocked($onb) ? 'check' : 'mail') ?>
+      <span><?= onboarding_unlocked($onb) ? 'Opened their onboarding from the email link on ' . e(fmt_date((string) $onb['opened_at'], 'M j, g:i a')) . '.' : 'Hasn’t opened the onboarding link in their email yet.' ?></span>
+      <?php if (in_array($onb['stage'], ['documents', 'changes'], true)): ?><form method="post" action="<?= e(url($self)) ?>" class="inline-form"><?= csrf_field() ?><input type="hidden" name="action" value="onb_link"><button class="link-btn" type="submit">Email them the link</button></form><?php endif; ?></div>
     <ol class="onb-steps onb-steps-sm" aria-label="Onboarding steps">
       <?php $n = 0; foreach (onboarding_steps_view($onb) as [$label, $state]): $n++; ?><li class="is-<?= e($state) ?>"><span class="onb-dot"><?= $state === 'done' ? icon('check') : $n ?></span><span><?= e($label) ?></span></li><?php endforeach; ?>
     </ol>

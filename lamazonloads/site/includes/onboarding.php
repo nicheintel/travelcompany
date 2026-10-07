@@ -48,10 +48,41 @@ function onboarding_start(int $userId, string $track): void
     }
     $row = onboarding_row($userId);
     if (!$row) {
-        db_run("INSERT INTO onboarding (user_id, track, stage, created_at, updated_at) VALUES (?, ?, 'documents', NOW(), NOW())", [$userId, $track]);
+        db_run("INSERT INTO onboarding (user_id, track, stage, access_token, created_at, updated_at) VALUES (?, ?, 'documents', ?, NOW(), NOW())",
+            [$userId, $track, bin2hex(random_bytes(16))]);
     } elseif ($row['track'] !== $track && $track === 'dispatch' && in_array($row['stage'], ['documents', 'changes', 'review'], true)) {
         db_run('UPDATE onboarding SET track = ?, updated_at = NOW() WHERE user_id = ?', [$track, $userId]);
     }
+}
+
+/**
+ * Each driver's personal onboarding link (it goes in every onboarding email). Their onboarding page and its menu link
+ * stay hidden until they open it from that email, so nobody skips the email.
+ */
+function onboarding_link(int $userId): string
+{
+    $tok = (string) db_val('SELECT access_token FROM onboarding WHERE user_id = ?', [$userId]);
+    if (!preg_match('/^[a-f0-9]{32}$/', $tok)) {
+        $tok = bin2hex(random_bytes(16));
+        db_run('UPDATE onboarding SET access_token = ? WHERE user_id = ?', [$tok, $userId]);
+    }
+    return abs_url('onboarding.php?k=' . $tok);
+}
+
+/** Has the driver opened their onboarding from the email link yet? */
+function onboarding_unlocked(?array $row): bool
+{
+    return $row !== null && !empty($row['opened_at']);
+}
+
+/** Emails the driver their onboarding link again (from the "Check your email" page or from Admin). */
+function onboarding_send_link(array $u): bool
+{
+    [$text, $html] = email_body('Your onboarding link', [
+        'Hi ' . onb_first($u) . ',',
+        'Here is your personal link to finish your LamazonLoads onboarding: upload your vehicle photos, W-9, proof of insurance, driver’s license and payment details.',
+    ], 'Upload my documents', onboarding_link((int) $u['id']), 'You’ll need to sign in to your LamazonLoads account.');
+    return send_mail((string) $u['email'], 'Your LamazonLoads onboarding link', $text, $html, support_email());
 }
 
 function telegram_link(): string
@@ -255,7 +286,7 @@ function onboarding_approve(int $userId, int $staffId): string
             'Hi ' . onb_first($u) . ',',
             'Great news: our team reviewed and approved your documents.',
             'The last step is to read and sign your ' . $c['title'] . ' online. It only takes a couple of minutes.',
-        ], 'Review & sign', abs_url('onboarding.php'), 'You’ll need to sign in to your LamazonLoads account.');
+        ], 'Review & sign', onboarding_link($userId), 'You’ll need to sign in to your LamazonLoads account.');
         send_mail((string) $u['email'], 'You’re approved! Please sign your LamazonLoads agreement', $text, $html, support_email());
     } else {
         onboarding_send_telegram($u, 'Great news: our team reviewed and approved your documents.');
@@ -285,7 +316,7 @@ function onboarding_request_changes(int $userId, int $staffId, string $note): vo
         'Hi ' . onb_first($u) . ',',
         'Thanks for sending your documents. Our team needs a few changes before we can approve you:',
         $note,
-    ], 'Update my documents', abs_url('onboarding.php'), 'Questions? Just reply to this email.');
+    ], 'Update my documents', onboarding_link($userId), 'Questions? Just reply to this email.');
     send_mail((string) $u['email'], 'Action needed: please update your LamazonLoads documents', $text, $html, support_email());
 }
 

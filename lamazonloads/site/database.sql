@@ -278,3 +278,4 @@ CREATE TABLE IF NOT EXISTS contracts (
   updated_at DATETIME NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 -- driver_profiles.payout_method / payout_name / payout_handle / payout_updated_at are added by includes/db.php
+-- onboarding.access_token / opened_at (onboarding opens from the email link) are added by includes/db.php too

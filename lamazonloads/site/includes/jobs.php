@@ -245,7 +245,7 @@ function run_automations(): array
             'Thanks again for applying for ' . $r['title'] . '. Your application is waiting on a few things:',
             '• ' . implode("\n• ", $missing),
             'It only takes a few minutes, and complete applications are reviewed first.',
-        ], 'Finish my onboarding', abs_url(onboarding_row((int) $r['user_id']) ? 'onboarding.php' : 'account.php'));
+        ], 'Finish my onboarding', onboarding_row((int) $r['user_id']) ? onboarding_link((int) $r['user_id']) : abs_url('account.php'));
         send_mail((string) $r['email'], 'Your LamazonLoads application: a few things left', $text, $html, support_email());
         db_run('UPDATE applications SET reminded_at = NOW() WHERE id = ?', [$r['id']]);
         app_auto_note((int) $r['id'], 'onboarding reminder sent');

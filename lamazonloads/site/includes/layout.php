@@ -366,6 +366,9 @@ function dash_open(string $active): void
         'careers' => ['careers.php', 'briefcase', 'Browse openings'],
     ];
     echo '<div class="container dash"><aside class="card dash-nav"><div class="who"><b>' . e($u['name']) . '</b><small>' . e(ACCOUNT_TYPES[$u['account_type']] ?? '') . '</small></div>';
+    if (!onboarding_unlocked(onboarding_row((int) $u['id']))) {
+        unset($items['onboarding']); // shows up once they open their onboarding from the email link
+    }
     foreach ($items as $key => [$href, $ic, $label]) {
         echo '<a href="' . e(url($href)) . '"' . ($active === $key ? ' class="active"' : '') . '>' . icon($ic) . e($label) . '</a>';
     }

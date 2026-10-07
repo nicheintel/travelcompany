@@ -181,7 +181,7 @@ function send_onboarding_email(int $appId): string
     $first = $a['first_name'] !== '' ? (string) $a['first_name'] : chat_first_name((string) $a['name']);
     [$subject, $paras] = onboarding_email_content($type, $first, $city);
     // The button sits right under the list of documents
-    [$text, $html] = email_body('', $paras, 'Upload my documents', abs_url('onboarding.php'), '', true, $type === 'walmart' ? 2 : 3);
+    [$text, $html] = email_body('', $paras, 'Upload my documents', onboarding_link((int) $a['user_id']), '', true, $type === 'walmart' ? 2 : 3);
     if (send_mail((string) $a['email'], $subject, $text, $html, support_email())) {
         db_run('UPDATE applications SET email_sent = ?, email_sent_at = NOW() WHERE id = ?', [$type, $appId]);
         return $type;
