@@ -39,11 +39,16 @@ $q = trim((string) ($_GET['q'] ?? ''));
 $equip = (string) ($_GET['equipment'] ?? '');
 $onbF = (string) ($_GET['onb'] ?? '');  // onboarded · not (yet) · progress · none
 $loc = (string) ($_GET['loc'] ?? '');   // "st:GA" (whole state) or "c:Atlanta, GA"
+$type = (string) ($_GET['type'] ?? ''); // what they told us they are, or "staff"
+const TYPE_FILTERS = ['owner_operator' => 'Owner-operators', 'driver' => 'Drivers', 'dispatcher' => 'Dispatchers / support', 'recruiter' => 'Driver recruiters',
+    'other' => 'Entrepreneurs / other', 'staff' => 'Staff'];
 const ONB_FILTERS = ['onboarded' => 'Onboarded', 'not' => 'Not onboarded yet', 'progress' => '· In onboarding now', 'none' => '· Not started'];
 $where = [];
 $args = [];
 if ($q !== '') { $where[] = '(u.name LIKE ? OR u.email LIKE ? OR u.phone LIKE ? OR u.city LIKE ? OR p.home_zip LIKE ?)'; array_push($args, "%$q%", "%$q%", "%$q%", "%$q%", "$q%"); }
 if (isset(EQUIPMENT[$equip])) { $where[] = 'p.equipment = ?'; $args[] = $equip; }
+if ($type === 'staff') $where[] = 'u.is_admin = 1';
+elseif (isset(ACCOUNT_TYPES[$type])) { $where[] = 'u.is_admin = 0 AND u.account_type = ?'; $args[] = $type; } // staff accounts also carry a type
 $where[] = match ($onbF) {
     'onboarded' => "o.stage IN ('contract', 'done')",
     'not' => "(o.stage IS NULL OR o.stage IN ('documents', 'review', 'changes'))",
@@ -66,6 +71,7 @@ foreach (db_all("SELECT city, COUNT(*) n FROM users WHERE city <> '' GROUP BY ci
     if (isset(US_STATES[$st])) $byState[$st][] = $c;
 }
 ksort($byState);
+$typeCounts = array_column(db_all("SELECT IF(is_admin = 1, 'staff', account_type) t, COUNT(*) n FROM users GROUP BY t"), 'n', 't');
 $onbCounts = db_one("SELECT SUM(o.stage IN ('contract', 'done')) yes, COUNT(*) - SUM(COALESCE(o.stage IN ('contract', 'done'), 0)) no FROM users u LEFT JOIN onboarding o ON o.user_id = u.id WHERE u.is_admin = 0");
 
 page_header('Drivers & members');
@@ -74,28 +80,29 @@ admin_open('drivers');
 <?= admin_head('Drivers & members', 'Everyone with a LamazonLoads account. Tap a member to see their profile, documents and applications, or add someone yourself.',
     '<a class="btn btn-accent" href="#add-member" data-modal-open="add-member">' . icon('plus') . ' Add member</a>') ?>
 <form method="get" action="<?= e(url('admin/drivers.php')) ?>" class="card pad mem-filters">
-  <div class="mf-q"><label for="q">Search</label><input id="q" name="q" type="search" placeholder="Name, email, phone or city" value="<?= e($q) ?>"></div>
+  <div class="mf-q"><label for="q">Search</label><div class="mf-qrow"><input id="q" name="q" type="search" placeholder="Name, email, phone, city or ZIP" value="<?= e($q) ?>"><button class="btn btn-primary" type="submit"><?= icon('search') ?> Search</button></div></div>
+  <div><label for="type">Type</label><select id="type" name="type"><option value="">Everyone</option><?php foreach (TYPE_FILTERS as $k => $l): ?><option value="<?= e($k) ?>"<?= $type === $k ? ' selected' : '' ?>><?= e($l) ?> (<?= (int) ($typeCounts[$k] ?? 0) ?>)</option><?php endforeach; ?></select></div>
   <div><label for="onb">Onboarding</label><select id="onb" name="onb"><option value="">Anyone</option><?php foreach (ONB_FILTERS as $k => $l): ?><option value="<?= e($k) ?>"<?= $onbF === $k ? ' selected' : '' ?>><?= e($l) ?></option><?php endforeach; ?></select></div>
   <div><label for="loc">Location</label><select id="loc" name="loc"><option value="">All locations</option>
     <?php foreach ($byState as $st => $cities): ?><optgroup label="<?= e(US_STATES[$st]) ?>"><option value="st:<?= e($st) ?>"<?= $loc === 'st:' . $st ? ' selected' : '' ?>>All of <?= e(US_STATES[$st]) ?> (<?= array_sum(array_column($cities, 'n')) ?>)</option>
       <?php foreach ($cities as $c): ?><option value="c:<?= e($c['city']) ?>"<?= $loc === 'c:' . $c['city'] ? ' selected' : '' ?>><?= e(substr((string) $c['city'], 0, -4)) ?> (<?= (int) $c['n'] ?>)</option><?php endforeach; ?></optgroup><?php endforeach; ?>
   </select></div>
   <div><label for="equipment">Equipment</label><select id="equipment" name="equipment"><option value="">Any equipment</option><?php foreach (EQUIPMENT as $k => $l): ?><option value="<?= e($k) ?>"<?= $equip === $k ? ' selected' : '' ?>><?= e($l) ?></option><?php endforeach; ?></select></div>
-  <div class="mf-go"><button class="btn btn-primary" type="submit"><?= icon('search') ?> Search</button></div>
 </form>
 <p class="muted app-count"><b><?= count($rows) ?></b> member<?= count($rows) === 1 ? '' : 's' ?><?= $where ? ' match · <a href="' . e(url('admin/drivers.php')) . '">Clear filters</a>' : ' · <span class="onb-tally">' . icon('check') . (int) $onbCounts['yes'] . ' onboarded · ' . (int) $onbCounts['no'] . ' not yet</span>' ?></p>
 <?php if (!$rows): ?><div class="card empty">No members found.</div><?php else: ?>
 <section class="card panel">
   <div class="panel-body flush ml">
-    <div class="ml-row ml-head" aria-hidden="true"><span>Member</span><span>Type &amp; city</span><span>Equipment</span><span>Onboarding</span><span>Docs</span><span>Applied</span><span>Joined</span><span></span></div>
+    <div class="ml-row ml-head" aria-hidden="true"><span>Member</span><span>Type &amp; city</span><span>Equipment</span><span>Onboarding</span><span class="ml-c">Docs</span><span class="ml-c">Applied</span><span>Joined</span><span></span></div>
     <?php foreach ($rows as $r): $nm = trim((string) $r['name']); ?>
       <a class="ml-row" href="<?= e(url('admin/driver.php?id=' . (int) $r['id'])) ?>">
         <span class="ml-who"><span class="ov-av" aria-hidden="true"><?= e(strtoupper(mb_substr($nm, 0, 1))) ?></span>
           <span><b><?= e($nm) ?><?= $r['is_admin'] ? ' <span class="badge badge-draft">Staff</span>' : '' ?><?= $r['added_by'] ? ' <span class="badge badge-staff">Added by staff</span>' : '' ?><?= !$r['is_admin'] && empty($r['email_verified_at']) ? ' <span class="badge badge-reviewing">Email not confirmed</span>' : '' ?></b>
           <small class="ml-contact"><span title="<?= e($r['email']) ?>"><?= e($r['email']) ?></span><?php if ($r['phone'] !== ''): ?><span><?= e($r['phone']) ?></span><?php endif; ?></small></span></span>
-        <span class="ml-type"><?= e(explode(' (', ACCOUNT_TYPES[$r['account_type']] ?? '')[0]) ?><small><?= $r['city'] !== '' ? icon('pin') . e($r['city']) : 'No city yet' ?></small></span>
+        <?php $tl = $r['is_admin'] ? 'Staff' : explode(' (', ACCOUNT_TYPES[$r['account_type']] ?? '')[0]; ?>
+        <span class="ml-type"><span class="ml-t<?= str_contains($tl, ' ') ? '' : ' nw' ?>"><?= e($tl) ?></span><small><?= $r['city'] !== '' ? icon('pin') . e($r['city']) : 'No city yet' ?></small></span>
         <span class="ml-eq"><?= isset(EQUIPMENT[$r['equipment'] ?? '']) ? e(EQUIPMENT[$r['equipment']]) : (($vl = user_vehicles_label($r)) !== '' ? '<span title="' . e($vl) . '">' . e($vl) . '</span>' : '<span class="muted">Not given</span>') ?><?php if ($r['home_zip']): ?><small>ZIP <?= e($r['home_zip']) ?><?= isset(AVAILABILITY[$r['availability'] ?? '']) ? ' · ' . e(explode(' (', AVAILABILITY[$r['availability']])[0]) : '' ?></small><?php endif; ?></span>
-        <span class="ml-onb"><?= $r['is_admin'] ? '<span class="muted">Staff</span>' : onboarding_badge($r['onb_stage']) ?></span>
+        <span class="ml-onb"><?= $r['is_admin'] ? '<span class="muted">Not needed</span>' : onboarding_badge($r['onb_stage']) ?></span>
         <span class="ml-n ml-docs<?= (int) $r['docs'] ? ' has' : '' ?>" title="Documents"><?= icon('file') ?><?= (int) $r['docs'] ?></span>
         <span class="ml-n ml-apps<?= (int) $r['apps'] ? ' has' : '' ?>" title="Applications"><?= icon('clipboard') ?><?= (int) $r['apps'] ?></span>
         <span class="ml-date"><?= e(fmt_date($r['created_at'], 'M j, Y')) ?></span>
