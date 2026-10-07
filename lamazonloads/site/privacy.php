@@ -53,7 +53,7 @@ page_hero('Privacy', 'Privacy policy', 'Plain and simple: what we collect, why w
           <h2><span>1</span>What we collect</h2>
           <h3>Information you give us</h3>
           <ul>
-            <li><b>Your account:</b> name, email, mobile phone, what describes you (owner-operator, driver, dispatcher, driver recruiter…) and a scrambled copy of your password. We can't read your password.</li>
+            <li><b>Your account:</b> name, email, mobile phone, your city and state, what describes you (owner-operator, driver, dispatcher, driver recruiter…), your vehicle type if you drive, and a scrambled copy of your password. We can't read your password.</li>
             <li><b>Your driver profile:</b> equipment and vehicle, home ZIP code, service area, availability, years of experience, company name, MC / DOT numbers, insurance company and expiry date, and anything you add in your notes.</li>
             <li><b>Job applications:</b> the openings you apply for, your name, phone, location, vehicles and whether you own, rent or lease them, any Walmart daily route city and daily rate you ask for, your message and, if you add one, your resume.</li>
             <li><b>Documents you upload:</b> such as your W-9, certificate of insurance, driver's license and vehicle registration.</li>

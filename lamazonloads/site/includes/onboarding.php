@@ -439,3 +439,22 @@ function documents_visible(array $u): bool
     return $row !== null || (int) db_val('SELECT COUNT(*) FROM documents WHERE user_id = ?', [$u['id']]) > 0;
 }
 
+/** Onboarded = approved by staff in onboarding (signing the agreement or done). */
+function is_onboarded(?string $stage): bool
+{
+    return in_array($stage, ['contract', 'done'], true);
+}
+
+/** Status badge for admin lists: Onboarded / In review / Uploading / Changes requested / Not started. */
+function onboarding_badge(?string $stage): string
+{
+    return match ($stage) {
+        'done' => '<span class="badge badge-onb-yes">' . icon('check') . 'Onboarded</span>',
+        'contract' => '<span class="badge badge-onb-yes">' . icon('check') . 'Onboarded</span><small>Signing agreement</small>',
+        'review' => '<span class="badge badge-stage-review">In review</span>',
+        'changes' => '<span class="badge badge-stage-changes">Changes requested</span>',
+        'documents' => '<span class="badge badge-stage-documents">Uploading documents</span>',
+        default => '<span class="badge badge-onb-none">Not started</span>',
+    };
+}
+

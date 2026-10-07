@@ -1,5 +1,6 @@
 // LamazonLoads — small enhancements and animations (the site works without JavaScript too).
 (function () {
+  document.documentElement.classList.add('js'); // pop-ups are now opened and closed by script only (see .modal in style.css)
   var toggle = document.querySelector('.nav-toggle');
   var nav = document.getElementById('site-nav');
   if (toggle && nav) {
@@ -627,6 +628,107 @@
   var anActive = document.querySelector('.an-links a.active, .dash-nav > a.active');
   if (anActive && window.matchMedia('(max-width: 860px)').matches) anActive.parentNode.scrollLeft = anActive.offsetLeft - 12;
 
+  // Sign-up: the vehicle choice is shown for drivers and owner-operators only
+  document.querySelectorAll('select[data-drives]').forEach(function (sel) {
+    var field = sel.form && sel.form.querySelector('[data-vehicle-field]');
+    if (!field) return;
+    var sync = function () { field.hidden = sel.getAttribute('data-drives').split(',').indexOf(sel.value) === -1; };
+    sel.addEventListener('change', sync); sync();
+  });
+
+  // City picker: type a few letters, pick "City, ST" from the list of every US city. Typed text alone isn't
+  // accepted, so there are no misspelled cities. The list (~400 KB, compressed on the way) loads on first use.
+  var STATE_NAMES = { AL: 'Alabama', AK: 'Alaska', AZ: 'Arizona', AR: 'Arkansas', CA: 'California', CO: 'Colorado', CT: 'Connecticut', DE: 'Delaware', DC: 'District of Columbia', FL: 'Florida', GA: 'Georgia', HI: 'Hawaii', ID: 'Idaho', IL: 'Illinois', IN: 'Indiana', IA: 'Iowa', KS: 'Kansas', KY: 'Kentucky', LA: 'Louisiana', ME: 'Maine', MD: 'Maryland', MA: 'Massachusetts', MI: 'Michigan', MN: 'Minnesota', MS: 'Mississippi', MO: 'Missouri', MT: 'Montana', NE: 'Nebraska', NV: 'Nevada', NH: 'New Hampshire', NJ: 'New Jersey', NM: 'New Mexico', NY: 'New York', NC: 'North Carolina', ND: 'North Dakota', OH: 'Ohio', OK: 'Oklahoma', OR: 'Oregon', PA: 'Pennsylvania', RI: 'Rhode Island', SC: 'South Carolina', SD: 'South Dakota', TN: 'Tennessee', TX: 'Texas', UT: 'Utah', VT: 'Vermont', VA: 'Virginia', WA: 'Washington', WV: 'West Virginia', WI: 'Wisconsin', WY: 'Wyoming' };
+  var cityData = null, cityLoading = null;
+  var loadCities = function (src) {
+    if (cityData) return Promise.resolve(cityData);
+    cityLoading = cityLoading || fetch(src, { credentials: 'same-origin' }).then(function (r) { return r.text(); }).then(function (t) {
+      cityData = t.split('\n').filter(Boolean).map(function (c) { var i = c.lastIndexOf(', '); return { label: c, city: c.slice(0, i), st: c.slice(i + 2), key: c.slice(0, i).toLowerCase() }; });
+      return cityData;
+    });
+    return cityLoading;
+  };
+  document.querySelectorAll('[data-city-pick]').forEach(function (box, n) {
+    var input = box.querySelector('[data-city-input]'), value = box.querySelector('[data-city-value]'), list = box.querySelector('.city-list'), hint = box.querySelector('[data-city-hint]');
+    var form = input.form, items = [], active = -1, hintText = hint.textContent;
+    var setValid = function (ok) { box.classList.toggle('is-valid', ok); };
+    setValid(value.value !== '' && value.value === input.value);
+    var close = function () { list.hidden = true; input.setAttribute('aria-expanded', 'false'); input.removeAttribute('aria-activedescendant'); active = -1; };
+    var choose = function (c) {
+      input.value = c.label; value.value = c.label; setValid(true); close();
+      box.classList.remove('has-error'); hint.textContent = hintText;
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+    };
+    var search = function (q) {
+      q = q.toLowerCase().replace(/\s+/g, ' ').trim();
+      var st = null, m = q.match(/^(.*?)[ ,]+([a-z]{2})$/); // "atlanta ga" or "atlanta, ga"
+      if (m && STATE_NAMES[m[2].toUpperCase()]) { st = m[2].toUpperCase(); q = m[1].replace(/,$/, '').trim(); }
+      q = q.replace(/,$/, '');
+      if (q.length < 2 && !st) return [];
+      var starts = [], words = [];
+      for (var i = 0; i < cityData.length && starts.length < 60; i++) {
+        var c = cityData[i];
+        if (st && c.st !== st) continue;
+        if (!q || c.key.indexOf(q) === 0) starts.push(c);
+        else if (words.length < 60 && c.key.indexOf(' ' + q) !== -1) words.push(c);
+      }
+      return starts.concat(words).slice(0, 60);
+    };
+    var render = function () {
+      list.innerHTML = '';
+      if (!items.length) {
+        var none = document.createElement('li'); none.className = 'city-none'; none.textContent = 'No city found. Check the spelling, or try a nearby city.';
+        list.appendChild(none);
+      }
+      items.forEach(function (c, i) {
+        var li = document.createElement('li'); li.id = input.id + '-opt-' + i; li.setAttribute('role', 'option'); li.className = 'city-opt';
+        var b = document.createElement('b'); b.textContent = c.city + ', ' + c.st; li.appendChild(b);
+        var s = document.createElement('small'); s.textContent = STATE_NAMES[c.st] || ''; li.appendChild(s);
+        li.addEventListener('mousedown', function (e) { e.preventDefault(); choose(c); }); // before the field loses focus
+        list.appendChild(li);
+      });
+      list.hidden = false; input.setAttribute('aria-expanded', 'true');
+    };
+    var highlight = function (i) {
+      var opts = list.querySelectorAll('.city-opt'); if (!opts.length) return;
+      active = (i + opts.length) % opts.length;
+      opts.forEach(function (o, k) { o.classList.toggle('on', k === active); o.setAttribute('aria-selected', k === active ? 'true' : 'false'); });
+      input.setAttribute('aria-activedescendant', opts[active].id); opts[active].scrollIntoView({ block: 'nearest' });
+    };
+    input.addEventListener('focus', function () { loadCities(box.getAttribute('data-src')); });
+    input.addEventListener('input', function () {
+      value.value = ''; setValid(false); box.classList.remove('has-error'); hint.textContent = hintText;
+      var q = input.value;
+      loadCities(box.getAttribute('data-src')).then(function () {
+        if (input.value !== q) return; // they kept typing
+        items = search(q);
+        if (q.trim().length < 2) { close(); return; }
+        render(); if (items.length) highlight(0);
+      });
+    });
+    input.addEventListener('keydown', function (e) {
+      if (list.hidden) { if (e.key === 'ArrowDown' && input.value.trim().length >= 2) { items = search(input.value); render(); highlight(0); e.preventDefault(); } return; }
+      if (e.key === 'ArrowDown') { e.preventDefault(); highlight(active + 1); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); highlight(active - 1); }
+      else if (e.key === 'Enter') { if (items[active]) { e.preventDefault(); choose(items[active]); } }
+      else if (e.key === 'Escape') { close(); }
+    });
+    input.addEventListener('blur', function () {
+      setTimeout(close, 120);
+      if (value.value || !input.value.trim() || !cityData) return;
+      var typed = input.value.trim().toLowerCase();
+      var exact = cityData.filter(function (c) { return c.label.toLowerCase() === typed; })[0];
+      if (exact) choose(exact); // typed it exactly, e.g. "Atlanta, GA"
+    });
+    if (form) form.addEventListener('submit', function (e) {
+      if (value.value) return;
+      if (!input.value.trim() && !input.hasAttribute('data-required') && !box.hasAttribute('data-required')) return;
+      e.preventDefault();
+      box.classList.add('has-error'); hint.textContent = input.value.trim() ? 'Please choose your city from the list.' : 'Please choose your city and state.';
+      input.focus();
+    });
+  });
+
   // A link to a section inside a closed panel (e.g. settings.php#delete) opens that panel
   if (location.hash.length > 1) {
     var target = document.getElementById(location.hash.slice(1)), box = target && target.closest('details');
@@ -719,4 +821,33 @@
       if (form.requestSubmit) form.requestSubmit(submitter && submitter.form === form ? submitter : undefined); else { form._confirmedAt = 0; form.submit(); }
     });
   });
+
+  // Sending a form: the button shows a spinner and "Sending…" and can't be pressed twice while the page loads.
+  // Runs last, so forms that are stopped first (the "Are you sure?" box, fresh security token, save-a-job) are skipped.
+  var busyWords = { Send: 'Sending…', Save: 'Saving…', Upload: 'Uploading…', Sign: 'Signing…', Create: 'Creating…', Update: 'Updating…', Delete: 'Deleting…', Submit: 'Sending…', Approve: 'Approving…', Remove: 'Removing…', Email: 'Sending…', Resend: 'Sending…', Apply: 'Sending…', Change: 'Saving…', Add: 'Adding…', Reset: 'Saving…' };
+  document.addEventListener('submit', function (e) {
+    var form = e.target;
+    if (e.defaultPrevented || form.hasAttribute('data-no-busy') || form.getAttribute('target')) return;
+    var btn = (e.submitter && e.submitter.form === form) ? e.submitter : form.querySelector('button[type=submit], button:not([type])');
+    if (!btn || btn.classList.contains('is-busy')) return;
+    var word = (btn.textContent.trim().match(/^[A-Za-z]+/) || [''])[0];
+    var label = btn.getAttribute('data-busy') || busyWords[word] || 'Please wait…';
+    btn.setAttribute('data-label', btn.innerHTML);
+    btn.style.minWidth = btn.offsetWidth + 'px';
+    btn.classList.add('is-busy'); btn.setAttribute('aria-busy', 'true');
+    btn.innerHTML = '<span class="btn-spin" aria-hidden="true"></span>' + label;
+    document.documentElement.classList.add('is-sending');
+    form.querySelectorAll('button[type=submit], button:not([type])').forEach(function (b) { if (b !== btn) b.disabled = true; });
+    // keep the button's name/value in the request (a disabled button isn't sent), and undo if the page stays (rare)
+    setTimeout(function () { btn.disabled = true; }, 0);
+    setTimeout(function () { reset(form); }, 20000);
+  });
+  var reset = function (scope) {
+    document.documentElement.classList.remove('is-sending');
+    (scope || document).querySelectorAll('.is-busy').forEach(function (b) {
+      b.innerHTML = b.getAttribute('data-label') || b.innerHTML; b.classList.remove('is-busy'); b.removeAttribute('aria-busy'); b.disabled = false; b.style.minWidth = '';
+    });
+    (scope || document).querySelectorAll('form button[disabled]').forEach(function (b) { if (!b.hasAttribute('data-keep-disabled')) b.disabled = false; });
+  };
+  window.addEventListener('pageshow', function (e) { if (e.persisted) reset(); }); // back button: buttons work again
 })();

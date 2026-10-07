@@ -13,6 +13,8 @@ CREATE TABLE IF NOT EXISTS users (
   phone VARCHAR(30) NOT NULL DEFAULT '',
   password_hash VARCHAR(255) NOT NULL,
   account_type VARCHAR(30) NOT NULL DEFAULT 'driver',
+  city VARCHAR(120) NOT NULL DEFAULT '',   -- "Atlanta, GA", picked from assets/data/us-cities.txt
+  vehicle VARCHAR(20) NOT NULL DEFAULT '', -- key of APPLY_VEHICLES, chosen at sign-up
   is_admin TINYINT(1) NOT NULL DEFAULT 0,
   session_version INT UNSIGNED NOT NULL DEFAULT 1,
   email_verified_at DATETIME NULL,

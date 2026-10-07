@@ -14,6 +14,13 @@ const APPLY_VEHICLES = ['box_truck' => 'Box Truck', 'cargo_van' => 'Cargo Van', 
 const DISPATCH_VEHICLES = ['box_truck', 'cargo_van', 'sprinter'];
 const VEHICLE_OWNERSHIP = ['owner' => 'Owner-operator (I own it)', 'rented' => 'Rented', 'leased' => 'Leased / financed', 'company' => 'Company or fleet vehicle', 'other' => 'Other'];
 const ONBOARDING_EMAILS = ['dispatch' => 'Dispatch email', 'walmart' => 'Walmart email'];
+const US_STATES = ['AL' => 'Alabama', 'AK' => 'Alaska', 'AZ' => 'Arizona', 'AR' => 'Arkansas', 'CA' => 'California', 'CO' => 'Colorado', 'CT' => 'Connecticut', 'DE' => 'Delaware',
+    'DC' => 'District of Columbia', 'FL' => 'Florida', 'GA' => 'Georgia', 'HI' => 'Hawaii', 'ID' => 'Idaho', 'IL' => 'Illinois', 'IN' => 'Indiana', 'IA' => 'Iowa', 'KS' => 'Kansas',
+    'KY' => 'Kentucky', 'LA' => 'Louisiana', 'ME' => 'Maine', 'MD' => 'Maryland', 'MA' => 'Massachusetts', 'MI' => 'Michigan', 'MN' => 'Minnesota', 'MS' => 'Mississippi',
+    'MO' => 'Missouri', 'MT' => 'Montana', 'NE' => 'Nebraska', 'NV' => 'Nevada', 'NH' => 'New Hampshire', 'NJ' => 'New Jersey', 'NM' => 'New Mexico', 'NY' => 'New York',
+    'NC' => 'North Carolina', 'ND' => 'North Dakota', 'OH' => 'Ohio', 'OK' => 'Oklahoma', 'OR' => 'Oregon', 'PA' => 'Pennsylvania', 'RI' => 'Rhode Island', 'SC' => 'South Carolina',
+    'SD' => 'South Dakota', 'TN' => 'Tennessee', 'TX' => 'Texas', 'UT' => 'Utah', 'VT' => 'Vermont', 'VA' => 'Virginia', 'WA' => 'Washington', 'WV' => 'West Virginia',
+    'WI' => 'Wisconsin', 'WY' => 'Wyoming'];
 
 function meta_get(string $k, string $default = ''): string
 {
@@ -58,8 +65,8 @@ function walmart_headline(): string
 function apply_form_values(array $user): array
 {
     $parts = preg_split('/\s+/', trim((string) $user['name']), 2);
-    $v = ['first_name' => $parts[0] ?? '', 'last_name' => $parts[1] ?? '', 'phone' => (string) $user['phone'], 'location' => '',
-        'vehicles' => [], 'vehicle_other' => '', 'ownership' => '', 'ownership_other' => '', 'walmart' => false, 'walmart_city' => '',
+    $v = ['first_name' => $parts[0] ?? '', 'last_name' => $parts[1] ?? '', 'phone' => (string) $user['phone'], 'location' => (string) ($user['city'] ?? ''),
+        'vehicles' => isset(APPLY_VEHICLES[$user['vehicle'] ?? '']) ? [(string) $user['vehicle']] : [], 'vehicle_other' => '', 'ownership' => '', 'ownership_other' => '', 'walmart' => false, 'walmart_city' => '',
         'rate_requested' => '', 'message' => ''];
     if (is_post()) {
         foreach (['first_name' => 60, 'last_name' => 60, 'phone' => 30, 'location' => 120, 'vehicle_other' => 80, 'ownership' => 20,
@@ -189,3 +196,35 @@ function send_onboarding_email(int $appId, bool $again = false): string
     app_auto_note($appId, ONBOARDING_EMAILS[$type] . ' could not be sent (check Admin → Email check)');
     return '';
 }
+
+/**
+ * Every US city and town ("Atlanta, GA"), one per line in assets/data/us-cities.txt: the USPS city names of all
+ * ZIP codes in the 50 states and DC (from the BSD-licensed "zipcodes" package). The sign-up city picker
+ * searches this list, and a city is only accepted if it is on it.
+ */
+function us_city_valid(string $city): bool
+{
+    static $all = null;
+    $all ??= "\n" . (string) file_get_contents(dirname(__DIR__) . '/assets/data/us-cities.txt');
+    return $city !== '' && str_contains($all, "\n" . $city . "\n");
+}
+
+/** Drivers say which vehicle they have when they sign up. */
+function account_drives(string $type): bool
+{
+    return in_array($type, ['owner_operator', 'driver'], true);
+}
+
+/** The searchable city picker (see [data-city-pick] in app.js). $name is the form field that gets "City, ST". */
+function city_picker(string $name, string $value, string $id = 'city', string $label = 'City and state', bool $required = false): string
+{
+    return '<div class="city-pick" data-city-pick' . ($required ? ' data-required' : '') . ' data-src="' . e(asset('data/us-cities.txt')) . '">'
+        . '<label for="' . e($id) . '">' . e($label) . '</label>'
+        . '<div class="city-field"><span class="city-ico" aria-hidden="true">' . icon('pin') . '</span>'
+        . '<input id="' . e($id) . '" type="text" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="' . e($id) . '-list" autocomplete="off" spellcheck="false" placeholder="Start typing your city…" value="' . e($value) . '" data-city-input>'
+        . '<span class="city-ok" aria-hidden="true">' . icon('check') . '</span></div>'
+        . '<input type="hidden" name="' . e($name) . '" value="' . e($value) . '" data-city-value>'
+        . '<ul class="city-list" id="' . e($id) . '-list" role="listbox" hidden></ul>'
+        . '<p class="hint" data-city-hint>Choose your city from the list.</p></div>';
+}
+

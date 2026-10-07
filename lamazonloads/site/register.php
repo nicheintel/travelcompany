@@ -7,7 +7,7 @@ if (current_user()) {
     redirect($next);
 }
 $errors = [];
-$val = ['name' => '', 'email' => '', 'phone' => '', 'account_type' => 'owner_operator'];
+$val = ['name' => '', 'email' => '', 'phone' => '', 'account_type' => 'owner_operator', 'vehicle' => '', 'city' => ''];
 
 if (is_post()) {
     csrf_check();
@@ -28,6 +28,9 @@ if (is_post()) {
     $val['phone'] = format_phone($val['phone']);
     if (!preg_match('/^[0-9+()\-. ]{7,25}$/', $val['phone'])) $errors[] = 'Please enter a valid phone number.';
     if (!isset(ACCOUNT_TYPES[$val['account_type']])) $errors[] = 'Please choose what describes you best.';
+    if (!account_drives($val['account_type'])) $val['vehicle'] = '';
+    elseif (!isset(APPLY_VEHICLES[$val['vehicle']])) $errors[] = 'Please choose your vehicle type.';
+    if (!us_city_valid($val['city'])) $errors[] = 'Please choose your city and state from the list.';
     if (strlen($pass) < 8) $errors[] = 'Your password needs at least 8 characters.';
     elseif (weak_password($pass, $val['email'], $val['name'])) $errors[] = 'That password is too easy to guess. Please choose a stronger one.';
     if (strlen($pass) > 200) $errors[] = 'That password is too long.';
@@ -38,8 +41,8 @@ if (is_post()) {
     if (!$errors) {
         record_hit('register', client_ip());
         $admin = should_be_admin($val['email']) ? 1 : 0;
-        db_run('INSERT INTO users (name, email, phone, password_hash, account_type, is_admin, created_at) VALUES (?, ?, ?, ?, ?, ?, NOW())',
-            [$val['name'], $val['email'], $val['phone'], password_hash($pass, PASSWORD_DEFAULT), $val['account_type'], $admin]);
+        db_run('INSERT INTO users (name, email, phone, password_hash, account_type, vehicle, city, is_admin, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())',
+            [$val['name'], $val['email'], $val['phone'], password_hash($pass, PASSWORD_DEFAULT), $val['account_type'], $val['vehicle'], $val['city'], $admin]);
         $user = db_one('SELECT * FROM users WHERE id = ?', [(int) db()->lastInsertId()]);
         login_user($user);
         if ($admin) {
@@ -82,7 +85,12 @@ page_header('Create your account', '', '', 'page-auth');
         <div><label for="email">Email</label><input id="email" name="email" type="email" required maxlength="190" autocomplete="email" value="<?= e($val['email']) ?>"></div>
         <div><label for="phone">Mobile phone</label><input id="phone" name="phone" type="tel" required maxlength="25" autocomplete="tel" placeholder="(555) 123-4567" value="<?= e($val['phone']) ?>"></div>
         <div class="full"><label for="account_type">I am a…</label>
-          <select id="account_type" name="account_type"><?php foreach (ACCOUNT_TYPES as $k => $l): ?><option value="<?= e($k) ?>"<?= $val['account_type'] === $k ? ' selected' : '' ?>><?= e($l) ?></option><?php endforeach; ?></select></div>
+          <select id="account_type" name="account_type" data-drives="owner_operator,driver"><?php foreach (ACCOUNT_TYPES as $k => $l): ?><option value="<?= e($k) ?>"<?= $val['account_type'] === $k ? ' selected' : '' ?>><?= e($l) ?></option><?php endforeach; ?></select></div>
+        <fieldset class="full af-set su-vehicle" data-vehicle-field<?= account_drives($val['account_type']) ? '' : ' hidden' ?>><legend>Vehicle type</legend>
+          <div class="af-chips">
+            <?php foreach (APPLY_VEHICLES as $k => $l): ?><label class="af-chip"><input type="radio" name="vehicle" value="<?= e($k) ?>"<?= $val['vehicle'] === $k ? ' checked' : '' ?>><span><?= e($l) ?></span></label><?php endforeach; ?>
+          </div></fieldset>
+        <div class="full"><?= city_picker('city', $val['city'], 'city', 'City and state', true) ?></div>
         <div class="full"><label for="password">Password</label><input id="password" name="password" type="password" required minlength="8" autocomplete="new-password"><p class="hint">At least 8 characters.</p></div>
         <div class="full"><label class="check"><input type="checkbox" name="agree" value="1"<?= !empty($_POST['agree']) ? ' checked' : '' ?>> The information I provide is accurate, and LamazonLoads may contact me about loads, routes and job openings.</label></div>
         <div class="full"><button class="btn btn-accent btn-lg btn-block" type="submit">Create account <?= icon('arrow') ?></button></div>
