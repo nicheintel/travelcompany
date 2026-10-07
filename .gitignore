@@ -53,3 +53,12 @@ next-env.d.ts
 /php/uploads/*
 !/php/uploads/.htaccess
 !/php/uploads/.gitkeep
+
+# Web Studio site: local settings and runtime files
+/webstudio/config.local.php
+/webstudio/storage/*
+!/webstudio/storage/.htaccess
+!/webstudio/storage/.gitkeep
+/webstudio/uploads/*
+!/webstudio/uploads/.htaccess
+!/webstudio/uploads/.gitkeep

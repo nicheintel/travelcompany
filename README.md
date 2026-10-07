@@ -7,6 +7,10 @@ A travel assistant website for finding affordable flights, hotels and Flight + H
 > - The root folder — the original Next.js version (needs Node.js), documented below.
 >
 > Both have the same features and design.
+>
+> **`webstudio/` is a separate website** — for the web design business (landing page, website
+> requests, client tracking pages and an admin dashboard). PHP + MySQL on XAMPP. See
+> [`webstudio/README.md`](webstudio/README.md).
 
 Built with [Next.js](https://nextjs.org) (App Router), TypeScript and Tailwind CSS.
 

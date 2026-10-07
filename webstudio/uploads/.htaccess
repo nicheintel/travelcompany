@@ -1,0 +1,8 @@
+# Uploaded portfolio screenshots only: nothing here may run as code.
+Options -Indexes -ExecCGI
+<FilesMatch ".*">
+    Require all denied
+</FilesMatch>
+<FilesMatch "^[a-f0-9]{32}\.jpg$">
+    Require all granted
+</FilesMatch>
