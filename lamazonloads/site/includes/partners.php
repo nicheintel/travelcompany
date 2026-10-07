@@ -46,11 +46,11 @@ function partner_submit(array $in): array
     if ($f['volume'] !== '' && !isset(PARTNER_VOLUMES[$f['volume']])) $f['volume'] = '';
     if ($f['best_time'] !== '' && !isset(PARTNER_TIMES[$f['best_time']])) $f['best_time'] = '';
     if (empty($in['consent'])) $errors[] = 'Please confirm we may contact you about your request.';
-    if (!$errors && rate_limited('partner', client_ip(), 5, 3600)) $errors[] = 'We already received several requests from your connection. Please call us instead.';
+    if (!$errors && rate_limited('partner', limit_ip(), 5, 3600)) $errors[] = 'We already received several requests from your connection. Please call us instead.';
     if ($errors) {
         return [0, $errors];
     }
-    record_hit('partner', client_ip());
+    record_hit('partner', limit_ip());
     db_run('INSERT INTO partner_requests (first_name, last_name, company, job_title, email, phone, service, location, volume, best_time, message, ip, created_at, updated_at)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())',
         [$f['first_name'], $f['last_name'], $f['company'], $f['job_title'], $f['email'], $f['phone'], $f['service'], $f['location'], $f['volume'], $f['best_time'], $f['message'], client_ip()]);

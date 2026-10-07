@@ -37,7 +37,7 @@ function chat_new_cookie(): string
 {
     $raw = bin2hex(random_bytes(24));
     $https = (($_SERVER['HTTPS'] ?? '') !== '' && $_SERVER['HTTPS'] !== 'off') || ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https';
-    setcookie(CHAT_COOKIE, $raw, ['expires' => time() + 365 * 86400, 'path' => base_path() . '/', 'httponly' => true, 'samesite' => 'Lax', 'secure' => $https]);
+    setcookie(CHAT_COOKIE, $raw, ['expires' => time() + 30 * 86400, 'path' => base_path() . '/', 'httponly' => true, 'samesite' => 'Lax', 'secure' => $https]);
     return hash('sha256', $raw);
 }
 
@@ -134,7 +134,7 @@ function chat_send(string $body, string $name, string $email, string $page): arr
         $prev = $thread;
         $thread = null;
     }
-    $key = $thread ? 't' . $thread['id'] : 'ip' . client_ip();
+    $key = $thread ? 't' . $thread['id'] : 'ip' . limit_ip();
     if (rate_limited('chat', $key, CHAT_MSGS_PER_10M, 600)) {
         return [null, "You've sent a lot of messages. Please wait a few minutes."];
     }
@@ -155,10 +155,10 @@ function chat_send(string $body, string $name, string $email, string $page): arr
             if (!filter_var($email, FILTER_VALIDATE_EMAIL) || mb_strlen($email) > 190) {
                 return [null, 'Enter a valid email, so we can reply if you leave.'];
             }
-            if (rate_limited('chat-new', client_ip(), CHAT_NEW_PER_HOUR, 3600)) {
+            if (rate_limited('chat-new', limit_ip(), CHAT_NEW_PER_HOUR, 3600)) {
                 return [null, 'Please wait a little before starting another chat.'];
             }
-            record_hit('chat-new', client_ip());
+            record_hit('chat-new', limit_ip());
             if ($owner[1] === '') {
                 $owner[1] = chat_new_cookie();
             }

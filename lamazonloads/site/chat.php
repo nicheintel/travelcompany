@@ -15,7 +15,10 @@ $out = function (array $d, int $code = 200): never {
 $a = (string) ($_GET['a'] ?? $_POST['a'] ?? 'poll');
 $csrfOk = fn (): bool => is_post() && is_string($_POST['csrf'] ?? null) && hash_equals(csrf_token(), $_POST['csrf']);
 
-// Staff: live view of Support chats
+// Staff: live view of Support chats (not until they've replaced a temporary password)
+if (is_admin() && !empty(current_user()['must_change_password'])) {
+    $out(['error' => 'Please choose your own password first.'], 403);
+}
 if (is_admin()) {
     $t = (int) ($_GET['t'] ?? $_POST['t'] ?? 0);
     if ($a === 'typing') {

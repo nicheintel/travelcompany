@@ -274,8 +274,8 @@ function onboarding_approve(int $userId, int $staffId): string
 {
     $row = onboarding_row($userId);
     $u = db_one('SELECT * FROM users WHERE id = ?', [$userId]);
-    if (!$row || !$u) {
-        return '';
+    if (!$row || !$u || !in_array($row['stage'], ['documents', 'review', 'changes'], true)) {
+        return ''; // only before approval: a signed agreement is never sent out again this way
     }
     $stage = contract_needed($row['track']) ? 'contract' : 'done';
     db_run('UPDATE onboarding SET stage = ?, approved_at = NOW(), reviewed_at = NOW(), reviewed_by = ?, review_note = NULL, updated_at = NOW()'
@@ -335,11 +335,12 @@ function onboarding_send_telegram(array $u, string $lead): bool
 }
 
 /** Staff ask for changes; the driver gets an email with the note. */
-function onboarding_request_changes(int $userId, int $staffId, string $note): void
+function onboarding_request_changes(int $userId, int $staffId, string $note): bool
 {
     $u = db_one('SELECT * FROM users WHERE id = ?', [$userId]);
-    if (!$u || !onboarding_row($userId)) {
-        return;
+    $row = onboarding_row($userId);
+    if (!$u || !$row || !in_array($row['stage'], ['documents', 'review', 'changes'], true)) {
+        return false; // only before approval
     }
     db_run("UPDATE onboarding SET stage = 'changes', review_note = ?, reviewed_at = NOW(), reviewed_by = ?, updated_at = NOW() WHERE user_id = ?", [$note, $staffId, $userId]);
     [$text, $html] = email_body('Please update your documents', [
@@ -348,6 +349,7 @@ function onboarding_request_changes(int $userId, int $staffId, string $note): vo
         $note,
     ], 'Update my documents', onboarding_link($userId), 'Questions? Just reply to this email.');
     send_mail((string) $u['email'], 'Action needed: please update your LamazonLoads documents', $text, $html, support_email());
+    return true;
 }
 
 /** The driver signs: keeps an exact copy of what they signed, then sends the Telegram link. Returns a list of problems. */

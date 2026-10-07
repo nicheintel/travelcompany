@@ -10,8 +10,10 @@ if ($u && is_post()) {
     csrf_check();
     $new = (string) ($_POST['password'] ?? '');
     $again = (string) ($_POST['password2'] ?? '');
-    if (strlen($new) < 8 || strlen($new) > 200) {
+    if (strlen($new) < 8) {
         $errors[] = 'Your new password needs at least 8 characters.';
+    } elseif (($pp = password_format_problem($new)) !== '') {
+        $errors[] = $pp;
     } elseif (weak_password($new, (string) $u['email'], (string) $u['name'])) {
         $errors[] = 'That password is too easy to guess. Please choose a stronger one.';
     } elseif (!hash_equals($new, $again)) {
@@ -25,6 +27,7 @@ if ($u && is_post()) {
         db_run('DELETE FROM login_attempts WHERE email = ?', [$u['email']]);
         unset($_SESSION['reset_email']);
         $fresh = db_one('SELECT * FROM users WHERE id = ?', [$u['id']]);
+        if (promote_first_admin($fresh)) $fresh = db_one('SELECT * FROM users WHERE id = ?', [$u['id']]); // the reset link proved they own the email
         login_user($fresh);
         $first = trim((string) strtok((string) $u['name'], ' ')) ?: 'there';
         [$text, $html] = email_body('Your password was changed', [

@@ -22,6 +22,12 @@ if (is_post()) {
     if (!$canManage || in_array($action, ['admin', 'password', 'delete', 'remove_doc', 'onb_restart'], true)) {
         require_full_admin_action('admin/driver.php?id=' . $id);
     }
+    // The owner's account (an email listed in admin_emails) and the last admin can't be demoted or deleted here
+    if (in_array($action, ['admin', 'delete'], true) && $u['is_admin'] && $id !== (int) $me['id']
+        && (should_be_admin((string) $u['email']) || (is_full_admin($u) && (int) db_val("SELECT COUNT(*) FROM users WHERE is_admin = 1 AND staff_role = 'admin'") <= 1))) {
+        flash('error', 'This is the owner’s account (or the only admin), so it can’t be demoted or deleted from the website.');
+        redirect('admin/driver.php?id=' . $id);
+    }
     if ($action === 'onb_start' && isset(ONB_TRACKS[$_POST['track'] ?? ''])) {
         onboarding_start($id, (string) $_POST['track']);
         flash('success', 'Onboarding started (' . ONB_TRACKS[$_POST['track']] . '). Add their documents below or ask them to upload on their onboarding page.');
@@ -32,15 +38,16 @@ if (is_post()) {
         redirect($onbBack);
     } elseif ($action === 'onb_approve') {
         $st = onboarding_approve($id, (int) $me['id']);
-        flash('success', $st === 'contract' ? 'Approved! We emailed ' . $u['name'] . ' to sign the agreement.' : 'Approved! We emailed ' . $u['name'] . ' the Telegram link.');
+        if ($st === '') flash('error', 'There’s nothing to approve: their onboarding is already approved.');
+        else flash('success', $st === 'contract' ? 'Approved! We emailed ' . $u['name'] . ' to sign the agreement.' : 'Approved! We emailed ' . $u['name'] . ' the Telegram link.');
         redirect($onbBack);
     } elseif ($action === 'onb_changes') {
         $note = post('note', 2000);
         if ($note === '') {
             flash('error', 'Please write what they need to change.');
         } else {
-            onboarding_request_changes($id, (int) $me['id'], $note);
-            flash('success', 'We emailed ' . $u['name'] . ' your note and the link to update their documents.');
+            $asked = onboarding_request_changes($id, (int) $me['id'], $note);
+            flash($asked ? 'success' : 'error', $asked ? 'We emailed ' . $u['name'] . ' your note and the link to update their documents.' : 'Their onboarding is already approved, so changes can’t be requested here.');
         }
         redirect($onbBack);
     } elseif ($action === 'onb_link') {
@@ -112,7 +119,7 @@ if (is_post()) {
         redirect('admin/driver.php?id=' . $id . '#documents');
     } elseif ($action === 'admin' && $id !== (int) $me['id'] && in_array($role = (string) ($_POST['role'] ?? ''), ['', 'moderator', 'admin'], true)) {
         // Staff access: none, moderator or admin. They're signed out so the new access applies at their next sign-in.
-        db_run('UPDATE users SET is_admin = ?, staff_role = ?, session_version = session_version + 1 WHERE id = ?', [$role === '' ? 0 : 1, $role === 'moderator' ? 'moderator' : '', $id]);
+        db_run('UPDATE users SET is_admin = ?, staff_role = ?, session_version = session_version + 1 WHERE id = ?', [$role === '' ? 0 : 1, $role, $id]);
         flash('success', match ($role) { 'admin' => $u['name'] . ' is now an admin.', 'moderator' => $u['name'] . ' is now a moderator.', default => $u['name'] . ' no longer has staff access.' });
     } elseif ($action === 'verify') {
         db_run('UPDATE users SET email_verified_at = NOW(), verify_token = NULL, verify_expires = NULL WHERE id = ?', [$id]);

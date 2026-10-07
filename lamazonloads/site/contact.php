@@ -21,9 +21,9 @@ if (is_post()) {
     if (!isset($topics[$val['topic']])) $val['topic'] = 'other';
     if (mb_strlen($val['message']) < 5) $errors[] = 'Please write a short message.';
     $recent = (int) db_val('SELECT COUNT(*) FROM messages WHERE email = ? AND created_at > NOW() - INTERVAL 1 HOUR', [$val['email']]);
-    if ($recent >= 5 || rate_limited('contact', client_ip(), 10, 3600)) $errors[] = 'You have sent several messages already. We will get back to you soon.';
+    if ($recent >= 5 || rate_limited('contact', limit_ip(), 10, 3600)) $errors[] = 'You have sent several messages already. We will get back to you soon.';
     if (!$errors) {
-        record_hit('contact', client_ip());
+        record_hit('contact', limit_ip());
         db_run('INSERT INTO messages (name, email, phone, topic, message, created_at) VALUES (?, ?, ?, ?, ?, NOW())',
             [mb_substr($val['name'], 0, 100), $val['email'], mb_substr($val['phone'], 0, 30), $val['topic'], $val['message']]);
         redirect('contact.php?sent=1');

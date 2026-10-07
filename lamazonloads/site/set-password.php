@@ -14,8 +14,10 @@ if (is_post()) {
     csrf_check();
     $new = (string) ($_POST['password'] ?? '');
     $again = (string) ($_POST['password2'] ?? '');
-    if (strlen($new) < 8 || strlen($new) > 200) {
+    if (strlen($new) < 8) {
         $errors[] = 'Your new password needs at least 8 characters.';
+    } elseif (($pp = password_format_problem($new)) !== '') {
+        $errors[] = $pp;
     } elseif (weak_password($new, (string) $u['email'], (string) $u['name'])) {
         $errors[] = 'That password is too easy to guess. Please choose a stronger one.';
     } elseif (password_verify($new, (string) $u['password_hash'])) {
@@ -24,7 +26,7 @@ if (is_post()) {
         $errors[] = 'The two passwords don’t match. Please type them again.';
     }
     if (!$errors) {
-        db_run('UPDATE users SET password_hash = ?, must_change_password = 0, session_version = session_version + 1 WHERE id = ?',
+        db_run('UPDATE users SET password_hash = ?, must_change_password = 0, session_version = session_version + 1, reset_token = NULL, reset_expires = NULL WHERE id = ?',
             [password_hash($new, PASSWORD_DEFAULT), $u['id']]);
         login_user(db_one('SELECT * FROM users WHERE id = ?', [$u['id']]));
         flash('success', 'Your password is set. Welcome to LamazonLoads!');

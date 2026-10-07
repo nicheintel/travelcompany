@@ -41,7 +41,7 @@ In File Manager, right-click **`public_html/config.local.php`** → **Edit**, an
 ```
 Save.
 
-**`admin_emails` matters:** only the emails listed there become admins when they sign up.
+**`admin_emails` matters:** the email listed there becomes the site's first admin, but only after you click the confirmation link we email to it (so nobody else can claim it). Everyone after that gets staff access from you in **Admin → Drivers & members** (Moderator or Admin). Accounts listed here can't be demoted or deleted from the website.
 Several people: `'you@lamazonloads.com, partner@lamazonloads.com'`.
 
 ### 4b. Email for the live chat
@@ -57,7 +57,7 @@ The site sends every visitor to `https://` automatically.
 
 ## 6. Open the site and create your admin account
 Go to **https://lamazonloads.com**. The tables and the four starter job posts are created on the first visit.
-Click **Get loaded** and sign up **with the email you put in `admin_emails`**. "Admin" appears in the top menu.
+Click **Get loaded** and sign up **with the email you put in `admin_emails`**, then open the confirmation email and click the link. You're now the admin, and "Admin" appears in the top menu.
 Then edit or close the starter job posts in **Admin → Job posts**.
 
 ## 7. Quick security check
@@ -82,7 +82,7 @@ The website protects itself (see README → Security). These settings are yours 
 - **GoDaddy domain protection:** keep the domain **locked** (Domain → Registration Settings → Domain lock: On).
 - **Strong, unique passwords** for Hostinger, GoDaddy, the database, the info@ mailbox and your admin account
   on the website. Never reuse them. A password manager helps.
-- **Only real staff in `admin_emails`.** Remove people who leave, and remove their staff access in Admin → Drivers & members.
+- **Keep `admin_emails` to the owner's own address.** Give staff access in Admin → Drivers & members instead, and remove it when people leave.
 - **Delete update zips** from `public_html` after extracting them (the site blocks them anyway).
 - **Backups:** hPanel → Files → Backups. Hostinger makes daily backups; download one now and then.
 - **PHP version:** keep it on a supported version (8.2 or newer) in hPanel → Advanced → PHP Configuration.

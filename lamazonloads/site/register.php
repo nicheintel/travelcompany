@@ -21,9 +21,10 @@ if (is_post()) {
     if (post('website') !== '') { // a field only bots fill in
         redirect('');
     }
-    if (rate_limited('register', client_ip(), 5, 3600)) {
+    if (rate_limited('register', limit_ip(), 5, 3600) || rate_limited('register_try', limit_ip(), 30, 3600)) {
         $errors[] = 'Too many new accounts from your connection. Please try again in an hour.';
     }
+    record_hit('register_try', limit_ip()); // every try counts, so the form can't be used to check which emails have accounts
     if ($val['name'] === '' || mb_strlen($val['name']) > 100) $errors[] = 'Please enter your full name.';
     if (!filter_var($val['email'], FILTER_VALIDATE_EMAIL)) $errors[] = 'Please enter a valid email address.';
     elseif (($problem = email_signup_problem($val['email'])) !== '') $errors[] = $problem;
@@ -42,23 +43,19 @@ if (is_post()) {
     else $val['city'] = $city;
     if (strlen($pass) < 8) $errors[] = 'Your password needs at least 8 characters.';
     elseif (weak_password($pass, $val['email'], $val['name'])) $errors[] = 'That password is too easy to guess. Please choose a stronger one.';
-    if (strlen($pass) > 200) $errors[] = 'That password is too long.';
+    if (($pp = password_format_problem($pass)) !== '') $errors[] = $pp;
     if (empty($_POST['agree'])) $errors[] = 'Please confirm the information is accurate.';
     if (!$errors && db_val('SELECT id FROM users WHERE email = ?', [$val['email']])) {
         $errors[] = 'An account with this email already exists. Please sign in instead.';
     }
     if (!$errors) {
-        record_hit('register', client_ip());
-        $admin = should_be_admin($val['email']) ? 1 : 0;
-        db_run('INSERT INTO users (name, email, phone, password_hash, account_type, vehicle, vehicle_other, city, is_admin, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())',
-            [$val['name'], $val['email'], $val['phone'], password_hash($pass, PASSWORD_DEFAULT), $val['account_type'], implode(',', $vehicles), $vehicleOther, $val['city'], $admin]);
+        record_hit('register', limit_ip());
+        // Everyone starts as a member. The first admin (an email listed in admin_emails) is promoted only after
+        // confirming the email, in verify.php, so nobody can claim admin rights with an address they don't own.
+        db_run('INSERT INTO users (name, email, phone, password_hash, account_type, vehicle, vehicle_other, city, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())',
+            [$val['name'], $val['email'], $val['phone'], password_hash($pass, PASSWORD_DEFAULT), $val['account_type'], implode(',', $vehicles), $vehicleOther, $val['city']]);
         $user = db_one('SELECT * FROM users WHERE id = ?', [(int) db()->lastInsertId()]);
         login_user($user);
-        if ($admin) {
-            db_run('UPDATE users SET email_verified_at = NOW() WHERE id = ?', [$user['id']]); // staff don't need to confirm
-            flash('success', 'Welcome to LamazonLoads, ' . $val['name'] . '! You are staff: open "Admin" in the menu to manage job posts and applicants.');
-            redirect($next === 'account.php' ? 'admin/' : $next);
-        }
         send_verification($user);
         if ($next !== 'account.php') {
             $_SESSION['after_verify'] = $next; // e.g. the job they were applying for

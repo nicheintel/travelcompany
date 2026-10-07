@@ -23,6 +23,15 @@ if (isset($_GET['t'])) {
     }
     db_run('UPDATE users SET email_verified_at = COALESCE(email_verified_at, NOW()), verify_token = NULL, verify_expires = NULL WHERE id = ?', [$row['id']]);
     $me = current_user();
+    if (promote_first_admin(db_one('SELECT * FROM users WHERE id = ?', [$row['id']]))) { // the site's first admin (admin_emails)
+        if ($me && (int) $me['id'] === (int) $row['id']) {
+            login_user(db_one('SELECT * FROM users WHERE id = ?', [$row['id']]));
+            flash('success', 'Your email is confirmed, and you’re the site’s admin. Welcome to LamazonLoads!');
+            redirect('admin/');
+        }
+        flash('success', 'Your email is confirmed, and you’re the site’s admin. Please sign in.');
+        redirect('login.php?next=admin/');
+    }
     if ($me && (int) $me['id'] === (int) $row['id']) {
         $back = (string) ($_SESSION['after_verify'] ?? '');
         unset($_SESSION['after_verify']);
@@ -51,7 +60,10 @@ if (is_post()) {
         $errors[] = "We just sent an email. Please wait $wait seconds before sending another one.";
     } elseif (rate_limited('verify', 'u' . $u['id'], 6, 86400)) {
         $errors[] = "You've asked for several emails today. Call us or tap Chat, and we'll confirm your account for you.";
+    } elseif ($action === 'change' && rate_limited('email_change', 'u' . $u['id'], 5, 86400)) {
+        $errors[] = "You've changed your email several times today. Call us or tap Chat, and we'll help you.";
     } elseif ($action === 'change') {
+        record_hit('email_change', 'u' . $u['id']); // every try counts, so this can't be used to look up other people's emails
         $email = strtolower(post('email', 190));
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $errors[] = 'Please enter a valid email address.';
@@ -60,7 +72,8 @@ if (is_post()) {
         } elseif (db_val('SELECT id FROM users WHERE email = ? AND id <> ?', [$email, $u['id']])) {
             $errors[] = 'Another account already uses that email.';
         } else {
-            db_run('UPDATE users SET email = ? WHERE id = ?', [$email, $u['id']]);
+            // A password-reset link sent to the old address stops working: it can't confirm the new one
+            db_run('UPDATE users SET email = ?, reset_token = NULL, reset_expires = NULL WHERE id = ?', [$email, $u['id']]);
             $u['email'] = $email;
         }
     }

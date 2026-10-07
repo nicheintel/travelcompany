@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS users (
   vehicle VARCHAR(120) NOT NULL DEFAULT '', -- keys of APPLY_VEHICLES, comma-separated, chosen at sign-up
   vehicle_other VARCHAR(80) NOT NULL DEFAULT '', -- typed when "Other" is one of them
   is_admin TINYINT(1) NOT NULL DEFAULT 0,   -- staff (admins and moderators)
-  staff_role VARCHAR(20) NOT NULL DEFAULT '', -- '' = admin, 'moderator' = day-to-day tools only
+  staff_role VARCHAR(20) NOT NULL DEFAULT '', -- staff only: 'admin' = everything, 'moderator' = day-to-day tools
   session_version INT UNSIGNED NOT NULL DEFAULT 1,
   email_verified_at DATETIME NULL,
   verify_token CHAR(64) NULL,

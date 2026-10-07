@@ -15,6 +15,15 @@ function current_user(): ?array
         unset($_SESSION['uid'], $_SESSION['sv']);
         $user = null;
     }
+    // Signed out after 12 hours without activity, and 14 days after signing in, even if the session is kept alive
+    $now = time();
+    if ($user && ($now - (int) ($_SESSION['seen'] ?? $now) > 43200 || $now - (int) ($_SESSION['login_at'] ?? $now) > 1209600)) {
+        $_SESSION = [];
+        $user = null;
+    } elseif ($user) {
+        $_SESSION['seen'] = $now;
+        $_SESSION['login_at'] ??= $now;
+    }
     return $user;
 }
 
@@ -57,14 +66,14 @@ function require_admin(): array
  */
 const STAFF_ROLES = ['admin' => 'Admin', 'moderator' => 'Moderator'];
 
-/** 'admin', 'moderator', or '' for members. */
+/** 'admin', 'moderator', or '' for members. Staff count as admins only when their role says so explicitly. */
 function staff_role(?array $u = null): string
 {
     $u ??= current_user();
     if (!$u || empty($u['is_admin'])) {
         return '';
     }
-    return ($u['staff_role'] ?? '') === 'moderator' ? 'moderator' : 'admin';
+    return ($u['staff_role'] ?? '') === 'admin' ? 'admin' : 'moderator';
 }
 
 function is_full_admin(?array $u = null): bool
@@ -100,8 +109,10 @@ function require_full_admin_action(string $back): void
 function login_user(array $user): void
 {
     session_regenerate_id(true);
+    unset($_SESSION['csrf']); // a fresh form token for the signed-in session
     $_SESSION['uid'] = (int) $user['id'];
     $_SESSION['sv'] = (int) $user['session_version'];
+    $_SESSION['login_at'] = $_SESSION['seen'] = time();
     db_run('UPDATE users SET last_login_at = NOW() WHERE id = ?', [$user['id']]);
 }
 
@@ -109,23 +120,60 @@ function logout_user(): void
 {
     $_SESSION = [];
     session_regenerate_id(true);
+    // A chat started on this browser before signing in stays private on shared computers
+    if (isset($_COOKIE['ll_chat'])) {
+        setcookie('ll_chat', '', ['expires' => time() - 3600, 'path' => base_path() . '/', 'httponly' => true, 'samesite' => 'Lax']);
+    }
 }
 
-/** Too many wrong passwords in 15 minutes for this email or from this address. */
+/**
+ * Too many wrong passwords in 15 minutes: 8 for this email from this connection, 25 from this connection in total,
+ * or 40 for this email from everywhere (a spread-out attack). Strangers can't lock an account with just a few tries.
+ */
 function login_locked(string $email): bool
 {
     db_run('DELETE FROM login_attempts WHERE created_at < NOW() - INTERVAL 1 DAY');
+    $ip = limit_ip();
+    $pair = (int) db_val('SELECT COUNT(*) FROM login_attempts WHERE email = ? AND ip = ? AND created_at > NOW() - INTERVAL 15 MINUTE', [$email, $ip]);
+    $byIp = (int) db_val('SELECT COUNT(*) FROM login_attempts WHERE ip = ? AND created_at > NOW() - INTERVAL 15 MINUTE', [$ip]);
     $byEmail = (int) db_val('SELECT COUNT(*) FROM login_attempts WHERE email = ? AND created_at > NOW() - INTERVAL 15 MINUTE', [$email]);
-    $byIp = (int) db_val('SELECT COUNT(*) FROM login_attempts WHERE ip = ? AND created_at > NOW() - INTERVAL 15 MINUTE', [client_ip()]);
-    return $byEmail >= 8 || $byIp >= 25;
+    return $pair >= 8 || $byIp >= 25 || $byEmail >= 40;
 }
 
 function record_failed_login(string $email): void
 {
-    db_run('INSERT INTO login_attempts (ip, email, created_at) VALUES (?, ?, NOW())', [client_ip(), $email]);
+    db_run('INSERT INTO login_attempts (ip, email, created_at) VALUES (?, ?, NOW())', [limit_ip(), $email]);
 }
 
-/** New accounts become staff only when their email is listed in admin_emails (config.local.php). */
+/**
+ * Passwords bcrypt can't store safely: anything after 72 bytes would be ignored, and a NUL byte isn't allowed.
+ * Returns a message, or '' when it's fine.
+ */
+function password_format_problem(string $pass): string
+{
+    if (str_contains($pass, "\0")) return 'Your password has a character we can’t use. Please choose another.';
+    if (strlen($pass) > 72) return 'Please keep your password to 72 characters or fewer.';
+    return '';
+}
+
+/**
+ * The very first admin: someone whose email is listed in admin_emails (config.local.php) becomes admin only after
+ * confirming that email with the link we send, and only while the site has no admin yet. Everyone after that gets
+ * staff access from an admin in Admin → Drivers & members.
+ */
+function promote_first_admin(array $u): bool
+{
+    if (!empty($u['is_admin']) || !should_be_admin((string) $u['email']) || empty($u['email_verified_at'])) {
+        return false;
+    }
+    if ((int) db_val("SELECT COUNT(*) FROM users WHERE is_admin = 1 AND staff_role = 'admin'") > 0) {
+        return false;
+    }
+    db_run("UPDATE users SET is_admin = 1, staff_role = 'admin', session_version = session_version + 1 WHERE id = ?", [$u['id']]);
+    return true;
+}
+
+/** Emails listed in admin_emails (config.local.php): the owner's accounts, which other admins can't demote or delete. */
 function should_be_admin(string $email): bool
 {
     $list = array_filter(array_map('trim', explode(',', strtolower((string) config('admin_emails')))));

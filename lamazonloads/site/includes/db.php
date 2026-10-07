@@ -80,9 +80,14 @@ function migrate(PDO $pdo): void
         'must_change_password' => 'TINYINT(1) NOT NULL DEFAULT 0', 'added_by' => 'INT UNSIGNED NULL',
         // Chosen at sign-up: city ("Atlanta, GA", from the US city list) and vehicle types (comma-separated, plus a typed "Other")
         'city' => "VARCHAR(120) NOT NULL DEFAULT ''", 'vehicle' => "VARCHAR(120) NOT NULL DEFAULT ''", 'vehicle_other' => "VARCHAR(80) NOT NULL DEFAULT ''",
-        // Staff: '' = admin (everything), 'moderator' = day-to-day tools only (see STAFF_ROLES)
+        // Staff: 'admin' = everything, 'moderator' = day-to-day tools only (see STAFF_ROLES)
         'staff_role' => "VARCHAR(20) NOT NULL DEFAULT ''"]);
     $pdo->exec("ALTER TABLE users MODIFY vehicle VARCHAR(120) NOT NULL DEFAULT ''"); // was one type (20 characters)
+    // Staff roles are explicit now ('' used to mean admin): existing admins keep full access, once
+    if (!$pdo->query("SELECT v FROM meta WHERE k = 'roles_explicit'")->fetchColumn()) {
+        $pdo->exec("UPDATE users SET staff_role = 'admin' WHERE is_admin = 1 AND staff_role = ''");
+        $pdo->exec("INSERT INTO meta (k, v) VALUES ('roles_explicit', '1') ON DUPLICATE KEY UPDATE v = '1'");
+    }
     add_missing_columns($pdo, 'documents', ['added_by' => 'INT UNSIGNED NULL']); // staff member who added it for the driver
     // Payment details drivers add during onboarding (Zelle preferred)
     add_missing_columns($pdo, 'driver_profiles', ['payout_method' => "VARCHAR(20) NOT NULL DEFAULT ''", 'payout_name' => "VARCHAR(120) NOT NULL DEFAULT ''",

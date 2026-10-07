@@ -56,6 +56,27 @@ function client_ip(): string
     return substr((string) ($_SERVER['REMOTE_ADDR'] ?? ''), 0, 45);
 }
 
+/** Runs $fn after the page has been sent, so slow work (like sending an email) doesn't change how long the page takes. */
+function after_response(callable $fn): void
+{
+    register_shutdown_function(function () use ($fn): void {
+        if (session_status() === PHP_SESSION_ACTIVE) session_write_close();
+        if (function_exists('fastcgi_finish_request')) fastcgi_finish_request();
+        elseif (function_exists('litespeed_finish_request')) litespeed_finish_request();
+        $fn();
+    });
+}
+
+/** The key for rate limits: the visitor's address, or their whole IPv6 /64 network (one home or phone gets a whole /64). */
+function limit_ip(): string
+{
+    $ip = client_ip();
+    if (str_contains($ip, ':') && ($bin = @inet_pton($ip)) !== false && strlen($bin) === 16) {
+        return (string) inet_ntop(substr($bin, 0, 8) . str_repeat("\0", 8)) . '/64';
+    }
+    return $ip;
+}
+
 function post(string $key, int $max = 2000): string
 {
     $v = $_POST[$key] ?? '';

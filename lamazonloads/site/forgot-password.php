@@ -14,14 +14,14 @@ if (is_post()) {
     $email = strtolower(post('email', 190));
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $error = 'Please enter the email you use to sign in.';
-    } elseif (rate_limited('reset', client_ip(), 6, 3600)) {
+    } elseif (rate_limited('reset', limit_ip(), 6, 3600)) {
         $error = 'You asked for several reset links already. Please check your email or wait a while before trying again.';
     } else {
-        record_hit('reset', client_ip());
+        record_hit('reset', limit_ip());
         $u = db_one('SELECT * FROM users WHERE email = ?', [$email]);
         // One email a minute per account. The page says the same thing whether or not the email has an account.
         if ($u && ($u['reset_sent_at'] === null || strtotime((string) $u['reset_sent_at']) < time() - 60)) {
-            send_password_reset($u);
+            after_response(fn () => send_password_reset($u)); // the page answers just as fast either way
         }
         $_SESSION['reset_email'] = $email;
         redirect('forgot-password.php?sent=1');

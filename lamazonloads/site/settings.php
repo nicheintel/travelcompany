@@ -31,11 +31,17 @@ if (is_post()) {
     } elseif ($action === 'password') {
         $cur = (string) ($_POST['current'] ?? '');
         $new = (string) ($_POST['new'] ?? '');
-        if (!password_verify($cur, $u['password_hash'])) $errors[] = 'Your current password is not correct.';
-        if (strlen($new) < 8 || strlen($new) > 200) $errors[] = 'Your new password needs at least 8 characters.';
+        if (login_locked((string) $u['email'])) { // same limit as signing in, so the current password can't be guessed here
+            $errors[] = 'Too many attempts. Please wait 15 minutes and try again.';
+        } elseif (!password_verify($cur, $u['password_hash'])) {
+            record_failed_login((string) $u['email']);
+            $errors[] = 'Your current password is not correct.';
+        }
+        if (strlen($new) < 8) $errors[] = 'Your new password needs at least 8 characters.';
+        elseif (($pp = password_format_problem($new)) !== '') $errors[] = $pp;
         elseif (weak_password($new, (string) $u['email'], (string) $u['name'])) $errors[] = 'That password is too easy to guess. Please choose a stronger one.';
         if (!$errors) {
-            db_run('UPDATE users SET password_hash = ?, must_change_password = 0, session_version = session_version + 1 WHERE id = ?', [password_hash($new, PASSWORD_DEFAULT), $u['id']]);
+            db_run('UPDATE users SET password_hash = ?, must_change_password = 0, session_version = session_version + 1, reset_token = NULL, reset_expires = NULL WHERE id = ?', [password_hash($new, PASSWORD_DEFAULT), $u['id']]);
             login_user(db_one('SELECT * FROM users WHERE id = ?', [$u['id']]));
             flash('success', 'Password changed. Other devices were signed out.');
             redirect('settings.php');
