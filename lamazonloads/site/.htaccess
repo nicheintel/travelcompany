@@ -4,7 +4,7 @@ ServerSignature Off
 <FilesMatch "(^\.|^config\.local.*\.php$|\.(sql|md|log|txt|json|ini|sh|bat|zip|tar|gz|tgz|rar|7z|bak|old|orig|save|swp|tmp|dist|env|lock|yml|yaml)$|~$)">
     Require all denied
 </FilesMatch>
-<FilesMatch "^robots\.txt$">
+<FilesMatch "^(robots|us-cities)\.txt$">
     Require all granted
 </FilesMatch>
 
@@ -37,7 +37,7 @@ AddType image/x-icon .ico
     ExpiresByType text/javascript "access plus 1 year"
 </IfModule>
 <IfModule mod_headers.c>
-    <FilesMatch "\.(webp|jpe?g|png|svg|ico|css|js|woff2?)$">
+    <FilesMatch "(\.(webp|jpe?g|png|svg|ico|css|js|woff2?)|^us-cities\.txt)$">
         Header set Cache-Control "public, max-age=31536000, immutable"
     </FilesMatch>
 </IfModule>

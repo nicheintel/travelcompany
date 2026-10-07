@@ -28,7 +28,7 @@ function require_login(): array
     $u = current_user();
     if (!$u) {
         $here = ltrim(substr((string) ($_SERVER['REQUEST_URI'] ?? ''), strlen(base_path())), '/');
-        flash('info', 'Please sign in or create a free account to continue.');
+        flash('info', 'Please sign in or create an account to continue.');
         redirect('login.php?next=' . rawurlencode($here));
     }
     if (!empty($u['must_change_password']) && basename((string) ($_SERVER['SCRIPT_NAME'] ?? '')) !== 'set-password.php') {

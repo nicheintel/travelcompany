@@ -636,21 +636,60 @@
     sel.addEventListener('change', sync); sync();
   });
 
-  // City picker: type a few letters, pick "City, ST" from the list of every US city. Typed text alone isn't
-  // accepted, so there are no misspelled cities. The list (~400 KB, compressed on the way) loads on first use.
+  // Vehicle type cards: ticking "Other" opens the box to type the vehicle
+  document.querySelectorAll('[data-veh-pick]').forEach(function (set) {
+    var other = set.querySelector('input[value="other"]'), box = set.querySelector('[data-veh-other]');
+    if (!other || !box) return;
+    other.addEventListener('change', function () {
+      box.hidden = !other.checked;
+      if (other.checked) box.querySelector('input').focus();
+    });
+  });
+
+  // Show / hide the password being typed
+  document.querySelectorAll('[data-pw-toggle]').forEach(function (b) {
+    var input = document.getElementById(b.getAttribute('aria-controls'));
+    if (!input) return;
+    b.addEventListener('click', function () {
+      var show = input.type === 'password';
+      input.type = show ? 'text' : 'password';
+      b.setAttribute('aria-pressed', show ? 'true' : 'false');
+      b.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+    });
+    if (input.form) input.form.addEventListener('submit', function () { input.type = 'password'; b.setAttribute('aria-pressed', 'false'); }); // so the browser offers to save it
+  });
+
+  // City picker: type a few letters of the city, or a ZIP code, then pick "City, ST" from the list of every US
+  // city. Typed text alone isn't accepted, so there are no misspelled cities. The list ("City, ST<TAB>ZIP codes"
+  // lines, ~650 KB, about 250 KB compressed on the way) loads on first use. If it can't load, the typed
+  // "City, ST" is sent and checked on the server against the same list.
   var STATE_NAMES = { AL: 'Alabama', AK: 'Alaska', AZ: 'Arizona', AR: 'Arkansas', CA: 'California', CO: 'Colorado', CT: 'Connecticut', DE: 'Delaware', DC: 'District of Columbia', FL: 'Florida', GA: 'Georgia', HI: 'Hawaii', ID: 'Idaho', IL: 'Illinois', IN: 'Indiana', IA: 'Iowa', KS: 'Kansas', KY: 'Kentucky', LA: 'Louisiana', ME: 'Maine', MD: 'Maryland', MA: 'Massachusetts', MI: 'Michigan', MN: 'Minnesota', MS: 'Mississippi', MO: 'Missouri', MT: 'Montana', NE: 'Nebraska', NV: 'Nevada', NH: 'New Hampshire', NJ: 'New Jersey', NM: 'New Mexico', NY: 'New York', NC: 'North Carolina', ND: 'North Dakota', OH: 'Ohio', OK: 'Oklahoma', OR: 'Oregon', PA: 'Pennsylvania', RI: 'Rhode Island', SC: 'South Carolina', SD: 'South Dakota', TN: 'Tennessee', TX: 'Texas', UT: 'Utah', VT: 'Vermont', VA: 'Virginia', WA: 'Washington', WV: 'West Virginia', WI: 'Wisconsin', WY: 'Wyoming' };
   var cityData = null, cityLoading = null;
+  var cityKey = function (t) { return t.toLowerCase().replace(/[\u2019'.]/g, '').replace(/-/g, ' ').replace(/\s+/g, ' ').trim(); }; // "St. Mary's" = "st marys", "Winston-Salem" = "winston salem"
   var loadCities = function (src) {
     if (cityData) return Promise.resolve(cityData);
-    cityLoading = cityLoading || fetch(src, { credentials: 'same-origin' }).then(function (r) { return r.text(); }).then(function (t) {
-      cityData = t.split('\n').filter(Boolean).map(function (c) { var i = c.lastIndexOf(', '); return { label: c, city: c.slice(0, i), st: c.slice(i + 2), key: c.slice(0, i).toLowerCase() }; });
+    cityLoading = cityLoading || fetch(src, { credentials: 'same-origin' }).then(function (r) {
+      if (!r.ok) throw new Error('City list: HTTP ' + r.status);
+      return r.text();
+    }).then(function (t) {
+      var out = [];
+      t.split('\n').forEach(function (line) {
+        var tab = line.indexOf('\t'), label = (tab === -1 ? line : line.slice(0, tab)).trim(), i = label.lastIndexOf(', '), st = label.slice(i + 2);
+        if (i < 1 || !STATE_NAMES[st]) return;
+        out.push({ label: label, city: label.slice(0, i), st: st, key: cityKey(label.slice(0, i)), zips: tab === -1 ? '' : ' ' + line.slice(tab + 1).trim() });
+      });
+      if (out.length < 1000) throw new Error('City list: unexpected content'); // e.g. an error page instead of the list
+      cityData = out;
       return cityData;
     });
+    cityLoading.catch(function () { cityLoading = null; }); // try again next time
     return cityLoading;
   };
-  document.querySelectorAll('[data-city-pick]').forEach(function (box, n) {
+  var isZip = function (q) { return /^\d{1,5}$/.test(q.trim()); };
+  var searchable = function (q) { q = q.trim(); return isZip(q) ? q.length >= 3 : q.length >= 2; };
+  document.querySelectorAll('[data-city-pick]').forEach(function (box) {
     var input = box.querySelector('[data-city-input]'), value = box.querySelector('[data-city-value]'), list = box.querySelector('.city-list'), hint = box.querySelector('[data-city-hint]');
-    var form = input.form, items = [], active = -1, hintText = hint.textContent;
+    var form = input.form, items = [], active = -1, hintText = hint.textContent, offline = false;
     var setValid = function (ok) { box.classList.toggle('is-valid', ok); };
     setValid(value.value !== '' && value.value === input.value);
     var close = function () { list.hidden = true; input.setAttribute('aria-expanded', 'false'); input.removeAttribute('aria-activedescendant'); active = -1; };
@@ -660,30 +699,51 @@
       input.dispatchEvent(new Event('change', { bubbles: true }));
     };
     var search = function (q) {
-      q = q.toLowerCase().replace(/\s+/g, ' ').trim();
+      q = cityKey(q);
+      if (isZip(q)) { // ZIP code: every city with a ZIP starting with these digits
+        if (q.length < 3) return [];
+        var hits = [];
+        for (var z = 0; z < cityData.length && hits.length < 60; z++) {
+          var at = cityData[z].zips.indexOf(' ' + q);
+          if (at !== -1) hits.push({ c: cityData[z], zip: cityData[z].zips.substr(at + 1, 5) });
+        }
+        return hits;
+      }
       var st = null, m = q.match(/^(.*?)[ ,]+([a-z]{2})$/); // "atlanta ga" or "atlanta, ga"
       if (m && STATE_NAMES[m[2].toUpperCase()]) { st = m[2].toUpperCase(); q = m[1].replace(/,$/, '').trim(); }
       q = q.replace(/,$/, '');
       if (q.length < 2 && !st) return [];
+      var qs = [q]; // "st louis" also finds "Saint Louis" (the USPS spelling), "ft worth" "Fort Worth", and back
+      [['st', 'saint'], ['ft', 'fort'], ['mt', 'mount']].forEach(function (p) {
+        [[p[0], p[1]], [p[1], p[0]]].forEach(function (ab) {
+          var re = new RegExp('(^| )' + ab[0] + ' ');
+          if (re.test(q)) qs.push(q.replace(re, '$1' + ab[1] + ' '));
+        });
+      });
       var starts = [], words = [];
       for (var i = 0; i < cityData.length && starts.length < 60; i++) {
-        var c = cityData[i];
+        var c = cityData[i], start = false, word = false;
         if (st && c.st !== st) continue;
-        if (!q || c.key.indexOf(q) === 0) starts.push(c);
-        else if (words.length < 60 && c.key.indexOf(' ' + q) !== -1) words.push(c);
+        for (var v = 0; v < qs.length; v++) {
+          if (!qs[v] || c.key.indexOf(qs[v]) === 0) start = true;
+          else if (c.key.indexOf(' ' + qs[v]) !== -1) word = true;
+        }
+        if (start) starts.push({ c: c });
+        else if (word && words.length < 60) words.push({ c: c });
       }
       return starts.concat(words).slice(0, 60);
     };
-    var render = function () {
+    var render = function (zip) {
       list.innerHTML = '';
       if (!items.length) {
-        var none = document.createElement('li'); none.className = 'city-none'; none.textContent = 'No city found. Check the spelling, or try a nearby city.';
+        var none = document.createElement('li'); none.className = 'city-none';
+        none.textContent = zip ? 'No city found for that ZIP code. Check the number, or type your city.' : 'No city found. Check the spelling, or try your ZIP code.';
         list.appendChild(none);
       }
-      items.forEach(function (c, i) {
-        var li = document.createElement('li'); li.id = input.id + '-opt-' + i; li.setAttribute('role', 'option'); li.className = 'city-opt';
+      items.forEach(function (it, i) {
+        var c = it.c, li = document.createElement('li'); li.id = input.id + '-opt-' + i; li.setAttribute('role', 'option'); li.className = 'city-opt';
         var b = document.createElement('b'); b.textContent = c.city + ', ' + c.st; li.appendChild(b);
-        var s = document.createElement('small'); s.textContent = STATE_NAMES[c.st] || ''; li.appendChild(s);
+        var s = document.createElement('small'); s.textContent = (STATE_NAMES[c.st] || '') + (it.zip ? ' · ' + it.zip : ''); li.appendChild(s);
         li.addEventListener('mousedown', function (e) { e.preventDefault(); choose(c); }); // before the field loses focus
         list.appendChild(li);
       });
@@ -695,36 +755,47 @@
       opts.forEach(function (o, k) { o.classList.toggle('on', k === active); o.setAttribute('aria-selected', k === active ? 'true' : 'false'); });
       input.setAttribute('aria-activedescendant', opts[active].id); opts[active].scrollIntoView({ block: 'nearest' });
     };
-    input.addEventListener('focus', function () { loadCities(box.getAttribute('data-src')); });
+    var show = function () { items = search(input.value); render(isZip(input.value)); if (items.length) highlight(0); };
+    var goOffline = function () { // the list didn't load: let them type "City, ST" (the server checks it)
+      offline = true; close();
+      hint.textContent = 'Type your city and state, like Dallas, TX.';
+      input.placeholder = 'City, ST';
+    };
+    var load = function () { return loadCities(box.getAttribute('data-src')).then(function (d) { offline = false; return d; }, function (err) { goOffline(); throw err; }); };
+    input.addEventListener('focus', function () { load().catch(function () {}); });
     input.addEventListener('input', function () {
-      value.value = ''; setValid(false); box.classList.remove('has-error'); hint.textContent = hintText;
+      value.value = ''; setValid(false); box.classList.remove('has-error'); if (!offline) hint.textContent = hintText;
       var q = input.value;
-      loadCities(box.getAttribute('data-src')).then(function () {
+      load().then(function () {
         if (input.value !== q) return; // they kept typing
-        items = search(q);
-        if (q.trim().length < 2) { close(); return; }
-        render(); if (items.length) highlight(0);
-      });
+        if (!searchable(q)) { close(); return; }
+        show();
+      }, function () {});
     });
     input.addEventListener('keydown', function (e) {
-      if (list.hidden) { if (e.key === 'ArrowDown' && input.value.trim().length >= 2) { items = search(input.value); render(); highlight(0); e.preventDefault(); } return; }
+      if (list.hidden) { if (e.key === 'ArrowDown' && cityData && searchable(input.value)) { show(); e.preventDefault(); } return; }
       if (e.key === 'ArrowDown') { e.preventDefault(); highlight(active + 1); }
       else if (e.key === 'ArrowUp') { e.preventDefault(); highlight(active - 1); }
-      else if (e.key === 'Enter') { if (items[active]) { e.preventDefault(); choose(items[active]); } }
+      else if (e.key === 'Enter') { if (items[active]) { e.preventDefault(); choose(items[active].c); } }
       else if (e.key === 'Escape') { close(); }
     });
     input.addEventListener('blur', function () {
       setTimeout(close, 120);
       if (value.value || !input.value.trim() || !cityData) return;
-      var typed = input.value.trim().toLowerCase();
+      var typed = input.value.trim().toLowerCase().replace(/\s+/g, ' ');
       var exact = cityData.filter(function (c) { return c.label.toLowerCase() === typed; })[0];
-      if (exact) choose(exact); // typed it exactly, e.g. "Atlanta, GA"
+      if (!exact && /^\d{5}$/.test(typed)) { var z = search(typed); if (z.length === 1) exact = z[0].c; }
+      if (exact) choose(exact); // typed it exactly, e.g. "Atlanta, GA" or a ZIP code
     });
     if (form) form.addEventListener('submit', function (e) {
       if (value.value) return;
-      if (!input.value.trim() && !input.hasAttribute('data-required') && !box.hasAttribute('data-required')) return;
+      var typed = input.value.trim().replace(/\s+/g, ' ').replace(/ ?, ?/g, ', ');
+      if (!typed && !box.hasAttribute('data-required')) return;
+      var m = typed.match(/^(.+?),? ([A-Za-z]{2})$/);
+      if (offline && m && STATE_NAMES[m[2].toUpperCase()]) { value.value = m[1] + ', ' + m[2].toUpperCase(); return; }
       e.preventDefault();
-      box.classList.add('has-error'); hint.textContent = input.value.trim() ? 'Please choose your city from the list.' : 'Please choose your city and state.';
+      box.classList.add('has-error');
+      hint.textContent = offline ? 'Please type your city and state, like Dallas, TX.' : typed ? 'Please choose your city from the list.' : 'Please choose your city and state.';
       input.focus();
     });
   });
@@ -743,6 +814,7 @@
   // Keep the last two words of a sentence together, so one word never sits alone on the last line
   // (and "cut-off times" can't split at its hyphen). Chrome's text-wrap: pretty skips short text and
   // squeezes two-line text, and Firefox and Safari don't fully support it, so this is done here.
+  var kept = [];
   document.querySelectorAll('p, li, td, dd, small, label, figcaption, blockquote, .hint, .ss-hint span, b, strong, span, h1, h2, h3, h4').forEach(function (el) {
     if (el.closest('.contract-body, .chat-msgs, pre, code, textarea, [contenteditable], .btn, button, svg, l-nw')) return;
     if (/^(B|STRONG|SPAN)$/.test(el.tagName) && getComputedStyle(el).display === 'inline') return; // inline bits belong to their sentence
@@ -761,11 +833,18 @@
       var keep = document.createElement('l-nw'); keep.textContent = m[1] + ' ' + m[2];
       var rest = document.createTextNode(m[3]);
       last.data = last.data.slice(0, m.index);
-      last.parentNode.insertBefore(rest, last.nextSibling); last.parentNode.insertBefore(keep, rest);
+      last.parentNode.insertBefore(rest, last.nextSibling); last.parentNode.insertBefore(keep, rest); kept.push(keep);
     } else if (nodes.length > 1 && /^\s*\S{1,16}\s*$/.test(last.data) && / $/.test(nodes[nodes.length - 2].data)) {
       // the last word is in its own tag ("Anything else? <span>(optional)</span>"): glue it to the word before
       var prev = nodes[nodes.length - 2]; prev.data = prev.data.replace(/ $/, '\u00a0');
     }
+  });
+  // Two long words in big type can be wider than a phone screen ("Owner-Operator Agreement"): let those wrap
+  kept.filter(function (k) {
+    var box = k.parentNode; while (box.parentNode && !box.clientWidth) box = box.parentNode; // inline tags have no width of their own
+    return k.getBoundingClientRect().width > box.clientWidth;
+  }).forEach(function (k) {
+    k.parentNode.replaceChild(document.createTextNode(k.textContent), k);
   });
 
   // "Are you sure?" pop-up. The question becomes the title and the rest the note under it:

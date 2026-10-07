@@ -45,7 +45,7 @@ page_header('Sign in', '', '', 'page-auth');
   <div class="auth-main">
     <div class="auth-box">
       <h1>Sign in</h1>
-      <p class="sub">New to LamazonLoads? <a href="<?= e(url('register.php?next=' . rawurlencode($next))) ?>">Create a free account</a></p>
+      <p class="sub">New to LamazonLoads? <a href="<?= e(url('register.php?next=' . rawurlencode($next))) ?>">Create an account</a></p>
       <?php if ($error): ?><div class="errors" style="padding-left:16px"><?= e($error) ?></div><?php endif; ?>
       <form method="post" action="<?= e(url('login.php')) ?>" novalidate>
         <?= csrf_field() ?>

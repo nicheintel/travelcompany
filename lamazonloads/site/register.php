@@ -7,7 +7,9 @@ if (current_user()) {
     redirect($next);
 }
 $errors = [];
-$val = ['name' => '', 'email' => '', 'phone' => '', 'account_type' => 'owner_operator', 'vehicle' => '', 'city' => ''];
+$val = ['name' => '', 'email' => '', 'phone' => '', 'account_type' => 'owner_operator', 'city' => ''];
+$vehicles = [];
+$vehicleOther = '';
 
 if (is_post()) {
     csrf_check();
@@ -28,9 +30,16 @@ if (is_post()) {
     $val['phone'] = format_phone($val['phone']);
     if (!preg_match('/^[0-9+()\-. ]{7,25}$/', $val['phone'])) $errors[] = 'Please enter a valid phone number.';
     if (!isset(ACCOUNT_TYPES[$val['account_type']])) $errors[] = 'Please choose what describes you best.';
-    if (!account_drives($val['account_type'])) $val['vehicle'] = '';
-    elseif (!isset(APPLY_VEHICLES[$val['vehicle']])) $errors[] = 'Please choose your vehicle type.';
-    if (!us_city_valid($val['city'])) $errors[] = 'Please choose your city and state from the list.';
+    [$vehicles, $vehicleOther] = posted_vehicles();
+    if (!account_drives($val['account_type'])) {
+        $vehicles = []; $vehicleOther = '';
+    } elseif (!$vehicles) {
+        $errors[] = 'Please choose your vehicle type.';
+    } elseif (in_array('other', $vehicles, true) && $vehicleOther === '') {
+        $errors[] = 'Please type what your other vehicle is.';
+    }
+    if (($city = us_city($val['city'])) === null) $errors[] = 'Please choose your city and state from the list.';
+    else $val['city'] = $city;
     if (strlen($pass) < 8) $errors[] = 'Your password needs at least 8 characters.';
     elseif (weak_password($pass, $val['email'], $val['name'])) $errors[] = 'That password is too easy to guess. Please choose a stronger one.';
     if (strlen($pass) > 200) $errors[] = 'That password is too long.';
@@ -41,8 +50,8 @@ if (is_post()) {
     if (!$errors) {
         record_hit('register', client_ip());
         $admin = should_be_admin($val['email']) ? 1 : 0;
-        db_run('INSERT INTO users (name, email, phone, password_hash, account_type, vehicle, city, is_admin, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())',
-            [$val['name'], $val['email'], $val['phone'], password_hash($pass, PASSWORD_DEFAULT), $val['account_type'], $val['vehicle'], $val['city'], $admin]);
+        db_run('INSERT INTO users (name, email, phone, password_hash, account_type, vehicle, vehicle_other, city, is_admin, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())',
+            [$val['name'], $val['email'], $val['phone'], password_hash($pass, PASSWORD_DEFAULT), $val['account_type'], implode(',', $vehicles), $vehicleOther, $val['city'], $admin]);
         $user = db_one('SELECT * FROM users WHERE id = ?', [(int) db()->lastInsertId()]);
         login_user($user);
         if ($admin) {
@@ -61,7 +70,8 @@ if (is_post()) {
 page_header('Create your account', '', '', 'page-auth');
 ?>
 <div class="auth-wrap">
-  <aside class="auth-side">
+  <aside class="auth-side auth-side-long">
+    <div class="auth-side-in">
     <span class="logo-badge"><?= logo_html() ?></span>
     <h2 class="mt">Join the network that keeps you loaded.</h2>
     <ul class="checklist" style="color:#E3EBFF">
@@ -70,30 +80,49 @@ page_header('Create your account', '', '', 'page-auth');
       <li><span class="tick"><?= icon('check') ?></span>Track every application from your dashboard</li>
       <li><span class="tick"><?= icon('check') ?></span>Get first access to new loads and contracts</li>
     </ul>
+    </div>
     <div class="road" aria-hidden="true"></div>
   </aside>
   <div class="auth-main">
     <div class="auth-box">
-      <h1>Create your free account</h1>
+      <h1>Create your account</h1>
       <p class="sub">Already have one? <a href="<?= e(url('login.php?next=' . rawurlencode($next))) ?>">Sign in</a></p>
       <?php if ($errors): ?><ul class="errors"><?php foreach ($errors as $er): ?><li><?= e($er) ?></li><?php endforeach; ?></ul><?php endif; ?>
-      <form method="post" action="<?= e(url('register.php')) ?>" class="form-grid" novalidate>
+      <form method="post" action="<?= e(url('register.php')) ?>" class="su-form" novalidate>
         <?= csrf_field() ?>
         <input type="hidden" name="next" value="<?= e($next) ?>">
         <div class="hp-field" aria-hidden="true"><label>Website <input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
-        <div class="full"><label for="name">Full name</label><input id="name" name="name" type="text" required maxlength="100" autocomplete="name" value="<?= e($val['name']) ?>"></div>
-        <div><label for="email">Email</label><input id="email" name="email" type="email" required maxlength="190" autocomplete="email" value="<?= e($val['email']) ?>"></div>
-        <div><label for="phone">Mobile phone</label><input id="phone" name="phone" type="tel" required maxlength="25" autocomplete="tel" placeholder="(555) 123-4567" value="<?= e($val['phone']) ?>"></div>
-        <div class="full"><label for="account_type">I am a…</label>
-          <select id="account_type" name="account_type" data-drives="owner_operator,driver"><?php foreach (ACCOUNT_TYPES as $k => $l): ?><option value="<?= e($k) ?>"<?= $val['account_type'] === $k ? ' selected' : '' ?>><?= e($l) ?></option><?php endforeach; ?></select></div>
-        <fieldset class="full af-set su-vehicle" data-vehicle-field<?= account_drives($val['account_type']) ? '' : ' hidden' ?>><legend>Vehicle type</legend>
-          <div class="af-chips">
-            <?php foreach (APPLY_VEHICLES as $k => $l): ?><label class="af-chip"><input type="radio" name="vehicle" value="<?= e($k) ?>"<?= $val['vehicle'] === $k ? ' checked' : '' ?>><span><?= e($l) ?></span></label><?php endforeach; ?>
-          </div></fieldset>
-        <div class="full"><?= city_picker('city', $val['city'], 'city', 'City and state', true) ?></div>
-        <div class="full"><label for="password">Password</label><input id="password" name="password" type="password" required minlength="8" autocomplete="new-password"><p class="hint">At least 8 characters.</p></div>
-        <div class="full"><label class="check"><input type="checkbox" name="agree" value="1"<?= !empty($_POST['agree']) ? ' checked' : '' ?>> The information I provide is accurate, and LamazonLoads may contact me about loads, routes and job openings.</label></div>
-        <div class="full"><button class="btn btn-accent btn-lg btn-block" type="submit">Create account <?= icon('arrow') ?></button></div>
+
+        <section class="su-sec" aria-labelledby="su-you">
+          <h2 class="su-head" id="su-you"><span class="su-num" aria-hidden="true">1</span>Your details</h2>
+          <div class="form-grid">
+            <div class="full"><label for="name">Full name</label><input id="name" name="name" type="text" required maxlength="100" autocomplete="name" value="<?= e($val['name']) ?>"></div>
+            <div><label for="email">Email</label><input id="email" name="email" type="email" required maxlength="190" autocomplete="email" value="<?= e($val['email']) ?>"></div>
+            <div><label for="phone">Mobile phone</label><input id="phone" name="phone" type="tel" required maxlength="25" autocomplete="tel" placeholder="(555) 123-4567" value="<?= e($val['phone']) ?>"></div>
+          </div>
+        </section>
+
+        <section class="su-sec" aria-labelledby="su-work">
+          <h2 class="su-head" id="su-work"><span class="su-num" aria-hidden="true">2</span>Your work</h2>
+          <div class="form-grid">
+            <div class="full"><label for="account_type">I am a…</label>
+              <select id="account_type" name="account_type" data-drives="owner_operator,driver"><?php foreach (ACCOUNT_TYPES as $k => $l): ?><option value="<?= e($k) ?>"<?= $val['account_type'] === $k ? ' selected' : '' ?>><?= e($l) ?></option><?php endforeach; ?></select></div>
+            <?= vehicle_picker($vehicles, $vehicleOther, 'full', !account_drives($val['account_type'])) ?>
+            <div class="full"><?= city_picker('city', $val['city'], 'city', 'City and state', true) ?></div>
+          </div>
+        </section>
+
+        <section class="su-sec" aria-labelledby="su-pass">
+          <h2 class="su-head" id="su-pass"><span class="su-num" aria-hidden="true">3</span>Password</h2>
+          <div><label for="password">Create a password</label>
+            <div class="pw-field"><input id="password" name="password" type="password" required minlength="8" autocomplete="new-password"><button class="pw-eye" type="button" data-pw-toggle aria-controls="password" aria-label="Show password" aria-pressed="false"><?= icon('eye') ?></button></div>
+            <p class="hint">At least 8 characters. A short phrase is easy to remember.</p></div>
+        </section>
+
+        <div class="su-end">
+          <label class="check"><input type="checkbox" name="agree" value="1"<?= !empty($_POST['agree']) ? ' checked' : '' ?>> The information I provide is accurate, and LamazonLoads may contact me about loads, routes and job openings.</label>
+          <button class="btn btn-accent btn-lg btn-block" type="submit">Create account <?= icon('arrow') ?></button>
+        </div>
       </form>
     </div>
   </div>

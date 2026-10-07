@@ -24,6 +24,7 @@ function icon(string $name, string $class = 'ic'): string
         'file'      => '<path d="M14 3H6v18h12V7z"/><path d="M14 3v4h4M9 13h6M9 17h6"/>',
         'upload'    => '<path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v4h16v-4"/>',
         'plus'      => '<path d="M12 5v14M5 12h14"/>',
+        'car'       => '<path d="M2 17v-5l2.5-5H15l3.5 5H22v5z"/><path d="M2 12h20M10 7v5"/><circle cx="6.5" cy="17.5" r="2"/><circle cx="17.5" cy="17.5" r="2"/>',
         'send'      => '<path d="M21.5 3.5L2.8 10.7c-.8.3-.8 1.4 0 1.7l4.7 1.6 1.8 5.6c.2.7 1.1.9 1.6.4l2.6-2.5 4.7 3.5c.6.4 1.4.1 1.6-.6L22.6 4.8c.2-.8-.5-1.5-1.1-1.3z"/><path d="M7.5 14l10-7.2-7.4 8.4"/>',
         'eye'       => '<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
         'external'  => '<path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v6H4V6h6"/>',
@@ -385,7 +386,7 @@ function cta_band(): void
   <div class="cta-band reveal">
     <div>
       <h2>Why wait? Let's freight.</h2>
-      <p>Create your free account, finish onboarding once, and get first access to loads, daily routes and new openings.</p>
+      <p>Create your account, finish onboarding once, and get first access to loads, daily routes and new openings.</p>
     </div>
     <div class="btns">
       <?php if ($signedIn): ?>

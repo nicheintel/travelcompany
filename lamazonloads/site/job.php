@@ -185,7 +185,7 @@ $here = 'job.php?id=' . $id;
           <div class="ss-acts"><a class="btn btn-accent btn-block" href="<?= e(url('verify.php')) ?>">Confirm my email <?= icon('arrow') ?></a></div></div>
       <?php elseif (!$user): ?>
         <div class="ss modal-ss"><div class="ss-ico" aria-hidden="true"><?= icon('user') ?></div><h3 class="ss-title" tabindex="-1" data-autofocus>Sign in to apply</h3>
-          <p class="ss-lead">It’s free, and the form takes about 2 minutes.</p>
+          <p class="ss-lead">The application takes about 2 minutes.</p>
           <ul class="ss-tags" aria-label="We'll ask for"><li>Name</li><li>Phone</li><li>Location</li><li>Vehicle</li></ul>
           <div class="ss-acts">
             <a class="btn btn-accent btn-block" href="<?= e(url('register.php?next=' . rawurlencode($here . '&apply=1'))) ?>">Create account &amp; apply</a>
@@ -204,15 +204,8 @@ $here = 'job.php?id=' . $id;
           <label for="location">Where are you located?</label>
           <input id="location" name="location" type="text" maxlength="120" required value="<?= e($form['location']) ?>" placeholder="City, State (e.g. Atlanta, GA)" autocomplete="address-level2">
 
-          <fieldset class="af-set"><legend>Your vehicle <span class="opt">(choose all that apply)</span></legend>
-            <div class="af-chips">
-              <?php foreach (APPLY_VEHICLES as $k => $l): ?>
-                <label class="af-chip"><input type="checkbox" name="vehicles[]" value="<?= e($k) ?>"<?= in_array($k, $form['vehicles'], true) ? ' checked' : '' ?> data-vehicle><span><?= e($l) ?></span></label>
-              <?php endforeach; ?>
-            </div>
-            <div class="af-reveal" data-show-if="vehicle-other"<?= in_array('other', $form['vehicles'], true) ? '' : ' hidden' ?>><label for="vehicle_other">What is your other vehicle?</label><input id="vehicle_other" name="vehicle_other" type="text" maxlength="80" value="<?= e($form['vehicle_other']) ?>" placeholder="e.g. Pickup truck, minivan"></div>
-            <p class="af-note" data-suv-note<?= $form['vehicles'] && !array_intersect($form['vehicles'], DISPATCH_VEHICLES) ? '' : ' hidden' ?>><?= icon('route') ?><span>For SUVs and other vehicles, we currently have openings for the <b>Walmart daily route</b> only.</span></p>
-          </fieldset>
+          <?= vehicle_picker($form['vehicles'], $form['vehicle_other'], 'af-set', false, 'Your vehicle') ?>
+          <p class="af-note" data-suv-note<?= $form['vehicles'] && !array_intersect($form['vehicles'], DISPATCH_VEHICLES) ? '' : ' hidden' ?>><?= icon('route') ?><span>For SUVs and other vehicles, we currently have openings for the <b>Walmart daily route</b> only.</span></p>
 
           <fieldset class="af-set"><legend>Is the vehicle yours?</legend>
             <div class="af-chips">

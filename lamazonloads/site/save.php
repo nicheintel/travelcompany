@@ -11,7 +11,7 @@ $rel = ($rel === '' ? 'index.php' : $rel) . (($q = parse_url($ref, PHP_URL_QUERY
 $back = safe_next($rel) === $rel ? $rel : 'careers.php';
 $u = current_user();
 if (!$u) {
-    flash('info', 'Sign in or create a free account to save jobs.');
+    flash('info', 'Sign in or create an account to save jobs.');
     if ($json) {
         http_response_code(401);
         header('Content-Type: application/json');

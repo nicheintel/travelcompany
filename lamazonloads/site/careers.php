@@ -20,7 +20,7 @@ $used = array_column(db_all("SELECT DISTINCT category FROM jobs WHERE status = '
 
 preload_photo('banner_careers');
 page_header('Careers & opportunities', 'careers', 'Open opportunities at LamazonLoads: owner-operator dispatch, daily routes, dispatch team and driver support jobs.');
-page_hero('Careers & opportunities', 'Open opportunities', 'Create a free account, then apply in one click. Your profile and documents travel with every application.', 'banner_careers', 'center 30%');
+page_hero('Careers & opportunities', 'Open opportunities', 'Create an account, then apply in one click. Your profile travels with every application.', 'banner_careers', 'center 30%');
 ?>
 <section class="section">
   <div class="container">
@@ -39,7 +39,7 @@ page_hero('Careers & opportunities', 'Open opportunities', 'Create a free accoun
     <?php if (!$jobs && !$showNetwork): ?>
       <div class="card empty"><?php if ($savedOnly): ?>No saved jobs yet. Tap the ♡ on a job to save it for later. <a href="<?= e(url('careers.php')) ?>">See all openings</a>
         <?php elseif ($cat !== ''): ?>No openings in this category right now. <a href="<?= e(url('careers.php')) ?>">See all openings</a>
-        <?php else: ?>No openings right now. New jobs are posted here first<?= $me ? '' : ': <a href="' . e(url('register.php')) . '">create a free account</a> to be ready when they open' ?>.<?php endif; ?></div>
+        <?php else: ?>No openings right now. New jobs are posted here first<?= $me ? '' : ': <a href="' . e(url('register.php')) . '">create an account</a> to be ready when they open' ?>.<?php endif; ?></div>
     <?php endif; ?>
   </div>
 </section>

@@ -270,6 +270,9 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--b
 .auth-side { background: linear-gradient(160deg, #0A2463, #071A4A); color: #C9D6F5; padding: 64px 56px; display: flex; flex-direction: column; justify-content: center; position: relative; overflow: hidden; }
 .auth-side h2 { color: #fff; font-style: italic; }
 .auth-side .road { height: 40px; }
+/* Sign-up is a long form: the panel's text stays in view while the form scrolls */
+.auth-side-long { justify-content: flex-start; overflow: clip; }
+.auth-side-in { position: sticky; top: 140px; padding-bottom: 40px; }
 .auth-main { display: flex; align-items: center; justify-content: center; padding: 48px 20px; }
 .auth-box { width: min(480px, 100%); }
 .auth-box h1 { font-size: 2rem; }
@@ -1655,8 +1658,50 @@ a.app-row:hover .ar-go { opacity: 1; transform: translateX(3px); }
 .city-none { padding: 12px; color: var(--muted); font-size: .9rem; }
 .city-pick.has-error input { border-color: var(--red); box-shadow: 0 0 0 3px rgba(217, 54, 54, .12); }
 .city-pick.has-error [data-city-hint] { color: var(--red); font-weight: 600; }
-.su-vehicle[hidden] { display: none; }
-.su-vehicle legend { margin-bottom: 8px; }
+
+/* Sign-up: numbered sections (details, work, password), then the agreement and the button */
+.su-form { display: grid; gap: 26px; }
+.su-sec { display: grid; gap: 16px; min-width: 0; }
+.su-sec + .su-sec { padding-top: 24px; border-top: 1px solid var(--line); }
+.su-head { display: flex; align-items: center; gap: 10px; margin: 0; font-family: var(--font); font-size: .78rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.su-num { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: var(--blue-50); color: var(--blue); font-size: .76rem; letter-spacing: 0; }
+.su-end { display: grid; gap: 18px; padding-top: 4px; }
+.su-end .check { margin: 0; font-size: .9rem; line-height: 1.5; color: var(--text); }
+.pw-field { position: relative; }
+.pw-field input { padding-right: 52px; }
+.pw-eye { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 40px; height: 40px; display: grid; place-items: center; border: 0; border-radius: 10px; background: none; color: var(--muted); cursor: pointer; }
+.pw-eye:hover { color: var(--ink); background: var(--blue-50); }
+.pw-eye[aria-pressed="true"] { color: var(--blue); }
+.pw-eye[aria-pressed="true"]::after { content: ""; position: absolute; width: 22px; height: 2px; border-radius: 2px; background: currentColor; transform: rotate(-45deg); box-shadow: 0 0 0 1.5px #fff; }
+.pw-eye .ic { width: 20px; height: 20px; }
+
+/* Vehicle types: cards in a grid, tick all that apply; "Other" opens a box to type the vehicle */
+.veh-pick { border: 0; padding: 0; margin: 0; min-width: 0; }
+.veh-pick.af-set { margin-top: 16px; }
+.veh-pick[hidden] { display: none; }
+.veh-pick legend { padding: 0; margin-bottom: 8px; font-weight: 600; color: var(--ink); font-size: .92rem; }
+.veh-pick legend .opt { margin-left: 4px; font-weight: 400; font-size: .84rem; color: var(--muted); }
+.veh-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.veh-opt { position: relative; margin: 0; cursor: pointer; font-weight: 600; }
+.veh-opt input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.veh-opt-other { grid-column: 1 / -1; }
+.veh-card { display: flex; align-items: center; gap: 10px; min-height: 50px; padding: 10px 12px 10px 14px; border: 1.5px solid var(--line); border-radius: 12px; background: #fff; color: var(--text); font-size: .9rem; line-height: 1.25; transition: border-color .15s, background .15s, color .15s, box-shadow .15s; }
+.veh-ic { width: 22px; height: 22px; color: #8A97B2; transition: color .15s; }
+.veh-name { flex: 1; min-width: 0; }
+.veh-tick { flex: none; display: grid; place-items: center; width: 20px; height: 20px; border-radius: 6px; border: 1.5px solid #B4C2DD; background: #fff; transition: background .15s, border-color .15s; }
+.veh-tick .ic { width: 12px; height: 12px; stroke-width: 3.5; color: #fff; opacity: 0; transform: scale(.5); transition: opacity .15s, transform .2s cubic-bezier(.34, 1.56, .64, 1); }
+.veh-opt:hover .veh-card { border-color: #B9C8E8; }
+.veh-opt input:checked + .veh-card { border-color: var(--blue); background: var(--blue-50); color: var(--navy); }
+.veh-opt input:checked + .veh-card .veh-ic { color: var(--blue); }
+.veh-opt input:checked + .veh-card .veh-tick { background: var(--blue); border-color: var(--blue); }
+.veh-opt input:checked + .veh-card .veh-tick .ic { opacity: 1; transform: none; }
+.veh-opt input:focus-visible + .veh-card { box-shadow: 0 0 0 4px rgba(30, 99, 233, .18); }
+.veh-other { margin-top: 12px; animation: veh-in .22s ease; }
+.veh-other[hidden] { display: none; }
+@keyframes veh-in { from { opacity: 0; transform: translateY(-4px); } }
+@media (prefers-reduced-motion: reduce) { .veh-other { animation: none; } }
+@media (max-width: 440px) { .veh-card { gap: 8px; padding: 10px 10px 10px 12px; font-size: .86rem; } .veh-ic { width: 20px; height: 20px; } }
+@media (max-width: 370px) { .veh-ic { display: none; } }
 
 /* Account settings: one card per section, title on the left, fields on the right */
 .set-panel { display: grid; grid-template-columns: minmax(0, 230px) minmax(0, 1fr); gap: 20px 40px; padding: 26px 28px; margin-top: 16px; }

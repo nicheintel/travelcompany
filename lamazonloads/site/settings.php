@@ -14,14 +14,17 @@ if (is_post()) {
         $phone = format_phone(post('phone', 25));
         $type = post('account_type', 30);
         $city = post('city', 120);
-        $vehicle = account_drives($type) ? post('vehicle', 20) : '';
+        [$vehicles, $vehicleOther] = account_drives($type) ? posted_vehicles() : [[], ''];
         if ($name === '') $errors[] = 'Please enter your name.';
-        if ($city !== '' && !us_city_valid($city)) $errors[] = 'Please choose your city and state from the list.';
-        if ($vehicle !== '' && !isset(APPLY_VEHICLES[$vehicle])) $vehicle = '';
+        if ($city !== '' && $city !== (string) $u['city']) { // a city saved before stays as it is
+            if (($found = us_city($city)) === null) $errors[] = 'Please choose your city and state from the list.';
+            else $city = $found;
+        }
+        if (in_array('other', $vehicles, true) && $vehicleOther === '') $errors[] = 'Please type what your other vehicle is.';
         if (!preg_match('/^[0-9+()\-. ]{7,25}$/', $phone)) $errors[] = 'Please enter a valid phone number.';
         if (!isset(ACCOUNT_TYPES[$type])) $errors[] = 'Please choose what describes you best.';
         if (!$errors) {
-            db_run('UPDATE users SET name = ?, phone = ?, account_type = ?, city = ?, vehicle = ? WHERE id = ?', [$name, $phone, $type, $city, $vehicle, $u['id']]);
+            db_run('UPDATE users SET name = ?, phone = ?, account_type = ?, city = ?, vehicle = ?, vehicle_other = ? WHERE id = ?', [$name, $phone, $type, $city, implode(',', $vehicles), $vehicleOther, $u['id']]);
             flash('success', 'Your details were saved.');
             redirect('settings.php');
         }
@@ -64,17 +67,16 @@ $errs = fn (string $section) => $errors && $action === $section ? '<ul class="er
 
 <form method="post" action="<?= e(url('settings.php')) ?>" class="card set-panel" id="profile">
   <?= csrf_field() ?><input type="hidden" name="action" value="details">
-  <div class="set-intro"><h2>Profile</h2><p>Your name, mobile number, city and what describes you best.</p></div>
+  <div class="set-intro"><h2>Profile</h2><p>Your name, mobile number, the work you do and your city.</p></div>
   <div class="set-body">
     <?= $errs('details') ?>
     <div class="form-grid">
       <div><label for="name">Full name</label><input id="name" name="name" type="text" maxlength="100" autocomplete="name" value="<?= e($action === 'details' ? post('name', 100) : $u['name']) ?>"></div>
       <div><label for="phone">Mobile phone</label><input id="phone" name="phone" type="tel" maxlength="25" autocomplete="tel" value="<?= e($action === 'details' ? post('phone', 25) : $u['phone']) ?>"></div>
-      <div class="full"><?= city_picker('city', $action === 'details' ? post('city', 120) : (string) $u['city']) ?></div>
       <div class="full"><label for="account_type">I am a…</label><select id="account_type" name="account_type" data-drives="owner_operator,driver"><?php foreach (ACCOUNT_TYPES as $k => $l): ?><option value="<?= e($k) ?>"<?= ($action === 'details' ? post('account_type', 30) : $u['account_type']) === $k ? ' selected' : '' ?>><?= e($l) ?></option><?php endforeach; ?></select></div>
-      <fieldset class="full af-set su-vehicle" data-vehicle-field<?= account_drives($action === 'details' ? post('account_type', 30) : (string) $u['account_type']) ? '' : ' hidden' ?>><legend>Vehicle type</legend>
-        <div class="af-chips"><?php foreach (APPLY_VEHICLES as $k => $l): ?><label class="af-chip"><input type="radio" name="vehicle" value="<?= e($k) ?>"<?= ($action === 'details' ? post('vehicle', 20) : (string) $u['vehicle']) === $k ? ' checked' : '' ?>><span><?= e($l) ?></span></label><?php endforeach; ?></div>
-      </fieldset>
+      <?php $posted = $action === 'details'; ?>
+      <?= vehicle_picker($posted ? posted_vehicles()[0] : user_vehicles($u), $posted ? post('vehicle_other', 80) : (string) $u['vehicle_other'], 'full', !account_drives($posted ? post('account_type', 30) : (string) $u['account_type'])) ?>
+      <div class="full"><?= city_picker('city', $action === 'details' ? post('city', 120) : (string) $u['city']) ?></div>
     </div>
     <div class="set-foot"><button class="btn btn-primary" type="submit">Save profile</button></div>
   </div>

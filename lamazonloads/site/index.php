@@ -112,7 +112,7 @@ page_header('', 'home');
     <div class="route-wrap">
     <div class="route-track" aria-hidden="true"><span class="route-line"></span><span class="route-truck"><?= truck_svg() ?></span></div>
     <div class="steps">
-      <div class="card step reveal"><h3>Create your account</h3><p>Free sign-up in under a minute. Tell us if you're an owner-operator, driver or dispatcher.</p></div>
+      <div class="card step reveal"><h3>Create your account</h3><p>Sign up in about two minutes. Tell us if you're an owner-operator, driver or dispatcher.</p></div>
       <div class="card step reveal"><h3>Finish onboarding</h3><p>Add your equipment, home ZIP code and availability, then upload your W-9, insurance and license.</p></div>
       <div class="card step reveal"><h3>Get matched</h3><p>We match you with loads, daily routes and job openings that fit your truck and your schedule.</p></div>
       <div class="card step reveal"><h3>Stay loaded</h3><p>Dispatch and support stay with you on the road, from pickup to payment.</p></div>

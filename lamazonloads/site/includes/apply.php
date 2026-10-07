@@ -66,7 +66,7 @@ function apply_form_values(array $user): array
 {
     $parts = preg_split('/\s+/', trim((string) $user['name']), 2);
     $v = ['first_name' => $parts[0] ?? '', 'last_name' => $parts[1] ?? '', 'phone' => (string) $user['phone'], 'location' => (string) ($user['city'] ?? ''),
-        'vehicles' => isset(APPLY_VEHICLES[$user['vehicle'] ?? '']) ? [(string) $user['vehicle']] : [], 'vehicle_other' => '', 'ownership' => '', 'ownership_other' => '', 'walmart' => false, 'walmart_city' => '',
+        'vehicles' => user_vehicles($user), 'vehicle_other' => (string) ($user['vehicle_other'] ?? ''), 'ownership' => '', 'ownership_other' => '', 'walmart' => false, 'walmart_city' => '',
         'rate_requested' => '', 'message' => ''];
     if (is_post()) {
         foreach (['first_name' => 60, 'last_name' => 60, 'phone' => 30, 'location' => 120, 'vehicle_other' => 80, 'ownership' => 20,
@@ -198,21 +198,65 @@ function send_onboarding_email(int $appId, bool $again = false): string
 }
 
 /**
- * Every US city and town ("Atlanta, GA"), one per line in assets/data/us-cities.txt: the USPS city names of all
- * ZIP codes in the 50 states and DC (from the BSD-licensed "zipcodes" package). The sign-up city picker
- * searches this list, and a city is only accepted if it is on it.
+ * Every US city and town ("Atlanta, GA") with its ZIP codes, one per line in assets/data/us-cities.txt: the USPS
+ * city names of all ZIP codes in the 50 states and DC (built by tools/build_us_cities.py). The sign-up city picker
+ * searches this list by city or ZIP code, and a city is only accepted if it is on it.
  */
-function us_city_valid(string $city): bool
+function us_city(string $city): ?string
 {
-    static $all = null;
-    $all ??= "\n" . (string) file_get_contents(dirname(__DIR__) . '/assets/data/us-cities.txt');
-    return $city !== '' && str_contains($all, "\n" . $city . "\n");
+    // Returns the city as written on the list ("dallas tx" → "Dallas, TX"), or null when it isn't a US city
+    static $all = null, $lower = null;
+    $all ??= "\n" . (string) file_get_contents(dirname(__DIR__) . '/assets/data/us-cities.txt'); // "City, ST<TAB>ZIP codes" lines
+    $lower ??= strtolower($all);
+    $city = trim((string) preg_replace(['/\s+/', '/ ?, ?/'], [' ', ', '], $city));
+    if (preg_match('/^(.+?),? ([A-Za-z]{2})$/', $city, $m)) $city = $m[1] . ', ' . $m[2];
+    if ($city === '' || strlen($city) > 120) return null;
+    foreach ([$city, preg_replace(['/\bst\.? /i', '/\bft\.? /i', '/\bmt\.? /i'], ['Saint ', 'Fort ', 'Mount '], $city)] as $try) { // "St Louis" is "Saint Louis"
+        $at = strpos($lower, "\n" . strtolower($try) . "\t");
+        if ($at !== false) return substr($all, $at + 1, strlen($try));
+    }
+    return null;
 }
 
-/** Drivers say which vehicle they have when they sign up. */
+/** Drivers say which vehicles they have when they sign up. */
 function account_drives(string $type): bool
 {
     return in_array($type, ['owner_operator', 'driver'], true);
+}
+
+/** The vehicle types on a member's account (users.vehicle holds APPLY_VEHICLES keys, comma-separated). */
+function user_vehicles(array $u): array
+{
+    return array_values(array_intersect(array_keys(APPLY_VEHICLES), explode(',', (string) ($u['vehicle'] ?? ''))));
+}
+
+/** "Box Truck, Sprinter Van, Other: Pickup truck" for a member's account. */
+function user_vehicles_label(array $u): string
+{
+    return vehicles_label(['vehicles' => implode(',', user_vehicles($u)), 'vehicle_other' => (string) ($u['vehicle_other'] ?? '')]);
+}
+
+/** The vehicle types ticked in a vehicle_picker(): [keys, what they typed for "Other"]. */
+function posted_vehicles(): array
+{
+    $keys = array_values(array_intersect(array_keys(APPLY_VEHICLES), array_map('strval', (array) ($_POST['vehicles'] ?? []))));
+    return [$keys, in_array('other', $keys, true) ? post('vehicle_other', 80) : ''];
+}
+
+/** Vehicle type cards (choose all that apply). Ticking "Other" shows a box to type the vehicle (see [data-veh-pick] in app.js). */
+function vehicle_picker(array $picked, string $other, string $class = '', bool $hidden = false, string $legend = 'Vehicle type', string $id = 'vehicle_other'): string
+{
+    $icons = ['box_truck' => 'truck', 'cargo_van' => 'van', 'sprinter' => 'van', 'suv' => 'car', 'other' => 'plus'];
+    $h = '<fieldset class="veh-pick' . ($class !== '' ? ' ' . e($class) : '') . '" data-veh-pick data-vehicle-field' . ($hidden ? ' hidden' : '') . '>'
+        . '<legend>' . e($legend) . ' <span class="opt">Choose all that apply</span></legend><div class="veh-grid">';
+    foreach (APPLY_VEHICLES as $k => $l) {
+        $h .= '<label class="veh-opt' . ($k === 'other' ? ' veh-opt-other' : '') . '"><input type="checkbox" name="vehicles[]" value="' . e($k) . '"'
+            . (in_array($k, $picked, true) ? ' checked' : '') . ' data-vehicle><span class="veh-card">' . icon($icons[$k] ?? 'truck', 'ic veh-ic')
+            . '<span class="veh-name">' . e($l) . '</span><span class="veh-tick" aria-hidden="true">' . icon('check') . '</span></span></label>';
+    }
+    $open = in_array('other', $picked, true);
+    return $h . '</div><div class="veh-other" data-veh-other data-show-if="vehicle-other"' . ($open ? '' : ' hidden') . '>'
+        . '<label for="' . e($id) . '">Your other vehicle</label><input id="' . e($id) . '" name="vehicle_other" type="text" maxlength="80" value="' . e($other) . '" placeholder="e.g. Pickup truck, minivan"></div></fieldset>';
 }
 
 /** The searchable city picker (see [data-city-pick] in app.js). $name is the form field that gets "City, ST". */
@@ -221,10 +265,10 @@ function city_picker(string $name, string $value, string $id = 'city', string $l
     return '<div class="city-pick" data-city-pick' . ($required ? ' data-required' : '') . ' data-src="' . e(asset('data/us-cities.txt')) . '">'
         . '<label for="' . e($id) . '">' . e($label) . '</label>'
         . '<div class="city-field"><span class="city-ico" aria-hidden="true">' . icon('pin') . '</span>'
-        . '<input id="' . e($id) . '" type="text" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="' . e($id) . '-list" autocomplete="off" spellcheck="false" placeholder="Start typing your city…" value="' . e($value) . '" data-city-input>'
+        . '<input id="' . e($id) . '" type="text" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="' . e($id) . '-list" autocomplete="off" spellcheck="false" placeholder="City or ZIP code" value="' . e($value) . '" data-city-input>'
         . '<span class="city-ok" aria-hidden="true">' . icon('check') . '</span></div>'
         . '<input type="hidden" name="' . e($name) . '" value="' . e($value) . '" data-city-value>'
         . '<ul class="city-list" id="' . e($id) . '-list" role="listbox" hidden></ul>'
-        . '<p class="hint" data-city-hint>Choose your city from the list.</p></div>';
+        . '<p class="hint" data-city-hint>Type your city or ZIP code, then choose from the list.</p></div>';
 }
 

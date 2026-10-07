@@ -56,15 +56,20 @@ if (is_post()) {
     } elseif ($action === 'details') {
         // Staff fill in the member's details and driver profile (same checks as the member's own pages)
         $edit = profile_row($id) + ['name' => post('name', 100), 'phone' => format_phone(post('phone', 25)), 'account_type' => post('account_type', 30),
-            'city' => post('city', 120), 'vehicle_type' => post('vehicle_type', 20)];
+            'city' => post('city', 120)];
+        [$edit['vehicle_types'], $edit['vehicle_other']] = posted_vehicles(); // 'vehicle' is the profile's year, make & model
         $editErrors = profile_from_post($edit);
         if ($edit['name'] === '') array_unshift($editErrors, 'Please enter their name.');
         if ($edit['phone'] !== '' && !preg_match('/^[0-9+()\-. ]{7,25}$/', $edit['phone'])) $editErrors[] = 'Please enter a valid phone number, or leave it empty.';
         if (!isset(ACCOUNT_TYPES[$edit['account_type']])) $editErrors[] = 'Please choose what describes them best.';
-        if ($edit['city'] !== '' && !us_city_valid($edit['city'])) $editErrors[] = 'Please choose their city from the list.';
-        if (!isset(APPLY_VEHICLES[$edit['vehicle_type']])) $edit['vehicle_type'] = '';
+        if ($edit['city'] !== '' && $edit['city'] !== (string) $u['city']) { // a city saved before stays as it is
+            if (($found = us_city($edit['city'])) === null) $editErrors[] = 'Please choose their city from the list.';
+            else $edit['city'] = $found;
+        }
+        if (in_array('other', $edit['vehicle_types'], true) && $edit['vehicle_other'] === '') $editErrors[] = 'Please type what their other vehicle is.';
         if (!$editErrors) {
-            db_run('UPDATE users SET name = ?, phone = ?, account_type = ?, city = ?, vehicle = ? WHERE id = ?', [$edit['name'], $edit['phone'], $edit['account_type'], $edit['city'], $edit['vehicle_type'], $id]);
+            db_run('UPDATE users SET name = ?, phone = ?, account_type = ?, city = ?, vehicle = ?, vehicle_other = ? WHERE id = ?',
+                [$edit['name'], $edit['phone'], $edit['account_type'], $edit['city'], implode(',', $edit['vehicle_types']), $edit['vehicle_other'], $id]);
             profile_save($id, $edit);
             flash('success', $edit['name'] . "'s information was saved.");
             redirect('admin/driver.php?id=' . $id);
@@ -130,7 +135,7 @@ $docById = array_column($docs, null, 'id');
 $addedBy = $u['added_by'] ? ((string) db_val('SELECT name FROM users WHERE id = ?', [$u['added_by']]) ?: 'staff') : '';
 $staffNames = array_column(db_all('SELECT DISTINCT u.id, u.name FROM documents d JOIN users u ON u.id = d.added_by WHERE d.user_id = ?', [$id]), 'name', 'id');
 $edit ??= ($p ?? array_fill_keys(array_keys(PROFILE_FIELDS), '')) + ['name' => $u['name'], 'phone' => $u['phone'], 'account_type' => $u['account_type'],
-    'city' => (string) $u['city'], 'vehicle_type' => (string) $u['vehicle']];
+    'city' => (string) $u['city'], 'vehicle_types' => user_vehicles($u), 'vehicle_other' => (string) $u['vehicle_other']];
 
 page_header($u['name']);
 admin_open('drivers');
@@ -203,7 +208,7 @@ admin_open('drivers');
   <div class="card pad">
     <h3 class="mt-0">Contact</h3>
     <p class="mb-0"><?= icon('mail') ?> <a href="mailto:<?= e($u['email']) ?>"><?= e($u['email']) ?></a><br><?= icon('phone') ?> <a href="tel:<?= e(preg_replace('/[^0-9+]/', '', $u['phone'])) ?>"><?= e($u['phone']) ?></a>
-      <br><?= icon('pin') ?> <?= $u['city'] !== '' ? e($u['city']) : '<span class="muted">No city yet</span>' ?><?= isset(APPLY_VEHICLES[$u['vehicle']]) ? '<br>' . icon('truck') . ' ' . e(APPLY_VEHICLES[$u['vehicle']]) : '' ?></p>
+      <br><?= icon('pin') ?> <?= $u['city'] !== '' ? e($u['city']) : '<span class="muted">No city yet</span>' ?><?= ($vl = user_vehicles_label($u)) !== '' ? '<br>' . icon('truck') . ' ' . e($vl) : '' ?></p>
   </div>
   <div class="card pad">
     <h3 class="mt-0">Equipment &amp; area</h3>
@@ -301,7 +306,7 @@ admin_open('drivers');
           <div><label for="ed-phone">Phone</label><input id="ed-phone" name="phone" type="tel" maxlength="25" placeholder="(555) 123-4567" value="<?= e($edit['phone']) ?>"></div>
           <div><label for="account_type">I am a…</label><?= select_html('account_type', ACCOUNT_TYPES, (string) $edit['account_type']) ?></div>
           <div class="full"><?= city_picker('city', (string) $edit['city'], 'ed-city') ?></div>
-          <div><label for="vehicle_type">Vehicle type</label><?= select_html('vehicle_type', APPLY_VEHICLES, (string) $edit['vehicle_type'], 'Not given') ?></div>
+          <?= vehicle_picker($edit['vehicle_types'], $edit['vehicle_other'], 'full', false, 'Vehicle types', 'ed-vehicle-other') ?>
         </div>
         <h3 class="mt">Equipment &amp; area</h3>
         <div class="form-grid">
