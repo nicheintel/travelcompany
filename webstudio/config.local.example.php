@@ -8,7 +8,7 @@
  */
 return [
     // Database login. XAMPP's defaults work without changing anything.
-    // On Hostinger: hPanel → Databases → MySQL Databases, then fill these in.
+    // On Hostinger: hPanel → Databases → MySQL Databases, then fill these in (db_host stays localhost).
     // 'db_host' => 'localhost',
     // 'db_name' => 'webstudio',
     // 'db_user' => 'root',

@@ -2,6 +2,12 @@
 declare(strict_types=1);
 
 // Loaded at the top of every page.
+if (PHP_VERSION_ID < 80100) {
+    http_response_code(500);
+    exit('<!doctype html><meta charset="utf-8"><body style="font-family:system-ui;padding:40px;max-width:640px;margin:auto">'
+        . '<h1>This website needs PHP 8.1 or newer</h1><p>This server runs PHP ' . PHP_VERSION . '. On Hostinger: hPanel → '
+        . '<b>Advanced → PHP Configuration</b> → choose <b>PHP 8.2</b> (or newer) → Update. On XAMPP: install the latest XAMPP.</p>');
+}
 const WS_APP = true; // the other files in includes/ refuse to run without this
 date_default_timezone_set('UTC'); // the database stores UTC; pages show the time zone from Settings
 mb_internal_encoding('UTF-8');

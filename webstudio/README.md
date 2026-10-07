@@ -63,14 +63,26 @@ Another admin can set a new one on **Team & password**. Or, on the computer runn
 C:\xampp\php\php.exe C:\xampp\htdocs\webstudio\tools\reset-password.php you@example.com NewPassword123
 ```
 
-## Put it online (e.g. Hostinger)
+## Put it online on Hostinger
 
-1. hPanel → **Databases → MySQL Databases**: create a database and user.
-2. Upload the **contents** of this folder to `public_html`.
-3. Copy `config.local.example.php` to `config.local.php` and fill in `db_name`, `db_user`,
-   `db_pass`, `app_url` (your `https://` address) and a `setup_key`.
-4. Turn on the free SSL certificate (hPanel → Security → SSL).
-5. Open `https://yourdomain.com/admin/setup.php?key=YOUR-SETUP-KEY` to create your owner account.
+1. **PHP version:** hPanel → **Advanced → PHP Configuration** → PHP 8.2 or newer.
+2. **Database:** hPanel → **Databases → MySQL Databases** → create one. Write down the
+   database name, user and password (names look like `u123456789_webstudio`).
+3. **Upload:** hPanel → **Files → File Manager** → open `public_html` (for a subfolder such as
+   `yourdomain.com/studio`, create and open that folder) → upload the zip → right-click →
+   **Extract** → delete the zip. `index.php` must sit directly in that folder.
+   (No zip? Upload the contents of this folder, plus `config.local.example.php` renamed to
+   `config.local.php`.)
+4. **Settings file:** in File Manager, right-click `config.local.php` → **Edit**. Fill in
+   `db_name`, `db_user` and `db_pass` from step 2 (`db_host` stays `localhost`) and a long
+   `setup_key` phrase. Once you have a domain, set `app_url` to `https://www.yourdomain.com`.
+5. **SSL:** hPanel → **Security → SSL** → install the free certificate.
+6. **Owner account:** open `https://yourdomain.com/admin/setup.php?key=YOUR-SETUP-KEY`
+   and create it. The tables are created automatically on the first visit. After that the
+   setup page switches itself off.
+
+If something is wrong, the site says what to fix (missing database details, wrong password,
+old PHP version) instead of a blank error.
 
 ## Security built in
 
