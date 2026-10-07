@@ -315,11 +315,26 @@ function save_upload(?array $f, int $userId, string $kind): array
  * A link that opens a document in the pop-up viewer (PDFs and photos show right there; Word files offer a download).
  * Without JavaScript it simply opens the file.
  */
-function doc_link(array $d, string $label, string $class = '', string $eyebrow = ''): string
+/** "2.3 MB", "410 KB" */
+function fmt_size(int $bytes): string
+{
+    return $bytes >= 1048576 ? number_format($bytes / 1048576, 1) . ' MB' : max(1, (int) round($bytes / 1024)) . ' KB';
+}
+
+/** "PDF", "PNG", "JPG", "Word" */
+function doc_type_label(array $d): string
+{
+    return match ((string) $d['mime']) {
+        'application/pdf' => 'PDF', 'image/png' => 'PNG', 'image/jpeg' => 'JPG', 'image/webp' => 'WebP',
+        default => str_contains((string) $d['mime'], 'word') ? 'Word' : strtoupper((string) pathinfo((string) $d['original_name'], PATHINFO_EXTENSION)),
+    };
+}
+
+function doc_link(array $d, string $label, string $class = '', string $eyebrow = '', string $name = ''): string
 {
     $view = $d['mime'] === 'application/pdf' ? 'pdf' : (str_starts_with((string) $d['mime'], 'image/') ? 'image' : 'file');
     return '<a href="' . e(url('doc.php?id=' . (int) $d['id'])) . '"' . ($class !== '' ? ' class="' . e($class) . '"' : '')
-        . ' data-doc-view="' . $view . '" data-doc-name="' . e((string) $d['original_name']) . '"'
+        . ' data-doc-view="' . $view . '" data-doc-name="' . e($name !== '' ? $name : (string) $d['original_name']) . '"'
         . ' data-doc-kind="' . e($eyebrow !== '' ? $eyebrow : (DOC_KINDS[$d['kind']] ?? 'Document')) . '"'
         . ' data-doc-download="' . e(url('doc.php?id=' . (int) $d['id'] . '&download=1')) . '">' . $label . '</a>';
 }

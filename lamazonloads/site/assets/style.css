@@ -1625,6 +1625,61 @@ a.app-row:hover .ar-go { opacity: 1; transform: translateX(3px); }
 .app-del-row .ic { width: 15px; height: 15px; }
 
 /* Deleting accounts: the member's own "Delete my account", and the email choice next to Delete member */
+/* Account settings: one card per section, title on the left, fields on the right */
+.set-panel { display: grid; grid-template-columns: minmax(0, 230px) minmax(0, 1fr); gap: 20px 40px; padding: 26px 28px; margin-top: 16px; }
+.set-panel:first-of-type { margin-top: 22px; }
+.set-intro h2, .set-intro .set-h { display: block; margin: 2px 0 4px; font-family: var(--display); font-size: 1.05rem; font-weight: 700; color: var(--ink); letter-spacing: -.01em; }
+.set-intro p, .set-intro .set-p { display: block; margin: 0; color: var(--muted); font-size: .9rem; line-height: 1.5; }
+.set-body { min-width: 0; }
+.set-body .errors { margin-top: 0; }
+.set-foot { display: flex; justify-content: flex-end; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--line); }
+.set-email { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.set-email .ss-chip { margin-top: 0; }
+.set-badge { display: inline-flex; align-items: center; gap: 5px; padding: 5px 11px; border-radius: 999px; font-size: .82rem; font-weight: 600; text-decoration: none !important; }
+.set-badge .ic { width: 14px; height: 14px; }
+.set-badge.is-ok { background: #E7F7EE; color: #0B6B35; }
+.set-badge.is-warn { background: #FFF4E0; color: #8A5300; }
+.set-note { margin: 14px 0 0; color: var(--muted); font-size: .9rem; }
+.set-danger { display: block; padding: 0; }
+.set-danger summary { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 16px; padding: 22px 28px; cursor: pointer; list-style: none; border-radius: inherit; }
+.set-danger summary::-webkit-details-marker { display: none; }
+.set-danger summary:hover { background: #FFF8F8; }
+.set-danger .set-h { color: var(--red); }
+.set-chev { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: var(--bg); color: var(--muted); transition: transform .2s; }
+.set-chev .ic { width: 16px; height: 16px; }
+.set-danger[open] .set-chev { transform: rotate(90deg); }
+.set-danger[open] summary { border-bottom: 1px solid var(--line); border-radius: var(--radius) var(--radius) 0 0; }
+.set-danger .set-body { padding: 4px 28px 24px; }
+.set-danger .set-note { margin: 16px 0 16px; }
+@media (max-width: 1100px) { .set-panel { grid-template-columns: minmax(0, 1fr); gap: 16px; } }
+@media (max-width: 760px) {
+  .set-panel { padding: 22px 18px; }
+  .set-danger { padding: 0; }
+  .set-danger summary { padding: 18px; }
+  .set-danger .set-body { padding: 4px 18px 20px; }
+  .set-foot .btn { width: 100%; }
+}
+
+/* Documents: one row per document type, View on the right */
+.doc-list { margin-top: 22px; padding: 6px 0; }
+.doc-row { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; align-items: center; gap: 16px; padding: 14px 22px; }
+.doc-row + .doc-row { border-top: 1px solid var(--line); }
+.doc-ico { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; background: var(--blue-50); color: var(--blue); }
+.doc-ico .ic { width: 20px; height: 20px; }
+.doc-info { min-width: 0; display: grid; gap: 2px; }
+.doc-info b { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 8px; font-weight: 600; color: var(--ink); }
+.doc-info small { color: var(--muted); font-size: .85rem; }
+.doc-count { padding: 2px 8px; border-radius: 999px; background: var(--bg); color: var(--muted); font-size: .75rem; font-weight: 600; }
+.doc-row .btn { white-space: nowrap; }
+.doc-help { display: flex; align-items: flex-start; gap: 8px; margin: 14px 4px 0; color: var(--muted); font-size: .88rem; }
+.doc-help .ic { width: 16px; height: 16px; margin-top: 2px; flex: none; }
+@media (max-width: 560px) {
+  .doc-row { grid-template-columns: 40px minmax(0, 1fr) auto; gap: 12px; padding: 14px 16px; }
+  .doc-ico { width: 40px; height: 40px; }
+  .doc-view { width: 40px; height: 40px; padding: 0; } /* just the eye on phones */
+  .doc-extra { display: none; } /* size and program name: shown on bigger screens */
+  .doc-view span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+}
 .danger-zone { border-color: #F3C4C4; }
 .danger-zone h3 { display: flex; align-items: center; gap: 8px; color: var(--red); }
 .danger-zone h3 .ic { width: 20px; height: 20px; }

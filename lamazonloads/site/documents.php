@@ -2,83 +2,58 @@
 declare(strict_types=1);
 require __DIR__ . '/includes/bootstrap.php';
 
+// The driver's files on record, view only. Uploads happen in onboarding (and staff can add files in Admin).
 $u = require_verified();
-$maxMb = (int) config('max_upload_mb');
-$errors = [];
-
-if (is_post()) {
-    csrf_check();
-    if (($_POST['action'] ?? '') === 'delete') {
-        $doc = db_one('SELECT * FROM documents WHERE id = ? AND user_id = ?', [(int) ($_POST['id'] ?? 0), $u['id']]);
-        if ($doc) {
-            @unlink(__DIR__ . '/uploads/' . $doc['stored_name']);
-            db_run('DELETE FROM documents WHERE id = ?', [$doc['id']]);
-            flash('success', 'Document removed.');
-        }
-        redirect('documents.php');
-    }
-    $kind = post('kind', 20);
-    if (!isset(DOC_KINDS[$kind])) {
-        $errors[] = 'Please choose the document type.';
-    } else {
-        [$docId, $err] = save_upload($_FILES['file'] ?? null, (int) $u['id'], $kind);
-        if ($err !== '') {
-            $errors[] = $err;
-        } else {
-            auto_review_user((int) $u['id']);
-            flash('success', DOC_KINDS[$kind] . ' uploaded.');
-            redirect('documents.php');
-        }
-    }
+$onb = onboarding_row((int) $u['id']);
+if ($onb && $onb['stage'] !== 'done') {
+    redirect('onboarding.php'); // until onboarding is finished, their files are on the onboarding checklist
 }
 
 $docs = db_all('SELECT * FROM documents WHERE user_id = ? ORDER BY created_at DESC, id DESC', [$u['id']]);
-$have = array_column($docs, 'kind');
+$groups = []; // newest file first in each type, types in the usual order
+foreach (array_keys(DOC_KINDS) as $k) {
+    foreach ($docs as $d) {
+        if ($d['kind'] === $k) $groups[$k][] = $d;
+    }
+}
+$icons = ['w9' => 'file', 'insurance' => 'shield', 'license' => 'user', 'vehicle_photo' => 'van', 'resume' => 'briefcase', 'registration' => 'file', 'authority' => 'shield', 'other' => 'file'];
+$signed = $onb && $onb['signed_at'];
 
 page_header('Documents');
 dash_open('documents');
 ?>
 <h1>Documents</h1>
-<p class="muted">Upload your onboarding documents once. They're private: only you and LamazonLoads staff can open them.</p>
-<?php if ($errors): ?><ul class="errors"><?php foreach ($errors as $er): ?><li><?= e($er) ?></li><?php endforeach; ?></ul><?php endif; ?>
+<p class="muted">Your files on record with LamazonLoads. Only you and our team can open them.</p>
 
-<div class="card form-card">
-  <h3 class="mt-0"><?= icon('upload') ?> Upload a document</h3>
-  <form method="post" action="<?= e(url('documents.php')) ?>" enctype="multipart/form-data" class="form-grid">
-    <?= csrf_field() ?>
-    <div><label for="kind">Document type</label>
-      <select id="kind" name="kind" required><option value="">Choose…</option>
-        <?php foreach (DOC_KINDS as $k => $l): ?><option value="<?= e($k) ?>"><?= e($l) ?><?= in_array($k, $have, true) ? ' ✓' : '' ?></option><?php endforeach; ?>
-      </select></div>
-    <div><label for="file">File (PDF, JPG or PNG; resumes also Word; up to <?= $maxMb ?> MB)</label><input id="file" name="file" type="file" required accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"></div>
-    <div class="full"><button class="btn btn-accent" type="submit"><?= icon('upload') ?> Upload</button></div>
-  </form>
-</div>
-
-<div class="card pad">
-  <h3 class="mt-0">Your documents</h3>
-  <?php if (!$docs): ?>
-    <div class="empty">No documents yet. Start with your W-9, certificate of insurance and driver's license.</div>
-  <?php else: ?>
-    <div class="table-wrap"><table>
-      <thead><tr><th>Type</th><th>File</th><th>Uploaded</th><th></th></tr></thead>
-      <tbody>
-      <?php foreach ($docs as $d): ?>
-        <tr>
-          <td><b><?= e(DOC_KINDS[$d['kind']] ?? $d['kind']) ?></b><?php if ($d['added_by']): ?><br><span class="doc-staff"><?= icon('shield') ?> Added by LamazonLoads staff</span><?php endif; ?></td>
-          <td><?= doc_link($d, e($d['original_name'])) ?> <span class="muted">(<?= e(number_format($d['size'] / 1024, 0)) ?> KB)</span></td>
-          <td><?= e(fmt_date($d['created_at'])) ?></td>
-          <td>
-            <div class="row-actions"><?= doc_link($d, icon('eye') . ' View', 'btn btn-primary btn-sm') ?>
-            <form method="post" action="<?= e(url('documents.php')) ?>" class="inline-form" data-confirm="Remove this document?">
-              <?= csrf_field() ?><input type="hidden" name="action" value="delete"><input type="hidden" name="id" value="<?= (int) $d['id'] ?>">
-              <button class="btn btn-danger btn-sm" type="submit"><?= icon('trash') ?> Remove</button>
-            </form></div>
-          </td>
-        </tr>
-      <?php endforeach; ?>
-      </tbody>
-    </table></div>
-  <?php endif; ?>
-</div>
+<?php if (!$groups && !$signed): ?>
+  <div class="card ss ss-card">
+    <div class="ss-ico" aria-hidden="true"><?= icon('file') ?></div>
+    <h2 class="ss-title">No documents yet</h2>
+    <p class="ss-lead">Your documents show up here after onboarding.</p>
+    <div class="ss-acts ss-acts-inline"><a class="btn btn-primary" href="<?= e(url('careers.php')) ?>">Browse openings <?= icon('arrow') ?></a></div>
+  </div>
+<?php else: ?>
+  <section class="card doc-list" data-dv-scope aria-label="Your documents">
+    <?php if ($signed): ?>
+      <div class="doc-row">
+        <span class="doc-ico" aria-hidden="true"><?= icon('edit') ?></span>
+        <span class="doc-info"><b>Signed agreement</b><small>Signed <?= e(fmt_date((string) $onb['signed_at'], 'M j, Y')) ?><span class="doc-extra"> · <?= e(ONB_TRACKS[$onb['track']] ?? '') ?></span></small></span>
+        <a class="btn btn-ghost btn-sm doc-view" href="<?= e(url('contract.php')) ?>" aria-label="View signed agreement"><?= icon('eye') ?><span>View</span></a>
+      </div>
+    <?php endif; ?>
+    <?php foreach ($groups as $k => $list): $d = $list[0]; $n = count($list); $staff = (bool) array_filter($list, fn ($x) => $x['added_by']); ?>
+      <div class="doc-row">
+        <span class="doc-ico" aria-hidden="true"><?= icon($icons[$k] ?? 'file') ?></span>
+        <span class="doc-info">
+          <b><?= e(DOC_KINDS[$k]) ?><?php if ($n > 1): ?> <span class="doc-count"><?= $n ?> <?= $k === 'vehicle_photo' ? 'photos' : 'files' ?></span><?php endif; ?></b>
+          <small>Uploaded <?= e(fmt_date((string) $d['created_at'], 'M j, Y')) ?> · <?= e(doc_type_label($d)) ?><span class="doc-extra"> · <?= e(fmt_size((int) $d['size'])) ?></span><?= $staff ? ' · Added by our team' : '' ?></small>
+        </span>
+        <?php $nice = fn ($x) => DOC_KINDS[$k] . ' · ' . fmt_date((string) $x['created_at'], 'M j, Y'); // instead of a phone's random file name ?>
+        <?= doc_link($d, icon('eye') . '<span>View</span>', 'btn btn-ghost btn-sm doc-view', '', $nice($d)) ?>
+        <?php if ($n > 1): ?><span hidden><?php foreach (array_slice($list, 1) as $x) echo doc_link($x, 'View', '', '', $nice($x)); ?></span><?php endif; ?>
+      </div>
+    <?php endforeach; ?>
+  </section>
+  <p class="doc-help"><?= icon('info') ?><span>Need to update a document, like a new insurance card? <a href="<?= e(url('contact.php')) ?>" data-open-chat>Message us</a> and we’ll update it for you.</span></p>
+<?php endif; ?>
 <?php dash_close(); page_footer();

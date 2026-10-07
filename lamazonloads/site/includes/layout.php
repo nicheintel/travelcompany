@@ -416,6 +416,9 @@ function dash_open(string $active): void
     if (!onboarding_unlocked(onboarding_row((int) $u['id']))) {
         unset($items['onboarding']); // shows up once they open their onboarding from the email link
     }
+    if (!documents_visible($u)) {
+        unset($items['documents']); // shows up once onboarding is finished (files are on the onboarding page until then)
+    }
     foreach ($items as $key => [$href, $ic, $label]) {
         echo '<a href="' . e(url($href)) . '"' . ($active === $key ? ' class="active"' : '') . '>' . icon($ic) . e($label) . '</a>';
     }

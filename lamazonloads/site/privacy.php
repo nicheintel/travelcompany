@@ -147,7 +147,7 @@ page_hero('Privacy', 'Privacy policy', 'Plain and simple: what we collect, why w
           <div class="table-wrap"><table class="legal-table">
             <thead><tr><th>Information</th><th>How long</th></tr></thead>
             <tbody>
-              <tr><td>Account, profile, applications, uploaded documents, payment details and signed agreements</td><td>While you have an account. You can delete documents, or your whole account, yourself any time.</td></tr>
+              <tr><td>Account, profile, applications, uploaded documents, payment details and signed agreements</td><td>While you have an account. You can delete your whole account yourself any time, or ask us to remove a document.</td></tr>
               <tr><td>Live chats</td><td>Deleted after 180 days without new messages, or when your account is deleted</td></tr>
               <tr><td>Sign-in attempts and spam-protection records</td><td>About 1 day</td></tr>
               <tr><td>Partner requests and contact messages</td><td>As long as needed to respond and follow up</td></tr>

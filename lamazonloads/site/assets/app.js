@@ -541,7 +541,7 @@
       if (!a || e.metaKey || e.ctrlKey || e.shiftKey || e.button) return;
       e.preventDefault();
       // The other documents in the same list can be flipped through with the arrows
-      var scope = a.closest('table, .modal-body') || a.parentNode, seen = {};
+      var scope = a.closest('table, .modal-body, [data-dv-scope]') || a.parentNode, seen = {};
       dvList = Array.prototype.filter.call(scope.querySelectorAll('[data-doc-view]'), function (x) {
         var h = x.getAttribute('href'); if (seen[h]) return false; seen[h] = true; return true;
       });
@@ -626,6 +626,12 @@
   // Admin menu on phones is a row of tabs: start it scrolled to the current page.
   var anActive = document.querySelector('.an-links a.active, .dash-nav > a.active');
   if (anActive && window.matchMedia('(max-width: 860px)').matches) anActive.parentNode.scrollLeft = anActive.offsetLeft - 12;
+
+  // A link to a section inside a closed panel (e.g. settings.php#delete) opens that panel
+  if (location.hash.length > 1) {
+    var target = document.getElementById(location.hash.slice(1)), box = target && target.closest('details');
+    if (box) box.open = true;
+  }
 
   // "Chat with us" links open the chat window when the page has one
   document.querySelectorAll('[data-open-chat]').forEach(function (a) {

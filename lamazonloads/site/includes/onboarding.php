@@ -425,3 +425,17 @@ Lamazon Loads LLC is not responsible for damages caused at shipper or receiver l
 
 By signing below, the Owner-Operator agrees to all terms and conditions stated in this agreement.
 TXT;
+
+/**
+ * Drivers see the Documents page once onboarding is finished: until then their files show on the onboarding
+ * checklist. Members with no onboarding see it when they have files (for example ones staff added).
+ */
+function documents_visible(array $u): bool
+{
+    $row = onboarding_row((int) $u['id']);
+    if ($row && $row['stage'] !== 'done') {
+        return false;
+    }
+    return $row !== null || (int) db_val('SELECT COUNT(*) FROM documents WHERE user_id = ?', [$u['id']]) > 0;
+}
+

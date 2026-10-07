@@ -3,7 +3,8 @@ declare(strict_types=1);
 require __DIR__ . '/includes/bootstrap.php';
 
 $u = require_verified();
-$steps = onboarding_steps((int) $u['id']);
+// Documents are uploaded and tracked in onboarding, so the profile checklist leaves them out
+$steps = array_values(array_filter(onboarding_steps((int) $u['id']), fn ($s) => $s[2] !== 'documents.php'));
 $done = count(array_filter($steps, fn ($s) => $s[1]));
 $pct = (int) round($done / count($steps) * 100);
 $apps = db_all('SELECT a.*, j.title, j.status AS job_status FROM applications a LEFT JOIN jobs j ON j.id = a.job_id WHERE a.user_id = ? ORDER BY a.created_at DESC', [$u['id']]);

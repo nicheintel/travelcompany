@@ -44,7 +44,6 @@ dash_open('profile');
   </div>
   <div class="row-actions mt">
     <button class="btn btn-accent" type="submit">Save profile</button>
-    <a class="btn btn-ghost" href="<?= e(url('documents.php')) ?>">Next: upload documents <?= icon('arrow') ?></a>
   </div>
 </form>
 <?php dash_close(); page_footer();
