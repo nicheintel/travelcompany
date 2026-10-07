@@ -1402,6 +1402,7 @@ a.app-row:hover + a.app-row { border-top-color: transparent; }
 /* Tick boxes to delete several applications at once */
 .app-item { display: grid; grid-template-columns: 34px minmax(0, 1fr); align-items: center; border-radius: 12px; transition: background .15s; }
 .app-item + .app-item { border-top: 1px solid var(--line); }
+.app-list.no-bulk .app-item { grid-template-columns: minmax(0, 1fr); } /* moderators: no tick boxes (only admins delete) */
 .app-item:hover, .app-item.is-picked { background: var(--blue-50); }
 .app-item:hover + .app-item, .app-item.is-picked + .app-item.is-picked { border-top-color: transparent; }
 .app-item a.app-row:hover { background: none; }
@@ -1762,6 +1763,9 @@ a.app-row:hover .ar-go { opacity: 1; transform: translateX(3px); }
 .danger-zone h3 { display: flex; align-items: center; gap: 8px; color: var(--red); }
 .danger-zone h3 .ic { width: 20px; height: 20px; }
 .del-member { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.staff-access { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.staff-access label { margin: 0; font-size: .86rem; }
+.staff-access select { width: auto; padding: 7px 12px; font-size: .86rem; }
 .check-inline { display: inline-flex; align-items: center; gap: 7px; margin: 0; font-size: .86rem; font-weight: 600; color: var(--muted); cursor: pointer; }
 .check-inline input { width: 16px; height: 16px; margin: 0; accent-color: var(--blue); }
 

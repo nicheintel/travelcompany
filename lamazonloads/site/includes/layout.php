@@ -456,6 +456,8 @@ const ADMIN_NAV = [
         'email' => ['admin/email.php', 'shield', 'Email check'],
     ],
 ];
+/** Menu pages only admins see (moderators get the rest; see STAFF_ROLES). */
+const ADMIN_ONLY_PAGES = ['contracts', 'photos', 'email'];
 
 /** Things waiting for staff, shown as red counts in the menu and on the Overview. */
 function admin_counts(): array
@@ -484,9 +486,15 @@ function admin_open(string $active): void
     $counts = admin_counts();
     $initials = strtoupper(implode('', array_map(fn ($w) => mb_substr($w, 0, 1), array_slice(preg_split('/\s+/', trim((string) $u['name'])) ?: [], 0, 2))));
     echo '<div class="container dash admin-dash"><aside class="card admin-nav" aria-label="Admin menu">'
-        . '<div class="an-user"><span class="an-avatar" aria-hidden="true">' . e($initials ?: 'LL') . '</span><span><b>' . e((string) $u['name']) . '</b><small>Staff · LamazonLoads</small></span></div>'
+        . '<div class="an-user"><span class="an-avatar" aria-hidden="true">' . e($initials ?: 'LL') . '</span><span><b>' . e((string) $u['name']) . '</b><small>' . e(STAFF_ROLES[staff_role($u)] ?? 'Staff') . '</small></span></div>'
         . '<nav class="an-links">';
     foreach (ADMIN_NAV as $group => $items) {
+        if (!is_full_admin($u)) {
+            $items = array_diff_key($items, array_flip(ADMIN_ONLY_PAGES));
+        }
+        if (!$items) {
+            continue;
+        }
         echo '<p class="an-label">' . e($group) . '</p>';
         foreach ($items as $key => [$href, $ic, $label]) {
             if ($active === $key) {

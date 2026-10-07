@@ -7,6 +7,7 @@ $setErrors = [];
 if (is_post()) {
     csrf_check();
     $action = $_POST['action'] ?? '';
+    require_full_admin_action('admin/onboarding.php'); // every action here is a setting (Telegram link, QR code)
     if ($action === 'settings') {
         $link = trim(post('telegram_link', 200));
         if (!preg_match('#^https://(t\.me|telegram\.me)/[A-Za-z0-9_+/\-]+$#', $link)) {
@@ -54,7 +55,7 @@ $qr = telegram_qr_url();
 page_header('Onboarding');
 admin_open('onboarding');
 echo admin_head('Driver onboarding', 'Drivers upload their documents on the website. Review them here, approve, and the agreement and Telegram link go out automatically.',
-    '<a class="btn btn-ghost" href="' . e(url('admin/contracts.php')) . '">' . icon('file') . ' Contracts</a>');
+    is_full_admin() ? '<a class="btn btn-ghost" href="' . e(url('admin/contracts.php')) . '">' . icon('file') . ' Contracts</a>' : '');
 ?>
 <div class="onb-flow card">
   <?php foreach ([['upload', 'Driver uploads documents'], ['check', 'You review & approve'], ['edit', 'Driver signs agreement'], ['send', 'Telegram link sent']] as $i => [$ic, $t]): ?>
@@ -87,6 +88,7 @@ echo admin_head('Driver onboarding', 'Drivers upload their documents on the webs
   <?php endif; ?>
 </section>
 
+<?php if (is_full_admin()): ?>
 <section class="card panel" id="settings">
   <header class="panel-head"><h2><?= icon('send') ?>Telegram & notifications</h2></header>
   <div class="panel-body onb-settings">
@@ -112,4 +114,5 @@ echo admin_head('Driver onboarding', 'Drivers upload their documents on the webs
     </div>
   </div>
 </section>
+<?php endif; ?>
 <?php dash_close(); page_footer();

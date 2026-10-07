@@ -79,7 +79,9 @@ function migrate(PDO $pdo): void
         // Members added by staff: who added them, and a generated password they must replace at first sign-in
         'must_change_password' => 'TINYINT(1) NOT NULL DEFAULT 0', 'added_by' => 'INT UNSIGNED NULL',
         // Chosen at sign-up: city ("Atlanta, GA", from the US city list) and vehicle types (comma-separated, plus a typed "Other")
-        'city' => "VARCHAR(120) NOT NULL DEFAULT ''", 'vehicle' => "VARCHAR(120) NOT NULL DEFAULT ''", 'vehicle_other' => "VARCHAR(80) NOT NULL DEFAULT ''"]);
+        'city' => "VARCHAR(120) NOT NULL DEFAULT ''", 'vehicle' => "VARCHAR(120) NOT NULL DEFAULT ''", 'vehicle_other' => "VARCHAR(80) NOT NULL DEFAULT ''",
+        // Staff: '' = admin (everything), 'moderator' = day-to-day tools only (see STAFF_ROLES)
+        'staff_role' => "VARCHAR(20) NOT NULL DEFAULT ''"]);
     $pdo->exec("ALTER TABLE users MODIFY vehicle VARCHAR(120) NOT NULL DEFAULT ''"); // was one type (20 characters)
     add_missing_columns($pdo, 'documents', ['added_by' => 'INT UNSIGNED NULL']); // staff member who added it for the driver
     // Payment details drivers add during onboarding (Zelle preferred)

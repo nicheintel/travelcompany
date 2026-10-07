@@ -3,7 +3,7 @@ declare(strict_types=1);
 require dirname(__DIR__) . '/includes/bootstrap.php';
 
 // Staff: is email working? Shows the settings, the domain's email records, and sends a test email.
-$me = require_admin();
+$me = require_full_admin();
 $result = null;
 $to = (string) $me['email'];
 if (is_post()) {

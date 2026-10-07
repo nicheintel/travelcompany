@@ -30,6 +30,7 @@ if (is_post()) {
     $action = $_POST['action'] ?? 'save';
     $id = (int) ($_POST['id'] ?? 0);
     if ($action === 'delete') {
+        require_full_admin_action('admin/jobs.php');
         db_run('DELETE FROM applications WHERE job_id = ? AND job_id <> 0', [$id]);
         db_run('DELETE FROM jobs WHERE id = ?', [$id]);
         flash('success', 'Job post deleted.');
@@ -252,7 +253,7 @@ admin_open('jobs');
           <a class="btn btn-ghost btn-sm btn-icon" href="<?= e(url('job.php?id=' . (int) $j['id'])) ?>" aria-label="View on website" title="View on website"><?= icon('eye') ?></a>
           <form method="post" action="<?= e(url('admin/jobs.php')) ?>" class="inline-form"><?= csrf_field() ?><input type="hidden" name="action" value="status"><input type="hidden" name="id" value="<?= (int) $j['id'] ?>">
             <input type="hidden" name="status" value="<?= $j['status'] === 'open' ? 'closed' : 'open' ?>"><button class="btn btn-ghost btn-sm" type="submit"><?= $j['status'] === 'open' ? 'Close' : 'Reopen' ?></button></form>
-          <form method="post" action="<?= e(url('admin/jobs.php')) ?>" class="inline-form" data-confirm="Delete this job post and its applications?"><?= csrf_field() ?><input type="hidden" name="action" value="delete"><input type="hidden" name="id" value="<?= (int) $j['id'] ?>"><button class="btn btn-danger btn-sm btn-icon" type="submit" aria-label="Delete job post" title="Delete"><?= icon('trash') ?></button></form>
+          <?php if (is_full_admin()): // only admins delete ?><form method="post" action="<?= e(url('admin/jobs.php')) ?>" class="inline-form" data-confirm="Delete this job post and its applications?"><?= csrf_field() ?><input type="hidden" name="action" value="delete"><input type="hidden" name="id" value="<?= (int) $j['id'] ?>"><button class="btn btn-danger btn-sm btn-icon" type="submit" aria-label="Delete job post" title="Delete"><?= icon('trash') ?></button></form><?php endif; ?>
         </div>
       </div>
     <?php endforeach; ?>

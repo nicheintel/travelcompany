@@ -3,7 +3,7 @@ declare(strict_types=1);
 require dirname(__DIR__) . '/includes/bootstrap.php';
 
 // Agreements drivers sign online after approval. Signed copies keep the exact version each driver signed.
-$me = require_admin();
+$me = require_full_admin();
 $track = isset(ONB_TRACKS[$_GET['t'] ?? '']) ? (string) $_GET['t'] : (isset(ONB_TRACKS[$_POST['track'] ?? '']) ? (string) $_POST['track'] : 'dispatch');
 $c = contract_get($track);
 $errors = [];

@@ -7,6 +7,7 @@ if (is_post()) {
     csrf_check();
     $id = (int) ($_POST['id'] ?? 0);
     if (($_POST['action'] ?? '') === 'delete') {
+        require_full_admin_action('admin/partners.php?id=' . $id);
         db_run('DELETE FROM partner_requests WHERE id = ?', [$id]);
         flash('success', 'Partner request deleted.');
         redirect('admin/partners.php');
@@ -66,10 +67,12 @@ if ($req):
         <textarea id="admin_note" name="admin_note" maxlength="3000" placeholder="Call notes, next steps, pricing…"><?= e((string) $req['admin_note']) ?></textarea>
         <button class="btn btn-primary btn-block mt" type="submit">Save</button>
       </form>
+      <?php if (is_full_admin()): // only admins delete ?>
       <form method="post" action="<?= e(url('admin/partners.php')) ?>" data-confirm="Delete this partner request?" class="mt">
         <?= csrf_field() ?><input type="hidden" name="id" value="<?= (int) $req['id'] ?>"><input type="hidden" name="action" value="delete">
         <button class="btn btn-danger btn-sm" type="submit"><?= icon('trash') ?> Delete request</button>
       </form>
+      <?php endif; ?>
     </div>
   </div>
 <?php else:

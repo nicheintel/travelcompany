@@ -7,6 +7,7 @@ if (is_post()) {
     csrf_check();
     $status = post('status', 20);
     if (in_array($_POST['action'] ?? '', ['delete', 'delete_many'], true)) {
+        require_full_admin_action(($b = safe_next(post('back', 300))) === 'account.php' ? 'admin/applications.php' : $b);
         // Delete one application (from its pop-up) or the ticked ones in the list. The member's account,
         // profile and documents (including a resume) stay; they can apply to that opening again.
         $ids = array_values(array_unique(array_filter(array_map('intval', (array) ($_POST['ids'] ?? [$_POST['id'] ?? 0])))));
@@ -97,9 +98,9 @@ function app_detail_html(array $a, string $back): string
         . '<div class="app-links"><a href="' . e(url('admin/driver.php?id=' . (int) $a['user_id'])) . '">' . icon('user') . 'Full member profile &amp; documents</a>'
         . ($phone !== '' ? '<a href="' . e(tel_href($phone)) . '">' . icon('phone') . 'Call</a>' : '')
         . '<a href="mailto:' . e($a['email']) . '">' . icon('mail') . 'Email</a>'
-        . '<form method="post" action="' . e(url('admin/applications.php')) . '" class="inline-form app-del" data-confirm="Delete this application? This can’t be undone. Their account and documents stay.">' . csrf_field()
+        . (!is_full_admin() ? '' : '<form method="post" action="' . e(url('admin/applications.php')) . '" class="inline-form app-del" data-confirm="Delete this application? This can’t be undone. Their account and documents stay.">' . csrf_field()
         . '<input type="hidden" name="action" value="delete"><input type="hidden" name="id" value="' . (int) $a['id'] . '"><input type="hidden" name="back" value="' . e($back) . '">'
-        . '<button class="link-btn" type="submit">' . icon('trash') . 'Delete application</button></form></div></div>';
+        . '<button class="link-btn" type="submit">' . icon('trash') . 'Delete application</button></form>') . '</div></div>';
     return $html;
 }
 
@@ -149,18 +150,18 @@ admin_open('applications');
 </form>
 <p class="muted app-count"><b><?= $total ?></b> application<?= $total === 1 ? '' : 's' ?><?= $where ? ' match' : '' ?><?= $newCount ? ' · <b>' . $newCount . '</b> new' : '' ?><?= $where ? ' · <a href="' . e(url('admin/applications.php')) . '">Clear filters</a>' : '' ?></p>
 
-<?php if (!$apps): ?><div class="card empty">No applications match.</div><?php else: ?>
-<form method="post" action="<?= e(url('admin/applications.php')) ?>" id="bulk" data-bulk data-confirm="Delete the selected applications? This can’t be undone.">
+<?php if (!$apps): ?><div class="card empty">No applications match.</div><?php else: $bulk = is_full_admin(); // only admins delete ?>
+<?php if ($bulk): ?><form method="post" action="<?= e(url('admin/applications.php')) ?>" id="bulk" data-bulk data-confirm="Delete the selected applications? This can’t be undone.">
   <?= csrf_field() ?><input type="hidden" name="action" value="delete_many"><input type="hidden" name="back" value="<?= e($link()) ?>">
-</form>
-<div class="card app-list" role="list">
-  <div class="app-item app-item-head"><label class="ar-check"><input type="checkbox" data-bulk-all aria-label="Select all on this page"><span class="ar-all">Select all</span></label>
+</form><?php endif; ?>
+<div class="card app-list<?= $bulk ? '' : ' no-bulk' ?>" role="list">
+  <div class="app-item app-item-head"><?php if ($bulk): ?><label class="ar-check"><input type="checkbox" data-bulk-all aria-label="Select all on this page"><span class="ar-all">Select all</span></label><?php endif; ?>
   <div class="app-row app-row-head" aria-hidden="true"><span>Applicant</span><span>Opening</span><span>Vehicle</span><span>Date</span><span>Email sent</span><span>Status</span><span></span></div></div>
   <?php foreach ($apps as $a):
       $name = trim($a['first_name'] . ' ' . $a['last_name']) ?: $a['name'];
       $veh = vehicles_label($a) ?: (EQUIPMENT[$a['equipment'] ?? ''] ?? '—'); ?>
   <div class="app-item" role="listitem">
-    <label class="ar-check"><input type="checkbox" name="ids[]" value="<?= (int) $a['id'] ?>" form="bulk" data-bulk-box aria-label="Select <?= e($name) ?>"></label>
+    <?php if ($bulk): ?><label class="ar-check"><input type="checkbox" name="ids[]" value="<?= (int) $a['id'] ?>" form="bulk" data-bulk-box aria-label="Select <?= e($name) ?>"></label><?php endif; ?>
     <a class="app-row<?= $a['status'] === 'new' ? ' is-new' : '' ?>" href="<?= e(url($link(['id' => $a['id']]))) ?>" data-app-open>
       <span class="ar-name"><b><?= e($name) ?></b><small title="<?= e($a['email']) ?>"><?= e($a['email']) ?></small></span>
       <span class="ar-job" title="<?= e(applicant_label($a)) ?>"><?= e(applicant_label($a)) ?></span>
@@ -173,11 +174,11 @@ admin_open('applications');
   </div>
   <?php endforeach; ?>
 </div>
-<div class="bulk-bar" data-bulk-bar hidden>
+<?php if ($bulk): ?><div class="bulk-bar" data-bulk-bar hidden>
   <span><b data-bulk-count>0</b> selected</span>
   <button class="btn btn-ghost btn-sm" type="button" data-bulk-clear>Clear</button>
   <button class="btn btn-danger btn-sm" type="submit" form="bulk"><?= icon('trash') ?> Delete selected</button>
-</div>
+</div><?php endif; ?>
 <?php if ($pages > 1): ?>
   <nav class="pager" aria-label="Pages">
     <?php if ($page > 1): ?><a class="btn btn-ghost btn-sm" href="<?= e(url($link(['page' => $page - 1 > 1 ? $page - 1 : '']))) ?>">&larr; Newer</a><?php endif; ?>

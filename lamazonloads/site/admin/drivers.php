@@ -5,11 +5,11 @@ require dirname(__DIR__) . '/includes/bootstrap.php';
 $me = require_admin();
 
 // Add member: create the account and email the sign-in details. If the email is already a member, just open their page.
-$add = ['first_name' => '', 'last_name' => '', 'email' => '', 'phone' => '', 'account_type' => 'driver', 'onboarded' => ''];
+$add = ['first_name' => '', 'last_name' => '', 'email' => '', 'phone' => '', 'account_type' => 'driver', 'onboarded' => '', 'access' => ''];
 $addErrors = [];
 if (is_post() && ($_POST['action'] ?? '') === 'add') {
     csrf_check();
-    foreach (['first_name' => 50, 'last_name' => 50, 'email' => 190, 'phone' => 25, 'account_type' => 30, 'onboarded' => 20] as $k => $max) {
+    foreach (['first_name' => 50, 'last_name' => 50, 'email' => 190, 'phone' => 25, 'account_type' => 30, 'onboarded' => 20, 'access' => 20] as $k => $max) {
         $add[$k] = post($k, $max);
     }
     $add['email'] = strtolower($add['email']);
@@ -24,9 +24,12 @@ if (is_post() && ($_POST['action'] ?? '') === 'add') {
     if ($add['phone'] !== '' && !preg_match('/^[0-9+()\-. ]{7,25}$/', $add['phone'])) $addErrors[] = 'Please enter a valid phone number, or leave it empty.';
     if (!isset(ACCOUNT_TYPES[$add['account_type']])) $addErrors[] = 'Please choose what describes them best.';
     if (!isset(ONB_TRACKS[$add['onboarded']])) $add['onboarded'] = ''; // already onboarded with our team: the program
+    if ($add['access'] !== 'moderator' || !is_full_admin()) $add['access'] = ''; // only admins add moderators
+    if ($add['access'] !== '') $add['onboarded'] = ''; // staff don't onboard
     if (!$addErrors) {
         [$newId, $pass] = create_member($add, (int) $me['id']);
         if ($add['onboarded'] !== '') onboarding_mark_done($newId, $add['onboarded'], (int) $me['id']);
+        if ($add['access'] === 'moderator') db_run("UPDATE users SET is_admin = 1, staff_role = 'moderator' WHERE id = ?", [$newId]);
         $new = db_one('SELECT * FROM users WHERE id = ?', [$newId]);
         if (send_member_welcome($new, $pass)) {
             flash('success', 'Account created for ' . $new['name'] . '. Their sign-in details were emailed to ' . $new['email'] . '.');
@@ -44,7 +47,7 @@ $loc = (string) ($_GET['loc'] ?? '');   // "st:GA" (whole state) or "c:Atlanta, 
 $type = (string) ($_GET['type'] ?? ''); // what they told us they are, or "staff"
 // "Drivers" is everyone who drives, owner-operators included; "Owner-operators" narrows it to those who own their vehicle
 const TYPE_FILTERS = ['driver' => 'Drivers', 'owner_operator' => '· Owner-operators', 'dispatcher' => 'Dispatchers / support', 'recruiter' => 'Driver recruiters',
-    'other' => 'Entrepreneurs / other', 'staff' => 'Staff'];
+    'other' => 'Entrepreneurs / other', 'staff' => 'Staff (admins & moderators)'];
 const ONB_FILTERS = ['onboarded' => 'Onboarded', 'not' => 'Not onboarded yet', 'progress' => '· In onboarding now', 'none' => '· Not started'];
 $where = [];
 $args = [];
@@ -102,9 +105,9 @@ admin_open('drivers');
     <?php foreach ($rows as $r): $nm = trim((string) $r['name']); ?>
       <a class="ml-row" href="<?= e(url('admin/driver.php?id=' . (int) $r['id'])) ?>">
         <span class="ml-who"><span class="ov-av" aria-hidden="true"><?= e(strtoupper(mb_substr($nm, 0, 1))) ?></span>
-          <span><b><?= e($nm) ?><?= $r['is_admin'] ? ' <span class="badge badge-draft">Staff</span>' : '' ?><?= $r['added_by'] ? ' <span class="badge badge-staff">Added by staff</span>' : '' ?><?= !$r['is_admin'] && empty($r['email_verified_at']) ? ' <span class="badge badge-reviewing">Email not confirmed</span>' : '' ?></b>
+          <span><b><?= e($nm) ?><?= $r['is_admin'] ? ' <span class="badge badge-draft">' . e(STAFF_ROLES[staff_role($r)]) . '</span>' : '' ?><?= $r['added_by'] ? ' <span class="badge badge-staff">Added by staff</span>' : '' ?><?= !$r['is_admin'] && empty($r['email_verified_at']) ? ' <span class="badge badge-reviewing">Email not confirmed</span>' : '' ?></b>
           <small class="ml-contact"><span title="<?= e($r['email']) ?>"><?= e($r['email']) ?></span><?php if ($r['phone'] !== ''): ?><span><?= e($r['phone']) ?></span><?php endif; ?></small></span></span>
-        <?php $tl = $r['is_admin'] ? 'Staff' : explode(' (', ACCOUNT_TYPES[$r['account_type']] ?? '')[0]; ?>
+        <?php $tl = $r['is_admin'] ? STAFF_ROLES[staff_role($r)] : explode(' (', ACCOUNT_TYPES[$r['account_type']] ?? '')[0]; ?>
         <span class="ml-type"><span class="ml-t<?= str_contains($tl, ' ') ? '' : ' nw' ?>"><?= e($tl) ?></span><small><?= $r['city'] !== '' ? icon('pin') . e($r['city']) : 'No city yet' ?></small></span>
         <span class="ml-eq"><?= isset(EQUIPMENT[$r['equipment'] ?? '']) ? e(EQUIPMENT[$r['equipment']]) : (($vl = user_vehicles_label($r)) !== '' ? '<span title="' . e($vl) . '">' . e($vl) . '</span>' : '<span class="muted">Not given</span>') ?><?php if ($r['home_zip']): ?><small>ZIP <?= e($r['home_zip']) ?><?= isset(AVAILABILITY[$r['availability'] ?? '']) ? ' · ' . e(explode(' (', AVAILABILITY[$r['availability']])[0]) : '' ?></small><?php endif; ?></span>
         <span class="ml-onb"><?= $r['is_admin'] ? '<span class="muted">Not needed</span>' : onboarding_badge($r['onb_stage']) ?></span>
@@ -135,7 +138,11 @@ admin_open('drivers');
         <div class="full"><label for="am-email">Email</label><input id="am-email" name="email" type="email" maxlength="190" required autocomplete="off" value="<?= e($add['email']) ?>"></div>
         <div><label for="am-phone">Phone <span class="opt">(optional)</span></label><input id="am-phone" name="phone" type="tel" maxlength="25" autocomplete="off" placeholder="(555) 123-4567" value="<?= e($add['phone']) ?>"></div>
         <div><label for="account_type">I am a…</label><?= select_html('account_type', ACCOUNT_TYPES, $add['account_type']) ?></div>
-        <div class="full"><label for="am-onb">Onboarding</label><select id="am-onb" name="onboarded"><option value="">Not yet: they’ll onboard on the website</option>
+        <?php if (is_full_admin()): ?>
+        <div class="full"><label for="am-access">Access</label><select id="am-access" name="access" data-access><option value="">Member: a driver or partner account</option><option value="moderator"<?= $add['access'] === 'moderator' ? ' selected' : '' ?>>Moderator: staff with day-to-day tools</option></select>
+          <p class="hint">Moderators handle the inbox, applications, onboarding review, members and job posts. They can’t delete anything or change settings. To make someone an admin, open their page after you add them.</p></div>
+        <?php endif; ?>
+        <div class="full" data-onb-field><label for="am-onb">Onboarding</label><select id="am-onb" name="onboarded"><option value="">Not yet: they’ll onboard on the website</option>
           <?php foreach (ONB_TRACKS as $tk => $tl): ?><option value="<?= e($tk) ?>"<?= $add['onboarded'] === $tk ? ' selected' : '' ?>>Already onboarded: <?= e($tl) ?></option><?php endforeach; ?></select>
           <p class="hint">Choose “Already onboarded” for drivers who finished onboarding with our team.</p></div>
         <div class="full"><button class="btn btn-accent btn-block" type="submit"><?= icon('mail') ?> Create account &amp; email password</button></div>

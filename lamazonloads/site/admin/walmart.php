@@ -7,6 +7,9 @@ if (is_post()) {
     csrf_check();
     $action = (string) ($_POST['action'] ?? '');
     $id = (int) ($_POST['id'] ?? 0);
+    if (in_array($action, ['settings', 'delete'], true)) {
+        require_full_admin_action('admin/walmart.php'); // pay rate, start month and removing cities: admins only
+    }
     if ($action === 'settings') {
         meta_set('walmart_on', empty($_POST['on']) ? '0' : '1');
         meta_set('walmart_start', post('start', 40));
@@ -48,6 +51,14 @@ admin_open('walmart');
 <div class="wm-layout">
 <section class="card panel wm-program">
   <header class="panel-head"><h2><?= icon('route') ?>Program settings</h2></header>
+  <?php if (!is_full_admin()): ?>
+  <div class="panel-body wm-settings">
+    <div><small class="muted">Routes start in</small><br><b><?= e($s['start'] !== '' ? $s['start'] : 'Not set') ?></b></div>
+    <div><small class="muted">Pay rate</small><br><b><?= e($s['rate'] !== '' ? $s['rate'] : 'Not set') ?></b></div>
+    <p class="mb-0"><?= $s['on'] ? 'Shown on the application form.' : 'Hidden from the application form.' ?></p>
+    <p class="hint mb-0">Only admins can change the program settings.</p>
+  </div>
+  <?php else: ?>
   <form method="post" action="<?= e(url('admin/walmart.php')) ?>" class="panel-body wm-settings">
     <?= csrf_field() ?><input type="hidden" name="action" value="settings">
     <div><label for="start">Routes start in</label><input id="start" name="start" type="text" maxlength="40" value="<?= e($s['start']) ?>" placeholder="November"></div>
@@ -56,6 +67,7 @@ admin_open('walmart');
     <div class="wm-preview"><small>Drivers see</small><b><?= e(walmart_headline()) ?></b></div>
     <button class="btn btn-primary btn-block" type="submit">Save settings</button>
   </form>
+  <?php endif; ?>
 </section>
 
 <section class="card panel">
@@ -83,10 +95,12 @@ admin_open('walmart');
               <?= csrf_field() ?><input type="hidden" name="action" value="toggle"><input type="hidden" name="id" value="<?= (int) $r['id'] ?>">
               <button class="btn btn-ghost btn-sm" type="submit"><?= icon($on ? 'eye' : 'eye') ?> <?= $on ? 'Hide' : 'Show' ?></button>
             </form>
+            <?php if (is_full_admin()): // only admins delete; moderators can hide a city ?>
             <form method="post" action="<?= e(url('admin/walmart.php')) ?>" class="inline-form" data-confirm="Remove <?= e($r['city']) ?> from the list?">
               <?= csrf_field() ?><input type="hidden" name="action" value="delete"><input type="hidden" name="id" value="<?= (int) $r['id'] ?>">
               <button class="btn btn-danger btn-sm btn-icon" type="submit" aria-label="Remove <?= e($r['city']) ?>" title="Remove"><?= icon('trash') ?></button>
             </form>
+            <?php endif; ?>
           </div>
         </div>
       <?php endforeach; ?>

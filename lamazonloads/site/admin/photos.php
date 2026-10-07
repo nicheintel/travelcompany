@@ -2,7 +2,7 @@
 declare(strict_types=1);
 require dirname(__DIR__) . '/includes/bootstrap.php';
 
-require_admin();
+require_full_admin();
 $slotName = fn (string $slot): string => PHOTO_SLOTS[$slot] ?? (isset(PAGE_PHOTOS[$slot]) ? PAGE_PHOTOS[$slot][0] . ' → ' . PAGE_PHOTOS[$slot][1] : $slot);
 if (is_post()) {
     csrf_check();

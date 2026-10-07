@@ -7,6 +7,7 @@ if (is_post()) {
     csrf_check();
     $id = (int) ($_POST['id'] ?? 0);
     if (($_POST['action'] ?? '') === 'delete') {
+        require_full_admin_action('admin/messages.php');
         db_run('DELETE FROM messages WHERE id = ?', [$id]);
     } else {
         db_run('UPDATE messages SET is_read = 1 - is_read WHERE id = ?', [$id]);
@@ -44,7 +45,7 @@ admin_open('messages');
         <a class="btn btn-primary btn-sm" href="mailto:<?= e($m['email']) ?>?subject=<?= e(rawurlencode('Re: your message to LamazonLoads')) ?>"><?= icon('mail') ?> Reply by email</a>
         <?php if ($tel): ?><a class="btn btn-ghost btn-sm" href="<?= e($tel) ?>"><?= icon('phone') ?> Call</a><?php endif; ?>
         <form method="post" action="<?= e(url('admin/messages.php')) ?>" class="inline-form"><?= csrf_field() ?><input type="hidden" name="id" value="<?= (int) $m['id'] ?>"><button class="btn btn-ghost btn-sm" type="submit"><?= icon('check') ?> <?= $m['is_read'] ? 'Mark as new' : 'Mark as handled' ?></button></form>
-        <form method="post" action="<?= e(url('admin/messages.php')) ?>" class="inline-form msg-del" data-confirm="Delete this message?"><?= csrf_field() ?><input type="hidden" name="id" value="<?= (int) $m['id'] ?>"><input type="hidden" name="action" value="delete"><button class="btn btn-danger btn-sm btn-icon" type="submit" aria-label="Delete message" title="Delete"><?= icon('trash') ?></button></form>
+        <?php if (is_full_admin()): // only admins delete ?><form method="post" action="<?= e(url('admin/messages.php')) ?>" class="inline-form msg-del" data-confirm="Delete this message?"><?= csrf_field() ?><input type="hidden" name="id" value="<?= (int) $m['id'] ?>"><input type="hidden" name="action" value="delete"><button class="btn btn-danger btn-sm btn-icon" type="submit" aria-label="Delete message" title="Delete"><?= icon('trash') ?></button></form><?php endif; ?>
       </footer>
     </article>
   <?php endforeach; ?>

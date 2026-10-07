@@ -88,9 +88,12 @@ function create_member(array $v, int $staffId): array
 function send_member_welcome(array $u, string $pass): bool
 {
     $first = trim((string) strtok((string) $u['name'], ' ')) ?: 'there';
+    $intro = !empty($u['is_admin'])
+        ? 'Welcome to the LamazonLoads team! We created your staff account (' . (STAFF_ROLES[staff_role($u)] ?? 'Staff') . '). After you sign in, open Admin from the menu to get to your tools.'
+        : 'Welcome to LamazonLoads! We created your driver account so you can check your onboarding, documents and applications in one place.';
     [$text, $html] = email_body('Your LamazonLoads account is ready', [
         "Hi $first,",
-        'Welcome to LamazonLoads! We created your driver account so you can check your onboarding, documents and applications in one place.',
+        $intro,
         'The first time you sign in, we’ll ask you to choose your own password.',
         "Your sign-in details:\n\nEmail: {$u['email']}\nPassword: $pass",
     ], 'Sign in to LamazonLoads', abs_url('login.php?email=' . rawurlencode((string) $u['email'])),

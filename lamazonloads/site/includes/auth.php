@@ -51,6 +51,52 @@ function require_admin(): array
     return $u;
 }
 
+/**
+ * Staff roles. Admins run everything. Moderators handle the inbox, hiring (applications, onboarding review),
+ * members and job posts / Walmart cities, but can't delete anything, change site settings or give staff access.
+ */
+const STAFF_ROLES = ['admin' => 'Admin', 'moderator' => 'Moderator'];
+
+/** 'admin', 'moderator', or '' for members. */
+function staff_role(?array $u = null): string
+{
+    $u ??= current_user();
+    if (!$u || empty($u['is_admin'])) {
+        return '';
+    }
+    return ($u['staff_role'] ?? '') === 'moderator' ? 'moderator' : 'admin';
+}
+
+function is_full_admin(?array $u = null): bool
+{
+    return staff_role($u) === 'admin';
+}
+
+/** Admin-only pages (contracts, site photos, email check). */
+function require_full_admin(): array
+{
+    $u = require_admin();
+    if (!is_full_admin($u)) {
+        http_response_code(403);
+        page_header('Admins only');
+        echo '<section class="section"><div class="container narrow"><div class="card pad ss ss-card"><div class="ss-ico is-warn" aria-hidden="true">' . icon('shield') . '</div>'
+            . '<h1 class="ss-title">Admins only</h1><p class="ss-lead">This tool is for LamazonLoads admins. Ask an admin if something here needs changing.</p>'
+            . '<div class="ss-acts ss-acts-inline"><a class="btn btn-primary" href="' . e(url('admin/')) . '">Back to Overview</a></div></div></div></section>';
+        page_footer();
+        exit;
+    }
+    return $u;
+}
+
+/** Admin-only actions on pages moderators can use (deleting, settings): moderators are sent back with a note. */
+function require_full_admin_action(string $back): void
+{
+    if (!is_full_admin()) {
+        flash('error', 'Only admins can do that. Ask an admin if it needs doing.');
+        redirect($back);
+    }
+}
+
 function login_user(array $user): void
 {
     session_regenerate_id(true);

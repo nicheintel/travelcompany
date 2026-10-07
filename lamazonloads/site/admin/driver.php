@@ -9,6 +9,8 @@ if (!$u) {
     redirect('admin/drivers.php');
 }
 
+// Moderators can't reset passwords, delete anything or change staff access, and only admins change other staff accounts
+$canManage = is_full_admin() || !$u['is_admin'] || $id === (int) $me['id'];
 $edit = null;      // the "Edit information" form when it has problems
 $editErrors = [];
 $docErrors = [];
@@ -17,6 +19,9 @@ if (is_post()) {
     csrf_check();
     $action = $_POST['action'] ?? '';
     $onbBack = 'admin/driver.php?id=' . $id . '#onboarding';
+    if (!$canManage || in_array($action, ['admin', 'password', 'delete', 'remove_doc', 'onb_restart'], true)) {
+        require_full_admin_action('admin/driver.php?id=' . $id);
+    }
     if ($action === 'onb_start' && isset(ONB_TRACKS[$_POST['track'] ?? ''])) {
         onboarding_start($id, (string) $_POST['track']);
         flash('success', 'Onboarding started (' . ONB_TRACKS[$_POST['track']] . '). Add their documents below or ask them to upload on their onboarding page.');
@@ -105,10 +110,10 @@ if (is_post()) {
             flash('success', (DOC_KINDS[$doc['kind']] ?? 'Document') . ' removed.');
         }
         redirect('admin/driver.php?id=' . $id . '#documents');
-    } elseif ($action === 'admin' && $id !== (int) $me['id']) {
-        $make = !empty($_POST['make']) ? 1 : 0;
-        db_run('UPDATE users SET is_admin = ?, session_version = session_version + 1 WHERE id = ?', [$make, $id]);
-        flash('success', $make ? $u['name'] . ' is now staff.' : $u['name'] . ' is no longer staff.');
+    } elseif ($action === 'admin' && $id !== (int) $me['id'] && in_array($role = (string) ($_POST['role'] ?? ''), ['', 'moderator', 'admin'], true)) {
+        // Staff access: none, moderator or admin. They're signed out so the new access applies at their next sign-in.
+        db_run('UPDATE users SET is_admin = ?, staff_role = ?, session_version = session_version + 1 WHERE id = ?', [$role === '' ? 0 : 1, $role === 'moderator' ? 'moderator' : '', $id]);
+        flash('success', match ($role) { 'admin' => $u['name'] . ' is now an admin.', 'moderator' => $u['name'] . ' is now a moderator.', default => $u['name'] . ' no longer has staff access.' });
     } elseif ($action === 'verify') {
         db_run('UPDATE users SET email_verified_at = NOW(), verify_token = NULL, verify_expires = NULL WHERE id = ?', [$id]);
         flash('success', $u['name'] . "'s email is now marked as confirmed.");
@@ -148,13 +153,13 @@ admin_open('drivers');
 ?>
 <a class="back-link" href="<?= e(url('admin/drivers.php')) ?>"><?= icon('chev-left') ?> All members</a>
 <?= admin_head((string) $u['name'],
-    e(explode(' (', ACCOUNT_TYPES[$u['account_type']] ?? 'Member')[0]) . ' · joined ' . e(fmt_date($u['created_at'])) . ($addedBy ? ' · added by ' . e($addedBy) : '')
+    ($u['is_admin'] ? '<span class="badge badge-draft">' . e(STAFF_ROLES[staff_role($u)]) . '</span>' : e(explode(' (', ACCOUNT_TYPES[$u['account_type']] ?? 'Member')[0])) . ' · joined ' . e(fmt_date($u['created_at'])) . ($addedBy ? ' · added by ' . e($addedBy) : '')
     . ' · ' . (is_verified($u) ? '<span class="badge badge-open">Email confirmed</span>' : '<span class="badge badge-reviewing">Email not confirmed</span>')
     . (!empty($u['must_change_password']) ? ' <span class="badge badge-reviewing">Hasn’t chosen a password yet</span>' : '')
     . (!$u['is_admin'] ? ' ' . preg_replace('#<small>.*</small>#', '', onboarding_badge(onboarding_row($id)['stage'] ?? null)) : ''),
     '<a class="btn btn-ghost" href="mailto:' . e($u['email']) . '">' . icon('mail') . ' Email</a>'
     . ($u['phone'] !== '' ? '<a class="btn btn-ghost" href="' . e(tel_href((string) $u['phone'])) . '">' . icon('phone') . ' Call</a>' : '')
-    . '<a class="btn btn-primary" href="#edit" data-modal-open="edit">' . icon('edit') . ' Edit information</a>', 'Member') ?>
+    . ($canManage ? '<a class="btn btn-primary" href="#edit" data-modal-open="edit">' . icon('edit') . ' Edit information</a>' : ''), 'Member') ?>
 <?php $onb = onboarding_row($id); ?>
 <section class="card panel onb-panel" id="onboarding">
   <header class="panel-head"><h2><?= icon('check') ?>Onboarding</h2>
@@ -213,7 +218,7 @@ admin_open('drivers');
       <?php endif; ?>
       <form method="post" action="<?= e(url($self)) ?>" class="inline-form onb-track"><?= csrf_field() ?><input type="hidden" name="action" value="onb_track">
         <label for="track" class="sr-only">Program</label><?= select_html('track', ONB_TRACKS, (string) $onb['track'], 'Program') ?><button class="btn btn-ghost btn-sm" type="submit">Change</button></form>
-      <form method="post" action="<?= e(url($self)) ?>" class="inline-form" data-confirm-ok="Start over" data-confirm-danger data-confirm="Start their onboarding over from Upload documents? Their files stay, but approval and signature are cleared."><?= csrf_field() ?><input type="hidden" name="action" value="onb_restart"><button class="link-btn onb-restart" type="submit">Restart</button></form>
+      <?php if (is_full_admin()): // admins only ?><form method="post" action="<?= e(url($self)) ?>" class="inline-form" data-confirm-ok="Start over" data-confirm-danger data-confirm="Start their onboarding over from Upload documents? Their files stay, but approval and signature are cleared."><?= csrf_field() ?><input type="hidden" name="action" value="onb_restart"><button class="link-btn onb-restart" type="submit">Restart</button></form><?php endif; ?>
     </div>
   <?php endif; ?>
   </div>
@@ -262,7 +267,7 @@ admin_open('drivers');
     <tr><td><b><?= e(DOC_KINDS[$d['kind']] ?? $d['kind']) ?></b><?php if ($d['added_by']): ?><br><span class="doc-staff" title="Added by <?= e($staffNames[$d['added_by']] ?? 'staff') ?>"><?= icon('shield') ?> Added by LamazonLoads staff</span><?php endif; ?></td>
       <td><?= doc_link($d, e($d['original_name'])) ?></td><td><?= e(fmt_date($d['created_at'])) ?></td>
       <td><div class="row-actions"><?= doc_link($d, icon('eye') . ' View', 'btn btn-primary btn-sm') ?><a class="btn btn-ghost btn-sm" href="<?= e(url('doc.php?id=' . (int) $d['id'] . '&download=1')) ?>"><?= icon('download') ?> Download</a>
-        <form method="post" action="<?= e(url($self)) ?>" class="inline-form" data-confirm="Remove this document from their account?"><?= csrf_field() ?><input type="hidden" name="action" value="remove_doc"><input type="hidden" name="doc" value="<?= (int) $d['id'] ?>"><button class="btn btn-danger btn-sm" type="submit" aria-label="Remove <?= e(DOC_KINDS[$d['kind']] ?? 'document') ?>"><?= icon('trash') ?></button></form></div></td></tr>
+        <?php if (is_full_admin()): // admins only ?><form method="post" action="<?= e(url($self)) ?>" class="inline-form" data-confirm="Remove this document from their account?"><?= csrf_field() ?><input type="hidden" name="action" value="remove_doc"><input type="hidden" name="doc" value="<?= (int) $d['id'] ?>"><button class="btn btn-danger btn-sm" type="submit" aria-label="Remove <?= e(DOC_KINDS[$d['kind']] ?? 'document') ?>"><?= icon('trash') ?></button></form></div></td></tr><?php endif; ?>
   <?php endforeach; ?></tbody></table></div>
   <?php endif; ?>
 </div>
@@ -279,9 +284,9 @@ admin_open('drivers');
         <select name="status" aria-label="Status"><?php foreach (APP_STATUSES as $k => $l): ?><option value="<?= e($k) ?>"<?= $a['status'] === $k ? ' selected' : '' ?>><?= e($l) ?></option><?php endforeach; ?></select>
         <input type="text" name="admin_note" maxlength="2000" placeholder="Staff note (private)" value="<?= e($a['admin_note'] ?? '') ?>" aria-label="Staff note">
         <button class="btn btn-ghost btn-sm" type="submit">Save</button></form>
-        <form method="post" action="<?= e(url('admin/applications.php')) ?>" class="inline-form app-del-row" data-confirm="Delete this application? This can’t be undone. Their account and documents stay.">
+        <?php if (is_full_admin()): // only admins delete ?><form method="post" action="<?= e(url('admin/applications.php')) ?>" class="inline-form app-del-row" data-confirm="Delete this application? This can’t be undone. Their account and documents stay.">
           <?= csrf_field() ?><input type="hidden" name="action" value="delete"><input type="hidden" name="id" value="<?= (int) $a['id'] ?>"><input type="hidden" name="back" value="<?= e($self) ?>">
-          <button class="link-btn" type="submit"><?= icon('trash') ?> Delete application</button></form></td></tr>
+          <button class="link-btn" type="submit"><?= icon('trash') ?> Delete application</button></form><?php endif; ?></td></tr>
   <?php endforeach; ?></tbody></table></div>
   <?php endif; ?>
 </div>
@@ -289,16 +294,23 @@ admin_open('drivers');
 <div class="card pad">
   <h3 class="mt-0">Account actions</h3>
   <div class="row-actions">
-    <?php if (!is_verified($u)): ?>
+    <?php if (!is_verified($u) && $canManage): ?>
       <form method="post" action="<?= e(url($self)) ?>" class="inline-form"><?= csrf_field() ?><input type="hidden" name="action" value="verify"><button class="btn btn-primary btn-sm" type="submit">Mark email as confirmed</button></form>
       <form method="post" action="<?= e(url($self)) ?>" class="inline-form"><?= csrf_field() ?><input type="hidden" name="action" value="resend"><button class="btn btn-ghost btn-sm" type="submit">Resend confirmation email</button></form>
     <?php endif; ?>
-    <form method="post" action="<?= e(url($self)) ?>" class="inline-form" data-confirm="Create a new temporary password for this member?" data-confirm-ok="Create password"><?= csrf_field() ?><input type="hidden" name="action" value="password"><button class="btn btn-ghost btn-sm" type="submit">Reset password</button></form>
-    <?php if ($id !== (int) $me['id']): ?>
-      <form method="post" action="<?= e(url($self)) ?>" class="inline-form"><?= csrf_field() ?><input type="hidden" name="action" value="admin"><input type="hidden" name="make" value="<?= $u['is_admin'] ? '' : '1' ?>"><button class="btn btn-ghost btn-sm" type="submit"><?= $u['is_admin'] ? 'Remove staff access' : 'Make staff (admin)' ?></button></form>
-      <form method="post" action="<?= e(url($self)) ?>" class="inline-form del-member" data-confirm-ok="Delete member" data-confirm="Delete this member, their documents and applications? This cannot be undone."><?= csrf_field() ?><input type="hidden" name="action" value="delete">
-        <button class="btn btn-danger btn-sm" type="submit">Delete member</button>
-        <label class="check-inline"><input type="checkbox" name="notify" value="1" checked> Email them that their account was closed</label></form>
+    <?php if (is_full_admin()): ?>
+      <form method="post" action="<?= e(url($self)) ?>" class="inline-form" data-confirm="Create a new temporary password for this member?" data-confirm-ok="Create password"><?= csrf_field() ?><input type="hidden" name="action" value="password"><button class="btn btn-ghost btn-sm" type="submit">Reset password</button></form>
+      <?php if ($id !== (int) $me['id']): $cur = staff_role($u); ?>
+        <form method="post" action="<?= e(url($self)) ?>" class="inline-form staff-access" data-confirm="Change <?= e($u['name']) ?>’s staff access? They’ll be signed out and get the new access when they sign in again." data-confirm-ok="Change access"><?= csrf_field() ?><input type="hidden" name="action" value="admin">
+          <label for="role">Staff access</label>
+          <select id="role" name="role"><option value=""<?= $cur === '' ? ' selected' : '' ?>>None (member)</option><option value="moderator"<?= $cur === 'moderator' ? ' selected' : '' ?>>Moderator: inbox, hiring, members, jobs</option><option value="admin"<?= $cur === 'admin' ? ' selected' : '' ?>>Admin: everything</option></select>
+          <button class="btn btn-ghost btn-sm" type="submit">Save</button></form>
+        <form method="post" action="<?= e(url($self)) ?>" class="inline-form del-member" data-confirm-ok="Delete member" data-confirm="Delete this member, their documents and applications? This cannot be undone."><?= csrf_field() ?><input type="hidden" name="action" value="delete">
+          <button class="btn btn-danger btn-sm" type="submit">Delete member</button>
+          <label class="check-inline"><input type="checkbox" name="notify" value="1" checked> Email them that their account was closed</label></form>
+      <?php endif; ?>
+    <?php else: ?>
+      <p class="muted mb-0">Password resets, staff access and deleting members are handled by admins.</p>
     <?php endif; ?>
   </div>
 </div>

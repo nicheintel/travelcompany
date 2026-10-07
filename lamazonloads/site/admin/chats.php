@@ -23,6 +23,7 @@ if (is_post()) {
         chat_set_status($id, $action);
         flash('info', $action === 'done' ? "Marked as done. They're asked to rate the chat, and it moves back to Open if they write again." : 'Moved back to Open.');
     } elseif ($action === 'delete') {
+        require_full_admin_action('admin/chats.php?f=' . $f . '&t=' . $id);
         chat_delete($id);
         flash('success', 'Chat deleted.');
         redirect('admin/chats.php?f=' . $f);
@@ -101,7 +102,7 @@ admin_open('chats');
             <a href="mailto:<?= e($thread['email']) ?>"><?= e($thread['email']) ?></a> · started <time data-at="<?= (int) $thread['created_at'] ?>"><?= e(date('M j, g:i A', (int) $thread['created_at'])) ?></time><?php if ($thread['account_type'] === 'member'): ?> · <a href="<?= e(url('admin/driver.php?id=' . (int) $thread['account_id'])) ?>">profile</a><?php endif; ?><span class="cs-here" data-cs-here<?= time() - (int) $thread['user_seen_at'] < CHAT_AWAY_AFTER ? '' : ' hidden' ?>> · <i></i>on the website now</span></span></div>
         <div class="cs-acts">
           <form method="post" action="<?= e(url('admin/chats.php')) ?>"><?= csrf_field() ?><input type="hidden" name="t" value="<?= $tid ?>"><input type="hidden" name="f" value="<?= e($f) ?>"><input type="hidden" name="action" value="<?= $thread['status'] === 'done' ? 'open' : 'done' ?>"><button class="btn btn-ghost btn-sm" type="submit"<?= $thread['status'] === 'done' ? '' : " title=\"Ends the chat. They're asked to rate it.\"" ?>><?= $thread['status'] === 'done' ? 'Reopen' : 'Mark as done' ?></button></form>
-          <form method="post" action="<?= e(url('admin/chats.php')) ?>" data-confirm="Delete this chat with <?= e($thread['name']) ?>? This can't be undone."><?= csrf_field() ?><input type="hidden" name="t" value="<?= $tid ?>"><input type="hidden" name="f" value="<?= e($f) ?>"><input type="hidden" name="action" value="delete"><button class="btn btn-danger btn-sm" type="submit">Delete</button></form>
+          <?php if (is_full_admin()): // only admins delete ?><form method="post" action="<?= e(url('admin/chats.php')) ?>" data-confirm="Delete this chat with <?= e($thread['name']) ?>? This can't be undone."><?= csrf_field() ?><input type="hidden" name="t" value="<?= $tid ?>"><input type="hidden" name="f" value="<?= e($f) ?>"><input type="hidden" name="action" value="delete"><button class="btn btn-danger btn-sm" type="submit">Delete</button></form><?php endif; ?>
         </div>
       </div>
       <?php if ((int) $thread['ended_at']): ?>
