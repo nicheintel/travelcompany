@@ -2038,3 +2038,14 @@ div.kpi:hover { transform: none; box-shadow: var(--shadow); border-color: var(--
   .dash:not(.admin-dash) .dash-nav a .ic, .dash:not(.admin-dash) .dash-nav button .ic { width: 16px; height: 16px; }
   .dash:not(.admin-dash) .dash-nav form { margin: 0; padding: 0; border: 0; flex: none; }
 }
+
+/* Meet the fleet with real photos: photos cross-fade with a slow zoom (the slide-across is for the drawings),
+   with a soft navy shade at the bottom so any photo sits in the blue LamazonLoads theme */
+.fleet-car.has-photo { transform: scale(1.06); transition: opacity .7s ease, transform 1.6s cubic-bezier(.2, .7, .2, 1), visibility 0s .7s; }
+.fleet-car.has-photo.is-on { z-index: 2; opacity: 1; visibility: visible; transform: scale(1); transition: opacity .7s ease, transform 6s cubic-bezier(.2, .7, .2, 1), visibility 0s; }
+.fleet-car.has-photo.is-on.moving { transition-delay: 0s; }
+.fleet-car.has-photo.leave { z-index: 1; opacity: 0; visibility: visible; transform: scale(1.02); transition: opacity .7s ease, transform .7s ease; }
+.fleet-car.has-photo::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(180deg, rgba(10, 36, 99, 0) 55%, rgba(7, 26, 74, .55) 100%), linear-gradient(90deg, rgba(10, 36, 99, .18), rgba(10, 36, 99, 0) 40%); }
+.fleet-stage:has(.fleet-car.has-photo.is-on) .fleet-floor, .fleet-stage:has(.fleet-car.has-photo.is-on) .fleet-lights { opacity: 0; transition: opacity .4s; }
+@media (prefers-reduced-motion: reduce) { .fleet-car.has-photo, .fleet-car.has-photo.is-on, .fleet-car.has-photo.leave { transform: none; } }
