@@ -96,7 +96,7 @@ admin_open('drivers');
 <?php if (!$rows): ?><div class="card empty">No members found.</div><?php else: ?>
 <section class="card panel">
   <div class="panel-body flush ml">
-    <div class="ml-row ml-head" aria-hidden="true"><span>Member</span><span>Type &amp; city</span><span>Equipment</span><span>Onboarding</span><span class="ml-c">Docs</span><span class="ml-c">Applied</span><span>Joined</span><span></span></div>
+    <div class="ml-row ml-head" aria-hidden="true"><span>Member</span><span>Type &amp; city</span><span>Equipment</span><span>Onboarding</span><span class="ml-c">Docs</span><span class="ml-c">Applied</span><span class="ml-end">Joined</span></div>
     <?php foreach ($rows as $r): $nm = trim((string) $r['name']); ?>
       <a class="ml-row" href="<?= e(url('admin/driver.php?id=' . (int) $r['id'])) ?>">
         <span class="ml-who"><span class="ov-av" aria-hidden="true"><?= e(strtoupper(mb_substr($nm, 0, 1))) ?></span>

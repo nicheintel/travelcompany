@@ -2031,9 +2031,10 @@ a.app-row:hover .ar-go { opacity: 1; transform: translateX(3px); }
 /* Spreadsheet-style table: a line between every row and column, header on a tinted band, and columns with a
    minimum width so nothing runs into the next column. When the list is narrower than the table, rows become cards. */
 .panel-body.ml { container-type: inline-size; padding: 0; }
-.ml-row { display: grid; grid-template-columns: minmax(164px, 2.1fr) minmax(136px, 1.1fr) minmax(100px, 1fr) minmax(172px, 1.1fr) 56px 68px 92px 32px; align-items: stretch; color: var(--text); font-size: .9rem; }
+.ml-row { display: grid; grid-template-columns: minmax(156px, 2.1fr) minmax(132px, 1.1fr) minmax(96px, 1fr) minmax(172px, 1.1fr) 56px 68px 112px 32px; align-items: stretch; color: var(--text); font-size: .9rem; }
 .ml-row > * { display: flex; flex-direction: column; justify-content: center; align-items: flex-start; min-width: 0; padding: 12px; }
 .ml-row > * + * { border-left: 1px solid var(--line); }
+.ml-row > * > * { max-width: 100%; } /* long text wraps inside its cell */
 .ml-row + .ml-row { border-top: 1px solid var(--line); }
 a.ml-row:nth-of-type(even) { background: #FAFBFE; }
 a.ml-row { transition: background .12s; }
@@ -2044,6 +2045,11 @@ a.ml-row:hover .ar-go { opacity: 1; transform: translateX(3px); }
 .ml-head + .ml-row { border-top-color: #D8E0EC; }
 .ml-row > .ml-c, .ml-row > .ml-n, .ml-row > .ar-go { align-items: center; text-align: center; }
 .ml-row > .ml-n, .ml-row > .ar-go { flex-direction: row; }
+/* The date and the arrow share the last cell: the date centered, the arrow at the right edge */
+.ml-row { position: relative; }
+.ml-row > .ml-date, .ml-row > .ml-end { grid-column: span 2; align-items: center; text-align: center; }
+.ml-row > .ar-go { position: absolute; top: 0; bottom: 0; right: 8px; padding: 0; border-left: 0; }
+.ml-row > .ar-go .ic { width: 16px; height: 16px; }
 .ml-row > .ml-who { flex-direction: row; align-items: center; justify-content: flex-start; gap: 12px; }
 .ml-who > span:last-child { min-width: 0; }
 .ml-who b { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 6px; color: var(--ink); }
@@ -2068,7 +2074,7 @@ a.ml-row:hover .ar-go { opacity: 1; transform: translateX(3px); }
 .ml-n .ic { width: 15px; height: 15px; }
 .ml-n.has { color: var(--blue); }
 .ml-date { color: var(--muted); font-size: .84rem; white-space: nowrap; }
-@container (max-width: 819px) {
+@container (max-width: 823px) {
   .ml-head { display: none; }
   .ml-row { grid-template-columns: minmax(0, 1fr) auto auto; grid-template-areas: "who who who" "onb onb onb" "type docs apps" "eq eq date"; gap: 6px 14px; padding: 14px 16px; align-items: center; }
   .ml-row > * { padding: 0; }
@@ -2239,7 +2245,7 @@ div.kpi:hover { transform: none; box-shadow: var(--shadow); border-color: var(--
 .badge-stage-contract { background: #F3EEFF; color: #5B34C2; }
 .badge-stage-done { background: #E8F7EE; color: #17804A; }
 @media (max-width: 1100px) { .onb-flow { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@container (max-width: 819px) {
+@container (max-width: 823px) {
   .ml-row .badge { white-space: normal; }
   .ml-row.onl-row { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "who who" "track stage" "prog date"; }
   .onl-row > :nth-child(1) { grid-area: who; } .onl-row > :nth-child(2) { grid-area: track; } .onl-row > :nth-child(3) { grid-area: prog; }
