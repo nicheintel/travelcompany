@@ -16,6 +16,9 @@ if (!$job || ($job['status'] !== 'open' && !is_admin())) {
 }
 
 $user = current_user();
+// Drivers already approved in onboarding don't apply again: they message the team on Telegram about an opening
+$onbStage = $user && !$user['is_admin'] ? (string) (onboarding_row((int) $user['id'])['stage'] ?? '') : '';
+$onboarded = is_onboarded($onbStage);
 $existing = $user ? db_one('SELECT * FROM applications WHERE user_id = ? AND job_id = ?', [$user['id'], $id]) : null;
 $external = $job['apply_method'] === 'url' && $job['apply_url'] !== '';
 $resumeMode = (string) $job['resume'];
@@ -44,6 +47,9 @@ if (is_post() && ($_POST['action'] ?? '') === 'resend_email') {
 if (is_post() && !$external) {
     $user = require_verified();
     csrf_check();
+    if ($onboarded) {
+        redirect('job.php?id=' . $id . '&apply=1#apply'); // shows the "message us on Telegram" note instead of the form
+    }
     $resumeId = null;
     if ($job['status'] !== 'open') {
         $errors[] = 'This opening is closed.';
@@ -157,6 +163,14 @@ $here = 'job.php?id=' . $id;
       <?php elseif ($external): ?>
         <div><span class="eyebrow">Interested?</span><h2>Apply for this job</h2><p class="muted mb-0">Applications for this job are taken on another website.</p></div>
         <a class="btn btn-accent btn-lg" href="<?= e($job['apply_url']) ?>" target="_blank" rel="noopener nofollow">Apply on the company site <?= icon('arrow') ?></a>
+      <?php elseif ($onboarded && $onbStage === 'contract'): ?>
+        <div><span class="eyebrow">You’re approved</span><h2>Finish your onboarding</h2>
+          <p class="muted mb-0">Sign your driver agreement, then message our team on Telegram about this opening.</p></div>
+        <a class="btn btn-accent btn-lg" href="<?= e(url('onboarding.php')) ?>">Sign my agreement <?= icon('arrow') ?></a>
+      <?php elseif ($onboarded): ?>
+        <div><span class="eyebrow">Already onboarded</span><h2>Interested in this opening?</h2>
+          <p class="muted mb-0">You’re part of our driver network, so there’s no need to apply. Message our team on Telegram and we’ll take it from there.</p></div>
+        <a class="btn btn-accent btn-lg" href="<?= e(telegram_link()) ?>" target="_blank" rel="noopener"><?= icon('send') ?> Message us on Telegram</a>
       <?php else: ?>
         <div><span class="eyebrow">Interested?</span><h2>Ready to roll with LamazonLoads?</h2>
           <p class="muted mb-0">Applying takes about two minutes: your name, phone, location and vehicle.</p></div>
@@ -173,7 +187,7 @@ $here = 'job.php?id=' . $id;
   <a class="modal-backdrop" href="#apply-now" data-modal-close aria-label="Close"></a>
   <div class="modal-panel">
     <header class="modal-head">
-      <div><span class="eyebrow">Apply now</span><h2 id="apply-title"><?= e($job['title']) ?></h2></div>
+      <div><span class="eyebrow"><?= $onboarded ? 'Interested?' : 'Apply now' ?></span><h2 id="apply-title"><?= e($job['title']) ?></h2></div>
       <a class="modal-x" href="#apply-now" data-modal-close aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></a>
     </header>
     <div class="modal-body">
@@ -190,6 +204,20 @@ $here = 'job.php?id=' . $id;
           <div class="ss-acts">
             <a class="btn btn-accent btn-block" href="<?= e(url('register.php?next=' . rawurlencode($here . '&apply=1'))) ?>">Create account &amp; apply</a>
             <a class="btn btn-ghost btn-block" href="<?= e(url('login.php?next=' . rawurlencode($here . '&apply=1'))) ?>">I already have an account</a>
+          </div></div>
+      <?php elseif ($onboarded && $onbStage === 'contract'): ?>
+        <div class="ss modal-ss"><div class="ss-ico" aria-hidden="true"><?= icon('edit') ?></div><h3 class="ss-title" tabindex="-1" data-autofocus>You’re approved</h3>
+          <p class="ss-lead">One step left: sign your driver agreement to finish onboarding.</p>
+          <?= ss_hint('After that, message our team on Telegram about this opening, and we’ll take it from there.', 'send') ?>
+          <div class="ss-acts"><a class="btn btn-accent btn-block" href="<?= e(url('onboarding.php')) ?>">Sign my agreement <?= icon('arrow') ?></a></div></div>
+      <?php elseif ($onboarded): ?>
+        <div class="ss modal-ss"><div class="ss-ico" aria-hidden="true"><?= icon('truck') ?><span class="ss-badge"><?= icon('check') ?></span></div><h3 class="ss-title" tabindex="-1" data-autofocus>You’re already onboarded</h3>
+          <p class="ss-lead">You’re part of the LamazonLoads driver network, so there’s no need to apply again.</p>
+          <?= ss_chip(telegram_handle(), 'send') ?>
+          <?= ss_hint('Interested in this opening? Message our team on Telegram with the job title, and we’ll take it from there.', 'chat') ?>
+          <div class="ss-acts">
+            <a class="btn btn-accent btn-block" href="<?= e(telegram_link()) ?>" target="_blank" rel="noopener"><?= icon('send') ?> Message us on Telegram</a>
+            <a class="btn btn-ghost btn-block" href="<?= e(url('account.php')) ?>">Go to my dashboard</a>
           </div></div>
       <?php else: ?>
         <?php if ($errors): ?><ul class="errors"><?php foreach ($errors as $er): ?><li><?= e($er) ?></li><?php endforeach; ?></ul><?php endif; ?>
