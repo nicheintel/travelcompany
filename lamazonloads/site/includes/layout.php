@@ -15,6 +15,8 @@ function icon(string $name, string $class = 'ic'): string
         'users'     => '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14.2A6.5 6.5 0 0 1 21.5 20"/>',
         'dollar'    => '<path d="M12 2v20"/><path d="M17 6.5c-.8-1.3-2.6-2-5-2-3 0-4.5 1.4-4.5 3.2 0 4.3 9.5 2.3 9.5 7.3 0 1.9-1.8 3.5-5 3.5-2.6 0-4.4-.9-5.2-2.3"/>',
         'check'     => '<path d="M4.5 12.5l5 5 10-11"/>',
+        'info'      => '<circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 7.6v.01"/>',
+        'alert'     => '<circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.4v.01"/>',
         'arrow'     => '<path d="M4 12h15M13 6l6 6-6 6"/>',
         'menu'      => '<path d="M3 6h18M3 12h18M3 18h18"/>',
         'shield'    => '<path d="M12 3l8 3v6c0 4.7-3.4 8.3-8 9-4.6-.7-8-4.3-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/>',
@@ -137,14 +139,37 @@ function page_header(string $title, string $active = '', string $description = '
     $flashes = take_flashes();
     if ($flashes) {
         echo '<div class="toasts" aria-live="polite">';
-        foreach ($flashes as [$type, $msg]) {
-            echo '<div class="toast alert alert-' . e($type) . '" role="' . ($type === 'error' ? 'alert' : 'status') . '" data-toast>'
-                . '<span class="toast-ico">' . icon($type === 'success' ? 'check' : ($type === 'error' ? 'shield' : 'mail')) . '</span>'
-                . '<span class="toast-msg">' . e($msg) . '</span>'
-                . '<button type="button" class="toast-x" aria-label="Close" data-toast-close><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>';
+        foreach ($flashes as $f) {
+            $type = in_array($f[0], ['success', 'error', 'info'], true) ? $f[0] : 'info';
+            [$title, $text] = toast_parts((string) $f[1]);
+            echo '<div class="toast toast-' . $type . ($title === '' || $text === '' ? ' is-solo' : '') . '" role="' . ($type === 'error' ? 'alert' : 'status') . '" data-toast' . (!empty($f[2]) ? ' data-toast-keep' : '') . '>'
+                . '<span class="toast-ico">' . icon($type === 'success' ? 'check' : ($type === 'error' ? 'alert' : 'info')) . '</span>'
+                . '<span class="toast-body">' . ($title !== '' ? '<b class="toast-title">' . e($title) . '</b>' : '') . ($text !== '' ? '<span class="toast-msg">' . e($text) . '</span>' : '') . '</span>'
+                . '<button type="button" class="toast-x" aria-label="Close" data-toast-close><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>'
+                . (empty($f[2]) ? '<span class="toast-bar" aria-hidden="true"></span>' : '') . '</div>';
         }
         echo '</div>';
     }
+}
+
+/**
+ * Splits a message into a short bold title and the rest: "Application sent! Please check…" becomes
+ * "Application sent!" + "Please check…". One short sentence is just a title; one long sentence is just text.
+ */
+function toast_parts(string $msg): array
+{
+    if (preg_match('/^(.{2,80}?[.!?])\s+(?=[A-Z0-9“"(])(.+)$/su', $msg, $m)) return [$m[1], $m[2]];
+    return mb_strlen($msg) <= 70 ? [$msg, ''] : ['', $msg];
+}
+
+/** "Are you sure?" pop-up for forms with data-confirm (filled in by app.js). */
+function confirm_dialog_html(): string
+{
+    return '<dialog class="cfm" data-cfm aria-labelledby="cfm-title" aria-describedby="cfm-text"><div class="cfm-box">'
+        . '<span class="cfm-ico cfm-ico-delete">' . icon('trash') . '</span><span class="cfm-ico cfm-ico-warn">' . icon('alert') . '</span><span class="cfm-ico cfm-ico-info">' . icon('info') . '</span>'
+        . '<h2 id="cfm-title" data-cfm-title></h2><p id="cfm-text" data-cfm-text></p>'
+        . '<div class="cfm-acts"><button type="button" class="btn btn-ghost" data-cfm-no>Cancel</button><button type="button" class="btn btn-primary" data-cfm-yes>Continue</button></div>'
+        . '</div></dialog>';
 }
 
 /** The document viewer pop-up (filled in by app.js when a [data-doc-view] link is clicked). */
@@ -171,7 +196,7 @@ function page_footer(): void
     if (is_admin_page()) { // admin: a slim footer, no chat bubble (staff answer chats in Support chats)
         echo '</main><footer class="admin-foot"><div class="container"><span>&copy; ' . date('Y') . ' LamazonLoads · Admin</span>'
             . '<span><a href="' . e(url('')) . '">View website</a> · <a href="' . e(url('privacy.php')) . '">Privacy policy</a></span></div></footer>'
-            . (current_user() ? doc_viewer_html() : '') . '</body></html>';
+            . (current_user() ? doc_viewer_html() : '') . confirm_dialog_html() . '</body></html>';
         return;
     }
     $email = (string) config('contact_email');
@@ -218,7 +243,7 @@ function page_footer(): void
     <span><a href="<?= e(url('privacy.php')) ?>">Privacy policy</a> · <span class="motto">Why wait? <b>Let's freight.</b></span></span>
   </div></div>
 </footer>
-<?= current_user() ? doc_viewer_html() : '' ?>
+<?= current_user() ? doc_viewer_html() : '' ?><?= confirm_dialog_html() ?>
 <?= chat_bubble() ?>
 </body>
 </html>

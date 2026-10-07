@@ -76,7 +76,7 @@ dash_open('settings');
   <button class="btn btn-primary mt" type="submit">Change password</button>
 </form>
 <?php if (!$u['is_admin']): ?>
-<form method="post" action="<?= e(url('settings.php')) ?>" class="card form-card danger-zone" id="delete" data-confirm="Delete your LamazonLoads account for good? Your profile, documents and applications will be removed. This can’t be undone.">
+<form method="post" action="<?= e(url('settings.php')) ?>" class="card form-card danger-zone" id="delete" data-confirm-ok="Delete my account" data-confirm="Delete your LamazonLoads account for good? Your profile, documents and applications will be removed. This can’t be undone.">
   <?= csrf_field() ?><input type="hidden" name="action" value="delete_account">
   <h3 class="mt-0"><?= icon('trash') ?> Delete my account</h3>
   <p class="muted">This removes your account, driver profile, uploaded documents, applications and chats. It can’t be undone. We’ll email you to confirm.</p>

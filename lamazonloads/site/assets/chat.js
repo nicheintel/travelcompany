@@ -42,8 +42,10 @@
       var x = el('button', 'chat-x', '✕'); x.type = 'button'; x.setAttribute('aria-label', 'Close chat'); x.addEventListener('click', close);
       endBtn = el('button', 'chat-end', 'End chat'); endBtn.type = 'button'; endBtn.hidden = true;
       endBtn.addEventListener('click', function () {
-        if (!window.confirm('End this chat? You can start a new one any time.')) return;
-        post({ a: 'end' }).then(function () { showEnded('user'); }).catch(function () {});
+        var msg = 'End this chat? You can start a new one any time.';
+        (window.LLConfirm ? window.LLConfirm(msg, { ok: 'End chat' }) : Promise.resolve(window.confirm(msg))).then(function (ok) {
+          if (ok) post({ a: 'end' }).then(function () { showEnded('user'); }).catch(function () {});
+        });
       });
       var acts = el('div', 'chat-acts'); acts.appendChild(endBtn); acts.appendChild(x);
       head.appendChild(title); head.appendChild(acts); panel.appendChild(head);
@@ -195,7 +197,7 @@
       get({ a: 'poll' }).then(function (d) { showHint(!!d.online); }).catch(function () { showHint(false); });
     }, 4000);
     fab.addEventListener('click', function () { if (isOpen) close(); else open(); });
-    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && isOpen) close(); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && isOpen && !document.querySelector('dialog[open]')) close(); });
     if (new URLSearchParams(location.search).get('chat') === '1') open();
     else if (has) { poll(); schedule(); }
   })();

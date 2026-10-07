@@ -86,9 +86,10 @@ function csrf_check(): void
     }
 }
 
-function flash(string $type, string $msg): void
+/** A message shown at the top of the next page. $keep: stays until closed (e.g. it shows a password to copy). */
+function flash(string $type, string $msg, bool $keep = false): void
 {
-    $_SESSION['flash'][] = [$type, $msg];
+    $_SESSION['flash'][] = [$type, $msg, $keep];
 }
 
 function take_flashes(): array

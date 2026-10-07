@@ -62,7 +62,7 @@ if (is_post() && !$external) {
         on_new_application($appId);
         $sent = (string) db_val('SELECT email_sent FROM applications WHERE id = ?', [$appId]);
         flash('success', 'Application sent! ' . ($sent !== ''
-            ? 'Please check your email: we sent your next steps from info@lamazonloads.com (if you don’t see it, check your spam folder).'
+            ? 'We emailed your next steps from info@lamazonloads.com. Check your inbox or spam folder.'
             : 'We will review it and contact you.'));
         redirect('account.php');
     }

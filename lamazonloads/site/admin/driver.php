@@ -105,7 +105,7 @@ if (is_post()) {
         // For members who forgot their password: staff set a temporary one and share it by phone.
         $temp = temp_password();
         db_run('UPDATE users SET password_hash = ?, must_change_password = 1, session_version = session_version + 1 WHERE id = ?', [password_hash($temp, PASSWORD_DEFAULT), $id]);
-        flash('info', "Temporary password for {$u['name']}: $temp (share it privately; they'll choose their own password when they sign in).");
+        flash('info', "New temporary password for {$u['name']} is ready. Password: $temp (share it privately; they'll choose their own password when they sign in).", true);
     } elseif ($action === 'delete' && $id !== (int) $me['id']) {
         $told = !empty($_POST['notify']) && send_account_closed($u, 'staff');
         delete_member($id);
@@ -174,7 +174,7 @@ admin_open('drivers');
     <?php endif; ?>
     <div class="onb-actions">
       <?php if (in_array($onb['stage'], ['documents', 'review', 'changes'], true)): ?>
-        <form method="post" action="<?= e(url($self)) ?>" class="inline-form"<?= $oDone < count($oItems) ? ' data-confirm="Not every item is on file yet. Approve anyway?"' : '' ?>><?= csrf_field() ?><input type="hidden" name="action" value="onb_approve">
+        <form method="post" action="<?= e(url($self)) ?>" class="inline-form"<?= $oDone < count($oItems) ? ' data-confirm="Not every item is on file yet. Approve anyway?" data-confirm-ok="Approve anyway"' : '' ?>><?= csrf_field() ?><input type="hidden" name="action" value="onb_approve">
           <button class="btn btn-accent" type="submit"><?= icon('check') ?> Approve<?= contract_needed($onb['track']) ? ' & send agreement' : ' & send Telegram link' ?></button></form>
         <details class="onb-changes"><summary class="btn btn-ghost"><?= icon('chat') ?> Request changes</summary>
           <form method="post" action="<?= e(url($self)) ?>"><?= csrf_field() ?><input type="hidden" name="action" value="onb_changes">
@@ -188,7 +188,7 @@ admin_open('drivers');
       <?php endif; ?>
       <form method="post" action="<?= e(url($self)) ?>" class="inline-form onb-track"><?= csrf_field() ?><input type="hidden" name="action" value="onb_track">
         <label for="track" class="sr-only">Program</label><?= select_html('track', ONB_TRACKS, (string) $onb['track'], 'Program') ?><button class="btn btn-ghost btn-sm" type="submit">Change</button></form>
-      <form method="post" action="<?= e(url($self)) ?>" class="inline-form" data-confirm="Start their onboarding over from Upload documents? Their files stay, but approval and signature are cleared."><?= csrf_field() ?><input type="hidden" name="action" value="onb_restart"><button class="link-btn onb-restart" type="submit">Restart</button></form>
+      <form method="post" action="<?= e(url($self)) ?>" class="inline-form" data-confirm-ok="Start over" data-confirm-danger data-confirm="Start their onboarding over from Upload documents? Their files stay, but approval and signature are cleared."><?= csrf_field() ?><input type="hidden" name="action" value="onb_restart"><button class="link-btn onb-restart" type="submit">Restart</button></form>
     </div>
   <?php endif; ?>
   </div>
@@ -267,10 +267,10 @@ admin_open('drivers');
       <form method="post" action="<?= e(url($self)) ?>" class="inline-form"><?= csrf_field() ?><input type="hidden" name="action" value="verify"><button class="btn btn-primary btn-sm" type="submit">Mark email as confirmed</button></form>
       <form method="post" action="<?= e(url($self)) ?>" class="inline-form"><?= csrf_field() ?><input type="hidden" name="action" value="resend"><button class="btn btn-ghost btn-sm" type="submit">Resend confirmation email</button></form>
     <?php endif; ?>
-    <form method="post" action="<?= e(url($self)) ?>" class="inline-form" data-confirm="Create a new temporary password for this member?"><?= csrf_field() ?><input type="hidden" name="action" value="password"><button class="btn btn-ghost btn-sm" type="submit">Reset password</button></form>
+    <form method="post" action="<?= e(url($self)) ?>" class="inline-form" data-confirm="Create a new temporary password for this member?" data-confirm-ok="Create password"><?= csrf_field() ?><input type="hidden" name="action" value="password"><button class="btn btn-ghost btn-sm" type="submit">Reset password</button></form>
     <?php if ($id !== (int) $me['id']): ?>
       <form method="post" action="<?= e(url($self)) ?>" class="inline-form"><?= csrf_field() ?><input type="hidden" name="action" value="admin"><input type="hidden" name="make" value="<?= $u['is_admin'] ? '' : '1' ?>"><button class="btn btn-ghost btn-sm" type="submit"><?= $u['is_admin'] ? 'Remove staff access' : 'Make staff (admin)' ?></button></form>
-      <form method="post" action="<?= e(url($self)) ?>" class="inline-form del-member" data-confirm="Delete this member, their documents and applications? This cannot be undone."><?= csrf_field() ?><input type="hidden" name="action" value="delete">
+      <form method="post" action="<?= e(url($self)) ?>" class="inline-form del-member" data-confirm-ok="Delete member" data-confirm="Delete this member, their documents and applications? This cannot be undone."><?= csrf_field() ?><input type="hidden" name="action" value="delete">
         <button class="btn btn-danger btn-sm" type="submit">Delete member</button>
         <label class="check-inline"><input type="checkbox" name="notify" value="1" checked> Email them that their account was closed</label></form>
     <?php endif; ?>

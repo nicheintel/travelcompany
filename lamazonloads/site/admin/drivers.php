@@ -29,7 +29,7 @@ if (is_post() && ($_POST['action'] ?? '') === 'add') {
         if (send_member_welcome($new, $pass)) {
             flash('success', 'Account created for ' . $new['name'] . '. Their sign-in details were emailed to ' . $new['email'] . '.');
         } else {
-            flash('error', "Account created for {$new['name']}, but the email couldn't be sent. Share this password with them privately: $pass (they'll choose their own when they sign in).");
+            flash('error', "Account created for {$new['name']}, but the email couldn't be sent. Share this password with them privately: $pass (they'll choose their own when they sign in).", true);
         }
         redirect('admin/driver.php?id=' . $newId);
     }

@@ -68,7 +68,7 @@ function photo_spot_forms(string $slot, ?array $current, string $uploadLabel, st
       <button class="btn btn-primary btn-sm" type="submit"><?= icon('upload') ?> <?= e($uploadLabel) ?></button>
     </form>
     <?php if ($current): ?>
-      <form method="post" action="<?= e(url('admin/photos.php')) ?>" data-confirm="<?= e($confirm) ?>">
+      <form method="post" action="<?= e(url('admin/photos.php')) ?>" data-confirm="<?= e($confirm) ?>" data-confirm-ok="<?= e($restoreLabel) ?>">
         <?= csrf_field() ?><input type="hidden" name="action" value="delete"><input type="hidden" name="id" value="<?= (int) $current['id'] ?>">
         <button class="btn btn-ghost btn-sm" type="submit"><?= icon('trash') ?> <?= e($restoreLabel) ?></button>
       </form>

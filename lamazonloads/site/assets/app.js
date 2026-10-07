@@ -212,6 +212,7 @@
       if (!m.classList.contains('is-open')) return;
       var opened = document.querySelectorAll('.modal.is-open');
       if (opened[opened.length - 1] !== m) return; // a pop-up opened on top of this one handles the keys
+      if (document.querySelector('dialog[open]')) return; // so does an "Are you sure?" box
       if (e.key === 'Escape') { close(); return; }
       if (e.key === 'Tab') { // keep the keyboard inside the pop-up
         var f = focusables(); if (!f.length) return;
@@ -396,13 +397,44 @@
     });
   }, true);
 
-  // Messages ("Saved", "Application sent", errors) drop in at the top and tidy themselves away
+  // Messages ("Saved", "Application sent", errors) slide in and tidy themselves away. The thin bar shows the time
+  // left; it pauses while the pointer is on the message or the tab is in the background. Swipe sideways to dismiss.
   document.querySelectorAll('[data-toast]').forEach(function (t, i) {
-    var close = function () { t.classList.add('is-leaving'); setTimeout(function () { t.remove(); }, 260); };
+    var keep = t.hasAttribute('data-toast-keep'), bar = t.querySelector('.toast-bar'), gone = false, timer = 0, startedAt = 0;
+    var left = (t.classList.contains('toast-error') ? 10000 : 6000) + i * 700;
+    if (bar) bar.style.animationDuration = left + 'ms';
+    var close = function () {
+      if (gone) return; gone = true; clearTimeout(timer);
+      t.classList.add('is-leaving'); setTimeout(function () { t.remove(); }, 340);
+    };
+    var run = function () { if (gone || keep) return; t.classList.remove('is-paused'); startedAt = Date.now(); clearTimeout(timer); timer = setTimeout(close, left); };
+    var pause = function () { if (gone || keep || t.classList.contains('is-paused')) return; clearTimeout(timer); left = Math.max(0, left - (Date.now() - startedAt)); t.classList.add('is-paused'); };
     t.querySelector('[data-toast-close]').addEventListener('click', close);
-    var wait = (t.classList.contains('alert-error') ? 12000 : 7000) + i * 600, timer = setTimeout(close, wait);
-    t.addEventListener('mouseenter', function () { clearTimeout(timer); });
-    t.addEventListener('mouseleave', function () { timer = setTimeout(close, 3000); });
+    t.addEventListener('mouseenter', pause);
+    t.addEventListener('mouseleave', run);
+    document.addEventListener('visibilitychange', function () { if (document.hidden) pause(); else run(); });
+    var x0 = null;
+    t.addEventListener('pointerdown', function (e) {
+      if (e.pointerType === 'mouse' || e.target.closest('button, a')) return;
+      x0 = e.clientX; t.style.transition = 'none'; pause();
+      if (t.setPointerCapture) t.setPointerCapture(e.pointerId);
+    });
+    t.addEventListener('pointermove', function (e) {
+      if (x0 === null) return;
+      var dx = e.clientX - x0; t.style.transform = 'translateX(' + dx + 'px)'; t.style.opacity = String(1 - Math.min(Math.abs(dx) / 260, .7));
+    });
+    var release = function (e) {
+      if (x0 === null) return;
+      var dx = e.clientX - x0; x0 = null; t.style.transition = '';
+      if (Math.abs(dx) > 70) {
+        gone = true; clearTimeout(timer);
+        t.style.transform = 'translateX(' + (dx > 0 ? 110 : -110) + '%)'; t.classList.add('is-swiped');
+        setTimeout(function () { t.remove(); }, 260);
+      } else { t.style.transform = ''; t.style.opacity = ''; run(); }
+    };
+    t.addEventListener('pointerup', release);
+    t.addEventListener('pointercancel', release);
+    if (!document.hidden) run(); else if (!keep) t.classList.add('is-paused');
   });
 
   // Applications list: tick rows, then "Delete selected".
@@ -593,9 +625,57 @@
   var anActive = document.querySelector('.an-links a.active, .dash-nav > a.active');
   if (anActive && window.matchMedia('(max-width: 860px)').matches) anActive.parentNode.scrollLeft = anActive.offsetLeft - 12;
 
-  // Ask before destructive actions.
+  // "Are you sure?" pop-up. The question becomes the title and the rest the note under it:
+  // "Delete this chat? This can't be undone." Buttons: Cancel and "Delete" (red), or data-confirm-ok's label.
+  var cfm = document.querySelector('[data-cfm]');
+  window.LLConfirm = function (msg, opts) {
+    opts = opts || {};
+    if (!cfm || !cfm.showModal) return Promise.resolve(window.confirm(msg));
+    var parts = msg.match(/[^.?!]+[.?!]+(\s+|$)/g) || [msg], q = -1;
+    parts.forEach(function (p, i) { if (q < 0 && /\?\s*$/.test(p)) q = i; });
+    if (q < 0) q = 0;
+    var title = parts[q].trim(), text = parts.filter(function (p, i) { return i !== q; }).join('').trim();
+    var verb = (title.match(/^(Delete|Remove|End)\b/) || [])[1];
+    var danger = opts.danger || !!verb;
+    var yes = cfm.querySelector('[data-cfm-yes]'), no = cfm.querySelector('[data-cfm-no]');
+    cfm.querySelector('[data-cfm-title]').textContent = title;
+    cfm.querySelector('[data-cfm-text]').textContent = text;
+    yes.textContent = opts.ok || verb || 'Continue';
+    yes.className = 'btn ' + (danger ? 'btn-confirm-danger' : 'btn-primary');
+    cfm.classList.toggle('is-danger', danger);
+    cfm.setAttribute('data-kind', /^(Delete|Remove)$/.test(verb || '') ? 'delete' : (danger ? 'warn' : 'info'));
+    cfm.classList.remove('is-closing');
+    var back = document.activeElement;
+    return new Promise(function (resolve) {
+      var finish = function (ok) {
+        yes.removeEventListener('click', onYes); no.removeEventListener('click', onNo);
+        cfm.removeEventListener('cancel', onCancel); cfm.removeEventListener('click', onBackdrop);
+        cfm.classList.add('is-closing');
+        setTimeout(function () {
+          cfm.classList.remove('is-closing'); cfm.close();
+          if (back && back.focus && !ok) back.focus();
+          resolve(ok);
+        }, 170);
+      };
+      var onYes = function () { finish(true); }, onNo = function () { finish(false); };
+      var onCancel = function (e) { e.preventDefault(); finish(false); };
+      var onBackdrop = function (e) { if (e.target === cfm) finish(false); };
+      yes.addEventListener('click', onYes); no.addEventListener('click', onNo);
+      cfm.addEventListener('cancel', onCancel); cfm.addEventListener('click', onBackdrop);
+      cfm.showModal();
+      (danger ? no : yes).focus();
+    });
+  };
   document.addEventListener('submit', function (ev) {
-    var msg = ev.target.getAttribute('data-confirm');
-    if (msg && !window.confirm(msg)) ev.preventDefault();
+    var form = ev.target, msg = form.getAttribute && form.getAttribute('data-confirm');
+    if (!msg || ev.defaultPrevented) return;
+    if (form._confirmedAt && Date.now() - form._confirmedAt < 60000) { form._confirmedAt = 0; return; }
+    ev.preventDefault();
+    var submitter = ev.submitter;
+    window.LLConfirm(msg, { ok: form.getAttribute('data-confirm-ok') || '', danger: form.hasAttribute('data-confirm-danger') }).then(function (ok) {
+      if (!ok) return;
+      form._confirmedAt = Date.now();
+      if (form.requestSubmit) form.requestSubmit(submitter && submitter.form === form ? submitter : undefined); else { form._confirmedAt = 0; form.submit(); }
+    });
   });
 })();
