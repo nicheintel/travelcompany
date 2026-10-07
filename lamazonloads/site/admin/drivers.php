@@ -40,7 +40,8 @@ $equip = (string) ($_GET['equipment'] ?? '');
 $onbF = (string) ($_GET['onb'] ?? '');  // onboarded · not (yet) · progress · none
 $loc = (string) ($_GET['loc'] ?? '');   // "st:GA" (whole state) or "c:Atlanta, GA"
 $type = (string) ($_GET['type'] ?? ''); // what they told us they are, or "staff"
-const TYPE_FILTERS = ['owner_operator' => 'Owner-operators', 'driver' => 'Drivers', 'dispatcher' => 'Dispatchers / support', 'recruiter' => 'Driver recruiters',
+// "Drivers" is everyone who drives, owner-operators included; "Owner-operators" narrows it to those who own their vehicle
+const TYPE_FILTERS = ['driver' => 'Drivers', 'owner_operator' => '· Owner-operators', 'dispatcher' => 'Dispatchers / support', 'recruiter' => 'Driver recruiters',
     'other' => 'Entrepreneurs / other', 'staff' => 'Staff'];
 const ONB_FILTERS = ['onboarded' => 'Onboarded', 'not' => 'Not onboarded yet', 'progress' => '· In onboarding now', 'none' => '· Not started'];
 $where = [];
@@ -48,6 +49,7 @@ $args = [];
 if ($q !== '') { $where[] = '(u.name LIKE ? OR u.email LIKE ? OR u.phone LIKE ? OR u.city LIKE ? OR p.home_zip LIKE ?)'; array_push($args, "%$q%", "%$q%", "%$q%", "%$q%", "$q%"); }
 if (isset(EQUIPMENT[$equip])) { $where[] = 'p.equipment = ?'; $args[] = $equip; }
 if ($type === 'staff') $where[] = 'u.is_admin = 1';
+elseif ($type === 'driver') $where[] = "u.is_admin = 0 AND u.account_type IN ('driver', 'owner_operator')";
 elseif (isset(ACCOUNT_TYPES[$type])) { $where[] = 'u.is_admin = 0 AND u.account_type = ?'; $args[] = $type; } // staff accounts also carry a type
 $where[] = match ($onbF) {
     'onboarded' => "o.stage IN ('contract', 'done')",
@@ -72,6 +74,7 @@ foreach (db_all("SELECT city, COUNT(*) n FROM users WHERE city <> '' GROUP BY ci
 }
 ksort($byState);
 $typeCounts = array_column(db_all("SELECT IF(is_admin = 1, 'staff', account_type) t, COUNT(*) n FROM users GROUP BY t"), 'n', 't');
+$typeCounts['driver'] = ($typeCounts['driver'] ?? 0) + ($typeCounts['owner_operator'] ?? 0);
 $onbCounts = db_one("SELECT SUM(o.stage IN ('contract', 'done')) yes, COUNT(*) - SUM(COALESCE(o.stage IN ('contract', 'done'), 0)) no FROM users u LEFT JOIN onboarding o ON o.user_id = u.id WHERE u.is_admin = 0");
 
 page_header('Drivers & members');
