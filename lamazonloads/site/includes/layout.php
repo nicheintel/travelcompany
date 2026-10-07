@@ -94,7 +94,7 @@ function page_header(string $title, string $active = '', string $description = '
 <meta property="og:description" content="<?= e($desc) ?>">
 <meta property="og:type" content="website">
 <?php if (preg_match('/^[a-z0-9.\-:]+$/i', (string) ($_SERVER['HTTP_HOST'] ?? ''))): ?><meta property="og:image" content="<?= e('https://' . $_SERVER['HTTP_HOST'] . asset('brand/logo.png')) ?>"><?php endif; ?>
-<link rel="icon" href="<?= e(url('favicon.ico')) ?>" sizes="48x48">
+<link rel="icon" href="<?= e(url('favicon.ico') . '?v=' . @filemtime(dirname(__DIR__) . '/favicon.ico')) ?>" sizes="48x48">
 <link rel="icon" href="<?= e(asset('favicon.png')) ?>" type="image/png" sizes="48x48">
 <link rel="apple-touch-icon" href="<?= e(asset('brand/apple-touch-icon.png')) ?>">
 <link rel="manifest" href="<?= e(url('site.webmanifest')) ?>">
