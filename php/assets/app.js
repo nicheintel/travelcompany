@@ -12,6 +12,12 @@
   const LOCALE = document.documentElement.lang || "en";
   const FINE_POINTER = window.matchMedia("(pointer: fine)").matches;
   const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches; // device asks for less motion
+  // Runs fn after the page has loaded and the browser has a quiet moment, so it never slows the first view.
+  const afterLoad = (fn) => {
+    const go = () => (window.requestIdleCallback ? window.requestIdleCallback(fn, { timeout: 3000 }) : setTimeout(fn, 1500));
+    if (document.readyState === "complete") go();
+    else window.addEventListener("load", go, { once: true });
+  };
 
   // ---------- Dates (visitor's timezone) ----------
   function todayIso() {
@@ -88,8 +94,7 @@
       results = searchAirports(query);
       render();
     });
-    if (document.readyState === "complete") ready();
-    else window.addEventListener("load", ready);
+    afterLoad(ready);
     const close = () => {
       list.classList.add("hidden");
       input.setAttribute("aria-expanded", "false");
@@ -436,15 +441,25 @@
     };
     const plane = $(".hero-flight", hero);
     if (calm && plane && plane.pauseAnimations) { plane.pauseAnimations(); plane.setCurrentTime(12.5); } // parked on its route
-    const start = () => { clearInterval(timer); timer = setInterval(() => { if (!document.hidden) show((cur + 1) % slides.length); }, calm ? 9000 : 6500); };
-    dots.forEach((d, n) => d.addEventListener("click", () => { show(n); start(); }));
-    // The other photos download after the page has loaded, so the first view stays fast.
-    const load = () => slides.slice(1).forEach((pic) => $$("[data-srcset]", pic).forEach((el) => {
-      el.srcset = el.dataset.srcset;
-      if (el.dataset.src) el.src = el.dataset.src;
-    }));
-    if (document.readyState === "complete") load();
-    else window.addEventListener("load", load);
+    // Only the next photo is downloaded (one step ahead), so phones don't fetch all of them at once.
+    const fetchSlide = (pic) => new Promise((resolve) => {
+      if (ready(pic)) return resolve();
+      const img = $("img", pic);
+      img.addEventListener("load", resolve, { once: true });
+      img.addEventListener("error", resolve, { once: true });
+      $$("[data-srcset]", pic).forEach((el) => {
+        el.srcset = el.dataset.srcset;
+        el.removeAttribute("data-srcset");
+        if (el.dataset.src) { el.src = el.dataset.src; el.removeAttribute("data-src"); }
+      });
+    });
+    const go = (i) => fetchSlide(slides[i]).then(() => {
+      show(i);
+      fetchSlide(slides[(i + 1) % slides.length]);
+    });
+    const start = () => { clearInterval(timer); timer = setInterval(() => { if (!document.hidden) go((cur + 1) % slides.length); }, calm ? 9000 : 6500); };
+    dots.forEach((d, n) => d.addEventListener("click", () => { go(n); start(); }));
+    afterLoad(() => fetchSlide(slides[1]));
     start();
   }
 
@@ -469,6 +484,48 @@
     );
     // Back button: the page comes back from the browser's cache with the screen still showing.
     window.addEventListener("pageshow", () => { wait.classList.remove("on"); wait.hidden = true; });
+  }
+
+  // A thin gold bar at the top while the next page loads, so a tap always shows that something is happening.
+  function initProgress() {
+    const bar = document.createElement("div");
+    bar.className = "nav-progress";
+    bar.setAttribute("aria-hidden", "true");
+    document.body.appendChild(bar);
+    let stop = 0;
+    const start = () => {
+      bar.classList.remove("on");
+      void bar.offsetWidth; // restart the animation
+      bar.classList.add("on");
+      clearTimeout(stop);
+      stop = setTimeout(() => bar.classList.remove("on"), 15000);
+    };
+    document.addEventListener("click", (e) => {
+      const a = e.target.closest ? e.target.closest("a[href]") : null;
+      if (!a || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      if ((a.target && a.target !== "_self") || a.hasAttribute("download")) return;
+      const to = new URL(a.href, location.href);
+      if (to.origin !== location.origin) return; // other websites, email and phone links
+      if (to.pathname === location.pathname && to.search === location.search) return; // same page (e.g. #faq)
+      start();
+    });
+    document.addEventListener("submit", (e) => {
+      const f = e.target;
+      if (e.defaultPrevented || (f.target && f.target !== "_self") || f.matches("[data-search-form=flight], [data-search-form=hotel]")) return; // searches have their own screen
+      start();
+    });
+    window.addEventListener("pageshow", () => bar.classList.remove("on"));
+  }
+
+  // Photos fade in once they have arrived instead of appearing line by line.
+  function initImageFade() {
+    $$("img[loading=lazy], img[data-fade]").forEach((img) => {
+      if (img.complete && img.naturalWidth > 0) return; // already there
+      img.classList.add("img-wait");
+      const show = () => img.classList.add("img-in");
+      img.addEventListener("load", show);
+      img.addEventListener("error", show, { once: true });
+    });
   }
 
   // Admin → Diagnostics: whether the scripts run in this browser and whether it asks for less motion.
@@ -514,7 +571,7 @@
     $$("[data-results]").forEach(initResults);
     $$("[data-tabs]").forEach(initTabs);
     // Each part runs on its own, so a problem in one never stops the others.
-    [initMenus, initForms, initBagSummary, initSearchWait, initHeader, initHero, initReveal, initBrowserCheck].forEach((fn) => {
+    [initImageFade, initProgress, initMenus, initForms, initBagSummary, initSearchWait, initHeader, initHero, initReveal, initBrowserCheck].forEach((fn) => {
       try { fn(); } catch (e) { if (window.console) console.error(e); }
     });
   });

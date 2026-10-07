@@ -29,7 +29,7 @@ $columns = [
     <?php endforeach; ?>
   </div>
   <div class="border-t border-white/10">
-    <div class="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-6 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+    <div class="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-6 text-xs text-slate-400 sm:flex-row sm:items-center sm:justify-between sm:px-6">
       <p>© <?= gmdate('Y') ?> <?= e(config('site_name')) ?>. <?= e(t('All rights reserved.')) ?></p>
       <p><?= e(t('Prices shown may change until booking is confirmed.')) ?>
         <?php if (current_currency() !== 'USD' && ($fx = fx_rates())): ?>

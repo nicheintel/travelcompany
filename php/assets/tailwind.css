@@ -129,8 +129,11 @@ body > header[data-scrolled] { box-shadow: 0 8px 24px -16px rgba(15, 29, 79, 0.3
   font-size: 0.875rem; font-weight: 600; color: #fff; background: rgba(15, 29, 79, 0.45); backdrop-filter: blur(6px);
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2); transition: background 0.2s ease; }
 .hero-caption:hover { background: rgba(15, 29, 79, 0.65); }
-.hero-dot { height: 0.5rem; width: 0.5rem; border-radius: 9999px; background: rgba(255, 255, 255, 0.45); transition: width 0.3s ease, background 0.3s ease; }
-.hero-dot[aria-current] { width: 1.5rem; background: #e9c46a; }
+/* Each dot has a finger-sized tap area (24px); the visible dot inside stays small */
+.hero-dot { display: grid; place-items: center; height: 1.5rem; min-width: 1.5rem; }
+.hero-dot::before { content: ""; height: 0.5rem; width: 0.5rem; border-radius: 9999px; background: rgba(255, 255, 255, 0.45); transition: width 0.3s ease, background 0.3s ease; }
+.hero-dot[aria-current] { min-width: 1.75rem; }
+.hero-dot[aria-current]::before { width: 1.5rem; background: #e9c46a; }
 
 /* Devices set to "reduce motion": no zooming, flowing or sliding; gentle fades and the gold shine stay. */
 @media (prefers-reduced-motion: reduce) {
@@ -139,3 +142,35 @@ body > header[data-scrolled] { box-shadow: 0 8px 24px -16px rgba(15, 29, 79, 0.3
   .hero-rise { animation-name: ff-fade; }
 }
 @keyframes ff-fade { from { opacity: 0; } to { opacity: 1; } }
+
+/* ---------- Smooth pages ---------- */
+/* Pages cross-fade into each other (Chrome, Edge, Safari 18+); the header and chat button stay put. */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition { navigation: auto; }
+  html { scroll-behavior: smooth; }
+}
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: 0.22s; }
+body > header { view-transition-name: site-header; }
+.chat { view-transition-name: chat-button; }
+
+/* Gold loading bar at the top while the next page loads */
+@keyframes ff-progress { 0% { width: 0; } 12% { width: 35%; } 100% { width: 92%; } }
+.nav-progress { position: fixed; top: 0; left: 0; z-index: 70; height: 3px; width: 0; pointer-events: none; opacity: 0;
+  background: linear-gradient(90deg, #d4af37, #e9c46a); box-shadow: 0 0 10px rgba(212, 175, 55, 0.6); transition: opacity 0.3s ease; }
+.nav-progress.on { opacity: 1; animation: ff-progress 9s cubic-bezier(0.1, 0.7, 0.2, 1) forwards; }
+
+/* Photos fade in when they arrive */
+.img-wait { opacity: 0; transition: opacity 0.6s ease, scale 0.5s ease, transform 0.5s ease; }
+.img-wait.img-in { opacity: 1; }
+
+/* Menus, pickers and answers open smoothly instead of popping */
+@keyframes ff-pop { from { opacity: 0; transform: translateY(-6px) scale(0.98); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: no-preference) {
+  [data-menu-panel]:not(.hidden), [data-travelers-panel]:not(.hidden), [data-airport-list]:not(.hidden), [data-mobile-menu]:not(.hidden) {
+    animation: ff-pop 0.18s cubic-bezier(0.2, 0.7, 0.2, 1); transform-origin: top;
+  }
+  [role=tabpanel]:not(.hidden) { animation: ff-fade 0.25s ease; }
+  details[open] > :not(summary) { animation: ff-pop 0.22s ease; }
+  /* A small press effect on buttons */
+  button:not(:disabled):active, a.bg-accent-500:active, a.bg-brand-600:active { scale: 0.97; }
+}

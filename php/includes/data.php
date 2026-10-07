@@ -53,7 +53,10 @@ function destination_photo(string $code, string $unsplashId): array
 function stock_photo(string $code): ?array
 {
     $name = 'photos/dest-' . strtolower($code);
-    return is_file(dirname(__DIR__) . "/assets/$name.webp") ? ['avif' => asset("$name.avif"), 'webp' => asset("$name.webp")] : null;
+    $thumb = 'photos/thumb-' . strtolower($code);
+    return is_file(dirname(__DIR__) . "/assets/$name.webp")
+        ? ['avif' => asset("$name.avif"), 'webp' => asset("$name.webp"), 'thumb_avif' => asset("$thumb.avif"), 'thumb_webp' => asset("$thumb.webp")]
+        : null;
 }
 
 // i18n-keys: 'Economy', 'Premium Economy', 'Business', 'First'

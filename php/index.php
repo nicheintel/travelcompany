@@ -21,8 +21,10 @@ $promos = active_packages();
 $heroSlides = [];
 foreach ([['maldives', 'Maldives', 'MLE'], ['santorini', 'Santorini, Greece', 'JTR'], ['krabi', 'Krabi, Thailand', 'KBV'],
           ['bali', 'Bali, Indonesia', 'DPS'], ['halong', 'Ha Long Bay, Vietnam', 'HAN']] as [$file, $place, $code]) {
-    $set = fn(string $ext) => asset("hero/$file-1080.$ext") . ' 1080w, ' . asset("hero/$file-2000.$ext") . ' 2000w';
-    $heroSlides[] = ['place' => $place, 'href' => url('flights.php', ['to' => $code]), 'avif' => $set('avif'), 'webp' => $set('webp'), 'src' => asset("hero/$file-2000.webp")];
+    // Phones get the upright 1080 photo; wider screens the 1440 or 2000 one.
+    $set = fn(string $ext) => asset("hero/$file-1440.$ext") . ' 1440w, ' . asset("hero/$file-2000.$ext") . ' 2000w';
+    $heroSlides[] = ['place' => $place, 'href' => url('flights.php', ['to' => $code]), 'avif' => $set('avif'), 'webp' => $set('webp'),
+        'phone_avif' => asset("hero/$file-1080.avif"), 'phone_webp' => asset("hero/$file-1080.webp"), 'src' => asset("hero/$file-1440.webp")];
 }
 require __DIR__ . '/includes/header.php';
 ?>
@@ -31,8 +33,10 @@ require __DIR__ . '/includes/header.php';
     <div class="absolute inset-0 isolate"><?php /* photos stay in their own layer, under the blue shade and the plane */ ?>
     <?php foreach ($heroSlides as $i => $s): $lazy = $i > 0 ? 'data-' : ''; ?>
       <picture class="hero-slide<?= $i === 0 ? ' on' : '' ?>" data-place="<?= e($s['place']) ?>" data-href="<?= e($s['href']) ?>">
+        <source type="image/avif" media="(max-width: 767px)" <?= $lazy ?>srcset="<?= e($s['phone_avif']) ?>">
         <source type="image/avif" sizes="100vw" <?= $lazy ?>srcset="<?= e($s['avif']) ?>">
-        <img alt="" decoding="async" sizes="100vw" <?= $lazy ?>srcset="<?= e($s['webp']) ?>" <?= $lazy ?>src="<?= e($s['src']) ?>"<?= $i === 0 ? ' fetchpriority="high"' : '' ?>>
+        <source type="image/webp" media="(max-width: 767px)" <?= $lazy ?>srcset="<?= e($s['phone_webp']) ?>">
+        <img alt="" decoding="async" data-fade sizes="100vw" <?= $lazy ?>srcset="<?= e($s['webp']) ?>" <?= $lazy ?>src="<?= e($s['src']) ?>"<?= $i === 0 ? ' fetchpriority="high"' : '' ?>>
       </picture>
     <?php endforeach; ?>
     </div>
@@ -76,7 +80,7 @@ require __DIR__ . '/includes/header.php';
     </ul>
     <div class="flex items-center gap-3">
       <a href="<?= e($heroSlides[0]['href']) ?>" class="hero-caption" data-hero-caption><?= icon('pin', 15) ?><span data-hero-place><?= e($heroSlides[0]['place']) ?></span><span class="text-accent-400"><?= e(t('See fares →')) ?></span></a>
-      <div class="flex gap-1.5" data-hero-dots>
+      <div class="flex" data-hero-dots>
         <?php foreach ($heroSlides as $i => $s): ?><button type="button" class="hero-dot" aria-label="<?= e($s['place']) ?>"<?= $i === 0 ? ' aria-current="true"' : '' ?>></button><?php endforeach; ?>
       </div>
     </div>
