@@ -41,13 +41,18 @@ if (PHP_SAPI !== 'cli') {
     }
     header_remove('X-Powered-By');
 
-    // Live site with an https address: always use https (on the address the visitor typed).
+    // One address for visitors and search engines: https, and www.example.com <-> example.com as in
+    // the Site address setting. Done in one step (no redirect chains); other hosts are left alone.
     $site = (string) config('app_url');
     $host = strtolower((string) ($_SERVER['HTTP_HOST'] ?? ''));
-    if (str_starts_with($site, 'https://') && !request_is_https() && !is_local_request()
-        && preg_match('/^[a-z0-9.-]+$/', $host) && in_array($_SERVER['REQUEST_METHOD'] ?? 'GET', ['GET', 'HEAD'], true)) {
-        header("Location: https://$host" . ($_SERVER['REQUEST_URI'] ?? '/'), true, 301);
-        exit;
+    $siteHost = strtolower((string) parse_url($site, PHP_URL_HOST));
+    if ($site !== '' && !is_local_request() && preg_match('/^[a-z0-9.-]+$/', $host) && in_array($_SERVER['REQUEST_METHOD'] ?? 'GET', ['GET', 'HEAD'], true)) {
+        $toHost = $siteHost !== '' && ($host === "www.$siteHost" || "www.$host" === $siteHost) ? $siteHost : $host;
+        $toHttps = str_starts_with($site, 'https://') && !request_is_https();
+        if ($toHost !== $host || $toHttps) {
+            header('Location: ' . ($toHttps || request_is_https() ? 'https' : 'http') . "://$toHost" . ($_SERVER['REQUEST_URI'] ?? '/'), true, 301);
+            exit;
+        }
     }
 }
 
