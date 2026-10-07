@@ -149,7 +149,7 @@ function abs_url(string $path): string
 }
 
 /** The look of every LamazonLoads email: logo, heading, text, blue button. Returns [text, html]. */
-function email_body(string $heading, array $paragraphs, ?string $button = null, ?string $link = null, string $footnote = '', bool $letter = false): array
+function email_body(string $heading, array $paragraphs, ?string $button = null, ?string $link = null, string $footnote = '', bool $letter = false, int $buttonAfter = -1): array
 {
     // Logo on a solid white badge: a see-through logo turns grainy when Gmail / Outlook show emails in dark mode
     $logo = rtrim((string) config('app_url'), '/') . url('assets/brand/email-logo.png');
@@ -160,15 +160,19 @@ function email_body(string $heading, array $paragraphs, ?string $button = null, 
         . '<tr><td style="padding:24px 32px 8px;"><table role="presentation" cellpadding="0" cellspacing="0"><tr><td bgcolor="#ffffff" style="background:#ffffff;border-radius:12px;">'
         . '<img src="' . e($logo) . '" width="170" height="96" alt="LamazonLoads" style="display:block;width:170px;height:auto;border:0;border-radius:12px;background:#ffffff;"></td></tr></table></td></tr>'
         . '<tr><td style="padding:8px 32px 0;">' . ($heading !== '' ? '<h1 style="margin:0 0 12px;font-size:22px;line-height:1.3;color:#0A2463;">' . e($heading) . '</h1>' : '');
-    foreach ($paragraphs as $i => $p) {
+    $btn = $button && $link
+        ? '<p style="margin:22px 0 10px;"><a href="' . e($link) . '" style="display:inline-block;background:#1E63E9;color:#ffffff;text-decoration:none;font-weight:bold;font-size:15px;padding:12px 22px;border-radius:999px;">' . e($button) . '</a></p>'
+            . '<p style="margin:0 0 14px;font-size:12.5px;line-height:1.5;color:#5E6B85;">Or copy this link into your browser:<br><a href="' . e($link) . '" style="color:#1E63E9;word-break:break-all;">' . e($link) . '</a></p>'
+        : '';
+    $buttonAfter = $buttonAfter >= 0 && $buttonAfter < count($paragraphs) ? $buttonAfter : count($paragraphs) - 1; // where the button goes
+    foreach (array_values($paragraphs) as $i => $p) {
         $quote = !$letter && $i === count($paragraphs) - 1 && count($paragraphs) > 1;
         $html .= $quote
             ? '<p style="margin:0 0 14px;padding:12px 14px;border-left:4px solid #1E63E9;background:#EEF4FF;border-radius:8px;font-size:15px;line-height:1.55;color:#24304A;white-space:pre-wrap;">' . e($p) . '</p>'
             : '<p style="margin:0 0 14px;font-size:15px;line-height:1.55;color:#24304A;white-space:pre-wrap;">' . e($p) . '</p>';
-    }
-    if ($button && $link) {
-        $html .= '<p style="margin:22px 0 10px;"><a href="' . e($link) . '" style="display:inline-block;background:#1E63E9;color:#ffffff;text-decoration:none;font-weight:bold;font-size:15px;padding:12px 22px;border-radius:999px;">' . e($button) . '</a></p>'
-            . '<p style="margin:0 0 14px;font-size:12.5px;line-height:1.5;color:#5E6B85;">Or copy this link into your browser:<br><a href="' . e($link) . '" style="color:#1E63E9;word-break:break-all;">' . e($link) . '</a></p>';
+        if ($i === $buttonAfter) {
+            $html .= $btn;
+        }
     }
     if ($footnote !== '') {
         $html .= '<p style="margin:18px 0 0;font-size:13px;line-height:1.5;color:#5E6B85;">' . e($footnote) . '</p>';
@@ -177,8 +181,11 @@ function email_body(string $heading, array $paragraphs, ?string $button = null, 
             : '<p style="margin:22px 0 0;font-size:15px;line-height:1.55;color:#0A2463;">The LamazonLoads Team<br><span style="color:#1E63E9;font-weight:bold;font-style:italic;">Why wait? Let\'s freight.</span></p>')
         . '</td></tr><tr><td style="padding:24px 32px 26px;font-size:12px;color:#8A96AD;">&copy; ' . date('Y') . ' LamazonLoads &middot; ' . e($domain) . '</td></tr>'
         . '</table></td></tr></table></body></html>';
-    $text = ($heading !== '' ? $heading . "\n\n" : '') . implode("\n\n", $paragraphs)
-        . ($button && $link ? "\n\n$button: $link" : '')
+    $paras = array_values($paragraphs);
+    if ($button && $link) {
+        $paras[$buttonAfter] .= "\n\n$button: $link";
+    }
+    $text = ($heading !== '' ? $heading . "\n\n" : '') . implode("\n\n", $paras)
         . ($footnote !== '' ? "\n\n$footnote" : '')
         . ($letter ? "\n\n" . $domain . "\n" : "\n\nThe LamazonLoads Team\nWhy wait? Let's freight.\n" . $domain . "\n");
     return [$text, $html];

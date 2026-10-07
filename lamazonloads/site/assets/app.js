@@ -534,8 +534,63 @@
     input.addEventListener('keydown', function (e) { if (e.key === 'Escape') { input.value = start; btn.hidden = true; input.blur(); } });
   });
 
+  // Onboarding: payment details form shows the right field for Zelle / Cash App / Apple Pay / direct deposit.
+  document.querySelectorAll('[data-payout]').forEach(function (f) {
+    var labels = { zelle: 'Zelle email or phone number', cashapp: 'Your $Cashtag', applepay: 'Apple Pay phone number or email' };
+    var holders = { zelle: 'you@email.com or (555) 123-4567', cashapp: '$YourName', applepay: '(555) 123-4567' };
+    var box = f.querySelector('[data-pay-handle]'), label = f.querySelector('[data-pay-label]'), dd = f.querySelector('[data-pay-dd]'), input = box.querySelector('input');
+    var sync = function () {
+      var m = (f.querySelector('input[name=payout_method]:checked') || {}).value || 'zelle';
+      box.hidden = m === 'direct_deposit'; dd.hidden = m !== 'direct_deposit';
+      if (labels[m]) { label.textContent = labels[m]; input.placeholder = holders[m]; }
+    };
+    f.addEventListener('change', sync); sync();
+  });
+
+  // Onboarding: show the chosen file name(s) on the upload button.
+  document.querySelectorAll('[data-onb-file]').forEach(function (input) {
+    input.addEventListener('change', function () {
+      var out = input.parentNode.querySelector('[data-onb-name]');
+      var n = input.files ? input.files.length : 0;
+      if (out && n) out.textContent = n === 1 ? input.files[0].name : n + ' files selected';
+      input.closest('.onb-drop').classList.toggle('has-file', n > 0);
+    });
+  });
+
+  // Agreement signing: draw a signature with a finger or mouse; it's sent as a PNG with the form.
+  document.querySelectorAll('[data-sig]').forEach(function (pad) {
+    var canvas = pad.querySelector('canvas'), ctx = canvas.getContext('2d');
+    var form = pad.closest('form'), input = form.querySelector('[data-sig-input]'), hint = pad.querySelector('[data-sig-hint]');
+    var drawing = false, inked = false, last = null;
+    var size = function () {
+      var r = canvas.getBoundingClientRect(), ratio = Math.min(window.devicePixelRatio || 1, 2);
+      var keep = inked ? canvas.toDataURL('image/png') : null;
+      canvas.width = Math.round(r.width * ratio); canvas.height = Math.round(r.height * ratio);
+      ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+      ctx.lineWidth = 2.4; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = '#0A2463';
+      if (keep) { var img = new Image(); img.onload = function () { ctx.drawImage(img, 0, 0, r.width, r.height); }; img.src = keep; }
+    };
+    var pos = function (e) { var r = canvas.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; };
+    canvas.addEventListener('pointerdown', function (e) { drawing = true; last = pos(e); canvas.setPointerCapture(e.pointerId); e.preventDefault(); });
+    canvas.addEventListener('pointermove', function (e) {
+      if (!drawing) return;
+      var p = pos(e);
+      ctx.beginPath(); ctx.moveTo(last.x, last.y); ctx.lineTo(p.x, p.y); ctx.stroke();
+      last = p; inked = true; hint.hidden = true;
+    });
+    var end = function () { if (drawing) { drawing = false; if (inked) input.value = canvas.toDataURL('image/png'); } };
+    canvas.addEventListener('pointerup', end); canvas.addEventListener('pointercancel', end);
+    pad.querySelector('[data-sig-clear]').addEventListener('click', function () {
+      ctx.clearRect(0, 0, canvas.width, canvas.height); inked = false; input.value = ''; hint.hidden = false;
+    });
+    window.addEventListener('resize', size); size();
+  });
+
+  // "Print or save as PDF" on the signed agreement
+  document.querySelectorAll('[data-print]').forEach(function (b) { b.addEventListener('click', function () { window.print(); }); });
+
   // Admin menu on phones is a row of tabs: start it scrolled to the current page.
-  var anActive = document.querySelector('.an-links a.active');
+  var anActive = document.querySelector('.an-links a.active, .dash-nav > a.active');
   if (anActive && window.matchMedia('(max-width: 860px)').matches) anActive.parentNode.scrollLeft = anActive.offsetLeft - 12;
 
   // Ask before destructive actions.

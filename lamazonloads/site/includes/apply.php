@@ -129,14 +129,14 @@ function ownership_label(array $app): string
     return $app['ownership'] === 'other' && $app['ownership_other'] !== '' ? 'Other: ' . $app['ownership_other'] : (VEHICLE_OWNERSHIP[$app['ownership']] ?? '');
 }
 
-/** [subject, paragraphs] of the onboarding email, word for word as LamazonLoads wrote them. */
+/** [subject, paragraphs] of the onboarding email, as LamazonLoads wrote them (documents are now uploaded on the website: the "Upload my documents" button follows the list). */
 function onboarding_email_content(string $type, string $firstName, string $city): array
 {
     if ($type === 'walmart') {
         return ['Welcome to the Walmart Daily Route Program – ' . $city, [
             'Hello ' . $firstName . ',',
             'Welcome to LamazonLoads! We’re excited to have you join our team for the Walmart daily route in the ' . $city . ' area. We look forward to a successful working relationship.',
-            "To complete your onboarding process, please send us the following documents and information as soon as possible:\n\n• Completed W-9 Form\n• Proof of Insurance\n• Clear Photo of Your Driver’s License\n• Photo of Your Vehicle\n• Zelle Payment Information",
+            "To complete your onboarding process, please sign in to your LamazonLoads account and upload the following documents and information as soon as possible:\n\n• Completed W-9 Form\n• Proof of Insurance\n• Clear Photo of Your Driver’s License\n• Photo of Your Vehicle\n• Payment Information (Zelle preferred)",
             'Once we receive and review these items, we will finalize your onboarding and provide your route details, scheduling information, and next steps.',
             'If you have any questions, please feel free to reach out. Thank you for your cooperation—we are excited to have you on board and wish you success on the road!',
             "Best regards,\nLamazonLoads Team",
@@ -146,8 +146,8 @@ function onboarding_email_content(string $type, string $firstName, string $city)
         'Hello ' . $firstName . ', from LamazonLoads,',
         'We are a professional dispatch team specializing in cargo vans, sprinters, and box trucks. We’re currently offering our dispatch services and would love to work with you to keep you loaded with the best available options.',
         "Our process is simple and transparent:\n\n• We handle load searching, rate negotiation, and booking\n• We keep you updated and support you throughout the process\n• Payments are processed within 2-3 business days\n• Our dispatch fee is 10% per booked load",
-        "To get you set up and start working together, please share the following documents:\n\n• Pictures of Vehicle\n• W-9 Form\n• Proof of Insurance\n• Driver’s License (clear picture)\n• Zelle details for payment",
-        'Once we receive your documents, we can get you active and start booking loads right away.',
+        "To get you set up and start working together, please sign in to your LamazonLoads account and upload the following documents:\n\n• Pictures of Vehicle\n• W-9 Form\n• Proof of Insurance\n• Driver’s License (clear picture)\n• Payment details (Zelle preferred)",
+        'Once our team reviews and approves your documents, you’ll sign your agreement online, and then we can get you active and start booking loads right away.',
         'Looking forward to working with you.',
         "Best regards,\nLamazonLoads Team",
     ]];
@@ -169,6 +169,7 @@ function send_onboarding_email(int $appId): string
         return '';
     }
     $city = $type === 'walmart' ? (string) $a['walmart_city'] : '';
+    onboarding_start((int) $a['user_id'], $type); // their onboarding page: upload documents → review → agreement → Telegram
     $recent = db_val('SELECT email_sent_at FROM applications WHERE user_id = ? AND id <> ? AND email_sent = ?'
         . ($type === 'walmart' ? ' AND walmart_city = ?' : '') . ' AND email_sent_at > NOW() - INTERVAL 30 DAY ORDER BY email_sent_at DESC LIMIT 1',
         $type === 'walmart' ? [$a['user_id'], $appId, $type, $city] : [$a['user_id'], $appId, $type]);
@@ -179,7 +180,8 @@ function send_onboarding_email(int $appId): string
     }
     $first = $a['first_name'] !== '' ? (string) $a['first_name'] : chat_first_name((string) $a['name']);
     [$subject, $paras] = onboarding_email_content($type, $first, $city);
-    [$text, $html] = email_body('', $paras, null, null, '', true);
+    // The button sits right under the list of documents
+    [$text, $html] = email_body('', $paras, 'Upload my documents', abs_url('onboarding.php'), '', true, $type === 'walmart' ? 2 : 3);
     if (send_mail((string) $a['email'], $subject, $text, $html, support_email())) {
         db_run('UPDATE applications SET email_sent = ?, email_sent_at = NOW() WHERE id = ?', [$type, $appId]);
         return $type;

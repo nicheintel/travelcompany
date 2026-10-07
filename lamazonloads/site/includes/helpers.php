@@ -159,6 +159,7 @@ const DOC_KINDS = [
     'w9'           => 'W-9',
     'insurance'    => 'Certificate of insurance (COI)',
     'license'      => "Driver's license",
+    'vehicle_photo' => 'Vehicle photos',
     'registration' => 'Vehicle registration',
     'authority'    => 'MC / DOT authority',
     'other'        => 'Other document',

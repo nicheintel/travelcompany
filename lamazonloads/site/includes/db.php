@@ -79,6 +79,13 @@ function migrate(PDO $pdo): void
         // Members added by staff: who added them, and a generated password they must replace at first sign-in
         'must_change_password' => 'TINYINT(1) NOT NULL DEFAULT 0', 'added_by' => 'INT UNSIGNED NULL']);
     add_missing_columns($pdo, 'documents', ['added_by' => 'INT UNSIGNED NULL']); // staff member who added it for the driver
+    // Payment details drivers add during onboarding (Zelle preferred)
+    add_missing_columns($pdo, 'driver_profiles', ['payout_method' => "VARCHAR(20) NOT NULL DEFAULT ''", 'payout_name' => "VARCHAR(120) NOT NULL DEFAULT ''",
+        'payout_handle' => "VARCHAR(190) NOT NULL DEFAULT ''", 'payout_updated_at' => 'DATETIME NULL']);
+    // Drivers who already got the Dispatch or Walmart email before website onboarding existed start at "upload documents"
+    $pdo->exec("INSERT IGNORE INTO onboarding (user_id, track, stage, created_at, updated_at)
+        SELECT user_id, IF(SUM(email_sent = 'dispatch') > 0, 'dispatch', 'walmart'), 'documents', MIN(COALESCE(email_sent_at, created_at)), NOW()
+        FROM applications WHERE email_sent IN ('dispatch', 'walmart') GROUP BY user_id");
     add_missing_columns($pdo, 'applications', [
         'resume_doc_id' => 'INT UNSIGNED NULL', 'reminded_at' => 'DATETIME NULL', 'auto_note' => "VARCHAR(255) NOT NULL DEFAULT ''",
         // Driver application form (vehicles, Walmart daily route) and the onboarding email that went out

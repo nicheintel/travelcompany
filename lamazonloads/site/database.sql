@@ -237,3 +237,44 @@ CREATE TABLE IF NOT EXISTS walmart_routes (
 
 -- users.reset_token / reset_expires / reset_sent_at (forgot password) are added by includes/db.php on existing sites
 -- users.must_change_password / added_by and documents.added_by (members added by staff) are added by includes/db.php too
+
+-- Driver onboarding on the website: upload documents → staff review → sign agreement → Telegram
+CREATE TABLE IF NOT EXISTS onboarding (
+  user_id INT UNSIGNED NOT NULL PRIMARY KEY,
+  track VARCHAR(20) NOT NULL DEFAULT 'dispatch',
+  stage VARCHAR(20) NOT NULL DEFAULT 'documents',
+  submitted_at DATETIME NULL,
+  review_note TEXT NULL,
+  reviewed_at DATETIME NULL,
+  reviewed_by INT UNSIGNED NULL,
+  approved_at DATETIME NULL,
+  contract_version INT UNSIGNED NULL,
+  contract_title VARCHAR(190) NULL,
+  contract_text MEDIUMTEXT NULL,
+  signed_at DATETIME NULL,
+  signed_name VARCHAR(120) NULL,
+  signed_company VARCHAR(120) NULL,
+  signature MEDIUMTEXT NULL,
+  signed_ip VARCHAR(45) NULL,
+  emergency_name VARCHAR(120) NULL,
+  emergency_relation VARCHAR(60) NULL,
+  emergency_phone VARCHAR(30) NULL,
+  telegram_sent_at DATETIME NULL,
+  created_at DATETIME NOT NULL,
+  updated_at DATETIME NOT NULL,
+  KEY idx_onb_stage (stage),
+  CONSTRAINT fk_onb_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Agreements drivers sign online, one per track (edited in Admin → Contracts)
+CREATE TABLE IF NOT EXISTS contracts (
+  track VARCHAR(20) NOT NULL PRIMARY KEY,
+  title VARCHAR(190) NOT NULL,
+  body MEDIUMTEXT NOT NULL,
+  required TINYINT(1) NOT NULL DEFAULT 0,
+  ask_emergency TINYINT(1) NOT NULL DEFAULT 1,
+  version INT UNSIGNED NOT NULL DEFAULT 1,
+  updated_by INT UNSIGNED NULL,
+  updated_at DATETIME NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+-- driver_profiles.payout_method / payout_name / payout_handle / payout_updated_at are added by includes/db.php

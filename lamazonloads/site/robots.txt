@@ -3,6 +3,9 @@ Disallow: /admin/
 Disallow: /account.php
 Disallow: /profile.php
 Disallow: /documents.php
+Disallow: /onboarding.php
+Disallow: /contract.php
+Disallow: /set-password.php
 Disallow: /settings.php
 Disallow: /reset-password.php
 Disallow: /doc.php

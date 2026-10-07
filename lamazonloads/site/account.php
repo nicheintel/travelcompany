@@ -19,6 +19,23 @@ dash_open('overview');
 <h1>Hi, <?= e(explode(' ', $u['name'])[0]) ?> 👋</h1>
 <p class="muted">Here's where you stand with LamazonLoads.</p>
 
+<?php if ($onb = onboarding_row((int) $u['id'])):
+    $onbSteps = onboarding_steps_view($onb);
+    $onbNow = array_search('now', array_column($onbSteps, 1), true);
+    $onbText = match ($onb['stage']) {
+        'documents' => ['Upload your documents', 'Add your vehicle photos, W-9, insurance, driver’s license and payment details.', 'Continue onboarding'],
+        'changes' => ['Please update your documents', 'Our team asked for a few changes before approving you.', 'See what to change'],
+        'review' => ['We’re reviewing your documents', 'We’ll email you as soon as our team has checked them.', 'View status'],
+        'contract' => ['You’re approved! Sign your agreement', 'Read and sign your agreement online. It takes a couple of minutes.', 'Review & sign'],
+        default => ['You’re all set: join us on Telegram', 'Our team shares your next steps in ' . telegram_handle() . '.', 'Open my onboarding'],
+    }; ?>
+  <a class="card onb-banner is-<?= e($onb['stage']) ?>" href="<?= e(url('onboarding.php')) ?>">
+    <span class="onb-banner-step"><?= $onbNow === false ? count($onbSteps) : $onbNow + 1 ?>/<?= count($onbSteps) ?></span>
+    <span class="onb-banner-text"><small>Your onboarding · <?= e(ONB_TRACKS[$onb['track']] ?? '') ?></small><b><?= e($onbText[0]) ?></b><span><?= e($onbText[1]) ?></span></span>
+    <span class="btn btn-accent btn-sm"><?= e($onbText[2]) ?> <?= icon('arrow') ?></span>
+  </a>
+<?php endif; ?>
+
 <div class="stats">
   <div class="card stat"><small>Onboarding</small><b><?= $pct ?>%</b></div>
   <div class="card stat"><small>Applications</small><b><?= count($apps) ?></b></div>

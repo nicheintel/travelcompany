@@ -57,7 +57,7 @@ page_hero('Privacy', 'Privacy policy', 'Plain and simple: what we collect, why w
             <li><b>Your driver profile:</b> equipment and vehicle, home ZIP code, service area, availability, years of experience, company name, MC / DOT numbers, insurance company and expiry date, and anything you add in your notes.</li>
             <li><b>Job applications:</b> the openings you apply for, your name, phone, location, vehicles and whether you own, rent or lease them, any Walmart daily route city and daily rate you ask for, your message and, if you add one, your resume.</li>
             <li><b>Documents you upload:</b> such as your W-9, certificate of insurance, driver's license and vehicle registration.</li>
-            <li><b>Documents and details you email us:</b> during onboarding we ask drivers to reply by email with vehicle photos, a W-9, proof of insurance, a photo of their driver's license and Zelle payment details. These stay in our business mailbox, and our staff may add your documents to your LamazonLoads account (marked “Added by LamazonLoads staff”) so they're in one place.</li>
+            <li><b>Onboarding:</b> the documents you upload on your onboarding page (vehicle photos, W-9, proof of insurance and a photo of your driver's license), your payment details (how you want to be paid, such as Zelle, Cash App or Apple Pay, the name on the account and the email, phone number or $Cashtag linked to it), and the agreement you sign online: your printed name, signature, company name, the date and time, your IP address and your emergency contact. We never ask for bank account numbers on the website. If you email us documents instead, our staff may add them to your account (marked “Added by LamazonLoads staff”).</li>
             <li><b>Availability updates:</b> the ZIP code, vehicle type, dimensions and availability you send to dispatch or support.</li>
             <li><b>Messages:</b> what you send through the contact form, the live chat or by email.</li>
             <li><b>Partner requests:</b> when a business asks for a call: the contact's name, company, job title, email, phone, location, delivery volume, best time to call and message.</li>
@@ -88,6 +88,7 @@ page_hero('Privacy', 'Privacy policy', 'Plain and simple: what we collect, why w
           <ul>
             <li><b>LamazonLoads staff</b> who need it to dispatch, onboard, support or pay you.</li>
             <li><b>Brokers, shippers and route customers:</b> when we book a load or place you on a route (including Walmart-related routes), we share only what that job needs, such as your name, phone, vehicle, company name, MC / DOT number and insurance. This is normal in dispatching.</li>
+            <li><b>Telegram:</b> when you finish onboarding, we invite you to our driver group on Telegram. What you share there is also covered by Telegram's own privacy policy.</li>
             <li><b>Our service providers:</b> Hostinger hosts our website, database and email. They process information only to provide that service to us.</li>
             <li><b>Payment:</b> your Zelle or bank details are used only to send you money through that payment service.</li>
             <li><b>When the law requires it:</b> for example to comply with tax rules or a valid legal request, or to protect drivers, customers or LamazonLoads from fraud or harm.</li>
@@ -100,7 +101,7 @@ page_hero('Privacy', 'Privacy policy', 'Plain and simple: what we collect, why w
           <p>All our emails come from <b><?= e($email) ?></b>, and you can reply to any of them.</p>
           <ul>
             <li><b>Account emails:</b> if our staff create your account for you, your sign-in details (you choose your own password the first time you sign in); confirming your email address, password reset links, “your password was changed” notices, and a confirmation when your account is deleted or closed.</li>
-            <li><b>Application emails:</b> right after you apply, our Dispatch Services email or our Walmart Daily Route welcome email, plus updates about your application.</li>
+            <li><b>Application and onboarding emails:</b> right after you apply, our Dispatch Services email or our Walmart Daily Route welcome email with a link to upload your documents; then the result of our review, a link to sign your agreement, and your Telegram invitation.</li>
             <li><b>Replies:</b> answers to your chat messages, contact form or partner request.</li>
           </ul>
           <p>We don't send newsletters or marketing emails from the website. If you'd like us to stop emailing you, just reply and tell us; we'll still send emails that are needed to keep your account secure.</p>
@@ -146,7 +147,7 @@ page_hero('Privacy', 'Privacy policy', 'Plain and simple: what we collect, why w
           <div class="table-wrap"><table class="legal-table">
             <thead><tr><th>Information</th><th>How long</th></tr></thead>
             <tbody>
-              <tr><td>Account, profile, applications and uploaded documents</td><td>While you have an account. You can delete documents, or your whole account, yourself any time.</td></tr>
+              <tr><td>Account, profile, applications, uploaded documents, payment details and signed agreements</td><td>While you have an account. You can delete documents, or your whole account, yourself any time.</td></tr>
               <tr><td>Live chats</td><td>Deleted after 180 days without new messages, or when your account is deleted</td></tr>
               <tr><td>Sign-in attempts and spam-protection records</td><td>About 1 day</td></tr>
               <tr><td>Partner requests and contact messages</td><td>As long as needed to respond and follow up</td></tr>

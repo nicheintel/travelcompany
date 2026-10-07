@@ -22,6 +22,7 @@ function icon(string $name, string $class = 'ic'): string
         'file'      => '<path d="M14 3H6v18h12V7z"/><path d="M14 3v4h4M9 13h6M9 17h6"/>',
         'upload'    => '<path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v4h16v-4"/>',
         'plus'      => '<path d="M12 5v14M5 12h14"/>',
+        'send'      => '<path d="M21.5 3.5L2.8 10.7c-.8.3-.8 1.4 0 1.7l4.7 1.6 1.8 5.6c.2.7 1.1.9 1.6.4l2.6-2.5 4.7 3.5c.6.4 1.4.1 1.6-.6L22.6 4.8c.2-.8-.5-1.5-1.1-1.3z"/><path d="M7.5 14l10-7.2-7.4 8.4"/>',
         'eye'       => '<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
         'external'  => '<path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v6H4V6h6"/>',
         'chev-left' => '<path d="M15 5l-7 7 7 7"/>',
@@ -358,6 +359,7 @@ function dash_open(string $active): void
     $u = current_user();
     $items = [
         'overview' => ['account.php', 'clipboard', 'Overview'],
+        'onboarding' => ['onboarding.php', 'check', 'Onboarding'],
         'profile' => ['profile.php', 'truck', 'Driver profile'],
         'documents' => ['documents.php', 'file', 'Documents'],
         'settings' => ['settings.php', 'user', 'Account settings'],
@@ -384,6 +386,8 @@ const ADMIN_NAV = [
     'Dashboard' => ['overview' => ['admin/', 'chart', 'Overview']],
     'Hiring' => [
         'applications' => ['admin/applications.php', 'clipboard', 'Applications'],
+        'onboarding' => ['admin/onboarding.php', 'check', 'Onboarding'],
+        'contracts' => ['admin/contracts.php', 'file', 'Contracts'],
         'jobs' => ['admin/jobs.php', 'briefcase', 'Job posts'],
         'drivers' => ['admin/drivers.php', 'truck', 'Drivers & members'],
         'walmart' => ['admin/walmart.php', 'route', 'Walmart routes'],
@@ -405,6 +409,7 @@ function admin_counts(): array
     static $c = null;
     return $c ??= [
         'applications' => (int) db_val("SELECT COUNT(*) FROM applications WHERE status = 'new'"),
+        'onboarding' => (int) db_val("SELECT COUNT(*) FROM onboarding WHERE stage = 'review'"),
         'chats' => chat_unread_total(),
         'messages' => (int) db_val('SELECT COUNT(*) FROM messages WHERE is_read = 0'),
         'partners' => (int) db_val("SELECT COUNT(*) FROM partner_requests WHERE status = 'new'"),

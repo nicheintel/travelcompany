@@ -27,6 +27,7 @@ $kpis = [
     ['mail', 'Waiting in your inbox', $inbox, $inbox ? 'Chats, messages and partner requests' : 'You’re all caught up', $counts['chats'] ? 'admin/chats.php' : ($counts['messages'] ? 'admin/messages.php' : 'admin/partners.php')],
 ];
 $todo = array_filter([
+    ['check', 'Onboarding documents to review', $counts['onboarding'], 'admin/onboarding.php?stage=review'],
     ['clipboard', 'Applications to review', $counts['applications'], 'admin/applications.php?status=new'],
     ['chat', 'Support chats waiting for a reply', $counts['chats'], 'admin/chats.php'],
     ['mail', 'Unread contact messages', $counts['messages'], 'admin/messages.php'],

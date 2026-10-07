@@ -16,7 +16,40 @@ $docErrors = [];
 if (is_post()) {
     csrf_check();
     $action = $_POST['action'] ?? '';
-    if ($action === 'details') {
+    $onbBack = 'admin/driver.php?id=' . $id . '#onboarding';
+    if ($action === 'onb_start' && isset(ONB_TRACKS[$_POST['track'] ?? ''])) {
+        onboarding_start($id, (string) $_POST['track']);
+        flash('success', 'Onboarding started (' . ONB_TRACKS[$_POST['track']] . '). Add their documents below or ask them to upload on their onboarding page.');
+        redirect($onbBack);
+    } elseif ($action === 'onb_track' && isset(ONB_TRACKS[$_POST['track'] ?? ''])) {
+        db_run('UPDATE onboarding SET track = ?, updated_at = NOW() WHERE user_id = ?', [$_POST['track'], $id]);
+        flash('success', 'Program changed to ' . ONB_TRACKS[$_POST['track']] . '.');
+        redirect($onbBack);
+    } elseif ($action === 'onb_approve') {
+        $st = onboarding_approve($id, (int) $me['id']);
+        flash('success', $st === 'contract' ? 'Approved! We emailed ' . $u['name'] . ' to sign the agreement.' : 'Approved! We emailed ' . $u['name'] . ' the Telegram link.');
+        redirect($onbBack);
+    } elseif ($action === 'onb_changes') {
+        $note = post('note', 2000);
+        if ($note === '') {
+            flash('error', 'Please write what they need to change.');
+        } else {
+            onboarding_request_changes($id, (int) $me['id'], $note);
+            flash('success', 'We emailed ' . $u['name'] . ' your note and the link to update their documents.');
+        }
+        redirect($onbBack);
+    } elseif ($action === 'onb_telegram') {
+        $sent = onboarding_send_telegram($u, 'Here is your link to join the LamazonLoads driver onboarding group.');
+        if ($sent) db_run('UPDATE onboarding SET telegram_sent_at = NOW() WHERE user_id = ?', [$id]);
+        flash($sent ? 'success' : 'error', $sent ? 'Telegram link sent to ' . $u['email'] . '.' : 'The email could not be sent.');
+        redirect($onbBack);
+    } elseif ($action === 'onb_restart') {
+        db_run("UPDATE onboarding SET stage = 'documents', submitted_at = NULL, review_note = NULL, approved_at = NULL, contract_version = NULL, contract_title = NULL,
+            contract_text = NULL, signed_at = NULL, signed_name = NULL, signed_company = NULL, signature = NULL, signed_ip = NULL, emergency_name = NULL,
+            emergency_relation = NULL, emergency_phone = NULL, telegram_sent_at = NULL, updated_at = NOW() WHERE user_id = ?", [$id]);
+        flash('success', 'Onboarding restarted from "Upload documents".');
+        redirect($onbBack);
+    } elseif ($action === 'details') {
         // Staff fill in the member's details and driver profile (same checks as the member's own pages)
         $edit = profile_row($id) + ['name' => post('name', 100), 'phone' => format_phone(post('phone', 25)), 'account_type' => post('account_type', 30)];
         $editErrors = profile_from_post($edit);
@@ -102,10 +135,57 @@ admin_open('drivers');
     '<a class="btn btn-ghost" href="mailto:' . e($u['email']) . '">' . icon('mail') . ' Email</a>'
     . ($u['phone'] !== '' ? '<a class="btn btn-ghost" href="' . e(tel_href((string) $u['phone'])) . '">' . icon('phone') . ' Call</a>' : '')
     . '<a class="btn btn-primary" href="#edit" data-modal-open="edit">' . icon('edit') . ' Edit information</a>', 'Member') ?>
-<div class="card pad onb-card">
-  <h3 class="mt-0">Onboarding <span class="muted">(<?= $done ?>/<?= count($steps) ?>)</span></h3>
-  <ul class="onb-list"><?php foreach ($steps as [$label, $ok]): ?><li class="<?= $ok ? 'ok' : '' ?>"><?= icon($ok ? 'check' : 'clock') ?><?= e($label) ?></li><?php endforeach; ?></ul>
-</div>
+<?php $onb = onboarding_row($id); ?>
+<section class="card panel onb-panel" id="onboarding">
+  <header class="panel-head"><h2><?= icon('check') ?>Onboarding</h2>
+    <?php if ($onb): ?><span class="row-actions"><span class="badge badge-track-<?= e($onb['track']) ?>"><?= e(ONB_TRACKS[$onb['track']]) ?></span><span class="badge badge-stage-<?= e($onb['stage']) ?>"><?= e(ONB_STAGES[$onb['stage']]) ?></span></span><?php endif; ?></header>
+  <div class="panel-body">
+  <?php if (!$onb): ?>
+    <p class="muted">Not started. Onboarding starts automatically when they apply and get the Dispatch or Walmart email. You can also start it yourself:</p>
+    <div class="row-actions">
+      <?php foreach (ONB_TRACKS as $tk => $tl): ?><form method="post" action="<?= e(url($self)) ?>" class="inline-form"><?= csrf_field() ?><input type="hidden" name="action" value="onb_start"><input type="hidden" name="track" value="<?= e($tk) ?>"><button class="btn btn-ghost btn-sm" type="submit"><?= icon('plus') ?> Start <?= e($tl) ?></button></form><?php endforeach; ?>
+    </div>
+  <?php else: $oItems = onboarding_items($id); $oDone = count(array_filter($oItems, fn ($i) => $i[2])); ?>
+    <ol class="onb-steps onb-steps-sm" aria-label="Onboarding steps">
+      <?php $n = 0; foreach (onboarding_steps_view($onb) as [$label, $state]): $n++; ?><li class="is-<?= e($state) ?>"><span class="onb-dot"><?= $state === 'done' ? icon('check') : $n ?></span><span><?= e($label) ?></span></li><?php endforeach; ?>
+    </ol>
+    <?php if ($onb['stage'] === 'changes' && $onb['review_note']): ?><div class="onb-note"><?= icon('chat') ?><div><b>You asked for changes<?= $onb['reviewed_at'] ? ' on ' . e(fmt_date((string) $onb['reviewed_at'], 'M j')) : '' ?></b><p><?= nl2br(e((string) $onb['review_note'])) ?></p></div></div><?php endif; ?>
+    <div class="onb-check">
+      <?php foreach ($oItems as $k => [$label, , $ok, $oDocs]): ?>
+        <div class="onb-ck<?= $ok ? ' ok' : '' ?>"><span class="onb-ck-ico"><?= icon($ok ? 'check' : 'clock') ?></span>
+          <div><b><?= e($label) ?></b>
+            <?php if ($k === 'payout'): ?><small><?= $ok ? e(payout_label($p)) . ' · name: ' . e((string) $p['payout_name']) : 'Not added yet' ?></small>
+            <?php elseif ($oDocs): ?><small class="onb-ck-files"><?php foreach ($oDocs as $d): ?><?= doc_link($d, icon('eye') . e($d['original_name']), '', $label) ?><?php endforeach; ?></small>
+            <?php else: ?><small>Not uploaded yet</small><?php endif; ?>
+          </div></div>
+      <?php endforeach; ?>
+    </div>
+    <?php if ($onb['signed_at']): ?>
+      <div class="onb-signed"><?= icon('file') ?><div><b>Signed <?= e((string) $onb['contract_title']) ?></b>
+        <small><?= e(fmt_date((string) $onb['signed_at'], 'M j, Y g:i a')) ?> by <?= e((string) $onb['signed_name']) ?><?= $onb['emergency_name'] ? ' · Emergency contact: ' . e((string) $onb['emergency_name']) . ' (' . e((string) $onb['emergency_relation']) . ') ' . e((string) $onb['emergency_phone']) : '' ?></small></div>
+        <a class="btn btn-ghost btn-sm" href="<?= e(url('contract.php?user=' . $id)) ?>"><?= icon('eye') ?> View signed copy</a></div>
+    <?php endif; ?>
+    <div class="onb-actions">
+      <?php if (in_array($onb['stage'], ['documents', 'review', 'changes'], true)): ?>
+        <form method="post" action="<?= e(url($self)) ?>" class="inline-form"<?= $oDone < count($oItems) ? ' data-confirm="Not every item is on file yet. Approve anyway?"' : '' ?>><?= csrf_field() ?><input type="hidden" name="action" value="onb_approve">
+          <button class="btn btn-accent" type="submit"><?= icon('check') ?> Approve<?= contract_needed($onb['track']) ? ' & send agreement' : ' & send Telegram link' ?></button></form>
+        <details class="onb-changes"><summary class="btn btn-ghost"><?= icon('chat') ?> Request changes</summary>
+          <form method="post" action="<?= e(url($self)) ?>"><?= csrf_field() ?><input type="hidden" name="action" value="onb_changes">
+            <label for="onb-note">What should they fix? (emailed to them)</label>
+            <textarea id="onb-note" name="note" maxlength="2000" rows="3" placeholder="e.g. Your insurance card is expired. Please upload your current one."></textarea>
+            <button class="btn btn-primary btn-sm mt" type="submit">Send to driver</button></form></details>
+      <?php elseif ($onb['stage'] === 'contract'): ?>
+        <span class="muted">Approved<?= $onb['approved_at'] ? ' ' . e(fmt_date((string) $onb['approved_at'], 'M j')) : '' ?>. Waiting for them to sign.</span>
+      <?php else: ?>
+        <form method="post" action="<?= e(url($self)) ?>" class="inline-form"><?= csrf_field() ?><input type="hidden" name="action" value="onb_telegram"><button class="btn btn-ghost" type="submit"><?= icon('send') ?> Email the Telegram link again</button></form>
+      <?php endif; ?>
+      <form method="post" action="<?= e(url($self)) ?>" class="inline-form onb-track"><?= csrf_field() ?><input type="hidden" name="action" value="onb_track">
+        <label for="track" class="sr-only">Program</label><?= select_html('track', ONB_TRACKS, (string) $onb['track'], 'Program') ?><button class="btn btn-ghost btn-sm" type="submit">Change</button></form>
+      <form method="post" action="<?= e(url($self)) ?>" class="inline-form" data-confirm="Start their onboarding over from Upload documents? Their files stay, but approval and signature are cleared."><?= csrf_field() ?><input type="hidden" name="action" value="onb_restart"><button class="link-btn onb-restart" type="submit">Restart</button></form>
+    </div>
+  <?php endif; ?>
+  </div>
+</section>
 
 <div class="grid grid-2">
   <div class="card pad">
