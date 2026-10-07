@@ -1637,7 +1637,7 @@ a.app-row:hover .ar-go { opacity: 1; transform: translateX(3px); }
 .admin-head h1 { margin: 0; font-size: clamp(1.55rem, 2.3vw, 1.95rem); letter-spacing: -.02em; line-height: 1.15; }
 .admin-head p { margin: 6px 0 0; color: var(--muted); max-width: 70ch; font-size: .96rem; line-height: 1.55; text-wrap: pretty; }
 .ah-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.admin-main > * + * { margin-top: 20px; }
+.admin-main > * + :where(:not(.modal)) { margin-top: 20px; } /* pop-ups cover the whole screen, never pushed down */
 .admin-main > .admin-head + * { margin-top: 0; }
 .admin-main > .card + .card, .admin-main > .card + .grid, .admin-main > .grid + .card, .admin-main > .card.pad + .card.pad { margin-top: 20px; }
 .admin-main .card.pad { padding: 22px 24px; }

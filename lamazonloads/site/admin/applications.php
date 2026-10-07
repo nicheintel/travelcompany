@@ -56,7 +56,7 @@ function app_detail_html(array $a, string $back): string
     };
     $rows = [
         ['Phone', $phone !== '' ? '<a href="' . e(tel_href($phone)) . '">' . e($phone) . '</a>' : '—'],
-        ['Email', '<a href="mailto:' . e($a['email']) . '">' . e($a['email']) . '</a>'],
+        ['Email', '<a href="mailto:' . e($a['email']) . '">' . str_replace('@', '<wbr>@', e($a['email'])) . '</a>'], // long emails wrap at the @
         ['Location', e($a['location'] !== '' ? $a['location'] : ($a['home_zip'] ? 'ZIP ' . $a['home_zip'] : '—'))],
         ['Vehicle', e($vehicles !== '' ? $vehicles : '—')],
         ['Vehicle is', e(ownership_label($a) ?: '—')],
