@@ -430,11 +430,12 @@ function admin_open(string $active): string
 {
     $unread = 0;
     try { $unread = chat_unread_total(); } catch (Throwable $e) {}
-    $links = [['admin/', 'Overview', 'overview'], ['admin/bookings.php', 'Bookings', 'bookings'], ['admin/chats.php', 'Support chats' . ($unread ? ' <span class="ml-1 rounded-full bg-red-500 px-1.5 text-xs text-white">' . $unread . '</span>' : ''), 'chats'], ['admin/users.php', 'Users', 'users'], ['admin/packages.php', 'Packages', 'packages'], ['admin/settings.php', 'Site settings', 'settings'], ['admin/diagnostics.php', 'Diagnostics', 'diagnostics']];
+    $badge = '<span class="ml-1 rounded-full bg-red-500 px-1.5 text-xs text-white" data-chat-badge' . ($unread ? '' : ' hidden') . '>' . $unread . '</span>';
+    $links = [['admin/', 'Overview', 'overview'], ['admin/bookings.php', 'Bookings', 'bookings'], ['admin/chats.php', 'Support chats' . $badge, 'chats'], ['admin/users.php', 'Users', 'users'], ['admin/packages.php', 'Packages', 'packages'], ['admin/settings.php', 'Site settings', 'settings'], ['admin/diagnostics.php', 'Diagnostics', 'diagnostics']];
     $nav = implode('', array_map(fn($l) => '<a href="' . e(url($l[0])) . '" class="shrink-0 rounded-lg px-4 py-2 text-sm font-semibold transition '
         . ($l[2] === $active ? 'bg-white text-brand-800 shadow-sm' : 'text-brand-100 hover:bg-white/10 hover:text-white') . '">' . $l[1] . '</a>', $links));
     return '<div class="min-h-full bg-slate-50"><div class="bg-brand-900"><div class="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">'
-        . '<p class="font-semibold text-white">Admin <span class="font-normal text-brand-200">· travel assistant dashboard</span></p><nav class="flex gap-1 overflow-x-auto">' . $nav . '</nav></div></div>'
+        . '<div class="flex items-center gap-3"><p class="whitespace-nowrap font-semibold text-white">Admin <span class="font-normal text-brand-200">· travel assistant dashboard</span></p><div data-alert-controls></div></div><nav class="flex gap-1 overflow-x-auto">' . $nav . '</nav></div></div>'
         . '<div class="mx-auto max-w-7xl px-4 py-8 sm:px-6">' . site_address_warning();
 }
 
@@ -452,7 +453,13 @@ function site_address_warning(): string
 
 function admin_close(): string
 {
-    return '</div></div>';
+    // Live chat alerts on every admin page: pop-ups, mini chat window, sound, badge (assets/admin-chat.js)
+    $since = 0;
+    try { $since = (int) (db_one('SELECT COALESCE(MAX(id), 0) AS m FROM support_messages')['m'] ?? 0); } catch (Throwable $e) {}
+    $page = basename((string) ($_SERVER['SCRIPT_NAME'] ?? ''));
+    return '</div></div><div class="admin-live" data-admin-live data-endpoint="' . e(url('chat.php')) . '" data-csrf="' . e(csrf_token()) . '" data-chats="' . e(url('admin/chats.php')) . '"'
+        . ' data-since="' . $since . '" data-site="' . e((string) config('site_name')) . '"' . ($page === 'chats.php' ? ' data-quiet' : '') . '></div>'
+        . '<script src="' . e(asset('admin-chat.js')) . '" defer></script>';
 }
 
 function bookings_table(array $bookings, string $empty = 'No bookings found.'): string

@@ -1,5 +1,5 @@
 /* Live chat: the Chat button (assets/chat.js) and Admin → Support chats. FareFinders colours (light theme). */
-.chat, [data-cs] {
+.chat, [data-cs], .admin-live, .al-alerts {
   --c-bg: #ffffff; --c-2: #f1f5f9; --c-line: #e2e8f0; --c-text: #0f172a; --c-mute: #64748b;
   --c-brand: var(--color-brand-600, #1c54f0); --c-brand-dark: var(--color-brand-700, #1640d9); --c-me: var(--color-brand-50, #eef5ff); --c-ok: #059669;
   --c-font: var(--font-sans, system-ui, sans-serif);
@@ -145,3 +145,59 @@
   .cs-back { display: block; }
   .cs-msgs .cm { max-width: 88%; }
 }
+
+/* ---------- Admin: live chat alerts on every admin page (assets/admin-chat.js) ---------- */
+.al-ctl { border: 0; border-radius: 999px; padding: 5px 11px; background: rgba(255, 255, 255, .1); color: #d9e8ff; font: 600 12px var(--font-sans, system-ui, sans-serif); cursor: pointer; white-space: nowrap; transition: background .15s; }
+.al-ctl:hover:not(:disabled) { background: rgba(255, 255, 255, .2); color: #fff; }
+.al-alerts { position: relative; }
+.al-menu { position: absolute; left: 0; top: calc(100% + 8px); z-index: 85; width: 260px; display: grid; gap: 6px; padding: 12px; border-radius: 14px; background: #fff;
+  border: 1px solid var(--c-line); box-shadow: 0 18px 40px -12px rgba(15, 29, 79, .35); font-family: var(--c-font); animation: al-up .18s ease; }
+.al-menu[hidden] { display: none; }
+.al-menu b { font-size: 13px; color: var(--c-text); }
+.al-opt { text-align: left; border: 1px solid var(--c-line); border-radius: 10px; padding: 8px 12px; background: #fff; color: var(--c-text); font: 600 13px var(--c-font); cursor: pointer; }
+.al-opt:hover:not(:disabled) { background: var(--c-2); }
+.al-opt:disabled { cursor: default; color: var(--c-mute); }
+.al-opt[hidden] { display: none; }
+.al-note { margin: 0; font-size: 12px; line-height: 1.45; color: var(--c-mute); }
+.al-toasts { position: fixed; right: 18px; bottom: 18px; z-index: 80; display: grid; gap: 10px; width: min(360px, calc(100vw - 24px)); }
+.admin-live:has(.al-chat) .al-toasts { right: 396px; }
+.al-toast { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 12px; padding: 14px; border-radius: 16px; background: #fff; border: 1px solid var(--c-line);
+  box-shadow: 0 18px 40px -12px rgba(15, 29, 79, .35); font-family: var(--c-font); animation: al-in .3s cubic-bezier(.2, .7, .2, 1); }
+.al-av { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--c-brand); color: #fff; font: 700 13px var(--c-font); }
+.al-main { min-width: 0; display: grid; gap: 4px; }
+.al-top { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.al-top b { font-size: 14px; color: var(--c-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.al-top small { font-size: 11.5px; color: var(--c-mute); white-space: nowrap; }
+.al-toast p { margin: 0; font-size: 13.5px; line-height: 1.45; color: #334155; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow-wrap: anywhere; }
+.al-acts { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; }
+.al-reply { border: 0; border-radius: 10px; padding: 7px 16px; background: var(--c-brand); color: #fff; font: 700 13px var(--c-font); cursor: pointer; }
+.al-reply:hover { background: var(--c-brand-dark); }
+.al-x { border: 0; background: none; width: 30px; height: 30px; border-radius: 50%; color: var(--c-mute); font-size: 20px; line-height: 1; cursor: pointer; }
+.al-x:hover { background: var(--c-2); color: var(--c-text); }
+.al-chat { position: fixed; right: 18px; bottom: 18px; z-index: 80; display: flex; flex-direction: column; width: min(360px, calc(100vw - 24px)); height: min(500px, calc(100vh - 100px));
+  background: #fff; border: 1px solid var(--c-line); border-radius: 18px; overflow: hidden; box-shadow: 0 24px 60px -16px rgba(15, 29, 79, .45); font-family: var(--c-font); animation: al-up .28s cubic-bezier(.2, .7, .2, 1); }
+.al-head { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto auto; gap: 10px; align-items: center; padding: 12px 12px 12px 14px; background: var(--color-brand-900, #1a328a); color: #fff; }
+.al-head .al-av { background: rgba(255, 255, 255, .15); }
+.al-who { min-width: 0; display: grid; }
+.al-who b { font-size: 14.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.al-who small { font-size: 11.5px; color: #bcd7ff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.al-full { font-size: 12px; font-weight: 600; color: #e9c46a; text-decoration: none; white-space: nowrap; }
+.al-full:hover { text-decoration: underline; }
+.al-head .al-x { color: #d9e8ff; }
+.al-head .al-x:hover { background: rgba(255, 255, 255, .12); color: #fff; }
+.al-msgs { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 14px; background: #f8fafc; }
+.al-typing { margin: 0; padding: 4px 14px; font-size: 12px; color: var(--c-mute); background: #f8fafc; }
+.al-typing[hidden], .al-err[hidden] { display: none; }
+.al-err { margin: 0; padding: 6px 14px; font-size: 12.5px; color: #b91c1c; background: #fef2f2; }
+.al-send { display: flex; gap: 8px; align-items: flex-end; padding: 10px; border-top: 1px solid var(--c-line); margin: 0; }
+.al-send textarea { flex: 1; resize: none; border: 1px solid var(--c-line); border-radius: 12px; padding: 9px 12px; font: 14px/1.4 var(--c-font); color: var(--c-text); max-height: 120px; }
+.al-send textarea:focus { outline: none; border-color: var(--c-brand); box-shadow: 0 0 0 3px rgba(28, 84, 240, .15); }
+.al-send button { border: 0; border-radius: 12px; padding: 10px 16px; background: var(--c-brand); color: #fff; font: 700 14px var(--c-font); cursor: pointer; }
+.al-send button:disabled { opacity: .6; cursor: default; }
+@keyframes al-in { from { opacity: 0; transform: translateX(24px); } to { opacity: 1; transform: none; } }
+@keyframes al-up { from { opacity: 0; transform: translateY(16px) scale(.98); } to { opacity: 1; transform: none; } }
+@media (max-width: 640px) {
+  .admin-live:has(.al-chat) .al-toasts { right: 12px; bottom: auto; top: 76px; }
+  .al-toasts, .al-chat { right: 12px; bottom: 12px; }
+}
+@media (prefers-reduced-motion: reduce) { .al-toast, .al-chat { animation: none; } }

@@ -151,7 +151,7 @@ body > header[data-scrolled] { box-shadow: 0 8px 24px -16px rgba(15, 29, 79, 0.3
 }
 ::view-transition-old(root), ::view-transition-new(root) { animation-duration: 0.22s; }
 body > header { view-transition-name: site-header; }
-.chat { view-transition-name: chat-button; }
+.chat-fab { view-transition-name: chat-button; } /* on the button itself: it keeps its place above the page */
 
 /* Gold loading bar at the top while the next page loads */
 @keyframes ff-progress { 0% { width: 0; } 12% { width: 35%; } 100% { width: 92%; } }
