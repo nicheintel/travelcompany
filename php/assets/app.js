@@ -424,7 +424,10 @@
     const ready = (pic) => { const img = $("img", pic); return img.complete && img.naturalWidth > 0; };
     const show = (i) => {
       if (i === cur || !ready(slides[i])) return;
-      slides[cur].classList.remove("on");
+      const old = slides[cur];
+      old.classList.replace("on", "leaving"); // stays under the new photo while it fades in
+      setTimeout(() => old.classList.remove("leaving"), 1800);
+      slides[i].classList.remove("leaving");
       slides[i].classList.add("on");
       dots.forEach((d, n) => d.toggleAttribute("aria-current", n === i));
       cap.href = slides[i].dataset.href;

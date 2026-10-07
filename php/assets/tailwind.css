@@ -119,10 +119,12 @@ body > header[data-scrolled] { box-shadow: 0 8px 24px -16px rgba(15, 29, 79, 0.3
 
 /* Home page photo slideshow */
 @keyframes ff-zoom { from { transform: scale(1); } to { transform: scale(1.05); } }
-.hero-slide { position: absolute; inset: 0; opacity: 0; transition: opacity 1.6s ease; }
+/* The new photo fades in on top; the old one stays fully visible (and keeps its zoom) underneath until it's covered. */
+.hero-slide { position: absolute; inset: 0; opacity: 0; z-index: 0; }
 .hero-slide img { width: 100%; height: 100%; object-fit: cover; }
-.hero-slide.on { opacity: 1; }
-.hero-slide.on img { animation: ff-zoom 9s ease-out both; }
+.hero-slide.on { opacity: 1; z-index: 2; transition: opacity 1.6s ease; }
+.hero-slide.leaving { opacity: 1; z-index: 1; }
+.hero-slide.on img, .hero-slide.leaving img { animation: ff-zoom 9s ease-out both; }
 .hero-caption { display: inline-flex; align-items: center; gap: 0.5rem; border-radius: 9999px; padding: 0.45rem 0.9rem;
   font-size: 0.875rem; font-weight: 600; color: #fff; background: rgba(15, 29, 79, 0.45); backdrop-filter: blur(6px);
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2); transition: background 0.2s ease; }
@@ -132,7 +134,7 @@ body > header[data-scrolled] { box-shadow: 0 8px 24px -16px rgba(15, 29, 79, 0.3
 
 /* Devices set to "reduce motion": no zooming, flowing or sliding; gentle fades and the gold shine stay. */
 @media (prefers-reduced-motion: reduce) {
-  .hero-slide.on img { animation: none; }
+  .hero-slide img, .hero-slide.on img, .hero-slide.leaving img { animation: none; }
   .hero-route { animation: none; }
   .hero-rise { animation-name: ff-fade; }
 }
