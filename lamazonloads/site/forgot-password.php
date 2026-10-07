@@ -42,17 +42,18 @@ page_header('Reset your password', '', '', 'page-auth');
   <div class="auth-main">
     <div class="auth-box">
       <?php if ($sent): ?>
-        <div class="reset-done">
-          <div class="verify-ico"><?= icon('mail') ?></div>
-          <h1>Check your email</h1>
-          <p class="sub">If <?= $shown !== '' ? '<b>' . e($shown) . '</b>' : 'that email' ?> has a LamazonLoads account, we sent a link to choose a new password. It works for 1 hour.</p>
-          <ol class="reset-steps">
-            <li><span>1</span>Open the email from <b>info@lamazonloads.com</b></li>
-            <li><span>2</span>Click <b>Choose a new password</b></li>
-            <li><span>3</span>Pick a new password and you're signed in</li>
-          </ol>
-          <p class="hint">No email after a few minutes? <a href="<?= e(url('forgot-password.php' . ($shown !== '' ? '?email=' . rawurlencode($shown) : ''))) ?>">Send it again</a> or make sure you used the email you signed up with.</p>
-          <a class="btn btn-ghost btn-block mt" href="<?= e(url('login.php')) ?>">Back to sign in</a>
+        <div class="ss reset-done">
+          <div class="ss-ico" aria-hidden="true"><?= icon('mail') ?></div>
+          <h1 class="ss-title">Check your email</h1>
+          <p class="ss-lead">If this email has a LamazonLoads account, we sent it a reset link.</p>
+          <?php if ($shown !== ''): ?><?= ss_chip($shown) ?><?php endif; ?>
+          <?= ss_steps([
+              ['Open our email', 'From ' . mail_from()],
+              ['Tap “Choose a new password”', 'The link works for 1 hour'],
+              ['Pick a new password', 'You’re signed in right away'],
+          ]) ?>
+          <?= ss_hint('No email? <a href="' . e(url('forgot-password.php' . ($shown !== '' ? '?email=' . rawurlencode($shown) : ''))) . '">Send it again</a> or check spam.') ?>
+          <div class="ss-acts"><a class="btn btn-ghost btn-block" href="<?= e(url('login.php')) ?>">Back to sign in</a></div>
         </div>
       <?php else: ?>
         <h1>Forgot your password?</h1>

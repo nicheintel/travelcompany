@@ -10,7 +10,7 @@ if ($id === 0 && !network_enabled()) {
 if (!$job || ($job['status'] !== 'open' && !is_admin())) {
     http_response_code(404);
     page_header('Opening not found', 'careers');
-    echo '<section class="section"><div class="container narrow"><div class="card pad center"><h1>This opening is no longer available</h1><p class="muted">It may have been filled or closed.</p><a class="btn btn-primary" href="' . e(url('careers.php')) . '">See current openings</a></div></div></section>';
+    echo '<section class="section"><div class="container narrow"><div class="card pad ss ss-card"><div class="ss-ico" aria-hidden="true">' . icon('briefcase') . '</div><h1 class="ss-title">This opening is closed</h1><p class="ss-lead">It may have been filled. New openings are posted on our Careers page.</p><div class="ss-acts ss-acts-inline"><a class="btn btn-primary" href="' . e(url('careers.php')) . '">See current openings</a></div></div></div></section>';
     page_footer();
     exit;
 }
@@ -178,14 +178,19 @@ $here = 'job.php?id=' . $id;
     </header>
     <div class="modal-body">
       <?php if ($user && !is_verified($user)): ?>
-        <div class="modal-msg"><div class="verify-ico"><?= icon('mail') ?></div><h3>Confirm your email to apply</h3>
-          <p class="muted">We sent a link to <b><?= e($user['email']) ?></b>. Once you confirm, you can apply in about two minutes.</p>
-          <a class="btn btn-accent btn-block" href="<?= e(url('verify.php')) ?>">Confirm my email</a></div>
+        <div class="ss modal-ss"><div class="ss-ico" aria-hidden="true"><?= icon('mail') ?></div><h3 class="ss-title" tabindex="-1" data-autofocus>Confirm your email first</h3>
+          <p class="ss-lead">We sent a confirmation link to</p>
+          <?= ss_chip((string) $user['email']) ?>
+          <?= ss_hint('After that, applying takes about 2 minutes.', 'clock') ?>
+          <div class="ss-acts"><a class="btn btn-accent btn-block" href="<?= e(url('verify.php')) ?>">Confirm my email <?= icon('arrow') ?></a></div></div>
       <?php elseif (!$user): ?>
-        <div class="modal-msg"><div class="verify-ico"><?= icon('user') ?></div><h3>Sign in to apply</h3>
-          <p class="muted">Create a free account or sign in, then fill out a short form: your name, phone, location and vehicle. It takes about two minutes.</p>
-          <a class="btn btn-accent btn-block" href="<?= e(url('register.php?next=' . rawurlencode($here . '&apply=1'))) ?>">Create account &amp; apply</a>
-          <a class="btn btn-ghost btn-block mt" href="<?= e(url('login.php?next=' . rawurlencode($here . '&apply=1'))) ?>">I already have an account</a></div>
+        <div class="ss modal-ss"><div class="ss-ico" aria-hidden="true"><?= icon('user') ?></div><h3 class="ss-title" tabindex="-1" data-autofocus>Sign in to apply</h3>
+          <p class="ss-lead">Use a free LamazonLoads account. The form takes about 2 minutes.</p>
+          <ul class="ss-tags" aria-label="We'll ask for"><li>Name</li><li>Phone</li><li>Location</li><li>Vehicle</li></ul>
+          <div class="ss-acts">
+            <a class="btn btn-accent btn-block" href="<?= e(url('register.php?next=' . rawurlencode($here . '&apply=1'))) ?>">Create account &amp; apply</a>
+            <a class="btn btn-ghost btn-block" href="<?= e(url('login.php?next=' . rawurlencode($here . '&apply=1'))) ?>">I already have an account</a>
+          </div></div>
       <?php else: ?>
         <?php if ($errors): ?><ul class="errors"><?php foreach ($errors as $er): ?><li><?= e($er) ?></li><?php endforeach; ?></ul><?php endif; ?>
         <form method="post" action="<?= e(url($here)) ?>#apply" enctype="multipart/form-data" class="apply-form" data-apply novalidate>
@@ -263,23 +268,30 @@ $here = 'job.php?id=' . $id;
   <a class="modal-backdrop" href="#apply-now" data-modal-close aria-label="Close"></a>
   <div class="modal-panel sent-panel">
     <a class="modal-x sent-x" href="#apply-now" data-modal-close aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></a>
-    <div class="modal-body sent-body">
-      <div class="sent-ico" aria-hidden="true"><?= icon('mail') ?><span class="sent-badge"><?= icon('check') ?></span></div>
-      <h2 id="applied-title" tabindex="-1" data-autofocus>Application sent!</h2>
-      <?php if ($justApplied['note']): ?><p class="sent-note is-<?= e($justApplied['note'][0]) ?>" role="status"><?= icon($justApplied['note'][0] === 'success' ? 'check' : 'alert') ?><?= e($justApplied['note'][1]) ?></p><?php endif; ?>
+    <div class="modal-body sent-body ss">
+      <div class="ss-ico" aria-hidden="true"><?= icon('mail') ?><span class="ss-badge"><?= icon('check') ?></span></div>
+      <h2 class="ss-title" id="applied-title" tabindex="-1" data-autofocus>Application sent</h2>
       <?php if ($mailed): ?>
-        <p><?= $earlier ? 'We already emailed your next steps to <b>' . e($user['email']) . '</b> on ' . e(fmt_date((string) $justApplied['email_sent_at'], 'M j')) . '.' : 'We emailed your next steps to <b>' . e($user['email']) . '</b>.' ?> Open it and tap <b>Upload my documents</b>.</p>
-        <p class="sent-tip">It comes from <?= e(mail_from()) ?>. Not there? Check your spam or promotions folder.</p>
+        <p class="ss-lead"><?= $earlier ? 'We already emailed your next steps on ' . e(fmt_date((string) $justApplied['email_sent_at'], 'M j')) . '.' : 'Your next step is waiting in your inbox.' ?></p>
+        <?= ss_chip((string) $user['email']) ?>
+        <?php if ($justApplied['note']): ?><p class="ss-note is-<?= e($justApplied['note'][0]) ?>" role="status"><?= icon($justApplied['note'][0] === 'success' ? 'check' : 'alert') ?><?= e($justApplied['note'][1]) ?></p><?php endif; ?>
+        <?= ss_steps([
+            ['Open our email', 'From ' . mail_from()],
+            ['Tap “Upload my documents”', 'Send your documents on our website'],
+            ['We review and get you started', 'You’ll hear from us by email'],
+        ]) ?>
+        <?= ss_hint('Not in your inbox? Check spam or promotions.') ?>
       <?php else: ?>
-        <p>Thanks for applying. Our team will review your application and contact you at <b><?= e($user['email']) ?></b> or by phone.</p>
+        <p class="ss-lead">Our team will review it and get back to you.</p>
+        <?= ss_chip((string) $user['email']) ?>
       <?php endif; ?>
-      <div class="sent-acts">
+      <div class="ss-acts">
         <?php if ($webmail): ?>
           <a class="btn btn-accent btn-block" href="<?= e($webmail[1]) ?>" target="_blank" rel="noopener"><?= e($webmail[0]) ?> <?= icon('external') ?></a>
         <?php else: ?>
           <a class="btn btn-accent btn-block" href="#apply-now" data-modal-close>Got it</a>
         <?php endif; ?>
-        <div class="sent-links">
+        <div class="ss-links">
           <?php if ($mailed): ?><form method="post" action="<?= e(url($here)) ?>"><?= csrf_field() ?><input type="hidden" name="action" value="resend_email"><button class="link-btn" type="submit"><?= icon('send') ?>Resend email</button></form><?php endif; ?>
           <a href="<?= e(url('careers.php')) ?>"><?= icon('briefcase') ?>Browse more jobs</a>
           <?php if (!$mailed): ?><a href="<?= e(url('account.php')) ?>"><?= icon('user') ?>My dashboard</a><?php endif; ?>

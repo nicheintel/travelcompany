@@ -162,6 +162,28 @@ function toast_parts(string $msg): array
     return mb_strlen($msg) <= 70 ? [$msg, ''] : ['', $msg];
 }
 
+/** Pieces of a status screen ("Application sent", "Check your email"…), styled by .ss in style.css. */
+function ss_chip(string $text, string $ic = 'mail'): string
+{
+    return '<span class="ss-chip"><span class="ss-chip-ico">' . icon($ic) . '</span><span>' . e($text) . '</span></span>';
+}
+
+/** Numbered steps: [[title, short line under it], ...] */
+function ss_steps(array $steps): string
+{
+    $h = '<ol class="ss-steps">';
+    foreach ($steps as [$title, $line]) {
+        $h .= '<li><span><b>' . e($title) . '</b>' . ($line !== '' ? '<small>' . e($line) . '</small>' : '') . '</span></li>';
+    }
+    return $h . '</ol>';
+}
+
+/** Small tip line with an icon. $html may contain a link. */
+function ss_hint(string $html, string $ic = 'info'): string
+{
+    return '<p class="ss-hint">' . icon($ic) . '<span>' . $html . '</span></p>';
+}
+
 /** "Are you sure?" pop-up for forms with data-confirm (filled in by app.js). */
 function confirm_dialog_html(): string
 {

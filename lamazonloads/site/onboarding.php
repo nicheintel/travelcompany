@@ -25,19 +25,29 @@ if ($row && !onboarding_unlocked($row)) {
         } else {
             record_hit('onb_link', (string) $uid);
             $ok = onboarding_send_link($u);
-            flash($ok ? 'success' : 'error', $ok ? 'Sent! Check your inbox at ' . $u['email'] . ' for “Your LamazonLoads onboarding link”.' : 'The email could not be sent. Please contact us.');
+            flash($ok ? 'success' : 'error', $ok ? 'Sent! Look for “Your LamazonLoads onboarding link” in your inbox.' : 'The email could not be sent. Please contact us.');
         }
         redirect('onboarding.php');
     }
     page_header('Check your email');
     dash_open('overview');
     ?>
-    <div class="card onb-state onb-locked">
-      <span class="onb-state-ico"><?= icon('mail') ?></span>
-      <h2>Check your email for your next steps</h2>
-      <p class="muted">We emailed your onboarding instructions to <b><?= e($u['email']) ?></b> from info@lamazonloads.com. Open that email and tap <b>Upload my documents</b> to start. If you don’t see it, check your spam or promotions folder.</p>
-      <form method="post" action="<?= e(url('onboarding.php')) ?>" class="mt"><?= csrf_field() ?><input type="hidden" name="action" value="resend_link">
-        <button class="btn btn-ghost" type="submit"><?= icon('mail') ?> Email me the link again</button></form>
+    <?php $webmail = webmail_link((string) $u['email']); ?>
+    <div class="card onb-locked ss ss-card">
+      <div class="ss-ico" aria-hidden="true"><?= icon('mail') ?></div>
+      <h2 class="ss-title">Check your email</h2>
+      <p class="ss-lead">Your onboarding opens from the link we emailed you.</p>
+      <?= ss_chip((string) $u['email']) ?>
+      <?= ss_steps([
+          ['Open our email', 'From ' . mail_from()],
+          ['Tap “Upload my documents”', 'Your checklist opens right here'],
+      ]) ?>
+      <?= ss_hint('Not in your inbox? Check spam or promotions.') ?>
+      <div class="ss-acts">
+        <?php if ($webmail): ?><a class="btn btn-accent btn-block" href="<?= e($webmail[1]) ?>" target="_blank" rel="noopener"><?= e($webmail[0]) ?> <?= icon('external') ?></a><?php endif; ?>
+        <form method="post" action="<?= e(url('onboarding.php')) ?>"><?= csrf_field() ?><input type="hidden" name="action" value="resend_link">
+          <button class="btn btn-ghost btn-block" type="submit"><?= icon('send') ?> Email me the link again</button></form>
+      </div>
     </div>
     <?php
     dash_close();
@@ -119,11 +129,12 @@ dash_open('onboarding');
 
 if (!$row): ?>
   <h1>Onboarding</h1>
-  <div class="card pad onb-empty">
-    <span class="onb-empty-ico"><?= icon('clipboard') ?></span>
-    <h3>Your onboarding starts when you apply</h3>
-    <p class="muted">Apply to an opening and this page becomes your checklist: upload your documents, get approved, sign your agreement and join our team on Telegram.</p>
-    <div class="row-actions" style="justify-content:center">
+  <div class="card onb-empty ss ss-card">
+    <div class="ss-ico" aria-hidden="true"><?= icon('clipboard') ?></div>
+    <h2 class="ss-title">Your onboarding starts when you apply</h2>
+    <p class="ss-lead">Apply to an opening and this page becomes your checklist.</p>
+    <ul class="ss-tags" aria-label="What's on the checklist"><li>Upload documents</li><li>Get approved</li><li>Sign agreement</li><li>Join Telegram</li></ul>
+    <div class="ss-acts ss-acts-inline">
       <a class="btn btn-accent" href="<?= e(url('careers.php')) ?>">See open opportunities <?= icon('arrow') ?></a>
       <?php if (network_enabled()): ?><a class="btn btn-ghost" href="<?= e(url('job.php?id=0')) ?>">Join the driver network</a><?php endif; ?>
     </div>
@@ -215,10 +226,11 @@ $stage = $row['stage'];
   </div>
 
 <?php elseif ($stage === 'review'): ?>
-  <div class="card onb-state">
-    <span class="onb-state-ico"><?= icon('clock') ?></span>
-    <h2>We’re reviewing your documents</h2>
-    <p class="muted">Thanks for sending everything<?= $row['submitted_at'] ? ' on ' . e(fmt_date((string) $row['submitted_at'], 'M j')) : '' ?>. Our team usually reviews within one business day, and we’ll email you at <b><?= e($u['email']) ?></b> as soon as it’s done.</p>
+  <div class="card ss ss-card">
+    <div class="ss-ico" aria-hidden="true"><?= icon('clock') ?></div>
+    <h2 class="ss-title">We’re reviewing your documents</h2>
+    <p class="ss-lead"><?= $row['submitted_at'] ? 'Sent ' . e(fmt_date((string) $row['submitted_at'], 'M j')) . '. ' : '' ?>We usually finish within one business day and email you right away.</p>
+    <?= ss_chip((string) $u['email']) ?>
   </div>
   <section class="card pad">
     <h3 class="mt-0">What you sent</h3>

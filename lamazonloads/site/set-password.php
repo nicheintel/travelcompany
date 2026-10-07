@@ -46,7 +46,8 @@ page_header('Choose your password', '', '', 'page-auth');
   <div class="auth-main">
     <div class="auth-box">
       <h1>Choose your password</h1>
-      <p class="sub">The password in your welcome email was for your first sign-in only. Please choose your own for <b><?= e($u['email']) ?></b>.</p>
+      <p class="sub sub-tight">The password in your welcome email works only once. Choose your own to continue.</p>
+      <div class="auth-for"><?= ss_chip((string) $u['email'], 'user') ?></div>
       <?php if ($errors): ?><div class="errors" style="padding-left:16px"><?= e($errors[0]) ?></div><?php endif; ?>
       <form method="post" action="<?= e(url('set-password.php')) ?>" novalidate>
         <?= csrf_field() ?>

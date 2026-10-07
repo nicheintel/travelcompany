@@ -75,20 +75,7 @@ if (is_post()) {
     }
 }
 
-// "Open Gmail"-style button for the big email providers
-$domain = email_domain((string) $u['email']);
-$inbox = null;
-foreach ([
-    ['Open Gmail', 'https://mail.google.com/', ['gmail.com', 'googlemail.com']],
-    ['Open Outlook', 'https://outlook.live.com/mail/', ['outlook.com', 'hotmail.com', 'live.com', 'msn.com']],
-    ['Open Yahoo Mail', 'https://mail.yahoo.com/', ['yahoo.com', 'ymail.com']],
-    ['Open iCloud Mail', 'https://www.icloud.com/mail', ['icloud.com', 'me.com', 'mac.com']],
-    ['Open AOL Mail', 'https://mail.aol.com/', ['aol.com']],
-] as [$label, $href, $domains]) {
-    if (in_array($domain, $domains, true)) {
-        $inbox = [$label, $href];
-    }
-}
+$inbox = webmail_link((string) $u['email']); // "Open Gmail"-style button for the big email providers
 $changeOpen = ($_POST['action'] ?? '') === 'change' && $errors;
 $phone = (string) config('contact_phone');
 
@@ -103,16 +90,21 @@ page_header('Confirm your email', '', '', 'page-auth');
     </ol>
 
     <div class="card verify-card">
-      <div class="verify-ico"><?= icon('mail') ?></div>
-      <h1>You're almost in! 🚚</h1>
-      <p class="verify-lead">We just emailed a confirmation link to:</p>
-      <p class="verify-email"><?= e($u['email']) ?></p>
-      <p class="verify-text">Tap the link to activate your account. Then you can apply for loads, routes and jobs.</p>
+      <div class="ss verify-ss">
+        <div class="ss-ico" aria-hidden="true"><?= icon('mail') ?></div>
+        <h1 class="ss-title">Confirm your email</h1>
+        <p class="ss-lead">You’re almost in. We sent a confirmation link to</p>
+        <?= ss_chip((string) $u['email']) ?>
+        <?= ss_steps([
+            ['Open our email', 'From ' . mail_from()],
+            ['Tap “Confirm my email”', 'The link works for ' . VERIFY_HOURS . ' hours'],
+        ]) ?>
+      </div>
 
       <?php if ($errors): ?><ul class="errors"><?php foreach ($errors as $er): ?><li><?= e($er) ?></li><?php endforeach; ?></ul><?php endif; ?>
 
       <?php if ($inbox): ?>
-        <a class="btn btn-accent btn-block" href="<?= e($inbox[1]) ?>" target="_blank" rel="noopener"><?= e($inbox[0]) ?> <?= icon('arrow') ?></a>
+        <a class="btn btn-accent btn-block" href="<?= e($inbox[1]) ?>" target="_blank" rel="noopener"><?= e($inbox[0]) ?> <?= icon('external') ?></a>
       <?php endif; ?>
       <div class="verify-actions<?= $inbox ? '' : ' single' ?>">
         <form method="post" action="<?= e(url('verify.php')) ?>">
@@ -131,7 +123,7 @@ page_header('Confirm your email', '', '', 'page-auth');
         </div>
       </form>
 
-      <p class="verify-note"><?= icon('clock') ?> It can take a minute to arrive. The link works for <?= VERIFY_HOURS ?> hours.</p>
+      <p class="verify-note"><?= icon('info') ?> Not in your inbox? Check spam or promotions.</p>
       <p class="verify-help">Still nothing? <?php if ($phone !== ''): ?>Call us at <a href="<?= e(tel_href($phone)) ?>"><?= e($phone) ?></a> or tap Chat<?php else: ?>Tap Chat<?php endif; ?>, and we'll confirm your account for you.</p>
     </div>
   </div>

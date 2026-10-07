@@ -189,19 +189,3 @@ function send_onboarding_email(int $appId, bool $again = false): string
     app_auto_note($appId, ONBOARDING_EMAILS[$type] . ' could not be sent (check Admin → Email check)');
     return '';
 }
-
-/** "Open Gmail" style button for the success screen: [label, url] for common email providers, or [] for others. */
-function webmail_link(string $email): array
-{
-    $domain = strtolower(substr(strrchr($email, '@') ?: '', 1));
-    $from = rawurlencode('from:' . (substr(strrchr(mail_from(), '@') ?: '', 1) ?: 'lamazonloads.com'));
-    return match (true) {
-        in_array($domain, ['gmail.com', 'googlemail.com'], true) => ['Open Gmail', 'https://mail.google.com/mail/u/0/#search/' . $from],
-        (bool) preg_match('/^(outlook|hotmail|live|msn)\./', $domain) => ['Open Outlook', 'https://outlook.live.com/mail/0/inbox'],
-        (bool) preg_match('/^(yahoo\.|ymail\.com$|rocketmail\.com$)/', $domain) => ['Open Yahoo Mail', 'https://mail.yahoo.com/'],
-        in_array($domain, ['icloud.com', 'me.com', 'mac.com'], true) => ['Open iCloud Mail', 'https://www.icloud.com/mail'],
-        $domain === 'aol.com' => ['Open AOL Mail', 'https://mail.aol.com/'],
-        in_array($domain, ['proton.me', 'protonmail.com', 'pm.me'], true) => ['Open Proton Mail', 'https://mail.proton.me/'],
-        default => [],
-    };
-}

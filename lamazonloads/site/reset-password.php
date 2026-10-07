@@ -50,16 +50,18 @@ page_header('Choose a new password', '', '', 'page-auth');
   <div class="auth-main">
     <div class="auth-box">
       <?php if (!$u): ?>
-        <div class="reset-done">
-          <div class="verify-ico" style="background:linear-gradient(135deg,#F5A524,#C97A00)"><?= icon('clock') ?></div>
-          <h1>This link has expired</h1>
-          <p class="sub">Reset links work for 1 hour and only once. Send yourself a new one and use the newest email.</p>
-          <a class="btn btn-primary btn-lg btn-block" href="<?= e(url('forgot-password.php')) ?>">Send a new link <?= icon('arrow') ?></a>
-          <a class="btn btn-ghost btn-block mt" href="<?= e(url('login.php')) ?>">Back to sign in</a>
+        <div class="ss reset-done">
+          <div class="ss-ico is-warn" aria-hidden="true"><?= icon('clock') ?></div>
+          <h1 class="ss-title">This link has expired</h1>
+          <p class="ss-lead">Reset links work once, for 1 hour. Get a new one and use the newest email.</p>
+          <div class="ss-acts">
+            <a class="btn btn-primary btn-block" href="<?= e(url('forgot-password.php')) ?>">Send a new link <?= icon('arrow') ?></a>
+            <a class="btn btn-ghost btn-block" href="<?= e(url('login.php')) ?>">Back to sign in</a>
+          </div>
         </div>
       <?php else: ?>
         <h1>Choose a new password</h1>
-        <p class="sub">For <b><?= e($u['email']) ?></b></p>
+        <div class="auth-for"><?= ss_chip((string) $u['email'], 'user') ?></div>
         <?php if ($errors): ?><div class="errors" style="padding-left:16px"><?= e($errors[0]) ?></div><?php endif; ?>
         <form method="post" action="<?= e(url('reset-password.php')) ?>" novalidate>
           <?= csrf_field() ?>
