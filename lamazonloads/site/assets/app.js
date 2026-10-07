@@ -590,8 +590,10 @@
   });
 
   // Agreement signing: draw a signature with a finger or mouse; it's sent as a PNG with the form.
-  document.querySelectorAll('[data-sig]').forEach(function (pad) {
-    var canvas = pad.querySelector('canvas'), ctx = canvas.getContext('2d');
+  document.querySelectorAll('[data-sig-pad]').forEach(function (pad) {
+    var canvas = pad.querySelector('canvas');
+    if (!canvas || !canvas.getContext) return;
+    var ctx = canvas.getContext('2d');
     var form = pad.closest('form'), input = form.querySelector('[data-sig-input]'), hint = pad.querySelector('[data-sig-hint]');
     var drawing = false, inked = false, last = null;
     var size = function () {
@@ -625,17 +627,37 @@
   var anActive = document.querySelector('.an-links a.active, .dash-nav > a.active');
   if (anActive && window.matchMedia('(max-width: 860px)').matches) anActive.parentNode.scrollLeft = anActive.offsetLeft - 12;
 
-  // Keep the last two words of a sentence together, so one word never sits alone on the last line.
-  // (Chrome's text-wrap: pretty skips short two-line text, and Firefox and Safari don't fully support it.)
+  // "Chat with us" links open the chat window when the page has one
+  document.querySelectorAll('[data-open-chat]').forEach(function (a) {
+    a.addEventListener('click', function (e) { var fab = document.querySelector('[data-chat-open]'); if (fab) { e.preventDefault(); fab.click(); } });
+  });
+
+  // Keep the last two words of a sentence together, so one word never sits alone on the last line
+  // (and "cut-off times" can't split at its hyphen). Chrome's text-wrap: pretty skips short text and
+  // squeezes two-line text, and Firefox and Safari don't fully support it, so this is done here.
   document.querySelectorAll('p, li, td, dd, small, label, figcaption, blockquote, .hint, .ss-hint span, b, strong, span, h1, h2, h3, h4').forEach(function (el) {
-    if (el.closest('.contract-body, .chat-msgs, pre, code, textarea, [contenteditable], .btn, button, svg')) return;
+    if (el.closest('.contract-body, .chat-msgs, pre, code, textarea, [contenteditable], .btn, button, svg, l-nw')) return;
     if (/^(B|STRONG|SPAN)$/.test(el.tagName) && getComputedStyle(el).display === 'inline') return; // inline bits belong to their sentence
     if (/^H[1-4]$/.test(el.tagName) && el.textContent.trim().split(/\s+/).length < 5) return; // short headings: balance handles them
-    var walk = document.createTreeWalker(el, NodeFilter.SHOW_TEXT), n, last = null;
-    while ((n = walk.nextNode())) if (n.data.trim()) last = n;
-    var m = last && last.data.match(/(\S+) (\S{1,16})(\s*)$/);
-    if (!m || (m[1] + m[2]).length > 28) return;
-    last.data = last.data.slice(0, m.index) + m[1] + '\u00a0' + m[2] + m[3];
+    var walk = document.createTreeWalker(el, NodeFilter.SHOW_TEXT), n, nodes = [];
+    while ((n = walk.nextNode())) if (n.data.trim()) nodes.push(n);
+    var last = nodes[nodes.length - 1];
+    if (!last || last.parentNode.closest('l-nw')) return;
+    var m = last.data.match(/(\S+)[ \u00a0](\S{1,16})(\s*)$/);
+    if (m) {
+      if ((m[1] + m[2]).length > 28) return;
+      if (/flex|grid/.test(getComputedStyle(last.parentNode).display)) { // a wrapper would become its own layout box here
+        last.data = last.data.slice(0, m.index) + m[1] + '\u00a0' + m[2] + m[3];
+        return;
+      }
+      var keep = document.createElement('l-nw'); keep.textContent = m[1] + ' ' + m[2];
+      var rest = document.createTextNode(m[3]);
+      last.data = last.data.slice(0, m.index);
+      last.parentNode.insertBefore(rest, last.nextSibling); last.parentNode.insertBefore(keep, rest);
+    } else if (nodes.length > 1 && /^\s*\S{1,16}\s*$/.test(last.data) && / $/.test(nodes[nodes.length - 2].data)) {
+      // the last word is in its own tag ("Anything else? <span>(optional)</span>"): glue it to the word before
+      var prev = nodes[nodes.length - 2]; prev.data = prev.data.replace(/ $/, '\u00a0');
+    }
   });
 
   // "Are you sure?" pop-up. The question becomes the title and the rest the note under it:

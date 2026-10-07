@@ -268,7 +268,7 @@ $stage = $row['stage'];
       </div>
     <?php endif; ?>
     <h4 class="sign-sub">Signature</h4>
-    <div class="sig-pad" data-sig>
+    <div class="sig-pad" data-sig-pad>
       <canvas aria-label="Draw your signature here" role="img"></canvas>
       <span class="sig-hint" data-sig-hint>Sign here with your finger or mouse</span>
       <button type="button" class="link-btn sig-clear" data-sig-clear>Clear</button>

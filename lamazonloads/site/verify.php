@@ -124,7 +124,13 @@ page_header('Confirm your email', '', '', 'page-auth');
       </form>
 
       <p class="verify-note"><?= icon('info') ?> Not in your inbox? Check spam or promotions.</p>
-      <p class="verify-help">Still nothing? <?php if ($phone !== ''): ?>Call us at <a href="<?= e(tel_href($phone)) ?>"><?= e($phone) ?></a> or tap Chat<?php else: ?>Tap Chat<?php endif; ?>, and we'll confirm your account for you.</p>
+      <div class="verify-help">
+        <p>Still nothing? We’ll confirm your account for you.</p>
+        <div class="verify-help-acts">
+          <?php if ($phone !== ''): ?><a class="help-pill" href="<?= e(tel_href($phone)) ?>"><?= icon('phone') ?><?= e($phone) ?></a><?php endif; ?>
+          <a class="help-pill" href="<?= e(url('contact.php')) ?>" data-open-chat><?= icon('chat') ?>Chat with us</a>
+        </div>
+      </div>
     </div>
   </div>
 </section>

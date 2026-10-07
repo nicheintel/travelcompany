@@ -41,10 +41,10 @@ h1 { font-size: clamp(2rem, 4.5vw, 3.4rem); font-weight: 900; }
 h2 { font-size: clamp(1.6rem, 3vw, 2.35rem); font-weight: 800; }
 h3 { font-size: 1.15rem; font-weight: 700; }
 p { margin: 0 0 1em; }
-/* Text: headings break into even lines, paragraphs never leave one lonely word on the last line,
-   and bold words inside sentences are semi-bold so they don't shout */
-h1, h2, h3, h4, .eyebrow, .lead { text-wrap: balance; }
-body { text-wrap: pretty; } /* all text (tables, labels, highlights too); headings below use balance */
+/* Text: headings break into even lines, body text fills the full width (app.js keeps the last two words
+   together so one word never sits alone), and bold words inside sentences are semi-bold so they don't shout */
+h1, h2, h3, h4, .eyebrow { text-wrap: balance; }
+l-nw { white-space: nowrap; } /* the last two words of a sentence, added by app.js (a custom tag, so no other style touches it) */
 :is(p, li, small, label, .hint, .muted) :is(b, strong) { font-weight: 600; }
 :is(.section-head, .empty, .center, .faq-empty, .cfm-box, .dv-card) :is(p, small) { text-wrap: balance; }
 .section-head p { max-width: 62ch; margin-inline: auto; }
@@ -744,7 +744,12 @@ tr:last-child td { border-bottom: 0; }
 .verify-change-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
 .verify-note { display: flex; align-items: center; justify-content: center; gap: 6px; margin: 20px 0 0; font-size: .88rem; color: var(--muted); }
 .verify-note .ic { width: 16px; height: 16px; }
-.verify-help { margin: 16px 0 0; padding-top: 16px; border-top: 1px solid var(--line); font-size: .88rem; color: var(--muted); text-wrap: balance; }
+.verify-help { margin: 16px 0 0; padding-top: 16px; border-top: 1px solid var(--line); font-size: .88rem; color: var(--muted); }
+.verify-help p { margin: 0; }
+.verify-help-acts { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 10px; }
+.help-pill { display: inline-flex; align-items: center; gap: 7px; padding: 7px 14px; border-radius: 999px; border: 1px solid var(--line); background: #fff; color: var(--navy); font-weight: 600; font-size: .86rem; text-decoration: none !important; transition: border-color .15s, color .15s; }
+.help-pill:hover { border-color: var(--blue); color: var(--blue); }
+.help-pill .ic { width: 15px; height: 15px; color: var(--blue); }
 @media (max-width: 560px) {
   .verify-card { padding: 28px 20px 22px; }
   .verify-actions, .verify-change-row { grid-template-columns: 1fr; }
@@ -1692,7 +1697,7 @@ a.app-row:hover .ar-go { opacity: 1; transform: translateX(3px); }
 .admin-head .ah-text { min-width: 0; flex: 1 1 380px; }
 .admin-head .eyebrow { margin-bottom: 6px; }
 .admin-head h1 { margin: 0; font-size: clamp(1.55rem, 2.3vw, 1.95rem); letter-spacing: -.02em; line-height: 1.15; }
-.admin-head p { margin: 6px 0 0; color: var(--muted); max-width: 70ch; font-size: .96rem; line-height: 1.55; text-wrap: pretty; }
+.admin-head p { margin: 6px 0 0; color: var(--muted); max-width: 70ch; font-size: .96rem; line-height: 1.55; }
 .ah-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .admin-main > * + :where(:not(.modal)) { margin-top: 20px; } /* pop-ups cover the whole screen, never pushed down */
 .admin-main > .admin-head + * { margin-top: 0; }
@@ -1702,7 +1707,6 @@ a.app-row:hover .ar-go { opacity: 1; transform: translateX(3px); }
 .admin-main .card.pad > h3:first-child .muted { font-weight: 600; font-size: .9rem; }
 .admin-main table th { font-size: .7rem; letter-spacing: .08em; }
 .admin-main table td { vertical-align: middle; }
-.admin-main .muted { text-wrap: pretty; }
 
 /* A section card with a title bar: <section class="card panel"><header class="panel-head">…</header><div class="panel-body">…</div></section> */
 .panel { padding: 0; overflow: hidden; }
@@ -1741,7 +1745,7 @@ a.app-row:hover .ar-go { opacity: 1; transform: translateX(3px); }
 .kpi-ico .ic { width: 21px; height: 21px; }
 .kpi-label { grid-area: label; font-size: .84rem; font-weight: 700; color: var(--muted); }
 .kpi-num { grid-area: num; font-family: var(--display); font-size: 2.1rem; line-height: 1.1; color: var(--ink); }
-.kpi-sub { grid-area: sub; margin-top: 6px; font-size: .8rem; line-height: 1.4; color: var(--muted); text-wrap: balance; }
+.kpi-sub { grid-area: sub; margin-top: 6px; font-size: .8rem; line-height: 1.4; color: var(--muted); }
 .kpis .kpi:first-child .kpi-ico { background: var(--navy); color: #fff; }
 .ov-grid { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 20px; align-items: start; }
 .ov-side { display: grid; gap: 20px; }

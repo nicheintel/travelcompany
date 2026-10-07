@@ -11,7 +11,7 @@ $services = [
     ['route', 'Daily route opportunities', 'Dedicated and local delivery routes when contracts are available.', ['Local and last-mile delivery routes', 'Dedicated contract work', 'Matched by ZIP code, equipment and availability', 'Onboarded drivers are offered routes first']],
     ['clipboard', 'Driver onboarding', 'One onboarding, stored securely, ready when the next load or route opens.', ['Vehicle and equipment information', 'Home ZIP code and availability', 'Insurance and W-9 collection', "Driver's license, registration and authority"]],
     ['headset', 'Driver support', 'You are never on your own out there.', ['Dedicated driver support groups', 'Direct line to management and support representatives', 'Help with brokers, detention and issues on the road', 'Follow-ups so nothing falls through the cracks']],
-    ['calendar', 'Load coordination', 'The details handled from pickup to payment.', ['Pickup and drop-off details', 'Driver scheduling and route assignments', 'Payment tracking', 'Proof of delivery and follow-ups']],
+    ['calendar', 'Load coordination', 'Handled from pickup to payment.', ['Pickup and drop-off details', 'Driver scheduling and route assignments', 'Payment tracking', 'Proof of delivery and follow-ups']],
     ['users', 'Community', 'A network of people who want you to win.', ['Drivers, dispatchers and entrepreneurs', 'Opportunities shared across the network', 'Tips to stay productive and profitable', 'Grow from one truck to a fleet']],
 ];
 ?>
