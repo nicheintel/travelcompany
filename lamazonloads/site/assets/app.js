@@ -625,6 +625,19 @@
   var anActive = document.querySelector('.an-links a.active, .dash-nav > a.active');
   if (anActive && window.matchMedia('(max-width: 860px)').matches) anActive.parentNode.scrollLeft = anActive.offsetLeft - 12;
 
+  // Keep the last two words of a sentence together, so one word never sits alone on the last line.
+  // (Chrome's text-wrap: pretty skips short two-line text, and Firefox and Safari don't fully support it.)
+  document.querySelectorAll('p, li, td, dd, small, label, figcaption, blockquote, .hint, .ss-hint span, b, strong, span, h1, h2, h3, h4').forEach(function (el) {
+    if (el.closest('.contract-body, .chat-msgs, pre, code, textarea, [contenteditable], .btn, button, svg')) return;
+    if (/^(B|STRONG|SPAN)$/.test(el.tagName) && getComputedStyle(el).display === 'inline') return; // inline bits belong to their sentence
+    if (/^H[1-4]$/.test(el.tagName) && el.textContent.trim().split(/\s+/).length < 5) return; // short headings: balance handles them
+    var walk = document.createTreeWalker(el, NodeFilter.SHOW_TEXT), n, last = null;
+    while ((n = walk.nextNode())) if (n.data.trim()) last = n;
+    var m = last && last.data.match(/(\S+) (\S{1,16})(\s*)$/);
+    if (!m || (m[1] + m[2]).length > 28) return;
+    last.data = last.data.slice(0, m.index) + m[1] + '\u00a0' + m[2] + m[3];
+  });
+
   // "Are you sure?" pop-up. The question becomes the title and the rest the note under it:
   // "Delete this chat? This can't be undone." Buttons: Cancel and "Delete" (red), or data-confirm-ok's label.
   var cfm = document.querySelector('[data-cfm]');

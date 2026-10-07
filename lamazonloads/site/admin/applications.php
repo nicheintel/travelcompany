@@ -162,9 +162,9 @@ admin_open('applications');
   <div class="app-item" role="listitem">
     <label class="ar-check"><input type="checkbox" name="ids[]" value="<?= (int) $a['id'] ?>" form="bulk" data-bulk-box aria-label="Select <?= e($name) ?>"></label>
     <a class="app-row<?= $a['status'] === 'new' ? ' is-new' : '' ?>" href="<?= e(url($link(['id' => $a['id']]))) ?>" data-app-open>
-      <span class="ar-name"><b><?= e($name) ?></b><small><?= e($a['email']) ?></small></span>
-      <span class="ar-job"><?= e(applicant_label($a)) ?></span>
-      <span class="ar-veh"><?= e($veh) ?></span>
+      <span class="ar-name"><b><?= e($name) ?></b><small title="<?= e($a['email']) ?>"><?= e($a['email']) ?></small></span>
+      <span class="ar-job" title="<?= e(applicant_label($a)) ?>"><?= e(applicant_label($a)) ?></span>
+      <span class="ar-veh" title="<?= e($veh) ?>"><?= e($veh) ?></span>
       <span class="ar-date"><?= e(fmt_date($a['created_at'], 'M j')) ?></span>
       <span class="ar-mail"><?= match ($a['email_sent']) { 'dispatch' => '<span class="mail-dot dispatch">Dispatch</span>', 'walmart' => '<span class="mail-dot walmart">Walmart · ' . e($a['walmart_city']) . '</span>', default => '<span class="mail-dot none">None</span>' } ?></span>
       <span class="ar-status"><?= status_badge($a['status']) ?></span>

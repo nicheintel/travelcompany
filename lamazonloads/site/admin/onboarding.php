@@ -75,7 +75,7 @@ echo admin_head('Driver onboarding', 'Drivers upload their documents on the webs
     <div class="ml-row onl-row ml-head" aria-hidden="true"><span>Driver</span><span>Program</span><span>Checklist</span><span>Stage</span><span>Updated</span><span></span></div>
     <?php foreach ($rows as $r): [$d, $t] = onboarding_progress((int) $r['user_id']); ?>
       <a class="ml-row onl-row" href="<?= e(url('admin/driver.php?id=' . (int) $r['user_id'] . '#onboarding')) ?>">
-        <span class="ml-who"><span class="ov-av" aria-hidden="true"><?= e(strtoupper(mb_substr((string) $r['name'], 0, 1))) ?></span><span><b><?= e($r['name']) ?></b><small><?= e($r['email']) ?><?= $r['phone'] !== '' ? ' · ' . e($r['phone']) : '' ?></small></span></span>
+        <span class="ml-who"><span class="ov-av" aria-hidden="true"><?= e(strtoupper(mb_substr((string) $r['name'], 0, 1))) ?></span><span><b><?= e($r['name']) ?></b><small class="ml-contact"><span><?= e($r['email']) ?></span><?php if ($r['phone'] !== ''): ?><span><?= e($r['phone']) ?></span><?php endif; ?></small></span></span>
         <span><span class="badge badge-track-<?= e($r['track']) ?>"><?= e(ONB_TRACKS[$r['track']] ?? $r['track']) ?></span></span>
         <span class="onl-prog"><span class="bar"><i style="width:<?= round($d / max(1, $t) * 100) ?>%"></i></span><small><?= $d ?>/<?= $t ?></small></span>
         <span><span class="badge badge-stage-<?= e($r['stage']) ?>"><?= e(ONB_STAGES[$r['stage']] ?? $r['stage']) ?></span></span>

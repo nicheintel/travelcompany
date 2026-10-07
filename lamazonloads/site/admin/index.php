@@ -64,7 +64,7 @@ echo admin_head($hello, 'Here’s what’s happening at LamazonLoads and what ne
             $name = trim($a['first_name'] . ' ' . $a['last_name']) ?: $a['name']; ?>
           <a class="ov-row" href="<?= e(url('admin/applications.php?id=' . (int) $a['id'])) ?>">
             <span class="ov-av" aria-hidden="true"><?= e(strtoupper(mb_substr($name, 0, 1))) ?></span>
-            <span class="ov-who"><b><?= e($name) ?></b><small><?= e(applicant_label($a)) ?></small></span>
+            <span class="ov-who"><b><?= e($name) ?></b><small title="<?= e(applicant_label($a)) ?>"><?= e(applicant_label($a)) ?></small></span>
             <span class="ov-date"><?= e(fmt_date($a['created_at'], 'M j')) ?></span>
             <span class="ov-status"><?= status_badge($a['status']) ?></span>
           </a>
