@@ -22,6 +22,8 @@ ServerSignature Off
 # Speed: browsers keep images, fonts, styles and scripts for a year (file names change when they do),
 # and pages, styles and scripts are sent compressed.
 AddType font/woff2 .woff2
+AddType application/manifest+json .webmanifest
+AddType image/x-icon .ico
 <IfModule mod_expires.c>
     ExpiresActive On
     ExpiresByType font/woff2 "access plus 1 year"
