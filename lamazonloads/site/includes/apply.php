@@ -158,7 +158,7 @@ function onboarding_email_content(string $type, string $firstName, string $city)
  * and records which one went out. Skips it if the same email already went to this person in the last 30 days
  * (for example when they apply to several job posts).
  */
-function send_onboarding_email(int $appId): string
+function send_onboarding_email(int $appId, bool $again = false): string
 {
     $a = db_one('SELECT a.*, u.email, u.name FROM applications a JOIN users u ON u.id = a.user_id WHERE a.id = ?', [$appId]);
     if (!$a) {
@@ -173,7 +173,7 @@ function send_onboarding_email(int $appId): string
     $recent = db_val('SELECT email_sent_at FROM applications WHERE user_id = ? AND id <> ? AND email_sent = ?'
         . ($type === 'walmart' ? ' AND walmart_city = ?' : '') . ' AND email_sent_at > NOW() - INTERVAL 30 DAY ORDER BY email_sent_at DESC LIMIT 1',
         $type === 'walmart' ? [$a['user_id'], $appId, $type, $city] : [$a['user_id'], $appId, $type]);
-    if ($recent) {
+    if ($recent && !$again) { // $again: the driver tapped "Resend email"
         db_run('UPDATE applications SET email_sent = ?, email_sent_at = ? WHERE id = ?', [$type, $recent, $appId]);
         app_auto_note($appId, ONBOARDING_EMAILS[$type] . ' already sent ' . fmt_date((string) $recent, 'M j') . ', not sent again');
         return $type;
@@ -188,4 +188,20 @@ function send_onboarding_email(int $appId): string
     }
     app_auto_note($appId, ONBOARDING_EMAILS[$type] . ' could not be sent (check Admin → Email check)');
     return '';
+}
+
+/** "Open Gmail" style button for the success screen: [label, url] for common email providers, or [] for others. */
+function webmail_link(string $email): array
+{
+    $domain = strtolower(substr(strrchr($email, '@') ?: '', 1));
+    $from = rawurlencode('from:' . (substr(strrchr(mail_from(), '@') ?: '', 1) ?: 'lamazonloads.com'));
+    return match (true) {
+        in_array($domain, ['gmail.com', 'googlemail.com'], true) => ['Open Gmail', 'https://mail.google.com/mail/u/0/#search/' . $from],
+        (bool) preg_match('/^(outlook|hotmail|live|msn)\./', $domain) => ['Open Outlook', 'https://outlook.live.com/mail/0/inbox'],
+        (bool) preg_match('/^(yahoo\.|ymail\.com$|rocketmail\.com$)/', $domain) => ['Open Yahoo Mail', 'https://mail.yahoo.com/'],
+        in_array($domain, ['icloud.com', 'me.com', 'mac.com'], true) => ['Open iCloud Mail', 'https://www.icloud.com/mail'],
+        $domain === 'aol.com' => ['Open AOL Mail', 'https://mail.aol.com/'],
+        in_array($domain, ['proton.me', 'protonmail.com', 'pm.me'], true) => ['Open Proton Mail', 'https://mail.proton.me/'],
+        default => [],
+    };
 }

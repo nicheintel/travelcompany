@@ -183,7 +183,7 @@
       document.documentElement.classList.add('modal-lock');
       setTimeout(function () {
         var err = m.querySelector('.errors');
-        var first = m.querySelector('.modal-body input:not([type=hidden]):not([type=checkbox]):not([type=radio]), .modal-body .btn');
+        var first = m.querySelector('[data-autofocus]') || m.querySelector('.modal-body input:not([type=hidden]):not([type=checkbox]):not([type=radio]), .modal-body .btn');
         if (err) err.scrollIntoView({ block: 'nearest' });
         if (first && !err) first.focus({ preventScroll: true });
       }, 80);

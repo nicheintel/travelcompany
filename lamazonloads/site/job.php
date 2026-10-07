@@ -24,6 +24,23 @@ $errors = [];
 $form = $user ? apply_form_values($user) : [];
 $cities = walmart_cities();
 
+// "Resend email" on the success screen: the same next-steps email again (3 times an hour at most)
+if (is_post() && ($_POST['action'] ?? '') === 'resend_email') {
+    $user = require_verified();
+    csrf_check();
+    $note = null;
+    if ($existing && $existing['email_sent'] !== '') {
+        if (rate_limited('apply_resend', (string) $user['id'], 3, 3600)) {
+            $note = ['error', 'We already sent it a few times. Please check your spam folder, or contact us.'];
+        } else {
+            record_hit('apply_resend', (string) $user['id']);
+            $note = send_onboarding_email((int) $existing['id'], true) !== '' ? ['success', 'Sent again. Check your inbox.'] : ['error', 'The email could not be sent. Please contact us.'];
+        }
+    }
+    $_SESSION['just_applied'] = ['id' => (int) ($existing['id'] ?? 0), 'note' => $note];
+    redirect('job.php?id=' . $id . '#applied');
+}
+
 if (is_post() && !$external) {
     $user = require_verified();
     csrf_check();
@@ -60,11 +77,18 @@ if (is_post() && !$external) {
             db_run('UPDATE users SET phone = ? WHERE id = ?', [$form['phone'], $user['id']]);
         }
         on_new_application($appId);
-        $sent = (string) db_val('SELECT email_sent FROM applications WHERE id = ?', [$appId]);
-        flash('success', 'Application sent! ' . ($sent !== ''
-            ? 'We emailed your next steps from info@lamazonloads.com. Check your inbox or spam folder.'
-            : 'We will review it and contact you.'));
-        redirect('account.php');
+        $_SESSION['just_applied'] = ['id' => $appId, 'note' => null]; // the apply pop-up turns into "Application sent! Check your email"
+        redirect('job.php?id=' . $id . '#applied');
+    }
+}
+
+// Just applied (or tapped "Resend email"): show the success screen once
+$justApplied = null;
+if (!empty($_SESSION['just_applied'])) {
+    $ja = $_SESSION['just_applied'];
+    unset($_SESSION['just_applied']);
+    if ($existing && (int) $ja['id'] === (int) $existing['id']) {
+        $justApplied = $existing + ['note' => $ja['note']];
     }
 }
 
@@ -227,6 +251,40 @@ $here = 'job.php?id=' . $id;
           <button class="btn btn-accent btn-block" type="submit">Send application <?= icon('arrow') ?></button>
         </form>
       <?php endif; ?>
+    </div>
+  </div>
+</div>
+<?php endif; ?>
+<?php if ($justApplied):
+    $mailed = (string) $justApplied['email_sent'] !== '';
+    $earlier = $mailed && strtotime((string) $justApplied['email_sent_at']) < strtotime((string) $justApplied['created_at']) - 120; // same email went out for an earlier application
+    $webmail = $mailed ? webmail_link((string) $user['email']) : []; ?>
+<div class="modal is-open" id="applied" data-modal role="dialog" aria-modal="true" aria-labelledby="applied-title">
+  <a class="modal-backdrop" href="#apply-now" data-modal-close aria-label="Close"></a>
+  <div class="modal-panel sent-panel">
+    <a class="modal-x sent-x" href="#apply-now" data-modal-close aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></a>
+    <div class="modal-body sent-body">
+      <div class="sent-ico" aria-hidden="true"><?= icon('mail') ?><span class="sent-badge"><?= icon('check') ?></span></div>
+      <h2 id="applied-title" tabindex="-1" data-autofocus>Application sent!</h2>
+      <?php if ($justApplied['note']): ?><p class="sent-note is-<?= e($justApplied['note'][0]) ?>" role="status"><?= icon($justApplied['note'][0] === 'success' ? 'check' : 'alert') ?><?= e($justApplied['note'][1]) ?></p><?php endif; ?>
+      <?php if ($mailed): ?>
+        <p><?= $earlier ? 'We already emailed your next steps to <b>' . e($user['email']) . '</b> on ' . e(fmt_date((string) $justApplied['email_sent_at'], 'M j')) . '.' : 'We emailed your next steps to <b>' . e($user['email']) . '</b>.' ?> Open it and tap <b>Upload my documents</b>.</p>
+        <p class="sent-tip">It comes from <?= e(mail_from()) ?>. Not there? Check your spam or promotions folder.</p>
+      <?php else: ?>
+        <p>Thanks for applying. Our team will review your application and contact you at <b><?= e($user['email']) ?></b> or by phone.</p>
+      <?php endif; ?>
+      <div class="sent-acts">
+        <?php if ($webmail): ?>
+          <a class="btn btn-accent btn-block" href="<?= e($webmail[1]) ?>" target="_blank" rel="noopener"><?= e($webmail[0]) ?> <?= icon('external') ?></a>
+        <?php else: ?>
+          <a class="btn btn-accent btn-block" href="#apply-now" data-modal-close>Got it</a>
+        <?php endif; ?>
+        <div class="sent-links">
+          <?php if ($mailed): ?><form method="post" action="<?= e(url($here)) ?>"><?= csrf_field() ?><input type="hidden" name="action" value="resend_email"><button class="link-btn" type="submit"><?= icon('send') ?>Resend email</button></form><?php endif; ?>
+          <a href="<?= e(url('careers.php')) ?>"><?= icon('briefcase') ?>Browse more jobs</a>
+          <?php if (!$mailed): ?><a href="<?= e(url('account.php')) ?>"><?= icon('user') ?>My dashboard</a><?php endif; ?>
+        </div>
+      </div>
     </div>
   </div>
 </div>

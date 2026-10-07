@@ -1255,6 +1255,36 @@ html.modal-lock { overflow: hidden; }
   .modal-head, .modal-body { padding-left: 18px; padding-right: 18px; }
 }
 @keyframes sheet-in { from { transform: translateY(100%); } }
+/* "Application sent! Check your email" (the apply pop-up after sending) */
+.sent-panel { width: min(440px, 100%); }
+.sent-body { padding: 36px 30px 28px; text-align: center; }
+.sent-x { position: absolute; top: 14px; right: 14px; z-index: 1; width: 36px; height: 36px; background: var(--bg); color: var(--muted); }
+.sent-x:hover { background: var(--line); color: var(--ink); }
+.sent-ico { position: relative; width: 76px; height: 76px; margin: 0 auto 18px; border-radius: 24px; display: grid; place-items: center; background: var(--blue-50); color: var(--blue);
+  animation: sent-pop .55s .08s cubic-bezier(.34, 1.56, .64, 1) backwards; }
+.sent-ico > .ic { width: 34px; height: 34px; }
+.sent-badge { position: absolute; right: -7px; bottom: -7px; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--green); color: #fff; border: 3px solid #fff;
+  box-shadow: 0 4px 10px rgba(18, 161, 80, .3); animation: sent-pop .5s .38s cubic-bezier(.34, 1.56, .64, 1) backwards; }
+.sent-badge .ic { width: 14px; height: 14px; stroke-width: 3.2; }
+.sent-body h2 { font-size: 1.4rem; margin: 0 0 8px; }
+.sent-body h2:focus { outline: none; }
+.sent-body p { margin: 0 auto 8px; max-width: 34ch; font-size: .95rem; line-height: 1.55; color: var(--text); text-wrap: pretty; }
+.sent-body p b { color: var(--ink); overflow-wrap: anywhere; }
+.sent-body .sent-tip { font-size: .85rem; color: var(--muted); }
+.sent-body .sent-note { display: inline-flex; align-items: center; gap: 6px; max-width: none; padding: 6px 12px; border-radius: 999px; font-size: .85rem; font-weight: 600; }
+.sent-note .ic { width: 15px; height: 15px; }
+.sent-body .sent-note.is-success { background: #E7F7EE; color: #0B6B35; }
+.sent-body .sent-note.is-error { background: #FDECEC; color: #9E1F1F; }
+.sent-acts { display: grid; gap: 14px; margin-top: 22px; }
+.sent-links { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 6px 22px; font-size: .9rem; line-height: 1.4; }
+.sent-links form { margin: 0; }
+.sent-links a, .sent-links .link-btn { display: inline-flex; align-items: center; gap: 6px; padding: 4px 0; font-weight: 600; line-height: 1.4; color: var(--blue); text-decoration: none; }
+.sent-links a:hover, .sent-links .link-btn:hover { text-decoration: underline; }
+.sent-links .ic { width: 16px; height: 16px; }
+@keyframes sent-pop { from { opacity: 0; transform: scale(.5); } }
+@media (max-width: 640px) { .sent-body { padding: 34px 20px 26px; } }
+@media (prefers-reduced-motion: reduce) { .sent-ico, .sent-badge { animation-name: fade-in; } }
+
 @keyframes sheet-out { to { transform: translateY(100%); } }
 @media (prefers-reduced-motion: reduce) {
   .modal-panel { animation-name: fade-in; }
