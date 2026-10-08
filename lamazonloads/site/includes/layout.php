@@ -99,7 +99,13 @@ function page_header(string $title, string $active = '', string $description = '
 <meta property="og:title" content="<?= e($title ?: 'LamazonLoads') ?>">
 <meta property="og:description" content="<?= e($desc) ?>">
 <meta property="og:type" content="website">
-<?php if (preg_match('/^[a-z0-9.\-:]+$/i', (string) ($_SERVER['HTTP_HOST'] ?? ''))): ?><meta property="og:image" content="<?= e('https://' . $_SERVER['HTTP_HOST'] . asset('brand/logo.png')) ?>"><?php endif; ?>
+<meta property="og:site_name" content="LamazonLoads">
+<?php if (preg_match('/^[a-z0-9.\-:]+$/i', (string) ($_SERVER['HTTP_HOST'] ?? ''))): // link previews (iMessage, WhatsApp, Facebook): the logo on white, 1200 x 630 ?>
+<meta property="og:image" content="<?= e('https://' . $_SERVER['HTTP_HOST'] . asset('brand/share.png')) ?>">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="LamazonLoads: Why wait? Let's freight.">
+<meta name="twitter:card" content="summary_large_image">
+<?php endif; ?>
 <?php // Icon addresses never change between uploads (Google asks for a stable favicon URL). To change an icon, give the file a new name. ?>
 <link rel="icon" href="<?= e(url('favicon.ico')) ?>" sizes="16x16 32x32 48x48">
 <link rel="icon" href="<?= e(url('assets/brand/favicon-192.png')) ?>" type="image/png" sizes="192x192">
