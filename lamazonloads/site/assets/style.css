@@ -1685,7 +1685,6 @@ a.app-row:hover .ar-go { opacity: 1; transform: translateX(3px); }
 .veh-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 .veh-opt { position: relative; margin: 0; cursor: pointer; font-weight: 600; }
 .veh-opt input { position: absolute; opacity: 0; width: 1px; height: 1px; }
-.veh-opt-other { grid-column: 1 / -1; }
 .veh-card { display: flex; align-items: center; gap: 10px; min-height: 50px; padding: 10px 12px 10px 14px; border: 1.5px solid var(--line); border-radius: 12px; background: #fff; color: var(--text); font-size: .9rem; line-height: 1.25; transition: border-color .15s, background .15s, color .15s, box-shadow .15s; }
 .veh-ic { width: 22px; height: 22px; color: #8A97B2; transition: color .15s; }
 .veh-name { flex: 1; min-width: 0; }

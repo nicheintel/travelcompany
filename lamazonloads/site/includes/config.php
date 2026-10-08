@@ -20,7 +20,7 @@ function config(string $key): mixed
             'db_pass'       => '',
             'admin_emails'  => '',
             'contact_email' => 'info@lamazonloads.com',
-            'contact_phone' => '678-666-4334',
+            'contact_phone' => '(678) 528-1181',
             'max_upload_mb' => 8,
             // Sign-up email rules
             'block_disposable_emails' => true,  // no temporary / disposable email addresses
@@ -42,6 +42,8 @@ function config(string $key): mixed
         if (is_file($local)) {
             $over = require $local;
             if (is_array($over)) {
+                // Settings files made before October 2026 still hold the old phone number: the current one replaces it
+                if (preg_replace('/\D/', '', (string) ($over['contact_phone'] ?? '')) === '6786664334') unset($over['contact_phone']);
                 $c = array_merge($c, $over);
             }
         }

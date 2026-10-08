@@ -203,7 +203,7 @@ admin_open('jobs');
     <p class="muted">Save time and focus on responsive candidates.</p>
     <div class="auto-list">
       <div class="auto auto-on"><span class="auto-tick"><?= icon('check') ?></span>
-        <span><b>Onboarding email: always on</b><small>Right after someone applies, they get the Dispatch email (box truck, cargo van or Sprinter) or the Walmart daily route email (SUV / other), from info@lamazonloads.com. Cities and pay rate: <a href="<?= e(url('admin/walmart.php')) ?>">Admin → Walmart routes</a>.</small></span></div>
+        <span><b>Onboarding email: always on</b><small>Right after someone applies, they get the Dispatch email (box truck, semi truck, cargo van or Sprinter) or the Walmart daily route email (SUV / other), from info@lamazonloads.com. Cities and pay rate: <a href="<?= e(url('admin/walmart.php')) ?>">Admin → Walmart routes</a>.</small></span></div>
       <label class="auto"><input type="checkbox" name="auto_review" value="1"<?= $checked('auto_review') ?>>
         <span><b>Move complete applicants to "In review"</b><small>As soon as an applicant has their profile, W-9, insurance and driver's license on file.</small></span></label>
       <label class="auto"><input type="checkbox" name="auto_remind" value="1"<?= $checked('auto_remind') ?>>

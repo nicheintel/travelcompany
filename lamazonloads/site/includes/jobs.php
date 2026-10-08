@@ -159,8 +159,9 @@ function on_new_application(int $appId): void
     if (!$job) {
         return;
     }
-    // The onboarding email (Dispatch or Walmart) replaces the old welcome email
-    $sent = send_onboarding_email($appId);
+    // The onboarding email (Dispatch or Walmart) replaces the old welcome email. Emails go out after the
+    // "Application sent" screen has loaded, so applying doesn't wait on the mail server.
+    $sent = send_onboarding_email($appId, false, true);
     $a = db_one('SELECT a.*, u.name, u.email, u.phone AS account_phone FROM applications a JOIN users u ON u.id = a.user_id WHERE a.id = ?', [$appId]);
     // Application updates: email staff about each new application
     if ((int) $job['notify_on']) {
@@ -174,9 +175,12 @@ function on_new_application(int $appId): void
         $lines[] = trim((string) $a['message']) !== '' ? mb_strimwidth((string) $a['message'], 0, 800, '…') : 'No message.';
         [$text, $html] = email_body('New application', $lines, 'See the applicant', abs_url('admin/driver.php?id=' . (int) $a['user_id']),
             $a['resume_doc_id'] ? 'A resume is attached to the application in your dashboard.' : '');
-        foreach ($to as $addr) {
-            send_mail($addr, 'New application: ' . $job['title'] . ': ' . $a['name'], $text, $html, (string) $a['email']);
-        }
+        $subject = 'New application: ' . $job['title'] . ': ' . $a['name'];
+        after_response(function () use ($to, $subject, $text, $html, $a): void {
+            foreach ($to as $addr) {
+                send_mail($addr, $subject, $text, $html, (string) $a['email']);
+            }
+        });
     }
     auto_review_user((int) $a['user_id']);
 }

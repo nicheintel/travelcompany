@@ -53,8 +53,8 @@ $where = [];
 $args = [];
 if ($q !== '') { $where[] = '(u.name LIKE ? OR u.email LIKE ? OR u.phone LIKE ? OR u.city LIKE ? OR p.home_zip LIKE ?)'; $ql = addcslashes($q, '%_\\'); array_push($args, "%$ql%", "%$ql%", "%$ql%", "%$ql%", "$ql%"); }
 // Equipment: what's on their profile, or the vehicles they ticked when they signed up (new members have no profile yet)
-const EQUIP_FILTERS = ['box_truck' => 'Box Truck (any size)', 'box_16' => '· Box Truck 16 ft', 'box_26' => '· Box Truck 20–26 ft', 'cargo_van' => 'Cargo Van',
-    'sprinter' => 'Sprinter Van', 'suv' => 'SUV', 'hotshot' => 'Hotshot / Pickup + Trailer', 'semi' => 'Tractor-Trailer', 'other' => 'Other'];
+const EQUIP_FILTERS = ['box_truck' => 'Box Truck (any size)', 'box_16' => '· Box Truck 16 ft', 'box_26' => '· Box Truck 20–26 ft', 'semi' => 'Semi Truck',
+    'cargo_van' => 'Cargo Van', 'sprinter' => 'Sprinter Van', 'suv' => 'SUV', 'hotshot' => 'Hotshot / Pickup + Trailer', 'other' => 'Other'];
 if ($equip === 'box_truck') { $where[] = "(p.equipment IN ('box_16', 'box_26') OR FIND_IN_SET('box_truck', u.vehicle))"; }
 elseif (isset(EQUIP_FILTERS[$equip]) && isset(APPLY_VEHICLES[$equip])) { $where[] = '(p.equipment = ? OR FIND_IN_SET(?, u.vehicle))'; array_push($args, $equip, $equip); }
 elseif (isset(EQUIP_FILTERS[$equip])) { $where[] = 'p.equipment = ?'; $args[] = $equip; }

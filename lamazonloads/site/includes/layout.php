@@ -7,6 +7,7 @@ function icon(string $name, string $class = 'ic'): string
 {
     static $paths = [
         'truck'     => '<path d="M3 6h11v10H3z"/><path d="M14 9h4l3 4v3h-7z"/><circle cx="7" cy="17.5" r="2"/><circle cx="17" cy="17.5" r="2"/>',
+        'semi'      => '<path d="M1 5h12v10H1z"/><path d="M13 8.5h4.5L21 12v3h-8z"/><path d="M15.5 8.5V12H21"/><circle cx="4.5" cy="17.5" r="1.8"/><circle cx="9" cy="17.5" r="1.8"/><circle cx="17.5" cy="17.5" r="1.8"/>',
         'van'       => '<path d="M2 7h12l4 4h3v6H2z"/><path d="M14 7v4h4"/><circle cx="6.5" cy="17.5" r="2"/><circle cx="16.5" cy="17.5" r="2"/>',
         'route'     => '<circle cx="6" cy="19" r="2.5"/><circle cx="18" cy="5" r="2.5"/><path d="M8.5 19H17a3.5 3.5 0 0 0 0-7H7a3.5 3.5 0 0 1 0-7h8.5"/>',
         'clipboard' => '<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1"/><path d="M9 11h6M9 15h4"/>',
@@ -61,7 +62,7 @@ function icon(string $name, string $class = 'ic'): string
         . ($paths[$name] ?? '') . '</svg>';
 }
 
-/** "tel:" link for a US phone number written any way, e.g. 678-666-4334 -> tel:+16786664334. */
+/** "tel:" link for a US phone number written any way, e.g. (678) 528-1181 -> tel:+16785281181. */
 function tel_href(string $phone): string
 {
     $digits = preg_replace('/\D+/', '', $phone);

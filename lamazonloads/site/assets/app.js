@@ -168,6 +168,14 @@
       if (wm && onlySuv && wasOnlySuv === false && !wm.checked) wm.checked = true; // only when the driver changes vehicles
       wasOnlySuv = onlySuv;
       show('walmart', !!wm && wm.checked);
+      // Walmart pay depends on the vehicle: the cargo van rate, or the SUV / other rate
+      var rate = f.querySelector('[data-wm-rate]');
+      if (rate) {
+        var k = veh.indexOf('cargo_van') !== -1 ? 'van' : (veh.indexOf('suv') !== -1 || veh.indexOf('other') !== -1 ? 'suv' : 'any');
+        rate.textContent = rate.getAttribute('data-hint-' + k);
+        var ask = f.querySelector('[data-wm-ask]');
+        if (ask) ask.placeholder = rate.getAttribute('data-ex-' + k);
+      }
     };
     f.addEventListener('change', update);
     update();

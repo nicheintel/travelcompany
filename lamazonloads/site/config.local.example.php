@@ -13,7 +13,7 @@ return [
 
     // Shown in the footer and on the Contact page
     'contact_email' => 'info@lamazonloads.com',
-    'contact_phone' => '678-666-4334',
+    'contact_phone' => '(678) 528-1181',
 
     // Email for the live chat (alerts to you, replies to visitors). Use your Hostinger mailbox:
     // hPanel -> Emails -> info@lamazonloads.com. Put that mailbox's password here.

@@ -37,7 +37,7 @@ The tables and four starter job posts are created automatically on the first vis
 
 | Setting | What it does |
 | --- | --- |
-| `contact_email`, `contact_phone` | Shown in the header (phone), footer and on the Contact page. Currently info@lamazonloads.com and 678-666-4334 |
+| `contact_email`, `contact_phone` | Shown in the header (phone), footer and on the Contact page. Currently info@lamazonloads.com and (678) 528-1181 |
 | `admin_emails` | Emails that become admins when they sign up |
 | `db_host`, `db_name`, `db_user`, `db_pass` | Database login from hPanel → Databases |
 | `max_upload_mb` | Biggest document upload (default 8 MB) |

@@ -10,7 +10,7 @@ $email = (string) config('contact_email');
 $ld = ['@context' => 'https://schema.org', '@type' => 'FAQPage', 'mainEntity' => []];
 foreach (FAQ as [, , $items]) {
     foreach ($items as [$q, $a]) {
-        $ld['mainEntity'][] = ['@type' => 'Question', 'name' => trim($q, '“”'), 'acceptedAnswer' => ['@type' => 'Answer', 'text' => str_replace("\n- ", "\n• ", $a)]];
+        $ld['mainEntity'][] = ['@type' => 'Question', 'name' => trim($q, '“”'), 'acceptedAnswer' => ['@type' => 'Answer', 'text' => str_replace("\n- ", "\n• ", faq_text($a))]];
     }
 }
 

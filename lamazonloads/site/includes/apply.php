@@ -4,14 +4,15 @@ defined('LL_APP') || exit;
 
 /*
  * Driver application form (every job post) and the onboarding email that goes out after someone applies:
- *  - Box Truck, Cargo Van or Sprinter Van ticked  -> "Professional Dispatch Services" email
+ *  - Box Truck, Semi Truck, Cargo Van or Sprinter Van ticked -> "Professional Dispatch Services" email
  *  - only SUV and/or Other                        -> "Welcome to the Walmart Daily Route Program (city)" email
  * Both come from info@lamazonloads.com and replies go back there, so drivers can reply with their documents.
- * Walmart cities, start month and pay rate are managed in Admin -> Walmart routes.
+ * Walmart cities, start month and pay rates (cargo vans, and SUVs / other vehicles) are managed in Admin -> Walmart routes.
  */
 
-const APPLY_VEHICLES = ['box_truck' => 'Box Truck', 'cargo_van' => 'Cargo Van', 'sprinter' => 'Sprinter Van', 'suv' => 'SUV', 'other' => 'Other'];
-const DISPATCH_VEHICLES = ['box_truck', 'cargo_van', 'sprinter'];
+// In pairs, as the picker shows them: trucks, vans, then SUV and other
+const APPLY_VEHICLES = ['box_truck' => 'Box Truck', 'semi' => 'Semi Truck', 'cargo_van' => 'Cargo Van', 'sprinter' => 'Sprinter Van', 'suv' => 'SUV', 'other' => 'Other'];
+const DISPATCH_VEHICLES = ['box_truck', 'semi', 'cargo_van', 'sprinter'];
 const VEHICLE_OWNERSHIP = ['owner' => 'Owner-operator (I own it)', 'rented' => 'Rented', 'leased' => 'Leased / financed', 'company' => 'Company or fleet vehicle', 'other' => 'Other'];
 const ONBOARDING_EMAILS = ['dispatch' => 'Dispatch email', 'walmart' => 'Walmart email'];
 const US_STATES = ['AL' => 'Alabama', 'AK' => 'Alaska', 'AZ' => 'Arizona', 'AR' => 'Arkansas', 'CA' => 'California', 'CO' => 'Colorado', 'CT' => 'Connecticut', 'DE' => 'Delaware',
@@ -33,14 +34,37 @@ function meta_set(string $k, string $v): void
     db_run('INSERT INTO meta (k, v) VALUES (?, ?) ON DUPLICATE KEY UPDATE v = VALUES(v)', [$k, mb_substr($v, 0, 255)]);
 }
 
-/** Walmart daily route program settings: on/off, start month, pay rate. */
+/** Walmart daily route program settings: on/off, start month, and the daily pay for cargo vans and for SUVs / other vehicles. */
 function walmart_settings(): array
 {
     static $s = null;
     return $s ??= [
         'on' => meta_get('walmart_on', '1') === '1',
         'start' => meta_get('walmart_start', 'November'),
-        'rate' => meta_get('walmart_rate', '$275 per day'),
+        'rate' => meta_get('walmart_rate', '$275 per day'),         // Cargo Van
+        'rate_suv' => meta_get('walmart_rate_suv', '$225 per day'), // SUV and other vehicles
+    ];
+}
+
+/** Which Walmart pay applies to the vehicles picked: 'van' (a cargo van), 'suv' (SUV or other vehicle) or 'any' (neither yet). */
+function walmart_rate_key(array $vehicles): string
+{
+    return in_array('cargo_van', $vehicles, true) ? 'van' : (array_intersect($vehicles, ['suv', 'other']) ? 'suv' : 'any');
+}
+
+/** The pay line under the Walmart rate question for each case of walmart_rate_key(), plus a matching example for the rate box. */
+function walmart_rate_hints(): array
+{
+    $s = walmart_settings();
+    $tail = ' LamazonLoads negotiates the final rate for you.';
+    $van = $s['rate'] !== '' ? 'Cargo van routes pay ' . $s['rate'] . '.' : '';
+    $suv = $s['rate_suv'] !== '' ? 'SUV and other-vehicle routes pay ' . $s['rate_suv'] . '.' : '';
+    $any = $s['rate'] !== '' && $s['rate_suv'] !== '' ? 'Routes pay ' . $s['rate'] . ' for cargo vans and ' . $s['rate_suv'] . ' for SUVs and other vehicles.' : $van . ($van && $suv ? ' ' : '') . $suv;
+    $example = fn (string $rate) => preg_match('/\$\s?[\d,]+(?:\.\d+)?/', $rate, $m) ? 'e.g. ' . $m[0] : '';
+    return [
+        'van' => [trim(($van ?: $any) . $tail), $example($s['rate'])],
+        'suv' => [trim(($suv ?: $any) . $tail), $example($s['rate_suv'])],
+        'any' => [trim($any . $tail), $example($s['rate'])],
     ];
 }
 
@@ -54,11 +78,17 @@ function walmart_cities(): array
     return $cities;
 }
 
-/** "Routes starting in November · $275 per day" */
+/** "Routes starting in November · Cargo Van: $275 per day · SUV & other: $225 per day" */
 function walmart_headline(): string
 {
     $s = walmart_settings();
-    return trim(($s['start'] !== '' ? 'Routes starting in ' . $s['start'] : '') . ($s['start'] !== '' && $s['rate'] !== '' ? ' · ' : '') . $s['rate']);
+    $parts = array_filter([
+        $s['start'] !== '' ? 'Routes starting in ' . $s['start'] : '',
+        $s['rate'] !== '' ? 'Cargo Van: ' . $s['rate'] : '',
+        $s['rate_suv'] !== '' ? 'SUV & other: ' . $s['rate_suv'] : '',
+    ]);
+    // Short parts stay on one line (no-break spaces), so the line wraps at the dots; a long custom rate wraps normally
+    return implode(' · ', array_map(fn ($p) => mb_strlen($p) <= 32 ? str_replace(' ', "\u{a0}", $p) : $p, $parts));
 }
 
 /** Starting values for the form: from the posted form, or from the member's account. */
@@ -149,9 +179,9 @@ function onboarding_email_content(string $type, string $firstName, string $city)
             "Best regards,\nLamazonLoads Team",
         ]];
     }
-    return ['Professional Dispatch Services for Cargo Vans & Box Trucks – LamazonLoads', [
+    return ['Professional Dispatch Services for Cargo Vans, Box Trucks & Semi Trucks – LamazonLoads', [
         'Hello ' . $firstName . ', from LamazonLoads,',
-        'We are a professional dispatch team specializing in cargo vans, sprinters, and box trucks. We’re currently offering our dispatch services and would love to work with you to keep you loaded with the best available options.',
+        'We are a professional dispatch team specializing in cargo vans, sprinters, box trucks, and semi trucks. We’re currently offering our dispatch services and would love to work with you to keep you loaded with the best available options.',
         "Our process is simple and transparent:\n\n• We handle load searching, rate negotiation, and booking\n• We keep you updated and support you throughout the process\n• Payments are processed within 2-3 business days\n• Our dispatch fee is 10% per booked load",
         "To get you set up and start working together, please sign in to your LamazonLoads account and upload the following documents:\n\n• Pictures of Vehicle\n• W-9 Form\n• Proof of Insurance\n• Driver’s License (clear picture)\n• Payment details (Zelle preferred)",
         'Once our team reviews and approves your documents, you’ll sign your agreement online, and then we can get you active and start booking loads right away.',
@@ -164,8 +194,10 @@ function onboarding_email_content(string $type, string $firstName, string $city)
  * Sends the right onboarding email for an application (from info@lamazonloads.com, replies go to info@)
  * and records which one went out. Skips it if the same email already went to this person in the last 30 days
  * (for example when they apply to several job posts).
+ * $later: send it after the page has gone out (a new application), so the driver doesn't wait on the mail server.
+ * It is recorded as sent right away; if sending then fails, that is undone and noted on the application.
  */
-function send_onboarding_email(int $appId, bool $again = false): string
+function send_onboarding_email(int $appId, bool $again = false, bool $later = false): string
 {
     $a = db_one('SELECT a.*, u.email, u.name FROM applications a JOIN users u ON u.id = a.user_id WHERE a.id = ?', [$appId]);
     if (!$a) {
@@ -189,11 +221,24 @@ function send_onboarding_email(int $appId, bool $again = false): string
     [$subject, $paras] = onboarding_email_content($type, $first, $city);
     // The button sits right under the list of documents
     [$text, $html] = email_body('', $paras, 'Upload my documents', onboarding_link((int) $a['user_id']), '', true, $type === 'walmart' ? 2 : 3);
+    $failed = function () use ($appId, $type): void {
+        app_auto_note($appId, ONBOARDING_EMAILS[$type] . ' could not be sent (check Admin → Email check)');
+    };
+    if ($later) {
+        db_run('UPDATE applications SET email_sent = ?, email_sent_at = NOW() WHERE id = ?', [$type, $appId]);
+        after_response(function () use ($a, $subject, $text, $html, $appId, $failed): void {
+            if (!send_mail((string) $a['email'], $subject, $text, $html, support_email())) {
+                db_run("UPDATE applications SET email_sent = '', email_sent_at = NULL WHERE id = ?", [$appId]);
+                $failed();
+            }
+        });
+        return $type;
+    }
     if (send_mail((string) $a['email'], $subject, $text, $html, support_email())) {
         db_run('UPDATE applications SET email_sent = ?, email_sent_at = NOW() WHERE id = ?', [$type, $appId]);
         return $type;
     }
-    app_auto_note($appId, ONBOARDING_EMAILS[$type] . ' could not be sent (check Admin → Email check)');
+    $failed();
     return '';
 }
 
@@ -246,7 +291,7 @@ function posted_vehicles(): array
 /** Vehicle type cards (choose all that apply). Ticking "Other" shows a box to type the vehicle (see [data-veh-pick] in app.js). */
 function vehicle_picker(array $picked, string $other, string $class = '', bool $hidden = false, string $legend = 'Vehicle type', string $id = 'vehicle_other'): string
 {
-    $icons = ['box_truck' => 'truck', 'cargo_van' => 'van', 'sprinter' => 'van', 'suv' => 'car', 'other' => 'plus'];
+    $icons = ['box_truck' => 'truck', 'semi' => 'semi', 'cargo_van' => 'van', 'sprinter' => 'van', 'suv' => 'car', 'other' => 'plus'];
     $h = '<fieldset class="veh-pick' . ($class !== '' ? ' ' . e($class) : '') . '" data-veh-pick data-vehicle-field' . ($hidden ? ' hidden' : '') . '>'
         . '<legend>' . e($legend) . ' <span class="opt">Choose all that apply</span></legend><div class="veh-grid">';
     foreach (APPLY_VEHICLES as $k => $l) {

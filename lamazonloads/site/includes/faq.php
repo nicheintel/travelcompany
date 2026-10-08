@@ -19,11 +19,11 @@ const FAQ = [
     ]],
     'vehicles' => ['Vehicles', 'van', [
         'vehicle' => ['What type of vehicle do I need?',
-            "Opportunities may be available for:\n- Cargo Vans\n- Sprinter Vans\n- Box Trucks\nCertain programs may occasionally accept other vehicle types, depending on the specific route requirements."],
+            "Opportunities may be available for:\n- Cargo Vans\n- Sprinter Vans\n- Box Trucks\n- Semi Trucks\nCertain programs may occasionally accept other vehicle types, depending on the specific route requirements."],
         'own' => ['Do I need to own my vehicle?',
             'Most owner-operator opportunities require you to have access to your own qualifying vehicle.'],
         'suv' => ['Can I use an SUV?',
-            'Only when a specific route allows SUVs. Most of our regular opportunities currently require a Cargo Van, Sprinter Van or Box Truck.'],
+            'Only when a specific route allows SUVs. Most of our regular opportunities currently require a Cargo Van, Sprinter Van, Box Truck or Semi Truck.'],
         'dimensions' => ['Why do you need my vehicle dimensions?',
             "Vehicle dimensions help dispatch determine whether freight will safely fit inside your vehicle before submitting or booking a load.\nWe may request:\n- Cargo length\n- Cargo width\n- Cargo height\n- Door opening dimensions"],
         'rental' => ['Can I use a rental vehicle?',
@@ -153,7 +153,7 @@ const FAQ = [
         'onboarded-no-load' => ["I'm onboarded but haven't received a load. What should I do?",
             "Send your current:\n- ZIP code\n- Vehicle type\n- Availability\nThis lets the team know you're active and ready for opportunities."],
         'contact' => ['How do I contact LamazonLoads?',
-            "Drivers should use the official LamazonLoads communication channels provided during onboarding.\nGeneral contact: info@lamazonloads.com · 678-666-4334"],
+            "Drivers should use the official LamazonLoads communication channels provided during onboarding.\nGeneral contact: info@lamazonloads.com · {phone}"],
         'support-group' => ['Why was I added to a driver support group?',
             'Driver support groups allow LamazonLoads management and support representatives to communicate directly with drivers, provide updates, request availability and assist with issues.'],
         'respond-zip' => ['Should I respond when support asks for my ZIP?',
@@ -180,9 +180,16 @@ const FAQ = [
 /** The template drivers send when they're looking for work. */
 const FAQ_QUICK_RESPONSE = ['Full Name:', 'Phone:', 'Email:', 'Current ZIP:', 'City/State:', 'Vehicle Type:', 'Vehicle Dimensions:', 'Available Today? YES / NO:', 'Looking For: DAILY ROUTE / OTR / BOTH:'];
 
+/** An answer with the company phone number filled in ("{phone}" in the text). */
+function faq_text(string $text): string
+{
+    return str_replace('{phone}', (string) config('contact_phone'), $text);
+}
+
 /** Answer text as HTML: paragraphs, "- " bullet lists, and clickable email / phone. */
 function faq_answer_html(string $text): string
 {
+    $text = faq_text($text);
     $html = '';
     $list = [];
     $flush = function () use (&$list, &$html): void {
@@ -194,7 +201,7 @@ function faq_answer_html(string $text): string
     $link = function (string $s): string {
         $s = e($s);
         $s = preg_replace('/\b(info@lamazonloads\.com)\b/i', '<a href="mailto:info@lamazonloads.com">$1</a>', $s);
-        return (string) preg_replace_callback('/\b(\d{3}-\d{3}-\d{4})\b/', fn ($m) => '<a href="' . e(tel_href($m[1])) . '">' . $m[1] . '</a>', $s);
+        return (string) preg_replace_callback('/(\(\d{3}\) \d{3}-\d{4}|\b\d{3}-\d{3}-\d{4})\b/', fn ($m) => '<a href="' . e(tel_href($m[1])) . '">' . $m[1] . '</a>', $s);
     };
     foreach (explode("\n", $text) as $line) {
         if (str_starts_with($line, '- ')) {

@@ -57,15 +57,28 @@ function client_ip(): string
     return substr((string) ($_SERVER['REMOTE_ADDR'] ?? ''), 0, 45);
 }
 
-/** Runs $fn after the page has been sent, so slow work (like sending an email) doesn't change how long the page takes. */
+/** Runs $fn after the page has been sent, so slow work (like sending an email) doesn't change how long the page takes.
+ *  Several can be queued; they run in order, and one failing doesn't stop the rest. */
 function after_response(callable $fn): void
 {
-    register_shutdown_function(function () use ($fn): void {
-        if (session_status() === PHP_SESSION_ACTIVE) session_write_close();
-        if (function_exists('fastcgi_finish_request')) fastcgi_finish_request();
-        elseif (function_exists('litespeed_finish_request')) litespeed_finish_request();
-        $fn();
-    });
+    static $queue = null;
+    if ($queue === null) {
+        $queue = new ArrayObject();
+        register_shutdown_function(function () use ($queue): void {
+            if (session_status() === PHP_SESSION_ACTIVE) session_write_close();
+            ignore_user_abort(true); // keep going if the visitor closes the page
+            if (function_exists('fastcgi_finish_request')) fastcgi_finish_request();
+            elseif (function_exists('litespeed_finish_request')) litespeed_finish_request();
+            foreach ($queue as $job) {
+                try {
+                    $job();
+                } catch (Throwable $ex) {
+                    error_log('[after_response] ' . $ex->getMessage());
+                }
+            }
+        });
+    }
+    $queue[] = $fn;
 }
 
 /** The key for rate limits: the visitor's address, or their whole IPv6 /64 network (one home or phone gets a whole /64). */
@@ -171,7 +184,7 @@ const EQUIPMENT = [
     'box_16'    => 'Box Truck (16 ft)',
     'box_26'    => 'Box Truck (20–26 ft)',
     'hotshot'   => 'Hotshot / Pickup + Trailer',
-    'semi'      => 'Tractor-Trailer',
+    'semi'      => 'Semi Truck (Tractor-Trailer)',
     'other'     => 'Other qualified equipment',
 ];
 

@@ -64,6 +64,9 @@ function app_detail_html(array $a, string $back): string
         ['Walmart daily route', (int) $a['walmart'] ? '<b>' . e($a['walmart_city']) . '</b>' : ($isNew ? 'Not interested' : '—')],
     ];
     if ((int) $a['walmart']) {
+        $wmKey = walmart_rate_key(array_filter(explode(',', (string) $a['vehicles'])));
+        $wmRate = ['van' => walmart_settings()['rate'], 'suv' => walmart_settings()['rate_suv'], 'any' => ''][$wmKey];
+        if ($wmRate !== '') $rows[] = ['Route pays', e($wmRate . ($wmKey === 'van' ? ' (cargo van)' : ' (SUV / other vehicle)'))];
         $rows[] = ['Rate they asked for', e($a['rate_requested'] !== '' ? $a['rate_requested'] . ' / day' : 'Not given')];
     }
     if ($a['email_sent_at']) {

@@ -255,8 +255,9 @@ $here = 'job.php?id=' . $id;
                   <?php foreach ($cities as $c): ?><option value="<?= e($c) ?>"<?= $form['walmart_city'] === $c ? ' selected' : '' ?>><?= e($c) ?></option><?php endforeach; ?>
                 </select>
                 <label for="rate_requested">What daily pay rate are you looking for? <span class="opt">(optional)</span></label>
-                <input id="rate_requested" name="rate_requested" type="text" maxlength="40" value="<?= e($form['rate_requested']) ?>" placeholder="e.g. $275">
-                <p class="hint">Routes pay <?= e(walmart_settings()['rate']) ?>. LamazonLoads negotiates the final rate for you.</p>
+                <?php $hints = walmart_rate_hints(); [$hint, $example] = $hints[walmart_rate_key($form['vehicles'])]; ?>
+                <input id="rate_requested" name="rate_requested" type="text" maxlength="40" value="<?= e($form['rate_requested']) ?>" placeholder="<?= e($example) ?>" data-wm-ask>
+                <p class="hint" data-wm-rate<?php foreach ($hints as $k => [$h, $ex]): ?> data-hint-<?= $k ?>="<?= e($h) ?>" data-ex-<?= $k ?>="<?= e($ex) ?>"<?php endforeach; ?>><?= e($hint) ?></p>
               </div>
             </div>
           <?php endif; ?>

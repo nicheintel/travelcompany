@@ -14,6 +14,7 @@ if (is_post()) {
         meta_set('walmart_on', empty($_POST['on']) ? '0' : '1');
         meta_set('walmart_start', post('start', 40));
         meta_set('walmart_rate', post('rate', 40));
+        meta_set('walmart_rate_suv', post('rate_suv', 40));
         flash('success', 'Walmart route settings saved.');
     } elseif ($action === 'add') {
         $city = preg_replace('/\s+/', ' ', post('city', 80));
@@ -46,7 +47,7 @@ $active = count(array_filter($routes, fn ($r) => (int) $r['active']));
 page_header('Walmart routes');
 admin_open('walmart');
 ?>
-<?= admin_head('Walmart daily routes', 'Set the start month and pay, and choose which cities drivers can pick on the application form. SUV and other-vehicle drivers get the Walmart welcome email for their city.') ?>
+<?= admin_head('Walmart daily routes', 'Set the start month and the daily pay for each vehicle, and choose which cities drivers can pick on the application form. SUV and other-vehicle drivers get the Walmart welcome email for their city.') ?>
 
 <div class="wm-layout">
 <section class="card panel wm-program">
@@ -54,7 +55,8 @@ admin_open('walmart');
   <?php if (!is_full_admin()): ?>
   <div class="panel-body wm-settings">
     <div><small class="muted">Routes start in</small><br><b><?= e($s['start'] !== '' ? $s['start'] : 'Not set') ?></b></div>
-    <div><small class="muted">Pay rate</small><br><b><?= e($s['rate'] !== '' ? $s['rate'] : 'Not set') ?></b></div>
+    <div><small class="muted">Pay: Cargo Van</small><br><b><?= e($s['rate'] !== '' ? $s['rate'] : 'Not set') ?></b></div>
+    <div><small class="muted">Pay: SUV &amp; other vehicles</small><br><b><?= e($s['rate_suv'] !== '' ? $s['rate_suv'] : 'Not set') ?></b></div>
     <p class="mb-0"><?= $s['on'] ? 'Shown on the application form.' : 'Hidden from the application form.' ?></p>
     <p class="hint mb-0">Only admins can change the program settings.</p>
   </div>
@@ -62,7 +64,8 @@ admin_open('walmart');
   <form method="post" action="<?= e(url('admin/walmart.php')) ?>" class="panel-body wm-settings">
     <?= csrf_field() ?><input type="hidden" name="action" value="settings">
     <div><label for="start">Routes start in</label><input id="start" name="start" type="text" maxlength="40" value="<?= e($s['start']) ?>" placeholder="November"></div>
-    <div><label for="rate">Pay rate</label><input id="rate" name="rate" type="text" maxlength="40" value="<?= e($s['rate']) ?>" placeholder="$275 per day"></div>
+    <div><label for="rate">Pay: Cargo Van</label><input id="rate" name="rate" type="text" maxlength="40" value="<?= e($s['rate']) ?>" placeholder="$275 per day"></div>
+    <div><label for="rate_suv">Pay: SUV &amp; other vehicles</label><input id="rate_suv" name="rate_suv" type="text" maxlength="40" value="<?= e($s['rate_suv']) ?>" placeholder="$225 per day"></div>
     <label class="check"><input type="checkbox" name="on" value="1"<?= $s['on'] ? ' checked' : '' ?>> Show the Walmart daily route on the application form</label>
     <div class="wm-preview"><small>Drivers see</small><b><?= e(walmart_headline()) ?></b></div>
     <button class="btn btn-primary btn-block" type="submit">Save settings</button>

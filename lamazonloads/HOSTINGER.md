@@ -39,7 +39,7 @@ In File Manager, right-click **`public_html/config.local.php`** → **Edit**, an
 'db_pass' => 'your-database-password',  // from step 2
 'admin_emails' => 'you@lamazonloads.com',
 'contact_email' => 'info@lamazonloads.com',
-'contact_phone' => '678-666-4334',
+'contact_phone' => '(678) 528-1181',
 'smtp_user' => 'info@lamazonloads.com',
 'smtp_pass' => 'your-email-password',    // the password of the info@ mailbox (step 4b)
 ```
