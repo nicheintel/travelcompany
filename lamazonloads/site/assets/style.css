@@ -2048,6 +2048,7 @@ a.nt-row:hover { background: var(--blue-50); text-decoration: none; }
 .nt-chart { margin: 0; padding-left: 24px; border-left: 1px solid var(--line); }
 .nt-chart figcaption b { display: block; color: var(--ink); font-size: .92rem; }
 .nt-chart figcaption small { display: block; margin-top: 2px; color: var(--muted); font-size: .8rem; }
+.nt-chart figcaption small.nt-filt { margin-top: 0; color: var(--blue); font-weight: 600; }
 .nt-plot { display: grid; grid-template-columns: repeat(14, minmax(0, 1fr)); gap: 4px; align-items: end; height: 112px; margin-top: 14px; padding-top: 18px; border-bottom: 1px solid #C5D0E0; }
 .nt-day { display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%; }
 .nt-bar { display: block; width: 100%; max-width: 14px; border-radius: 4px 4px 0 0; background: #B9CCF4; }

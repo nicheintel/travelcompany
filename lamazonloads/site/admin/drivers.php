@@ -52,7 +52,12 @@ const ONB_FILTERS = ['onboarded' => 'Onboarded', 'not' => 'Not onboarded yet', '
 $where = [];
 $args = [];
 if ($q !== '') { $where[] = '(u.name LIKE ? OR u.email LIKE ? OR u.phone LIKE ? OR u.city LIKE ? OR p.home_zip LIKE ?)'; $ql = addcslashes($q, '%_\\'); array_push($args, "%$ql%", "%$ql%", "%$ql%", "%$ql%", "$ql%"); }
-if (isset(EQUIPMENT[$equip])) { $where[] = 'p.equipment = ?'; $args[] = $equip; }
+// Equipment: what's on their profile, or the vehicles they ticked when they signed up (new members have no profile yet)
+const EQUIP_FILTERS = ['box_truck' => 'Box Truck (any size)', 'box_16' => '· Box Truck 16 ft', 'box_26' => '· Box Truck 20–26 ft', 'cargo_van' => 'Cargo Van',
+    'sprinter' => 'Sprinter Van', 'suv' => 'SUV', 'hotshot' => 'Hotshot / Pickup + Trailer', 'semi' => 'Tractor-Trailer', 'other' => 'Other'];
+if ($equip === 'box_truck') { $where[] = "(p.equipment IN ('box_16', 'box_26') OR FIND_IN_SET('box_truck', u.vehicle))"; }
+elseif (isset(EQUIP_FILTERS[$equip]) && isset(APPLY_VEHICLES[$equip])) { $where[] = '(p.equipment = ? OR FIND_IN_SET(?, u.vehicle))'; array_push($args, $equip, $equip); }
+elseif (isset(EQUIP_FILTERS[$equip])) { $where[] = 'p.equipment = ?'; $args[] = $equip; }
 if ($type === 'staff') $where[] = 'u.is_admin = 1';
 elseif ($type === 'driver') $where[] = "u.is_admin = 0 AND u.account_type IN ('driver', 'owner_operator')";
 elseif (isset(ACCOUNT_TYPES[$type])) { $where[] = 'u.is_admin = 0 AND u.account_type = ?'; $args[] = $type; } // staff accounts also carry a type
@@ -67,21 +72,22 @@ if (preg_match('/^st:([A-Z]{2})$/', $loc, $m) && isset(US_STATES[$m[1]])) { $whe
 elseif (str_starts_with($loc, 'c:')) { $where[] = 'u.city = ?'; $args[] = substr($loc, 2); }
 if (isset(ONB_FILTERS[$onbF])) $where[] = 'u.is_admin = 0'; // staff don't onboard
 $where = array_values(array_filter($where, fn ($w) => $w !== '1'));
-// Today's sign-ups (New York time, the site's clock) have their own panel above the table and join the table after midnight
-$tableWhere = array_merge($where, ['(u.is_admin = 1 OR u.created_at < CURDATE())']);
+// Today's sign-ups (New York time, the site's clock) have their own panel above the table and join the table after midnight.
+// The filters apply to both, so together they always show every match.
+$from = ' FROM users u LEFT JOIN driver_profiles p ON p.user_id = u.id LEFT JOIN onboarding o ON o.user_id = u.id WHERE ';
+$sqlWhere = fn (string ...$extra) => implode(' AND ', array_merge($where, $extra));
 $rows = db_all('SELECT u.*, p.equipment, p.home_zip, p.availability, o.stage onb_stage, (SELECT COUNT(*) FROM documents d WHERE d.user_id = u.id) docs,
-    (SELECT COUNT(*) FROM applications a WHERE a.user_id = u.id) apps
-    FROM users u LEFT JOIN driver_profiles p ON p.user_id = u.id LEFT JOIN onboarding o ON o.user_id = u.id
-    WHERE ' . implode(' AND ', $tableWhere) . ' ORDER BY u.created_at DESC LIMIT 500', $args);
-$newToday = db_all('SELECT u.*, p.equipment FROM users u LEFT JOIN driver_profiles p ON p.user_id = u.id
-    WHERE u.is_admin = 0 AND u.created_at >= CURDATE() ORDER BY u.created_at DESC');
-$perDay = array_column(db_all('SELECT DATE(created_at) d, COUNT(*) n FROM users WHERE is_admin = 0 AND created_at >= CURDATE() - INTERVAL 13 DAY GROUP BY d'), 'n', 'd');
+    (SELECT COUNT(*) FROM applications a WHERE a.user_id = u.id) apps'
+    . $from . $sqlWhere('(u.is_admin = 1 OR u.created_at < CURDATE())') . ' ORDER BY u.created_at DESC LIMIT 500', $args);
+$showToday = $type !== 'staff'; // staff aren't sign-ups
+$newToday = $showToday ? db_all('SELECT u.*, p.equipment' . $from . $sqlWhere('u.is_admin = 0', 'u.created_at >= CURDATE()') . ' ORDER BY u.created_at DESC', $args) : [];
+$todayAll = (int) db_val('SELECT COUNT(*) FROM users WHERE is_admin = 0 AND created_at >= CURDATE()');
+$perDay = $showToday ? array_column(db_all('SELECT DATE(u.created_at) d, COUNT(*) n' . $from . $sqlWhere('u.is_admin = 0', 'u.created_at >= CURDATE() - INTERVAL 13 DAY') . ' GROUP BY d', $args), 'n', 'd') : [];
 $days = [];
 for ($i = 13; $i >= 0; $i--) {
     $d = date('Y-m-d', strtotime("-$i day"));
     $days[$d] = (int) ($perDay[$d] ?? 0);
 }
-$todayMatches = $q === '' ? 0 : count(array_filter($newToday, fn ($r) => array_filter([$r['name'], $r['email'], $r['phone'], $r['city']], fn ($v) => mb_stripos((string) $v, $q) !== false)));
 // Location filter: the states and cities members actually live in, with counts
 $byState = [];
 foreach (db_all("SELECT city, COUNT(*) n FROM users WHERE city <> '' GROUP BY city ORDER BY city") as $c) {
@@ -91,7 +97,7 @@ foreach (db_all("SELECT city, COUNT(*) n FROM users WHERE city <> '' GROUP BY ci
 ksort($byState);
 $typeCounts = array_column(db_all("SELECT IF(is_admin = 1, 'staff', account_type) t, COUNT(*) n FROM users GROUP BY t"), 'n', 't');
 $typeCounts['driver'] = ($typeCounts['driver'] ?? 0) + ($typeCounts['owner_operator'] ?? 0);
-$onbCounts = db_one("SELECT SUM(o.stage IN ('contract', 'done')) yes, COUNT(*) - SUM(COALESCE(o.stage IN ('contract', 'done'), 0)) no FROM users u LEFT JOIN onboarding o ON o.user_id = u.id WHERE u.is_admin = 0");
+$onbCounts = db_one("SELECT SUM(o.stage IN ('contract', 'done')) yes, COUNT(*) - SUM(COALESCE(o.stage IN ('contract', 'done'), 0)) no FROM users u LEFT JOIN onboarding o ON o.user_id = u.id WHERE u.is_admin = 0 AND u.created_at < CURDATE()");
 
 page_header('Drivers & members');
 admin_open('drivers');
@@ -106,17 +112,17 @@ admin_open('drivers');
     <?php foreach ($byState as $st => $cities): ?><optgroup label="<?= e(US_STATES[$st]) ?>"><option value="st:<?= e($st) ?>"<?= $loc === 'st:' . $st ? ' selected' : '' ?>>All of <?= e(US_STATES[$st]) ?> (<?= array_sum(array_column($cities, 'n')) ?>)</option>
       <?php foreach ($cities as $c): ?><option value="c:<?= e($c['city']) ?>"<?= $loc === 'c:' . $c['city'] ? ' selected' : '' ?>><?= e(substr((string) $c['city'], 0, -4)) ?> (<?= (int) $c['n'] ?>)</option><?php endforeach; ?></optgroup><?php endforeach; ?>
   </select></div>
-  <div><label for="equipment">Equipment</label><select id="equipment" name="equipment"><option value="">Any equipment</option><?php foreach (EQUIPMENT as $k => $l): ?><option value="<?= e($k) ?>"<?= $equip === $k ? ' selected' : '' ?>><?= e($l) ?></option><?php endforeach; ?></select></div>
+  <div><label for="equipment">Equipment</label><select id="equipment" name="equipment"><option value="">Any equipment</option><?php foreach (EQUIP_FILTERS as $k => $l): ?><option value="<?= e($k) ?>"<?= $equip === $k ? ' selected' : '' ?>><?= e($l) ?></option><?php endforeach; ?></select></div>
 </form>
-<?php $todayN = count($newToday); $peak = max($days); $total14 = array_sum($days); $todayKey = date('Y-m-d'); $peakDay = $peak > 0 ? array_search($peak, $days, true) : null; ?>
+<?php if ($showToday): $todayN = count($newToday); $peak = max($days); $total14 = array_sum($days); $todayKey = date('Y-m-d'); $peakDay = $peak > 0 ? array_search($peak, $days, true) : null; ?>
 <section class="card nt-panel" aria-labelledby="nt-title">
   <div class="nt-main">
     <header class="nt-head">
       <h2 id="nt-title">New today <span class="nt-count<?= $todayN ? '' : ' is-zero' ?>"><?= $todayN ?></span></h2>
-      <p><?= e(date('l, F j')) ?> · New York time. Today's sign-ups move to the table below after midnight.</p>
+      <p><?= e(date('l, F j')) ?> · New York time. <?= $where && $newToday ? '<b>' . $todayN . ' of ' . $todayAll . '</b> sign-ups today match your filters.' : 'Today\'s sign-ups move to the table below after midnight.' ?></p>
     </header>
     <?php if (!$newToday): ?>
-      <p class="nt-empty"><?= icon('clock') ?><span>No new sign-ups yet today.</span></p>
+      <p class="nt-empty"><?= icon('clock') ?><span><?= $where && $todayAll ? ($todayAll === 1 ? 'Today\'s one sign-up doesn\'t match your filters.' : 'None of today\'s ' . $todayAll . ' sign-ups match your filters.') : 'No new sign-ups yet today.' ?></span></p>
     <?php else: ?>
       <div class="nt-list">
         <?php foreach ($newToday as $r): $vl = isset(EQUIPMENT[$r['equipment'] ?? '']) ? EQUIPMENT[$r['equipment']] : user_vehicles_label($r); ?>
@@ -132,7 +138,7 @@ admin_open('drivers');
     <?php endif; ?>
   </div>
   <figure class="nt-chart" aria-labelledby="nt-chart-title">
-    <figcaption id="nt-chart-title"><b>Sign-ups per day</b><small><?= $total14 ?> in the last 14 days</small></figcaption>
+    <figcaption id="nt-chart-title"><b>Sign-ups per day</b><small><?= $total14 ?> in the last 14 days</small><?= $where ? '<small class="nt-filt">Matching your filters</small>' : '' ?></figcaption>
     <div class="nt-plot">
       <?php foreach ($days as $d => $n): $label = date('D, M j', strtotime($d)) . ': ' . $n . ' sign-up' . ($n === 1 ? '' : 's'); ?>
         <div class="nt-day<?= $d === $todayKey ? ' is-today' : '' ?>" title="<?= e($label) ?>">
@@ -146,9 +152,10 @@ admin_open('drivers');
     <div class="nt-range" aria-hidden="true"><span><?= e(date('M j', strtotime(array_key_first($days)))) ?></span><span>Today</span></div>
   </figure>
 </section>
+<?php endif; ?>
 
-<p class="muted app-count"><b><?= count($rows) ?></b> member<?= count($rows) === 1 ? '' : 's' ?><?= $where ? ' match · <a href="' . e(url('admin/drivers.php')) . '">Clear filters</a>' : ' · <span class="onb-tally">' . icon('check') . (int) $onbCounts['yes'] . ' onboarded · ' . (int) $onbCounts['no'] . ' not yet</span>' ?><?= $todayMatches ? ' · ' . $todayMatches . ' more in New today above' : '' ?></p>
-<?php if (!$rows): ?><div class="card empty">No members found.</div><?php else: ?>
+<p class="muted app-count"><b><?= count($rows) ?></b> member<?= count($rows) === 1 ? '' : 's' ?><?= $where ? (count($rows) === 1 ? ' matches' : ' match') . ' · <a href="' . e(url('admin/drivers.php')) . '">Clear filters</a>' : ' · <span class="onb-tally">' . icon('check') . (int) $onbCounts['yes'] . ' onboarded · ' . (int) $onbCounts['no'] . ' not yet</span>' ?><?= $where && $newToday ? ' · ' . count($newToday) . ' more in New today above' : '' ?></p>
+<?php if (!$rows): ?><div class="card empty"><?= !$newToday ? 'No members found.' : ($where ? 'No members from before today match your filters.' : 'No members from before today yet.') ?></div><?php else: ?>
 <section class="card panel">
   <div class="panel-body flush ml">
     <div class="ml-row ml-head" aria-hidden="true"><span>Member</span><span>Type &amp; city</span><span>Equipment</span><span>Onboarding</span><span class="ml-c">Docs</span><span class="ml-c">Applied</span><span class="ml-end">Joined</span></div>
