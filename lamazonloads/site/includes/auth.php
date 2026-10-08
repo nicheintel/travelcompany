@@ -21,7 +21,9 @@ function current_user(): ?array
         $_SESSION = [];
         $user = null;
     } elseif ($user) {
-        $_SESSION['seen'] = $now;
+        if (!defined('LL_PASSIVE')) { // background checks (admin/live.php) don't count as activity
+            $_SESSION['seen'] = $now;
+        }
         $_SESSION['login_at'] ??= $now;
     }
     return $user;

@@ -181,6 +181,136 @@
     update();
   });
 
+  // Admin live updates: every 15 seconds (only while the tab is in view) ask admin/live.php what's new. The menu counts
+  // and the tab title update, new things pop up as an alert with a soft ding, and a list page offers "N new · Show".
+  // Nothing reloads by itself, so typing is never interrupted. With several admin tabs open, only one tab alerts.
+  var liveNav = document.querySelector('[data-live]');
+  if (liveNav) (function () {
+    var cfg; try { cfg = JSON.parse(liveNav.getAttribute('data-live')); } catch (e) { return; }
+    var tops = cfg.tops || {}, pageKinds = cfg.page || [], waiting = {}, timer = 0, lastAt = 0, stopped = false;
+    var baseTitle = document.title.replace(/^\(\d+\) /, '');
+    var store = function (k, v) { try { if (v === undefined) return JSON.parse(localStorage.getItem(k) || 'null'); localStorage.setItem(k, JSON.stringify(v)); } catch (e) { return null; } };
+    // what this browser already alerted about (shared by all admin tabs)
+    var alerted = function () { return store('ll_live_alerted') || {}; };
+    var markAlerted = function (t) { var a = alerted(); Object.keys(t).forEach(function (k) { a[k] = Math.max(a[k] || 0, t[k]); }); store('ll_live_alerted', a); };
+    markAlerted(tops); // what this page already shows isn't news
+
+    // the menu's red counts and the tab title
+    var setCounts = function (counts) {
+      var total = 0;
+      Object.keys(counts).forEach(function (k) {
+        var n = +counts[k] || 0; total += n;
+        var a = liveNav.querySelector('[data-live-key="' + k + '"]'); if (!a) return;
+        var b = a.querySelector('.nav-count');
+        if (!n) { if (b) b.remove(); return; }
+        if (!b) { b = document.createElement('span'); b.className = 'nav-count is-new'; a.appendChild(b); }
+        if (b.textContent !== String(n)) { b.textContent = n; b.setAttribute('aria-label', n + ' new'); b.classList.remove('is-bump'); void b.offsetWidth; b.classList.add('is-bump'); }
+      });
+      document.title = (total ? '(' + total + ') ' : '') + baseTitle;
+    };
+    setCounts(cfg.counts || {});
+
+    // a soft two-note ding (made in the browser, no sound file); sound on/off is remembered
+    var soundBtn = liveNav.querySelector('[data-live-sound]'), ctx = null;
+    var soundOn = function () { return store('ll_live_sound') !== false; };
+    var showSound = function () {
+      if (!soundBtn) return;
+      soundBtn.setAttribute('aria-pressed', soundOn() ? 'true' : 'false');
+      soundBtn.querySelector('[data-live-sound-label]').textContent = soundOn() ? 'On' : 'Off';
+    };
+    if (soundBtn) soundBtn.addEventListener('click', function () { store('ll_live_sound', !soundOn()); showSound(); if (soundOn()) ding(); });
+    showSound();
+    var audio = function () { var C = window.AudioContext || window.webkitAudioContext; if (!ctx && C) ctx = new C(); if (ctx && ctx.state === 'suspended') ctx.resume(); return ctx; };
+    ['pointerdown', 'keydown'].forEach(function (ev) { document.addEventListener(ev, function () { try { audio(); } catch (e) {} }, { once: true }); }); // browsers allow sound after a first click
+    var ding = function () {
+      if (!soundOn()) return;
+      try {
+        var c = audio(); if (!c || c.state !== 'running') return;
+        [[880, 0], [1318.5, .13]].forEach(function (n) {
+          var o = c.createOscillator(), g = c.createGain(), t = c.currentTime + n[1];
+          o.type = 'sine'; o.frequency.value = n[0];
+          g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.12, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.7);
+          o.connect(g); g.connect(c.destination); o.start(t); o.stop(t + 0.75);
+        });
+      } catch (e) {}
+    };
+
+    // the alert: same look as the site's messages, with a View button
+    var ICONS = { applications: 'clipboard', onboarding: 'check', chats: 'chat', messages: 'mail', partners: 'handshake', members: 'user' };
+    var iconSvg = function (k) { var t = document.querySelector('template[data-live-icon="' + (ICONS[k] || 'info') + '"]'); return t ? t.innerHTML : ''; };
+    var popAlert = function (k, d) {
+      var box = document.querySelector('.toasts');
+      if (!box) { box = document.createElement('div'); box.className = 'toasts'; box.setAttribute('aria-live', 'polite'); document.body.appendChild(box); }
+      var t = document.createElement('div'); t.className = 'toast toast-info live-alert'; t.setAttribute('role', 'status');
+      t.innerHTML = '<span class="toast-ico">' + iconSvg(k) + '</span><span class="toast-body"><b class="toast-title"></b><span class="toast-msg"></span>'
+        + '<a class="live-view" href="#">View <span aria-hidden="true">→</span></a></span>'
+        + '<button type="button" class="toast-x" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button><span class="toast-bar"></span>';
+      t.querySelector('.toast-title').textContent = d.title;
+      t.querySelector('.toast-msg').textContent = d.text || '';
+      t.querySelector('.live-view').href = d.url;
+      var gone = false, close = function () { if (gone) return; gone = true; t.classList.add('is-leaving'); setTimeout(function () { t.remove(); }, 330); };
+      t.querySelector('.toast-x').addEventListener('click', close);
+      var left = 12000, started = Date.now(), timeout = setTimeout(close, left);
+      t.addEventListener('mouseenter', function () { clearTimeout(timeout); left -= Date.now() - started; t.classList.add('is-paused'); });
+      t.addEventListener('mouseleave', function () { started = Date.now(); timeout = setTimeout(close, Math.max(left, 2500)); t.classList.remove('is-paused'); });
+      box.querySelectorAll('.live-alert').forEach(function (o, i, all) { if (all.length >= 3 && i === 0) o.remove(); }); // three at most
+      box.appendChild(t);
+    };
+
+    // "2 new applications · Show" on the page that lists them; Show reloads the page in place (asks first if you were typing)
+    var bar = null;
+    var BAR_WORDS = { applications: ['new application', 'new applications'], onboarding: ['driver ready for review', 'drivers ready for review'], chats: ['new chat message', 'new chat messages'],
+      messages: ['new contact message', 'new contact messages'], partners: ['new partner request', 'new partner requests'], members: ['new sign-up', 'new sign-ups'] };
+    var showBar = function () {
+      var kinds = Object.keys(waiting); if (!kinds.length) return;
+      var n = kinds.reduce(function (s, k) { return s + waiting[k]; }, 0);
+      var text = kinds.length === 1 ? n + ' ' + BAR_WORDS[kinds[0]][n === 1 ? 0 : 1] : n + ' new updates';
+      if (!bar) {
+        bar = document.createElement('div'); bar.className = 'live-bar'; bar.setAttribute('role', 'status');
+        bar.innerHTML = '<span class="live-dot" aria-hidden="true"></span><span data-live-bar-text></span><button type="button" class="live-show">Show</button>';
+        bar.querySelector('.live-show').addEventListener('click', function () {
+          var dirty = Array.prototype.some.call(document.querySelectorAll('.admin-main input, .admin-main textarea'), function (el) {
+            return (el.type === 'checkbox' || el.type === 'radio') ? el.checked !== el.defaultChecked : (el.type !== 'hidden' && el.type !== 'file' && el.value !== el.defaultValue);
+          });
+          if (dirty && !window.confirm('You have unsaved changes on this page. Show the new items anyway?')) return;
+          try { sessionStorage.setItem('ll_live_scroll', JSON.stringify([location.pathname + location.search, window.scrollY])); } catch (e) {}
+          location.replace(location.href);
+        });
+        document.body.appendChild(bar);
+        requestAnimationFrame(function () { bar.classList.add('is-in'); });
+      }
+      bar.querySelector('[data-live-bar-text]').textContent = text;
+    };
+    try { // back where you were after "Show"
+      var sc = JSON.parse(sessionStorage.getItem('ll_live_scroll') || 'null'); sessionStorage.removeItem('ll_live_scroll');
+      if (sc && sc[0] === location.pathname + location.search) window.scrollTo({ top: sc[1], behavior: 'instant' });
+    } catch (e) {}
+
+    var apply = function (d) {
+      if (d.counts) setCounts(d.counts);
+      var news = d.new || {}, seen = alerted(), fresh = [];
+      Object.keys(news).forEach(function (k) {
+        if (pageKinds.indexOf(k) !== -1) { waiting[k] = (waiting[k] || 0) + (+news[k].n || 1); }
+        if ((d.tops[k] || 0) > (seen[k] || 0) && !(k === 'chats' && document.querySelector('[data-cs]'))) fresh.push(k); // the open chat screen shows new messages itself
+      });
+      Object.keys(d.tops || {}).forEach(function (k) { tops[k] = Math.max(tops[k] || 0, +d.tops[k] || 0); });
+      if (fresh.length) { markAlerted(d.tops); fresh.forEach(function (k) { popAlert(k, news[k]); }); ding(); }
+      showBar();
+    };
+    var schedule = function (ms) { clearTimeout(timer); if (!stopped) timer = setTimeout(check, ms); };
+    var check = function () {
+      if (document.hidden) return; // checked again as soon as the tab is back in view
+      lastAt = Date.now();
+      var since = Object.keys(tops).map(function (k) { return k + ':' + (tops[k] || 0); }).join(',');
+      fetch(cfg.url + '?since=' + encodeURIComponent(since), { credentials: 'same-origin', cache: 'no-store', headers: { Accept: 'application/json' } })
+        .then(function (r) { if (r.status === 403) { stopped = true; throw 0; } return r.json(); })
+        .then(apply).catch(function () {})
+        .then(function () { schedule(15000); });
+    };
+    document.addEventListener('visibilitychange', function () { if (!document.hidden && !stopped) schedule(Date.now() - lastAt > 5000 ? 0 : 5000); });
+    schedule(15000);
+  })();
+
   // Admin → Send onboarding email: the city list only for the Walmart email
   document.querySelectorAll('[data-os-form]').forEach(function (f) {
     var city = f.querySelector('[data-os-city]');

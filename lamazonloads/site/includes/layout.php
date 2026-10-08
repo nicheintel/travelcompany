@@ -8,6 +8,7 @@ function icon(string $name, string $class = 'ic'): string
     static $paths = [
         'truck'     => '<path d="M3 6h11v10H3z"/><path d="M14 9h4l3 4v3h-7z"/><circle cx="7" cy="17.5" r="2"/><circle cx="17" cy="17.5" r="2"/>',
         'semi'      => '<path d="M1 5h12v10H1z"/><path d="M13 8.5h4.5L21 12v3h-8z"/><path d="M15.5 8.5V12H21"/><circle cx="4.5" cy="17.5" r="1.8"/><circle cx="9" cy="17.5" r="1.8"/><circle cx="17.5" cy="17.5" r="1.8"/>',
+        'bell'      => '<path d="M6 9a6 6 0 0 1 12 0c0 6 2.5 8 2.5 8h-17S6 15 6 9"/><path d="M10.3 20.5a2 2 0 0 0 3.4 0"/>',
         'van'       => '<path d="M2 7h12l4 4h3v6H2z"/><path d="M14 7v4h4"/><circle cx="6.5" cy="17.5" r="2"/><circle cx="16.5" cy="17.5" r="2"/>',
         'route'     => '<circle cx="6" cy="19" r="2.5"/><circle cx="18" cy="5" r="2.5"/><path d="M8.5 19H17a3.5 3.5 0 0 0 0-7H7a3.5 3.5 0 0 1 0-7h8.5"/>',
         'clipboard' => '<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1"/><path d="M9 11h6M9 15h4"/>',
@@ -475,6 +476,28 @@ function admin_counts(): array
     ];
 }
 
+/**
+ * Live updates in admin (admin/live.php, checked every 15 seconds): the newest item of each kind. When one of these goes up,
+ * something new arrived: the menu counts change, an alert pops up, and the page it belongs on offers "N new · Show".
+ */
+function admin_live_tops(): array
+{
+    return [
+        'applications' => (int) db_val('SELECT MAX(id) FROM applications'),
+        'onboarding' => (int) db_val("SELECT MAX(UNIX_TIMESTAMP(submitted_at)) FROM onboarding WHERE stage = 'review'"),
+        'chats' => (int) db_val("SELECT MAX(id) FROM support_messages WHERE sender = 'user'"),
+        'messages' => (int) db_val('SELECT MAX(id) FROM messages'),
+        'partners' => (int) db_val('SELECT MAX(id) FROM partner_requests'),
+        'members' => (int) db_val('SELECT MAX(id) FROM users WHERE is_admin = 0'),
+    ];
+}
+
+/** Which new items each admin page lists (they get the "N new · Show" bar). Support chats update by themselves already. */
+const ADMIN_LIVE_PAGES = [
+    'overview' => ['applications', 'onboarding', 'chats', 'messages', 'partners', 'members'],
+    'applications' => ['applications'], 'onboarding' => ['onboarding'], 'messages' => ['messages'], 'partners' => ['partners'], 'drivers' => ['members'],
+];
+
 /** Is this an admin page? (Slim footer, no chat bubble, wider layout.) */
 function is_admin_page(): bool
 {
@@ -488,7 +511,8 @@ function admin_open(string $active): void
     $u = current_user();
     $counts = admin_counts();
     $initials = strtoupper(implode('', array_map(fn ($w) => mb_substr($w, 0, 1), array_slice(preg_split('/\s+/', trim((string) $u['name'])) ?: [], 0, 2))));
-    echo '<div class="container dash admin-dash"><aside class="card admin-nav" aria-label="Admin menu">'
+    $live = ['url' => url('admin/live.php'), 'tops' => admin_live_tops(), 'counts' => $counts, 'page' => ADMIN_LIVE_PAGES[$active] ?? []];
+    echo '<div class="container dash admin-dash"><aside class="card admin-nav" aria-label="Admin menu" data-live="' . e((string) json_encode($live)) . '">'
         . '<div class="an-user"><span class="an-avatar" aria-hidden="true">' . e($initials ?: 'LL') . '</span><span><b>' . e((string) $u['name']) . '</b><small>' . e(STAFF_ROLES[staff_role($u)] ?? 'Staff') . '</small></span></div>'
         . '<nav class="an-links">';
     foreach (ADMIN_NAV as $group => $items) {
@@ -504,11 +528,13 @@ function admin_open(string $active): void
                 $adminGroup = $group;
             }
             $n = $counts[$key] ?? 0;
-            echo '<a href="' . e(url($href)) . '"' . ($active === $key ? ' class="active" aria-current="page"' : '') . '>' . icon($ic) . '<span>' . e($label) . '</span>'
+            echo '<a href="' . e(url($href)) . '" data-live-key="' . e($key) . '"' . ($active === $key ? ' class="active" aria-current="page"' : '') . '>' . icon($ic) . '<span>' . e($label) . '</span>'
                 . ($n ? '<span class="nav-count" aria-label="' . $n . ' new">' . $n . '</span>' : '') . '</a>';
         }
     }
-    echo '</nav><div class="an-foot"><a href="' . e(url('account.php')) . '">' . icon('user') . '<span>My dashboard</span></a>'
+    echo '</nav><div class="an-foot"><button type="button" class="an-sound" data-live-sound aria-pressed="true">' . icon('bell') . '<span>Alert sound: <b data-live-sound-label>On</b></span></button>'
+        . '<a href="' . e(url('account.php')) . '">' . icon('user') . '<span>My dashboard</span></a>'
+        . implode('', array_map(fn ($i) => '<template data-live-icon="' . $i . '">' . icon($i) . '</template>', ['clipboard', 'check', 'chat', 'mail', 'handshake', 'user']))
         . '<a href="' . e(url('')) . '">' . icon('external') . '<span>View website</span></a></div>';
     echo '</aside><div class="dash-main admin-main">';
 }
