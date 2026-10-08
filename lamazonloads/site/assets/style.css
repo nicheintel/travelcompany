@@ -2025,6 +2025,54 @@ a.app-row:hover .ar-go { opacity: 1; transform: translateX(3px); }
   .jl-status { justify-self: start; } .jl-apps { justify-self: end; } .jl-actions { justify-content: flex-start; }
 }
 
+/* Admin: members list. "New today": today's sign-ups (New York time) + sign-ups per day for 14 days */
+.nt-panel { display: grid; grid-template-columns: minmax(0, 1fr) 288px; gap: 20px 28px; padding: 20px 22px; margin-top: 16px; }
+.nt-head h2 { display: flex; align-items: center; gap: 10px; margin: 0; font-size: 1.1rem; }
+.nt-count { display: inline-grid; place-items: center; min-width: 28px; height: 26px; padding: 0 9px; border-radius: 999px; background: var(--blue); color: #fff; font-family: var(--font); font-size: .86rem; font-weight: 800; }
+.nt-count.is-zero { background: #E9EEF6; color: var(--muted); }
+.nt-head p { margin: 4px 0 12px; color: var(--muted); font-size: .86rem; }
+.nt-empty { display: flex; align-items: center; gap: 8px; margin: 6px 0 0; padding: 14px 16px; border: 1px dashed var(--line); border-radius: 12px; color: var(--muted); font-size: .9rem; }
+.nt-empty .ic { width: 18px; height: 18px; }
+.nt-list { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+.nt-row { display: grid; grid-template-columns: 74px minmax(0, 1.7fr) minmax(0, 1fr) minmax(0, 1fr); gap: 12px; align-items: center; padding: 10px 14px; color: var(--text); font-size: .88rem; }
+.nt-row + .nt-row { border-top: 1px solid var(--line); }
+a.nt-row:hover { background: var(--blue-50); text-decoration: none; }
+.nt-time { font-weight: 700; color: var(--navy); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.nt-who { min-width: 0; }
+.nt-who b { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; color: var(--ink); }
+.nt-who small, .nt-type small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); font-size: .8rem; }
+.nt-who small.nt-contact { white-space: normal; line-height: 1.4; }
+.nt-contact > span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nt-type { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nt-veh > span { white-space: nowrap; }
+.nt-chart { margin: 0; padding-left: 24px; border-left: 1px solid var(--line); }
+.nt-chart figcaption b { display: block; color: var(--ink); font-size: .92rem; }
+.nt-chart figcaption small { display: block; margin-top: 2px; color: var(--muted); font-size: .8rem; }
+.nt-plot { display: grid; grid-template-columns: repeat(14, minmax(0, 1fr)); gap: 4px; align-items: end; height: 112px; margin-top: 14px; padding-top: 18px; border-bottom: 1px solid #C5D0E0; }
+.nt-day { display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%; }
+.nt-bar { display: block; width: 100%; max-width: 14px; border-radius: 4px 4px 0 0; background: #B9CCF4; }
+.nt-day.is-today .nt-bar { background: var(--blue); }
+.nt-day:hover .nt-bar { filter: brightness(.92); }
+.nt-val { margin-bottom: 3px; color: var(--muted); font-size: .72rem; font-weight: 700; line-height: 1; }
+.nt-day.is-today .nt-val { color: var(--ink); }
+.nt-axis { display: grid; grid-template-columns: repeat(14, minmax(0, 1fr)); gap: 4px; margin-top: 5px; }
+.nt-axis span { text-align: center; color: var(--muted); font-size: .68rem; font-variant-numeric: tabular-nums; }
+.nt-axis span.is-today { color: var(--blue); font-weight: 800; }
+.nt-range { display: flex; justify-content: space-between; margin-top: 4px; color: var(--muted); font-size: .72rem; }
+@media (max-width: 1280px) {
+  .nt-panel { grid-template-columns: minmax(0, 1fr); }
+  .nt-chart { padding-left: 0; padding-top: 16px; border-left: 0; border-top: 1px solid var(--line); }
+}
+@media (max-width: 640px) {
+  .nt-panel { padding: 16px; }
+  .nt-row { grid-template-columns: 62px minmax(0, 1fr); gap: 2px 10px; }
+  .nt-type, .nt-veh { grid-column: 2; font-size: .82rem; color: var(--muted); }
+  .nt-type { white-space: normal; }
+  .nt-type > span { white-space: nowrap; }
+  .nt-type small { display: inline; white-space: normal; }
+  .nt-type small::before { content: " · "; }
+}
+
 /* Admin: members list */
 .mem-filters { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px 16px; align-items: end; }
 .mem-filters .mf-q { grid-column: 1 / -1; }

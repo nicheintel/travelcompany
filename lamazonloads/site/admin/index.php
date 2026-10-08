@@ -6,6 +6,7 @@ $me = require_admin();
 $counts = admin_counts();
 $members = (int) db_val('SELECT COUNT(*) FROM users WHERE is_admin = 0');
 $membersWeek = (int) db_val('SELECT COUNT(*) FROM users WHERE is_admin = 0 AND created_at > NOW() - INTERVAL 7 DAY');
+$membersToday = (int) db_val('SELECT COUNT(*) FROM users WHERE is_admin = 0 AND created_at >= CURDATE()'); // New York time
 $appsTotal = (int) db_val('SELECT COUNT(*) FROM applications');
 $appsWeek = (int) db_val('SELECT COUNT(*) FROM applications WHERE created_at > NOW() - INTERVAL 7 DAY');
 $openJobs = (int) db_val("SELECT COUNT(*) FROM jobs WHERE status = 'open'");
@@ -22,7 +23,7 @@ $hello = ($hour < 12 ? 'Good morning' : ($hour < 18 ? 'Good afternoon' : 'Good e
 
 $kpis = [
     ['clipboard', 'New applications', $counts['applications'], $appsWeek . ' this week · ' . $appsTotal . ' total', 'admin/applications.php?status=new'],
-    ['truck', 'Drivers & members', $members, $membersWeek ? '+' . $membersWeek . ' joined this week' : 'No new sign-ups this week', 'admin/drivers.php'],
+    ['truck', 'Drivers & members', $members, ($membersToday ? '+' . $membersToday . ' today · ' : '') . ($membersWeek ? '+' . $membersWeek . ' this week' : 'No new sign-ups this week'), 'admin/drivers.php'],
     ['briefcase', 'Open job posts', $openJobs, 'Shown on the Careers page', 'admin/jobs.php'],
     ['mail', 'Waiting in your inbox', $inbox, $inbox ? 'Chats, messages and partner requests' : 'You’re all caught up', $counts['chats'] ? 'admin/chats.php' : ($counts['messages'] ? 'admin/messages.php' : 'admin/partners.php')],
 ];
