@@ -181,6 +181,14 @@
     update();
   });
 
+  // Admin → Send onboarding email: the city list only for the Walmart email
+  document.querySelectorAll('[data-os-form]').forEach(function (f) {
+    var city = f.querySelector('[data-os-city]');
+    var update = function () { var t = f.querySelector('[data-os-type]:checked'); if (city) city.hidden = !t || t.value !== 'walmart'; };
+    f.addEventListener('change', update);
+    update();
+  });
+
   // Pop-up windows (the job application form): smooth zoom in, blurred page behind,
   // close with the X, the Esc key or a click outside. Without JavaScript the #apply link still opens it.
   document.querySelectorAll('[data-modal]').forEach(function (m) {

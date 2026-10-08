@@ -81,7 +81,9 @@ function create_member(array $v, int $staffId): array
     db_run('INSERT INTO users (name, email, phone, password_hash, account_type, is_admin, email_verified_at, must_change_password, added_by, created_at)
         VALUES (?, ?, ?, ?, ?, 0, NOW(), 1, ?, NOW())',
         [trim($v['first_name'] . ' ' . $v['last_name']), $v['email'], $v['phone'], password_hash($pass, PASSWORD_DEFAULT), $v['account_type'], $staffId]);
-    return [(int) db()->lastInsertId(), $pass];
+    $id = (int) db()->lastInsertId();
+    onboarding_apply_invite(db_one('SELECT * FROM users WHERE id = ?', [$id]) ?? []); // an onboarding email went out before the account existed
+    return [$id, $pass];
 }
 
 /** "Your LamazonLoads account is ready": sign-in email and the generated password. */

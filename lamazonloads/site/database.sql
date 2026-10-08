@@ -285,3 +285,21 @@ CREATE TABLE IF NOT EXISTS contracts (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 -- driver_profiles.payout_method / payout_name / payout_handle / payout_updated_at are added by includes/db.php
 -- onboarding.access_token / opened_at (onboarding opens from the email link) are added by includes/db.php too
+
+-- Onboarding emails staff send by hand (Admin → Send onboarding email). user_id is set when the person already has an
+-- account, or once they create one: their onboarding then starts on that email's track (see onboarding_apply_invite()).
+CREATE TABLE IF NOT EXISTS onboarding_emails (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  email VARCHAR(190) NOT NULL,
+  user_id INT UNSIGNED NULL,
+  type VARCHAR(20) NOT NULL,
+  city VARCHAR(80) NOT NULL DEFAULT '',
+  first_name VARCHAR(60) NOT NULL DEFAULT '',
+  had_account TINYINT(1) NOT NULL DEFAULT 0,
+  sent_by INT UNSIGNED NULL,
+  sent_at DATETIME NOT NULL,
+  joined_at DATETIME NULL,
+  KEY idx_onbmail_email (email),
+  KEY idx_onbmail_sent (sent_at),
+  CONSTRAINT fk_onbmail_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

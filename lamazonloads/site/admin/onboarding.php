@@ -55,7 +55,8 @@ $qr = telegram_qr_url();
 page_header('Onboarding');
 admin_open('onboarding');
 echo admin_head('Driver onboarding', 'Drivers upload their documents on the website. Review them here, approve, and the agreement and Telegram link go out automatically.',
-    is_full_admin() ? '<a class="btn btn-ghost" href="' . e(url('admin/contracts.php')) . '">' . icon('file') . ' Contracts</a>' : '');
+    '<a class="btn btn-ghost" href="' . e(url('admin/send-onboarding.php')) . '">' . icon('send') . ' Send onboarding email</a>'
+    . (is_full_admin() ? '<a class="btn btn-ghost" href="' . e(url('admin/contracts.php')) . '">' . icon('file') . ' Contracts</a>' : ''));
 ?>
 <div class="onb-flow card">
   <?php foreach ([['upload', 'Driver uploads documents'], ['check', 'You review & approve'], ['edit', 'Driver signs agreement'], ['send', 'Telegram link sent']] as $i => [$ic, $t]): ?>

@@ -167,8 +167,12 @@ function ownership_label(array $app): string
 }
 
 /** [subject, paragraphs] of the onboarding email, as LamazonLoads wrote them (documents are now uploaded on the website: the "Upload my documents" button follows the list). */
-function onboarding_email_content(string $type, string $firstName, string $city): array
+function onboarding_email_content(string $type, string $firstName, string $city, bool $hasAccount = true): array
 {
+    if (!$hasAccount) { // sent by staff to someone who hasn't signed up yet (Admin → Send onboarding email)
+        [$subject, $paras] = onboarding_email_content($type, $firstName, $city);
+        return [$subject, str_replace('sign in to your LamazonLoads account', 'create your LamazonLoads account', $paras)];
+    }
     if ($type === 'walmart') {
         return ['Welcome to the Walmart Daily Route Program – ' . $city, [
             'Hello ' . $firstName . ',',
@@ -240,6 +244,36 @@ function send_onboarding_email(int $appId, bool $again = false, bool $later = fa
     }
     $failed();
     return '';
+}
+
+/**
+ * The Dispatch or Walmart email as staff send it by hand (Admin → Send onboarding email): [subject, text, html, link].
+ * A member gets their personal "Upload my documents" link. Someone without an account gets "Create my account": sign-up
+ * with their email filled in, then straight to their documents (onboarding_apply_invite() starts the right track).
+ * $preview: don't create anything (the member's real link is made when the email is sent).
+ */
+function manual_onboarding_email(string $email, string $type, string $city, string $first, ?array $user, bool $preview = false): array
+{
+    $first = $first !== '' ? $first : ($user ? first_name((string) $user['name']) : 'there');
+    [$subject, $paras] = onboarding_email_content($type, $first, $city, $user !== null);
+    $link = $user === null ? abs_url('register.php?email=' . rawurlencode($email) . '&next=onboarding.php')
+        : ($preview ? abs_url('onboarding.php') : onboarding_link((int) $user['id']));
+    [$text, $html] = email_body('', $paras, $user === null ? 'Create my account' : 'Upload my documents', $link, '', true, $type === 'walmart' ? 2 : 3);
+    return [$subject, $text, $html, $link];
+}
+
+/** Someone staff emailed before they had an account has just signed up: their onboarding starts on that email's track,
+ *  already open (they got the email), and the sent emails are linked to their account. */
+function onboarding_apply_invite(array $user): void
+{
+    $email = strtolower((string) ($user['email'] ?? ''));
+    $inv = $email === '' ? null : db_one('SELECT type FROM onboarding_emails WHERE email = ? AND user_id IS NULL ORDER BY id DESC LIMIT 1', [$email]);
+    if (!$inv || !empty($user['is_admin'])) {
+        return;
+    }
+    onboarding_start((int) $user['id'], (string) $inv['type']);
+    db_run('UPDATE onboarding SET opened_at = COALESCE(opened_at, NOW()) WHERE user_id = ?', [$user['id']]);
+    db_run('UPDATE onboarding_emails SET user_id = ?, joined_at = NOW() WHERE email = ? AND user_id IS NULL', [$user['id'], $email]);
 }
 
 /**

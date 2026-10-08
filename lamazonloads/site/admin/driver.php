@@ -165,6 +165,7 @@ admin_open('drivers');
     . (!empty($u['must_change_password']) ? ' <span class="badge badge-reviewing">Hasn’t chosen a password yet</span>' : '')
     . (!$u['is_admin'] ? ' ' . preg_replace('#<small>.*</small>#', '', onboarding_badge(onboarding_row($id)['stage'] ?? null)) : ''),
     '<a class="btn btn-ghost" href="mailto:' . e($u['email']) . '">' . icon('mail') . ' Email</a>'
+    . (!$u['is_admin'] ? '<a class="btn btn-ghost" href="' . e(url('admin/send-onboarding.php?email=' . rawurlencode((string) $u['email']))) . '">' . icon('send') . ' Onboarding email</a>' : '')
     . ($u['phone'] !== '' ? '<a class="btn btn-ghost" href="' . e(tel_href((string) $u['phone'])) . '">' . icon('phone') . ' Call</a>' : '')
     . ($canManage ? '<a class="btn btn-primary" href="#edit" data-modal-open="edit">' . icon('edit') . ' Edit information</a>' : ''), 'Member') ?>
 <?php $onb = onboarding_row($id); ?>

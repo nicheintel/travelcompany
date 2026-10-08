@@ -10,6 +10,9 @@ $errors = [];
 $val = ['name' => '', 'email' => '', 'phone' => '', 'account_type' => 'owner_operator', 'city' => ''];
 $vehicles = [];
 $vehicleOther = '';
+if (!is_post() && email_valid($pre = strtolower(trim(as_str($_GET['email'] ?? ''))))) {
+    $val['email'] = $pre; // from the link in an onboarding email staff sent
+}
 
 if (is_post()) {
     csrf_check();
@@ -55,6 +58,7 @@ if (is_post()) {
         db_run('INSERT INTO users (name, email, phone, password_hash, account_type, vehicle, vehicle_other, city, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())',
             [$val['name'], $val['email'], $val['phone'], password_hash($pass, PASSWORD_DEFAULT), $val['account_type'], implode(',', $vehicles), $vehicleOther, $val['city']]);
         $user = db_one('SELECT * FROM users WHERE id = ?', [(int) db()->lastInsertId()]);
+        onboarding_apply_invite($user); // staff sent them an onboarding email before they had an account
         login_user($user);
         send_verification($user);
         if ($next !== 'account.php') {

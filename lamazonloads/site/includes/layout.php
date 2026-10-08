@@ -443,6 +443,7 @@ const ADMIN_NAV = [
     'Hiring' => [
         'applications' => ['admin/applications.php', 'clipboard', 'Applications'],
         'onboarding' => ['admin/onboarding.php', 'check', 'Onboarding'],
+        'send' => ['admin/send-onboarding.php', 'send', 'Send onboarding email'],
         'contracts' => ['admin/contracts.php', 'file', 'Contracts'],
         'jobs' => ['admin/jobs.php', 'briefcase', 'Job posts'],
         'drivers' => ['admin/drivers.php', 'truck', 'Drivers & members'],
