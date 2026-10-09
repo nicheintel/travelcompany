@@ -109,6 +109,20 @@ function page_header(string $title, string $active = '', string $description = '
 <meta property="og:image:alt" content="LamazonLoads: Why wait? Let's freight.">
 <meta name="twitter:card" content="summary_large_image">
 <?php endif; ?>
+<?php if ($active === 'home'): // Google: the site's name ("LamazonLoads", not "lamazonloads.com") and logo in search results
+    $home = abs_url('');
+    $digits = preg_replace('/\D+/', '', (string) config('contact_phone'));
+    $ld = ['@context' => 'https://schema.org', '@graph' => [
+        ['@type' => 'WebSite', '@id' => $home . '#website', 'url' => $home, 'name' => 'LamazonLoads', 'alternateName' => ['Lamazon Loads', 'LamazonLoads LLC'],
+            'publisher' => ['@id' => $home . '#organization']],
+        ['@type' => 'Organization', '@id' => $home . '#organization', 'name' => 'LamazonLoads', 'legalName' => 'LamazonLoads LLC', 'url' => $home,
+            'logo' => ['@type' => 'ImageObject', 'url' => abs_url('assets/brand/logo-on-white.png'), 'width' => 364, 'height' => 204],
+            'slogan' => "Why wait? Let's freight.", 'email' => (string) config('contact_email')]
+            + (strlen($digits) === 10 ? ['telephone' => '+1-' . substr($digits, 0, 3) . '-' . substr($digits, 3, 3) . '-' . substr($digits, 6)] : []),
+    ]]; ?>
+<link rel="canonical" href="<?= e($home) ?>">
+<script type="application/ld+json"><?= json_encode($ld, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP) ?></script>
+<?php endif; ?>
 <?php // Icon addresses never change between uploads (Google asks for a stable favicon URL). To change an icon, give the file a new name. ?>
 <link rel="icon" href="<?= e(url('favicon.ico')) ?>" sizes="16x16 32x32 48x48">
 <link rel="icon" href="<?= e(url('assets/brand/favicon-192.png')) ?>" type="image/png" sizes="192x192">
