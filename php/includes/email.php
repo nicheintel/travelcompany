@@ -230,11 +230,12 @@ function notify_booking_now(string $event, string $reference): void
                     'You will only be charged once you have seen and approved the final price.',
                 ], array_diff_key($rows, ['Total' => true]) + ['Checked bag' => 'Requested (price to be confirmed)', 'Total so far' => money($b['total']) . ' + checked bag'], $link, 'View my trip', true)
                 : (payments_enabled() || gcash_enabled()
-                ? simple_email("Trip reserved: $title", 'Your trip is reserved!', $first, [
+                ? checklist_email($b, "Trip reserved: $title", 'Your trip is reserved!', [
+                    'Thank you for choosing ' . config('site_name') . '. We have received your reservation.',
                     payments_enabled()
                         ? 'You can pay securely online now to confirm it' . (gcash_enabled() ? ' (PayPal, card or GCash)' : '') . '. If you prefer, a travel assistant will contact you within 24 hours.'
                         : 'You can pay with GCash on your trip page to confirm it. If you prefer, a travel assistant will contact you within 24 hours.',
-                ], $rows, pay_link($reference), 'Pay now: ' . money($b['total']))
+                ])
                 : simple_email("Trip reserved: $title", 'Your trip is reserved!', $first, [
                     'A travel assistant will contact you within 24 hours to confirm availability and arrange payment.',
                 ], $rows, $link, 'View my trip')),
@@ -284,6 +285,37 @@ function pay_link(string $reference): string
     return app_url() . '/trip.php?ref=' . rawurlencode($reference) . '&pay=1';
 }
 
+/**
+ * An email for a trip that can be paid now: the trip details and the same numbered "Before you pay" steps as the
+ * trip page (like a travel agent's authorization form), then a button to the checklist and payment.
+ */
+function checklist_email(array $b, string $subject, string $heading, array $intro): array
+{
+    $site = (string) config('site_name');
+    $first = $b['travelers'][0]['first'] ?? 'there';
+    $link = pay_link($b['reference']);
+    $button = 'Review & pay securely: ' . money($b['total']);
+    $rows = trip_rows($b);
+    $html = email_p(e("Dear $first,")) . implode('', array_map(fn($p) => email_p(nl2br(e($p))), $intro))
+        . email_p('Please take a few moments and <strong style="color:#dc2626">read the steps below</strong> before you pay.')
+        . rows_html($rows) . '<table role="presentation" width="100%" cellpadding="0" cellspacing="0">';
+    $text = "Dear $first,\n\n" . implode("\n\n", $intro) . "\n\nPlease take a few moments and read the steps below before you pay.\n\n" . rows_text($rows) . "\n";
+    foreach (checklist_steps($b, true) as $i => [, , $title, $body]) {
+        $n = $i + 1;
+        $html .= '<tr><td valign="top" width="44" style="padding:14px 0"><div style="width:32px;height:32px;border-radius:16px;background:#d4af37;color:#ffffff;font-weight:bold;font-size:15px;line-height:32px;text-align:center">' . $n . '</div></td>'
+            . '<td valign="top" style="padding:14px 0 14px 8px;border-bottom:1px solid #e2e8f0"><p style="margin:0 0 4px;font-weight:bold;font-size:15px">' . e($title) . '</p>'
+            . '<p style="margin:0;font-size:14px;line-height:1.55;color:#334155">' . $body . '</p></td></tr>';
+        $text .= "\n$n. $title\n" . html_entity_decode(strip_tags(str_replace('<br>', "\n", $body)), ENT_QUOTES | ENT_HTML5, 'UTF-8') . "\n";
+    }
+    $html .= '</table>' . email_button($link, $button)
+        . email_p('<span style="font-size:13px;color:#64748b">If the button doesn\'t work, copy this link into your browser:<br><a href="' . e($link) . '" style="color:#1c54f0;word-break:break-all">' . e($link) . '</a></span>')
+        . email_p('If you have any questions, just reply to this email. We\'re happy to help.')
+        . email_p('Kind regards,<br>The ' . e($site) . ' Team');
+    $text .= "\n$button: $link\n\nIf you have any questions, just reply to this email. We're happy to help.\n\nKind regards,\nThe $site Team";
+    $reply = (string) config('support_email') ?: (string) config('smtp_user');
+    return ['subject' => $subject, 'text' => $text, 'html' => email_layout($heading, $html)] + (valid_email($reply) ? ['reply_to' => $reply] : []);
+}
+
 /** Staff-sent payment reminder with a Pay now button and an optional personal message. */
 /** Emails are always written in English (dates, labels), whatever language the visitor uses. */
 function send_payment_link(array $b, string $message): void
@@ -293,16 +325,7 @@ function send_payment_link(array $b, string $message): void
 
 function send_payment_link_now(array $b, string $message): void
 {
-    $first = $b['travelers'][0]['first'] ?? 'there';
     $paragraphs = ["Your trip {$b['reference']} is reserved and waiting for payment. You can pay securely with PayPal or a debit/credit card. It only takes a minute."];
     if ($message !== '') array_unshift($paragraphs, $message);
-    send_email($b['contact_email'], simple_email(
-        "Payment for your trip {$b['reference']} (" . money($b['total']) . ')',
-        'Ready to confirm your trip?',
-        $first,
-        $paragraphs,
-        trip_rows($b),
-        pay_link($b['reference']),
-        'Pay now: ' . money($b['total']),
-    ));
+    send_email($b['contact_email'], checklist_email($b, "Payment for your trip {$b['reference']} (" . money($b['total']) . ')', 'Ready to confirm your trip?', $paragraphs));
 }

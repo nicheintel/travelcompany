@@ -318,47 +318,46 @@ function trip_summary(array $q): string
 }
 
 /**
- * The "Before you pay" checklist on the trip page: what to check before paying, the optional
- * Travel Care Protection (flights) and the agreement. Posts action=review to trip.php.
+ * What a customer should check before paying, as numbered steps [key, icon, title, body HTML]. Used by the
+ * "Before you pay" checklist on the trip page and by the reservation email ($email: inline styles, English).
  */
-function before_you_pay(array $b, bool $highlight = false): string
+function checklist_steps(array $b, bool $email = false): array
 {
     $q = $b['quote'];
     $kind = $b['kind'];
-    $site = e((string) config('site_name'));
     $fee = change_service_fee();
     $care = (int) ($q['care'] ?? 0);
-    $base = $b['total'] - $care;
-    $red = fn(string $s) => '<strong class="font-semibold text-red-600">' . e($s) . '</strong>';
+    $red = fn(string $s) => '<strong ' . ($email ? 'style="color:#dc2626"' : 'class="font-semibold text-red-600"') . '>' . e($s) . '</strong>';
+    $bold = fn(string $html) => '<strong' . ($email ? '' : ' class="text-slate-900"') . ">$html</strong>";
+    $block = fn(string $html) => $email ? "<br>$html" : '<span class="mt-1 block">' . $html . '</span>';
     $facts = array_column($q['facts'], 1, 0);
-    $terms = '<a href="' . e(url('terms.php')) . '#bookings" target="_blank" class="font-semibold text-brand-700 underline underline-offset-2">' . e(t('booking terms')) . '</a>';
     $steps = [];
 
     $steps[] = $kind === 'hotel'
-        ? ['bed', t('Your stay'), e(t('Check the hotel, room and dates in your trip summary.'))]
-        : ['plane', t('Itinerary'), e(t('Check the dates, times and airports in your trip summary. Pay special attention to the airline that operates each flight.'))];
+        ? ['stay', 'bed', t('Your stay'), e(t('Check the hotel, room and dates in your trip summary.'))]
+        : ['itinerary', 'plane', t('Itinerary'), e(t('Check the dates, times and airports in your trip summary. Pay special attention to the airline that operates each flight.'))];
 
-    $names = implode(', ', array_map(fn($t) => '<strong class="text-slate-900">' . e(trim("{$t['first']} {$t['last']}")) . '</strong>', $b['travelers']));
+    $names = implode(', ', array_map(fn($t) => $bold(e(trim("{$t['first']} {$t['last']}"))), $b['travelers']));
+    $fix = $email ? "Something wrong? Don't pay yet. Reply to this email and we'll correct it first." : t("Something wrong? Don't pay yet. Message us on Chat and we'll correct it first.");
     $steps[] = $kind === 'hotel'
-        ? ['user', t('Guest name'), $red(t("The guest's name must match their ID at check-in.")) . '<span class="mt-1 block">' . $names . '</span>']
-        : ['user', t('Traveler names'), $red(t("Names must match each traveler's passport or ID exactly.")) . ' ' . e(t("Airlines don't allow name changes once tickets are issued."))
-            . '<span class="mt-1 block">' . $names . '</span><span class="mt-1 block">' . e(t("Something wrong? Don't pay yet. Message us on Chat and we'll correct it first.")) . '</span>'];
+        ? ['names', 'user', t('Guest name'), $red(t("The guest's name must match their ID at check-in.")) . $block($names) . $block(e($fix))]
+        : ['names', 'user', t('Traveler names'), $red(t("Names must match each traveler's passport or ID exactly.")) . ' ' . e(t("Airlines don't allow name changes once tickets are issued.")) . $block($names) . $block(e($fix))];
 
     if ($kind !== 'hotel') {
-        $legs = $q['flight']['outbound'] ?? null;
-        $from = airport($legs['from'] ?? null);
-        $to = airport($legs['to'] ?? null);
+        $leg = $q['flight']['outbound'] ?? null;
+        $from = airport($leg['from'] ?? null);
+        $to = airport($leg['to'] ?? null);
         $abroad = $kind === 'package' || !$from || !$to || $from['cc'] !== $to['cc'];
         $end = new DateTimeImmutable(($q['end_date'] ?? null) ?: $q['start_date'], new DateTimeZone('UTC'));
-        $steps[] = ['id-card', t('Passports & visas'), $red(t('Each traveler is responsible for having all required travel documents at check-in.')) . ' '
+        $steps[] = ['documents', 'id-card', t('Passports & visas'), $red(t('Each traveler is responsible for having all required travel documents at check-in.')) . ' '
             . ($abroad
-                ? th('Make sure every passport is valid until at least {date} (6 months after your trip ends).', [], ['date' => '<strong class="text-slate-900">' . e(fmt_local($end->modify('+6 months'), 'MMMM d, y', 'F j, Y')) . '</strong>'])
+                ? th('Make sure every passport is valid until at least {date} (6 months after your trip ends).', [], ['date' => $bold(e(fmt_local($end->modify('+6 months'), 'MMMM d, y', 'F j, Y')))])
                     . ' ' . e(t('Some countries require a visa, or a transit visa just to change planes, so check the rules for every country on your trip.'))
                 : e(t('For domestic flights, bring a valid government-issued photo ID.')))];
     }
 
-    $steps[] = ['tag', t('Total amount'), th('Your total is {total} and includes all taxes and fees.', [], ['total' => '<strong class="text-slate-900">' . money($base) . '</strong>'])];
-    $steps[] = ['card', t('Payment limit'), e(t('Make sure your card, PayPal or GCash account has enough funds and no daily or single-payment limit.'))];
+    $steps[] = ['total', 'tag', t('Total amount'), th('Your total is {total} and includes all taxes and fees.', [], ['total' => $bold(money($b['total'] - $care))])];
+    $steps[] = ['limit', 'card', t('Payment limit'), e(t('Make sure your card, PayPal or GCash account has enough funds and no daily or single-payment limit.'))];
 
     $refundable = ($facts['Fare'] ?? $facts['Cancellation'] ?? '') !== 'Non-refundable';
     $help = match (true) {
@@ -369,36 +368,57 @@ function before_you_pay(array $b, bool $highlight = false): string
         $fee > 0 => t("If the airline's and hotel's rules allow a change or cancellation, we'll gladly help. You pay their penalties and any price difference, plus our service fee of {fee}.", ['fee' => money($fee)]),
         default => t("If the airline's and hotel's rules allow a change or cancellation, we'll gladly help. You pay only their penalties and any price difference."),
     };
-    $steps[] = ['alert', t('Important information'),
+    $steps[] = ['important', 'alert', t('Important information'),
         (!$refundable ? $red($kind === 'hotel' ? t('This room is non-refundable.') : t('Your tickets are non-refundable.')) . ' ' : '')
         . e(t('Low prices come with restrictions.')) . ' ' . e($help) . ' ' . e(t('Prices are not guaranteed until your booking is issued.'))];
 
-    $careBox = '';
     if (travel_care_available($b)) {
-        $price = travel_care_price($b);
-        $perks = array_filter([
+        $perks = array_values(array_filter([
             $fee > 0 ? t('No {site} service fee when you change dates or cancel (normally {fee} each time).', ['site' => config('site_name'), 'fee' => money($fee)]) : null,
             t('Priority help: your change and cancellation requests are handled first by our travel assistants.'),
             t("You still pay the airline's own penalty and any fare difference."),
-        ]);
-        $careBox = '<div class="mt-3 rounded-xl border-2 border-accent-400/60 bg-accent-500/5 p-4 has-[:checked]:border-accent-500 has-[:checked]:bg-accent-500/10">'
-            . '<ul class="space-y-1.5">' . implode('', array_map(fn($p) => '<li class="flex gap-2">' . icon('check', 16, 'mt-0.5 shrink-0 text-emerald-600') . '<span>' . e($p) . '</span></li>', $perks)) . '</ul>'
-            . '<label class="mt-3 flex cursor-pointer items-start gap-3 rounded-lg bg-white p-3 ring-1 ring-accent-400/50"><input type="checkbox" name="care" value="1"' . ($care ? ' checked' : '') . ' class="mt-0.5 h-5 w-5 shrink-0 accent-accent-600">'
-            . '<span class="font-semibold text-slate-900">' . th('Add Travel Care Protection for {price}', [], ['price' => '<span class="whitespace-nowrap text-accent-700">' . money($price) . '</span>']) . '</span></label>'
-            . '<p class="mt-2 text-xs text-slate-500">' . th('{rate}% of your ticket price. Travel Care is a {site} service, not insurance, and is non-refundable once you pay. See our {terms}.', ['rate' => round(travel_care_rate() * 100)], ['site' => $site, 'terms' => '<a href="' . e(url('terms.php')) . '#travel-care" target="_blank" class="font-semibold text-brand-700 underline underline-offset-2">' . e(t('terms')) . '</a>']) . '</p></div>';
-        $steps[] = ['shield-check', t('Travel Care Protection'), '<span class="mr-1 inline-block rounded-full bg-accent-500 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white">' . e(t('Recommended')) . '</span>'
-            . e(t('Extra flexibility if your plans change, for a small fee.')) . $careBox];
+        ]));
+        $steps[] = ['care', 'shield-check', t('Travel Care Protection'), $email
+            ? $red('We highly recommend Travel Care Protection!') . ' For just ' . $bold(money(travel_care_price($b))) . ' (' . round(travel_care_rate() * 100) . '% of your ticket price) you get extra flexibility if your plans change:'
+                . implode('', array_map(fn($p) => '<br>&#10003; ' . e($p), $perks))
+                . '<br>You can add it on your trip page before you pay. Travel Care is a ' . e((string) config('site_name')) . ' service, not insurance.'
+            : ['perks' => $perks]];
     }
 
-    $steps[] = ['flag', t('Final step'), e(t('When everything above is correct, tick the box and continue to payment.'))
-        . '<label class="mt-3 flex cursor-pointer items-start gap-3 rounded-lg bg-slate-50 p-3 ring-1 ring-slate-200 has-[:checked]:bg-emerald-50 has-[:checked]:ring-emerald-300"><input type="checkbox" name="agree" value="1" required class="mt-0.5 h-5 w-5 shrink-0 accent-emerald-600">'
-        . '<span class="text-slate-800">' . th('I have checked the details above and agree to the {terms}.', [], ['terms' => $terms]) . '</span></label>'];
+    $steps[] = ['final', 'flag', t('Final step'), $email
+        ? 'Open your trip page with the button below, tick the box to confirm you have checked everything, and pay securely.'
+        : e(t('When everything above is correct, tick the box and continue to payment.'))];
+    if ($email) {
+        $steps[] = ['more', 'package', 'Additional services', 'As a full-service travel agency, we can also arrange hotel stays and car rentals. Just reply to this email if you need anything else.'];
+    }
+    return $steps;
+}
 
+/**
+ * The "Before you pay" checklist on the trip page: the steps above, the optional Travel Care
+ * Protection (flights) and the agreement. Posts action=review to trip.php.
+ */
+function before_you_pay(array $b, bool $highlight = false): string
+{
+    $site = e((string) config('site_name'));
+    $terms = '<a href="' . e(url('terms.php')) . '#bookings" target="_blank" class="font-semibold text-brand-700 underline underline-offset-2">' . e(t('booking terms')) . '</a>';
     $html = '<section id="review" class="scroll-mt-24 rounded-2xl border-2 bg-white p-6 ' . ($highlight ? 'border-accent-500 ring-4 ring-accent-500/20' : 'border-brand-200') . '"' . ($highlight ? ' data-scroll-into-view' : '') . '>'
         . '<h2 class="text-lg font-semibold text-slate-900">' . e(t('Before you pay')) . '</h2>'
         . '<p class="mt-1 text-sm text-slate-600">' . e(t('Please take a minute to check these details. It helps avoid problems at the airport or hotel.')) . '</p>'
         . '<form method="post" class="mt-6" data-pending-form>' . csrf_field() . '<input type="hidden" name="action" value="review"><ol class="space-y-6">';
-    foreach ($steps as $i => [$ic, $title, $body]) {
+    foreach (checklist_steps($b) as $i => [$key, $ic, $title, $body]) {
+        if ($key === 'care') {
+            $body = '<span class="mr-1 inline-block rounded-full bg-accent-500 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white">' . e(t('Recommended')) . '</span>'
+                . e(t('Extra flexibility if your plans change, for a small fee.'))
+                . '<div class="mt-3 rounded-xl border-2 border-accent-400/60 bg-accent-500/5 p-4 has-[:checked]:border-accent-500 has-[:checked]:bg-accent-500/10">'
+                . '<ul class="space-y-1.5">' . implode('', array_map(fn($p) => '<li class="flex gap-2">' . icon('check', 16, 'mt-0.5 shrink-0 text-emerald-600') . '<span>' . e($p) . '</span></li>', $body['perks'])) . '</ul>'
+                . '<label class="mt-3 flex cursor-pointer items-start gap-3 rounded-lg bg-white p-3 ring-1 ring-accent-400/50"><input type="checkbox" name="care" value="1"' . (!empty($b['quote']['care']) ? ' checked' : '') . ' class="mt-0.5 h-5 w-5 shrink-0 accent-accent-600">'
+                . '<span class="font-semibold text-slate-900">' . th('Add Travel Care Protection for {price}', [], ['price' => '<span class="whitespace-nowrap text-accent-700">' . money(travel_care_price($b)) . '</span>']) . '</span></label>'
+                . '<p class="mt-2 text-xs text-slate-500">' . th('{rate}% of your ticket price. Travel Care is a {site} service, not insurance, and is non-refundable once you pay. See our {terms}.', ['rate' => round(travel_care_rate() * 100)], ['site' => $site, 'terms' => '<a href="' . e(url('terms.php')) . '#travel-care" target="_blank" class="font-semibold text-brand-700 underline underline-offset-2">' . e(t('terms')) . '</a>']) . '</p></div>';
+        } elseif ($key === 'final') {
+            $body .= '<label class="mt-3 flex cursor-pointer items-start gap-3 rounded-lg bg-slate-50 p-3 ring-1 ring-slate-200 has-[:checked]:bg-emerald-50 has-[:checked]:ring-emerald-300"><input type="checkbox" name="agree" value="1" required class="mt-0.5 h-5 w-5 shrink-0 accent-emerald-600">'
+                . '<span class="text-slate-800">' . th('I have checked the details above and agree to the {terms}.', [], ['terms' => $terms]) . '</span></label>';
+        }
         $html .= '<li class="flex gap-4"><span class="relative grid h-12 w-12 shrink-0 place-items-center rounded-full bg-brand-50 text-brand-600 ring-1 ring-brand-100">' . icon($ic, 22)
             . '<span class="absolute -right-1 -top-1 grid h-5 w-5 place-items-center rounded-full bg-accent-500 text-[11px] font-bold text-white">' . ($i + 1) . '</span></span>'
             . '<div class="min-w-0 flex-1 pt-1"><h3 class="font-semibold text-slate-900">' . e($title) . '</h3><div class="mt-1 text-sm leading-relaxed text-slate-600">' . $body . '</div></div></li>';
