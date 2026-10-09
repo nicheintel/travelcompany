@@ -173,7 +173,8 @@ function trip_rows(array $b): array
         'Dates' => fmt_date($q['start_date']) . ($q['end_date'] ? ' to ' . fmt_date($q['end_date']) : ''),
         'Travelers' => implode(', ', array_map(fn($t) => trim("{$t['first']} {$t['last']}"), $b['travelers'])),
         'Total' => money($b['total']),
-    ];
+    ] + (($tax = array_sum(array_map(fn($l) => $l['label'] === 'Taxes & fees' ? $l['amount'] : 0, $q['lines']))) > 0 ? ['Includes taxes & fees' => money($tax)] : [])
+      + (!empty($q['at_hotel']) ? ['Due at the hotel (not included)' => implode(', ', array_map(fn($f) => $f['label'] . ' ' . money($f['amount']), $q['at_hotel']))] : []);
 }
 
 function rows_html(array $rows): string

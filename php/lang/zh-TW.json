@@ -728,5 +728,14 @@
  "Wrong email address? Change it": "電子郵件地址有誤？立即修改",
  "You can search without an account. To book, create an account and confirm your email address — that's where we send your confirmations and tickets.": "不需帳戶即可搜尋。如需預訂，請建立帳戶並確認您的電子郵件地址——我們會將確認信和機票寄送至該地址。",
  "You have an upcoming trip ({ref}). Please contact us before deleting your account, so we can still reach you about it.": "您有即將出發的行程（{ref}）。刪除帳戶前請先與我們聯絡，以便我們仍能就此行程與您聯繫。",
- "Your account has been deleted. Thank you for travelling with us.": "您的帳戶已刪除。感謝您與我們同行。"
+ "Your account has been deleted. Thank you for travelling with us.": "您的帳戶已刪除。感謝您與我們同行。",
+ "+ {price} due at the hotel": "+ {price} 需於飯店支付",
+ "Airfare for {n} traveler": "{n} 位旅客的機票費",
+ "Airfare for {n} travelers": "{n} 位旅客的機票費",
+ "City tax": "城市稅",
+ "Due at the hotel": "需於飯店支付",
+ "Local taxes and fees": "當地稅金與費用",
+ "Paid directly to the hotel at check-in. Not included in the total above.": "入住時直接向飯店支付，不包含在上方總價中。",
+ "Resort fee": "度假村費",
+ "incl. {price} taxes & fees": "含 {price} 稅金與費用"
 }

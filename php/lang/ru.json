@@ -761,5 +761,17 @@
  "Wrong email address? Change it": "Неверный адрес эл. почты? Измените его",
  "You can search without an account. To book, create an account and confirm your email address — that's where we send your confirmations and tickets.": "Искать можно без аккаунта. Чтобы забронировать, создайте аккаунт и подтвердите адрес эл. почты — на него мы отправляем подтверждения и билеты.",
  "You have an upcoming trip ({ref}). Please contact us before deleting your account, so we can still reach you about it.": "У вас предстоящая поездка ({ref}). Пожалуйста, свяжитесь с нами перед удалением аккаунта, чтобы мы могли и дальше сообщать вам о ней.",
- "Your account has been deleted. Thank you for travelling with us.": "Ваш аккаунт удалён. Спасибо, что путешествовали с нами."
+ "Your account has been deleted. Thank you for travelling with us.": "Ваш аккаунт удалён. Спасибо, что путешествовали с нами.",
+ "+ {price} due at the hotel": "+ {price} к оплате в отеле",
+ "Airfare for {n} traveler": "Авиабилет на {n} чел.",
+ "Airfare for {n} travelers": "Авиабилеты на {n} чел.",
+ "City tax": "Туристический налог",
+ "Due at the hotel": "Оплачивается в отеле",
+ "Local taxes and fees": "Местные налоги и сборы",
+ "Paid directly to the hotel at check-in. Not included in the total above.": "Оплачивается напрямую в отеле при заселении. Не входит в итоговую сумму выше.",
+ "Resort fee": "Курортный сбор",
+ "incl. {price} taxes & fees": "вкл. {price} налогов и сборов",
+ "Airfare for {n} travelers|one": "Авиабилет на {n} путешественника",
+ "Airfare for {n} travelers|few": "Авиабилеты на {n} путешественников",
+ "Airfare for {n} travelers|many": "Авиабилеты на {n} путешественников"
 }

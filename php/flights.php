@@ -122,6 +122,7 @@ require __DIR__ . '/includes/header.php';
             <div class="md:text-right">
               <p class="text-2xl font-extrabold text-slate-900"><?= e(price($o['total'])) ?></p>
               <p class="text-xs text-slate-500"><?= e($people > 1 ? t('Total for {n} · ≈{price} each', ['n' => $people, 'price' => price(ceil($o['total'] / $people))]) : t('per traveler')) ?></p>
+              <?php if (!empty($o['taxes']) && $o['taxes'] < $o['total']): ?><p class="text-xs text-slate-500"><?= e(t('incl. {price} taxes & fees', ['price' => price($o['taxes'])])) ?></p><?php endif; ?>
             </div>
             <a href="<?= e($book) ?>" class="rounded-xl bg-accent-500 px-6 py-2.5 text-sm font-bold text-white hover:bg-accent-600"><?= e(t('Select')) ?></a>
           </div>

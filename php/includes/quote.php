@@ -18,6 +18,16 @@ function slots(int $adults, int $children, int $infants = 0): array
     return $out;
 }
 
+/** "Airfare" and "Taxes & fees" lines when the airline says how much of the price is taxes, otherwise one line. */
+function flight_lines(array $o, int $people): array
+{
+    $tax = (int) ($o['taxes'] ?? 0);
+    $who = 'for ' . plural($people, 'traveler');
+    return $tax > 0 && $tax < $o['total']
+        ? [['label' => "Airfare $who", 'amount' => $o['total'] - $tax], ['label' => 'Taxes & fees', 'amount' => $tax]]
+        : [['label' => "Flight $who", 'amount' => $o['total']]];
+}
+
 function finish_quote(array $q): array
 {
     $subtotal = array_sum(array_column($q['lines'], 'amount'));
@@ -72,7 +82,7 @@ function flight_quote(array $params): ?array
         $children = $o['children'];
         $infants = $o['infants'];
         $title = "{$o['origin_city']} → {$o['destination_city']}";
-        $lines = [['label' => 'Flight for ' . plural($adults + $children + $infants, 'traveler'), 'amount' => $o['total']]];
+        $lines = flight_lines($o, $adults + $children + $infants);
         $cost = $o['cost'];
         $note = "Live airline fare. Fares can change until your ticket is issued — we'll confirm before charging any difference.";
         $bag = $o['baggage'];
@@ -86,7 +96,7 @@ function flight_quote(array $params): ?array
         $infants = $o['infants'];
         $title = "{$o['origin_city']} → {$o['destination_city']}";
         $people = $adults + $children + $infants;
-        $lines = [['label' => 'Flight for ' . plural($people, 'traveler'), 'amount' => $o['total']]];
+        $lines = flight_lines($o, $people);
         $cost = $o['cost'];
         $note = "Live airline fare. Fares can change until your ticket is issued — we'll confirm before charging any difference.";
     } else {
@@ -183,9 +193,11 @@ function hotel_quote(array $params): ?array
 
     $stay = plural($s['nights'], 'night') . ' × ' . plural($s['rooms'], 'room');
     $roomTotal = $h['nightly'] * $s['nights'] * $s['rooms'];
-    $lines = $h['stay_total']
-        ? [['label' => "$stay (taxes included)", 'amount' => $h['stay_total']]]
-        : [['label' => $stay, 'amount' => $roomTotal], ['label' => 'Taxes & fees', 'amount' => (int) round($roomTotal * HOTEL_TAX_RATE)]];
+    $lines = match (true) {
+        !$h['stay_total'] => [['label' => $stay, 'amount' => $roomTotal], ['label' => 'Taxes & fees', 'amount' => (int) round($roomTotal * HOTEL_TAX_RATE)]],
+        !empty($h['taxes']) => [['label' => $stay, 'amount' => $h['stay_total'] - $h['taxes']], ['label' => 'Taxes & fees', 'amount' => $h['taxes']]],
+        default => [['label' => "$stay (taxes included)", 'amount' => $h['stay_total']]],
+    };
     $guests = $s['adults'] + $s['children'];
     $guestText = "$guests (" . plural($s['adults'], 'adult') . ($s['children'] ? ', ' . plural($s['children'], 'child', 'children') : '') . ')';
 
@@ -205,8 +217,10 @@ function hotel_quote(array $params): ?array
             ['Cancellation', $h['free_cancel'] ? 'Free cancellation' : 'Non-refundable'],
         ],
         'query' => $p['query'] . '&hotel=' . rawurlencode($h['id']),
-        'note' => isset($h['cost']) ? 'Live hotel rate. Some cities charge a local tourist tax, payable at the hotel.' : null,
+        'note' => isset($h['cost']) && empty($h['at_hotel']) ? 'Live hotel rate. Some cities charge a local tourist tax, payable at the hotel.' : null,
         'supplier' => $h['cost'] ?? null,
+        // Charges the hotel collects itself at check-in (not part of what the customer pays us).
+        'at_hotel' => $h['at_hotel'] ?? [],
     ]);
 }
 

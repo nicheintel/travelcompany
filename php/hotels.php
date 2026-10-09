@@ -114,6 +114,7 @@ require __DIR__ . '/includes/header.php';
                 <p class="text-2xl font-extrabold text-slate-900"><?= e(price($h['nightly'])) ?></p>
                 <p class="text-xs text-slate-500"><?= e(t('per night')) ?></p>
                 <p class="mt-1 text-xs text-slate-600"><?= e($h['stay_total'] ? t('{price} total incl. taxes', ['price' => price($total)]) : t('{price} total + taxes', ['price' => price($total)])) ?></p>
+                <?php if ($due = array_sum(array_column($h['at_hotel'] ?? [], 'amount'))): ?><p class="text-xs font-semibold text-amber-700"><?= e(t('+ {price} due at the hotel', ['price' => price($due)])) ?></p><?php endif; ?>
               </div>
               <a href="<?= e($book) ?>" class="rounded-xl bg-accent-500 px-6 py-2.5 text-sm font-bold text-white hover:bg-accent-600"><?= e(t('Reserve')) ?></a>
             </div>

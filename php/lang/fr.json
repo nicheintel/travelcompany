@@ -728,5 +728,14 @@
  "Wrong email address? Change it": "Mauvaise adresse e-mail ? Modifiez-la",
  "You can search without an account. To book, create an account and confirm your email address — that's where we send your confirmations and tickets.": "Vous pouvez effectuer des recherches sans compte. Pour réserver, créez un compte et confirmez votre adresse e-mail — c'est là que nous envoyons vos confirmations et billets.",
  "You have an upcoming trip ({ref}). Please contact us before deleting your account, so we can still reach you about it.": "Vous avez un voyage à venir ({ref}). Veuillez nous contacter avant de supprimer votre compte, afin que nous puissions toujours vous joindre à ce sujet.",
- "Your account has been deleted. Thank you for travelling with us.": "Votre compte a été supprimé. Merci d'avoir voyagé avec nous."
+ "Your account has been deleted. Thank you for travelling with us.": "Votre compte a été supprimé. Merci d'avoir voyagé avec nous.",
+ "+ {price} due at the hotel": "+ {price} à régler à l'hôtel",
+ "Airfare for {n} traveler": "Tarif aérien pour {n} voyageur",
+ "Airfare for {n} travelers": "Tarif aérien pour {n} voyageurs",
+ "City tax": "Taxe de séjour",
+ "Due at the hotel": "À régler à l'hôtel",
+ "Local taxes and fees": "Taxes et frais locaux",
+ "Paid directly to the hotel at check-in. Not included in the total above.": "À payer directement à l'hôtel à l'arrivée. Non inclus dans le total ci-dessus.",
+ "Resort fee": "Frais de complexe",
+ "incl. {price} taxes & fees": "dont {price} de taxes et frais"
 }

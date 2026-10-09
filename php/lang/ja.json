@@ -728,5 +728,14 @@
  "Wrong email address? Change it": "メールアドレスが間違っていますか？変更する",
  "You can search without an account. To book, create an account and confirm your email address — that's where we send your confirmations and tickets.": "アカウントがなくても検索できます。予約するには、アカウントを作成してメールアドレスを確認してください。予約確認や航空券はそのアドレスにお送りします。",
  "You have an upcoming trip ({ref}). Please contact us before deleting your account, so we can still reach you about it.": "今後のご旅行（{ref}）があります。引き続きご連絡できるよう、アカウントを削除する前にお問い合わせください。",
- "Your account has been deleted. Thank you for travelling with us.": "アカウントを削除しました。ご利用いただきありがとうございました。"
+ "Your account has been deleted. Thank you for travelling with us.": "アカウントを削除しました。ご利用いただきありがとうございました。",
+ "+ {price} due at the hotel": "+ {price}（ホテルで現地払い）",
+ "Airfare for {n} traveler": "{n}名様分の航空運賃",
+ "Airfare for {n} travelers": "{n}名様分の航空運賃",
+ "City tax": "宿泊税",
+ "Due at the hotel": "ホテルでの現地払い",
+ "Local taxes and fees": "現地の税金・手数料",
+ "Paid directly to the hotel at check-in. Not included in the total above.": "チェックイン時にホテルへ直接お支払いください。上記の合計には含まれていません。",
+ "Resort fee": "リゾート料金",
+ "incl. {price} taxes & fees": "税金・手数料{price}込み"
 }

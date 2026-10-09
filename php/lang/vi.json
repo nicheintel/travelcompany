@@ -728,5 +728,14 @@
  "Wrong email address? Change it": "Sai địa chỉ email? Đổi email",
  "You can search without an account. To book, create an account and confirm your email address — that's where we send your confirmations and tickets.": "Bạn có thể tìm kiếm mà không cần tài khoản. Để đặt chỗ, hãy tạo tài khoản và xác nhận địa chỉ email — đó là nơi chúng tôi gửi xác nhận và vé cho bạn.",
  "You have an upcoming trip ({ref}). Please contact us before deleting your account, so we can still reach you about it.": "Bạn có một chuyến đi sắp tới ({ref}). Vui lòng liên hệ với chúng tôi trước khi xóa tài khoản để chúng tôi vẫn có thể liên lạc với bạn về chuyến đi này.",
- "Your account has been deleted. Thank you for travelling with us.": "Tài khoản của bạn đã được xóa. Cảm ơn bạn đã đồng hành cùng chúng tôi."
+ "Your account has been deleted. Thank you for travelling with us.": "Tài khoản của bạn đã được xóa. Cảm ơn bạn đã đồng hành cùng chúng tôi.",
+ "+ {price} due at the hotel": "+ {price} trả tại khách sạn",
+ "Airfare for {n} traveler": "Giá vé cho {n} hành khách",
+ "Airfare for {n} travelers": "Giá vé cho {n} hành khách",
+ "City tax": "Thuế thành phố",
+ "Due at the hotel": "Trả tại khách sạn",
+ "Local taxes and fees": "Thuế & phí địa phương",
+ "Paid directly to the hotel at check-in. Not included in the total above.": "Thanh toán trực tiếp cho khách sạn khi nhận phòng. Không bao gồm trong tổng tiền ở trên.",
+ "Resort fee": "Phí khu nghỉ dưỡng",
+ "incl. {price} taxes & fees": "đã gồm {price} thuế & phí"
 }

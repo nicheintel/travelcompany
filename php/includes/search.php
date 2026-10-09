@@ -200,6 +200,7 @@ function duffel_map(array $o): ?array
     if ($netUsd === null || empty($o['slices'])) return null;
     $markup = markup_rate('flight');
     $total = sell_price($netUsd, $markup);
+    $tax = isset($o['tax_amount']) ? to_usd((float) $o['tax_amount'], (string) ($o['tax_currency'] ?? $o['total_currency'])) : null;
     $pax = $o['passengers'] ?? [];
     $adults = count(array_filter($pax, fn($p) => ($p['type'] ?? null) === 'adult' || ($p['age'] ?? 0) >= 12));
     $infants = count(array_filter($pax, fn($p) => ($p['type'] ?? null) === 'infant_without_seat' || (isset($p['age']) && $p['age'] < 2)));
@@ -211,6 +212,7 @@ function duffel_map(array $o): ?array
         'outbound' => duffel_leg($o['slices'][0]),
         'inbound' => isset($o['slices'][1]) ? duffel_leg($o['slices'][1]) : null,
         'total' => $total,
+        'taxes' => $tax ? (int) round($tax) : null,
         'refundable' => (bool) ($o['conditions']['refund_before_departure']['allowed'] ?? false),
         'seats_left' => null,
         'adults' => $adults,
@@ -341,6 +343,23 @@ function liteapi_map(array $info, array $rates, array $s, int $i): ?array
     $markup = markup_rate('hotel');
     // Never sell below the hotel's suggested selling price (rate-parity rules).
     $stay = max(sell_price($netUsd, $markup), (int) ceil(to_usd($best['floor'], $best['currency']) ?? 0));
+    // Taxes inside the price, and charges the hotel collects itself at check-in (resort fees, city taxes…).
+    $taxIn = 0.0;
+    $atHotel = [];
+    foreach ($best['room']['rates'] as $r) {
+        foreach ($r['retailRate']['taxesAndFees'] ?? [] as $f) {
+            if (!is_array($f) || !array_key_exists('included', $f) || !isset($f['amount'])) continue;
+            $usd = to_usd((float) $f['amount'], (string) ($f['currency'] ?? $best['currency']));
+            if (!$usd || $usd <= 0) continue;
+            if (filter_var($f['included'], FILTER_VALIDATE_BOOLEAN)) {
+                $taxIn += $usd;
+            } else {
+                $label = trim((string) ($f['description'] ?? ''));
+                if ($label === '' || mb_strtoupper($label) === $label) $label = $label === '' ? 'Local taxes and fees' : mb_strtoupper(mb_substr($label, 0, 1)) . mb_strtolower(mb_substr($label, 1));
+                $atHotel[$label] = ($atHotel[$label] ?? 0) + $usd;
+            }
+        }
+    }
     $rate = $best['room']['rates'][0];
     $gradients = ['from-sky-400 to-blue-700', 'from-emerald-400 to-teal-700', 'from-amber-300 to-orange-600', 'from-rose-400 to-purple-700'];
     return [
@@ -352,6 +371,8 @@ function liteapi_map(array $info, array $rates, array $s, int $i): ?array
         'amenities' => preg_match('/breakfast/i', (string) ($rate['boardName'] ?? '')) ? ['breakfast'] : [],
         'free_cancel' => ($rate['cancellationPolicies']['refundableTag'] ?? '') === 'RFN',
         'gradient' => $gradients[$i % 4], 'photo' => ($info['main_photo'] ?? '') ?: null, 'stay_total' => $stay,
+        'taxes' => $taxIn > 0 && $taxIn < $stay ? (int) round($taxIn) : null,
+        'at_hotel' => array_map(fn($label, $usd) => ['label' => $label, 'amount' => (int) ceil($usd)], array_keys($atHotel), array_values($atHotel)),
         'cost' => ['provider' => 'liteapi', 'offer_id' => $best['room']['offerId'], 'net_amount' => $best['net'], 'net_currency' => $best['currency'], 'net_usd' => $netUsd, 'markup_rate' => $markup],
     ];
 }
@@ -482,6 +503,12 @@ function liteapi_flight_map(array $j, array $s, ?string &$why = null): ?array
     $netUsd = to_usd((float) $net, $currency);
     if ($netUsd === null) { $why = "price in $currency, which we can't convert to USD"; return null; }
     $markup = markup_rate('flight');
+    // Government taxes and airline fees inside that price (shown as their own line when booking).
+    $tax = 0.0;
+    foreach (['adult' => $s['adults'], 'child' => $s['children'], 'infant' => $s['infants'] ?? 0] as $type => $n) {
+        $tax += ((float) ($pp[$type]['taxes'] ?? 0) + (float) ($pp[$type]['fees'] ?? 0)) * $n;
+    }
+    $taxUsd = $tax > 0 ? to_usd($tax, $currency) : null;
     $carrier = $out[0]['carrier'] ?? [];
     $code = (string) ($carrier['marketingCode'] ?? '');
     $palette = ['#1c54f0', '#0f766e', '#7c3aed', '#f06c06', '#be123c', '#0369a1', '#15803d', '#a16207'];
@@ -498,6 +525,7 @@ function liteapi_flight_map(array $j, array $s, ?string &$why = null): ?array
         'outbound' => liteapi_flight_leg($out, $mins['OUTBOUND'] ?? null),
         'inbound' => $in ? liteapi_flight_leg($in, $mins['INBOUND'] ?? null) : null,
         'total' => sell_price($netUsd, $markup),
+        'taxes' => $taxUsd ? (int) round($taxUsd) : null,
         'refundable' => (bool) ($o['terms']['refundable'] ?? false),
         'seats_left' => isset($o['fare']['seatsRemaining']) ? (int) $o['fare']['seatsRemaining'] : null,
         'adults' => $s['adults'], 'children' => $s['children'], 'infants' => $s['infants'] ?? 0,

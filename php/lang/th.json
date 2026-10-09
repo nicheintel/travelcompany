@@ -728,5 +728,14 @@
  "Wrong email address? Change it": "อีเมลไม่ถูกต้องใช่ไหม เปลี่ยนอีเมล",
  "You can search without an account. To book, create an account and confirm your email address — that's where we send your confirmations and tickets.": "คุณสามารถค้นหาได้โดยไม่ต้องมีบัญชี หากต้องการจอง โปรดสร้างบัญชีและยืนยันที่อยู่อีเมลของคุณ — เราจะส่งการยืนยันและตั๋วไปที่อีเมลนั้น",
  "You have an upcoming trip ({ref}). Please contact us before deleting your account, so we can still reach you about it.": "คุณมีการเดินทางที่กำลังจะมาถึง ({ref}) โปรดติดต่อเราก่อนลบบัญชี เพื่อให้เรายังติดต่อคุณเกี่ยวกับการเดินทางนี้ได้",
- "Your account has been deleted. Thank you for travelling with us.": "ลบบัญชีของคุณแล้ว ขอบคุณที่เดินทางกับเรา"
+ "Your account has been deleted. Thank you for travelling with us.": "ลบบัญชีของคุณแล้ว ขอบคุณที่เดินทางกับเรา",
+ "+ {price} due at the hotel": "+ {price} ชำระที่โรงแรม",
+ "Airfare for {n} traveler": "ค่าโดยสารสำหรับผู้เดินทาง {n} ท่าน",
+ "Airfare for {n} travelers": "ค่าโดยสารสำหรับผู้เดินทาง {n} ท่าน",
+ "City tax": "ภาษีเมือง",
+ "Due at the hotel": "ชำระที่โรงแรม",
+ "Local taxes and fees": "ภาษีและค่าธรรมเนียมท้องถิ่น",
+ "Paid directly to the hotel at check-in. Not included in the total above.": "ชำระโดยตรงกับโรงแรมเมื่อเช็กอิน ไม่รวมอยู่ในยอดรวมด้านบน",
+ "Resort fee": "ค่าธรรมเนียมรีสอร์ต",
+ "incl. {price} taxes & fees": "รวมภาษีและค่าธรรมเนียม {price}"
 }

@@ -299,8 +299,15 @@ function trip_summary(array $q): string
         . (($hint = price_hint($q['total'])) !== '' ? '<span class="block text-xs font-medium text-slate-500">' . e($hint) . '</span>' : '') . '</dd></div>'
         . '<p class="text-right text-xs text-slate-500">' . e(t('Taxes and fees included')) . '</p>'
         . (!empty($q['note']) ? '<p class="pt-2 text-xs leading-relaxed text-slate-500">' . e(quote_text($q['note'])) . '</p>' : '')
-        . '</dl></div>';
-    return $html;
+        . '</dl>';
+    if (!empty($q['at_hotel'])) {
+        // Hotel wording we translate when it appears (anything else is shown as the hotel wrote it).
+        // i18n-keys: 'Local taxes and fees', 'City tax', 'Resort fee'
+        $html .= '<div class="mx-5 mb-5 rounded-xl bg-amber-50 p-4 text-sm text-amber-900 ring-1 ring-amber-200"><h3 class="font-semibold">' . e(t('Due at the hotel')) . '</h3><dl class="mt-2 space-y-1">';
+        foreach ($q['at_hotel'] as $f) $html .= '<div class="flex justify-between gap-3"><dt>' . e(quote_text($f['label'])) . '</dt><dd class="font-semibold">' . money($f['amount']) . '</dd></div>';
+        $html .= '</dl><p class="mt-2 text-xs leading-relaxed text-amber-800">' . e(t('Paid directly to the hotel at check-in. Not included in the total above.')) . '</p></div>';
+    }
+    return $html . '</div>';
 }
 
 function status_badge(string $status): string

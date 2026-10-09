@@ -761,5 +761,17 @@
  "Wrong email address? Change it": "Błędny adres e-mail? Zmień go",
  "You can search without an account. To book, create an account and confirm your email address — that's where we send your confirmations and tickets.": "Wyszukiwać można bez konta. Aby zarezerwować, należy założyć konto i potwierdzić adres e-mail — to na niego wysyłamy potwierdzenia i bilety.",
  "You have an upcoming trip ({ref}). Please contact us before deleting your account, so we can still reach you about it.": "Mają Państwo nadchodzącą podróż ({ref}). Przed usunięciem konta prosimy o kontakt, abyśmy nadal mogli przekazywać informacje na jej temat.",
- "Your account has been deleted. Thank you for travelling with us.": "Konto zostało usunięte. Dziękujemy za podróże z nami."
+ "Your account has been deleted. Thank you for travelling with us.": "Konto zostało usunięte. Dziękujemy za podróże z nami.",
+ "+ {price} due at the hotel": "+ {price} płatne w hotelu",
+ "Airfare for {n} traveler": "Bilet lotniczy dla {n} podróżnego",
+ "Airfare for {n} travelers": "Bilety lotnicze dla {n} podróżnych",
+ "City tax": "Opłata miejscowa",
+ "Due at the hotel": "Płatne w hotelu",
+ "Local taxes and fees": "Lokalne podatki i opłaty",
+ "Paid directly to the hotel at check-in. Not included in the total above.": "Płatne bezpośrednio w hotelu przy zameldowaniu. Nie wliczono do powyższej sumy.",
+ "Resort fee": "Opłata ośrodkowa",
+ "incl. {price} taxes & fees": "w tym {price} podatków i opłat",
+ "Airfare for {n} travelers|one": "Bilet lotniczy dla {n} podróżnego",
+ "Airfare for {n} travelers|few": "Bilety lotnicze dla {n} podróżnych",
+ "Airfare for {n} travelers|many": "Bilety lotnicze dla {n} podróżnych"
 }

@@ -728,5 +728,14 @@
  "Wrong email address? Change it": "Maling email address? Palitan ito",
  "You can search without an account. To book, create an account and confirm your email address — that's where we send your confirmations and tickets.": "Maaari kang maghanap nang walang account. Para mag-book, gumawa ng account at kumpirmahin ang iyong email address — doon namin ipinapadala ang iyong mga confirmation at ticket.",
  "You have an upcoming trip ({ref}). Please contact us before deleting your account, so we can still reach you about it.": "May paparating kang biyahe ({ref}). Makipag-ugnayan muna sa amin bago burahin ang iyong account, para maabot ka pa rin namin tungkol dito.",
- "Your account has been deleted. Thank you for travelling with us.": "Nabura na ang iyong account. Salamat sa pagbiyahe kasama namin."
+ "Your account has been deleted. Thank you for travelling with us.": "Nabura na ang iyong account. Salamat sa pagbiyahe kasama namin.",
+ "+ {price} due at the hotel": "+ {price} babayaran sa hotel",
+ "Airfare for {n} traveler": "Pamasahe para sa {n} biyahero",
+ "Airfare for {n} travelers": "Pamasahe para sa {n} biyahero",
+ "City tax": "City tax",
+ "Due at the hotel": "Babayaran sa hotel",
+ "Local taxes and fees": "Lokal na buwis at bayarin",
+ "Paid directly to the hotel at check-in. Not included in the total above.": "Direktang babayaran sa hotel sa pag-check in. Hindi kasama sa kabuuan sa itaas.",
+ "Resort fee": "Resort fee",
+ "incl. {price} taxes & fees": "kasama ang {price} na buwis at bayarin"
 }

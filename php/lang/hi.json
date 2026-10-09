@@ -728,5 +728,14 @@
  "Wrong email address? Change it": "ईमेल पता गलत है? उसे बदलें",
  "You can search without an account. To book, create an account and confirm your email address — that's where we send your confirmations and tickets.": "आप बिना खाते के खोज सकते हैं। बुक करने के लिए, खाता बनाएँ और अपने ईमेल पते की पुष्टि करें — हम आपके कन्फ़र्मेशन और टिकट वहीं भेजते हैं।",
  "You have an upcoming trip ({ref}). Please contact us before deleting your account, so we can still reach you about it.": "आपकी एक आने वाली यात्रा है ({ref})। अपना खाता हटाने से पहले कृपया हमसे संपर्क करें, ताकि हम इसके बारे में आपसे संपर्क कर सकें।",
- "Your account has been deleted. Thank you for travelling with us.": "आपका खाता हटा दिया गया है। हमारे साथ यात्रा करने के लिए धन्यवाद।"
+ "Your account has been deleted. Thank you for travelling with us.": "आपका खाता हटा दिया गया है। हमारे साथ यात्रा करने के लिए धन्यवाद।",
+ "+ {price} due at the hotel": "+ {price} होटल में देय",
+ "Airfare for {n} traveler": "{n} यात्री का हवाई किराया",
+ "Airfare for {n} travelers": "{n} यात्रियों का हवाई किराया",
+ "City tax": "सिटी टैक्स",
+ "Due at the hotel": "होटल में देय",
+ "Local taxes and fees": "स्थानीय टैक्स और शुल्क",
+ "Paid directly to the hotel at check-in. Not included in the total above.": "चेक-इन के समय सीधे होटल को भुगतान किया जाता है। ऊपर दिए गए कुल में शामिल नहीं है।",
+ "Resort fee": "रिसॉर्ट शुल्क",
+ "incl. {price} taxes & fees": "{price} टैक्स और शुल्क सहित"
 }

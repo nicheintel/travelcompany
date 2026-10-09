@@ -728,5 +728,14 @@
  "Wrong email address? Change it": "Alamat e-mel salah? Tukarkannya",
  "You can search without an account. To book, create an account and confirm your email address — that's where we send your confirmations and tickets.": "Anda boleh membuat carian tanpa akaun. Untuk menempah, buat akaun dan sahkan alamat e-mel anda — ke situlah kami menghantar pengesahan dan tiket anda.",
  "You have an upcoming trip ({ref}). Please contact us before deleting your account, so we can still reach you about it.": "Anda mempunyai perjalanan akan datang ({ref}). Sila hubungi kami sebelum memadam akaun anda, supaya kami masih boleh menghubungi anda mengenainya.",
- "Your account has been deleted. Thank you for travelling with us.": "Akaun anda telah dipadam. Terima kasih kerana melancong bersama kami."
+ "Your account has been deleted. Thank you for travelling with us.": "Akaun anda telah dipadam. Terima kasih kerana melancong bersama kami.",
+ "+ {price} due at the hotel": "+ {price} dibayar di hotel",
+ "Airfare for {n} traveler": "Tambang penerbangan untuk {n} pengembara",
+ "Airfare for {n} travelers": "Tambang penerbangan untuk {n} pengembara",
+ "City tax": "Cukai bandar",
+ "Due at the hotel": "Dibayar di hotel",
+ "Local taxes and fees": "Cukai & caj tempatan",
+ "Paid directly to the hotel at check-in. Not included in the total above.": "Dibayar terus kepada hotel semasa daftar masuk. Tidak termasuk dalam jumlah di atas.",
+ "Resort fee": "Caj resort",
+ "incl. {price} taxes & fees": "termasuk cukai & caj {price}"
 }

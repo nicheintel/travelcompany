@@ -319,6 +319,7 @@ function quote_text(?string $s, ?string $startIso = null): string
     if ($whole !== $s) return $whole;
     $m = [];
     if (preg_match('/^Flight for (\d+) travelers?$/', $s, $m)) return tn((int) $m[1], 'Flight for {n} traveler', 'Flight for {n} travelers');
+    if (preg_match('/^Airfare for (\d+) travelers?$/', $s, $m)) return tn((int) $m[1], 'Airfare for {n} traveler', 'Airfare for {n} travelers');
     if (preg_match('/^(\d+) × (adult fare|child fare|infant fare \(on lap\))$/', $s, $m)) {
         // i18n-keys: '{n} × adult fare', '{n} × child fare', '{n} × infant fare (on lap)'
         return t('{n} × ' . $m[2], ['n' => $m[1]]);

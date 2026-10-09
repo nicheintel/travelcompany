@@ -728,5 +728,14 @@
  "Wrong email address? Change it": "이메일 주소가 잘못되었나요? 변경하기",
  "You can search without an account. To book, create an account and confirm your email address — that's where we send your confirmations and tickets.": "계정 없이도 검색하실 수 있습니다. 예약하려면 계정을 만들고 이메일 주소를 인증해 주세요. 예약 확인 메일과 항공권이 이 주소로 발송됩니다.",
  "You have an upcoming trip ({ref}). Please contact us before deleting your account, so we can still reach you about it.": "예정된 여행({ref})이 있습니다. 이 여행과 관련해 계속 연락드릴 수 있도록 계정을 삭제하기 전에 먼저 문의해 주세요.",
- "Your account has been deleted. Thank you for travelling with us.": "계정이 삭제되었습니다. 저희와 함께 여행해 주셔서 감사합니다."
+ "Your account has been deleted. Thank you for travelling with us.": "계정이 삭제되었습니다. 저희와 함께 여행해 주셔서 감사합니다.",
+ "+ {price} due at the hotel": "+ {price} 호텔에서 결제",
+ "Airfare for {n} traveler": "여행자 {n}명 항공 요금",
+ "Airfare for {n} travelers": "여행자 {n}명 항공 요금",
+ "City tax": "도시세",
+ "Due at the hotel": "호텔에서 결제",
+ "Local taxes and fees": "현지 세금 및 수수료",
+ "Paid directly to the hotel at check-in. Not included in the total above.": "체크인 시 호텔에 직접 결제합니다. 위의 총액에 포함되어 있지 않습니다.",
+ "Resort fee": "리조트 요금",
+ "incl. {price} taxes & fees": "세금 및 수수료 {price} 포함"
 }

@@ -728,5 +728,14 @@
  "Wrong email address? Change it": "邮箱地址有误？立即修改",
  "You can search without an account. To book, create an account and confirm your email address — that's where we send your confirmations and tickets.": "无需账户即可搜索。如需预订，请创建账户并确认您的电子邮箱地址——我们会将确认信息和机票发送至该邮箱。",
  "You have an upcoming trip ({ref}). Please contact us before deleting your account, so we can still reach you about it.": "您有即将出行的行程（{ref}）。删除账户前请先联系我们，以便我们仍能就此行程与您联系。",
- "Your account has been deleted. Thank you for travelling with us.": "您的账户已删除。感谢您与我们同行。"
+ "Your account has been deleted. Thank you for travelling with us.": "您的账户已删除。感谢您与我们同行。",
+ "+ {price} due at the hotel": "+ {price} 需在酒店支付",
+ "Airfare for {n} traveler": "{n} 位旅客的机票费",
+ "Airfare for {n} travelers": "{n} 位旅客的机票费",
+ "City tax": "城市税",
+ "Due at the hotel": "需在酒店支付",
+ "Local taxes and fees": "当地税费",
+ "Paid directly to the hotel at check-in. Not included in the total above.": "入住时直接向酒店支付，不包含在上方总价中。",
+ "Resort fee": "度假村费",
+ "incl. {price} taxes & fees": "含 {price} 税费"
 }

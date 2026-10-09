@@ -728,5 +728,14 @@
  "Wrong email address? Change it": "E-posta adresi yanlış mı? Değiştirin",
  "You can search without an account. To book, create an account and confirm your email address — that's where we send your confirmations and tickets.": "Hesap olmadan arama yapabilirsiniz. Rezervasyon için bir hesap oluşturun ve e-posta adresinizi onaylayın — onaylarınızı ve biletlerinizi oraya göndeririz.",
  "You have an upcoming trip ({ref}). Please contact us before deleting your account, so we can still reach you about it.": "Yaklaşan bir seyahatiniz var ({ref}). Bu konuda size ulaşmaya devam edebilmemiz için hesabınızı silmeden önce lütfen bizimle iletişime geçin.",
- "Your account has been deleted. Thank you for travelling with us.": "Hesabınız silindi. Bizimle seyahat ettiğiniz için teşekkür ederiz."
+ "Your account has been deleted. Thank you for travelling with us.": "Hesabınız silindi. Bizimle seyahat ettiğiniz için teşekkür ederiz.",
+ "+ {price} due at the hotel": "+ {price} otelde ödenir",
+ "Airfare for {n} traveler": "{n} yolcu için uçak bileti",
+ "Airfare for {n} travelers": "{n} yolcu için uçak bileti",
+ "City tax": "Şehir vergisi",
+ "Due at the hotel": "Otelde ödenecek",
+ "Local taxes and fees": "Yerel vergiler ve ücretler",
+ "Paid directly to the hotel at check-in. Not included in the total above.": "Giriş sırasında doğrudan otele ödenir. Yukarıdaki toplama dahil değildir.",
+ "Resort fee": "Tesis ücreti",
+ "incl. {price} taxes & fees": "{price} vergi ve ücretler dahil"
 }

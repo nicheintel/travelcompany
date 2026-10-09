@@ -728,5 +728,14 @@
  "Wrong email address? Change it": "Verkeerd e-mailadres? Wijzig het",
  "You can search without an account. To book, create an account and confirm your email address — that's where we send your confirmations and tickets.": "U kunt zoeken zonder account. Om te boeken maakt u een account aan en bevestigt u uw e-mailadres — daar sturen we uw bevestigingen en tickets naartoe.",
  "You have an upcoming trip ({ref}). Please contact us before deleting your account, so we can still reach you about it.": "U heeft een aankomende reis ({ref}). Neem contact met ons op voordat u uw account verwijdert, zodat we u daarover kunnen blijven bereiken.",
- "Your account has been deleted. Thank you for travelling with us.": "Uw account is verwijderd. Bedankt dat u met ons heeft gereisd."
+ "Your account has been deleted. Thank you for travelling with us.": "Uw account is verwijderd. Bedankt dat u met ons heeft gereisd.",
+ "+ {price} due at the hotel": "+ {price} te betalen in het hotel",
+ "Airfare for {n} traveler": "Vliegticket voor {n} reiziger",
+ "Airfare for {n} travelers": "Vliegtickets voor {n} reizigers",
+ "City tax": "Toeristenbelasting",
+ "Due at the hotel": "Te betalen in het hotel",
+ "Local taxes and fees": "Lokale belastingen en toeslagen",
+ "Paid directly to the hotel at check-in. Not included in the total above.": "Betaalt u direct aan het hotel bij het inchecken. Niet inbegrepen in het totaal hierboven.",
+ "Resort fee": "Resortkosten",
+ "incl. {price} taxes & fees": "incl. {price} belastingen en toeslagen"
 }
