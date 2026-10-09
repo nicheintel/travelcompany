@@ -325,3 +325,28 @@ CREATE TABLE IF NOT EXISTS followup_optout (
   by_staff INT UNSIGNED NULL,
   created_at DATETIME NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Records your team adds for drivers who don't have an account yet (Drivers & members → Add a record): no login and
+-- no email. When someone signs up with the same email and confirms it, the record moves onto their account
+-- (merged_user_id) and stays there as "From your records". Deleted together with that account.
+CREATE TABLE IF NOT EXISTS member_records (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  first_name VARCHAR(50) NOT NULL,
+  last_name VARCHAR(50) NOT NULL DEFAULT '',
+  email VARCHAR(190) NOT NULL,
+  phone VARCHAR(30) NOT NULL DEFAULT '',
+  city VARCHAR(120) NOT NULL DEFAULT '',
+  account_type VARCHAR(30) NOT NULL DEFAULT 'driver',
+  vehicle VARCHAR(120) NOT NULL DEFAULT '',
+  vehicle_other VARCHAR(80) NOT NULL DEFAULT '',
+  onboarded VARCHAR(20) NOT NULL DEFAULT '',   -- '' = not yet, or the program they finished with our team (dispatch / walmart)
+  notes TEXT NULL,                             -- private: staff only
+  added_by INT UNSIGNED NULL,
+  created_at DATETIME NOT NULL,
+  updated_at DATETIME NOT NULL,
+  merged_user_id INT UNSIGNED NULL,
+  merged_at DATETIME NULL,
+  UNIQUE KEY uq_record_email (email),
+  KEY idx_record_merged (merged_user_id),
+  CONSTRAINT fk_record_user FOREIGN KEY (merged_user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

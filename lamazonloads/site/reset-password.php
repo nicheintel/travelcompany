@@ -25,6 +25,7 @@ if ($u && is_post()) {
         db_run('UPDATE users SET password_hash = ?, session_version = session_version + 1, reset_token = NULL, reset_expires = NULL, must_change_password = 0,
             email_verified_at = COALESCE(email_verified_at, NOW()) WHERE id = ?', [password_hash($new, PASSWORD_DEFAULT), $u['id']]);
         db_run('DELETE FROM login_attempts WHERE email = ?', [$u['email']]);
+        record_merge((int) $u['id']);
         unset($_SESSION['reset_email']);
         $fresh = db_one('SELECT * FROM users WHERE id = ?', [$u['id']]);
         if (promote_first_admin($fresh)) $fresh = db_one('SELECT * FROM users WHERE id = ?', [$u['id']]); // the reset link proved they own the email

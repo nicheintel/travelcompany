@@ -22,6 +22,7 @@ if (isset($_GET['t'])) {
         redirect(current_user() ? 'verify.php' : 'login.php?next=verify.php');
     }
     db_run('UPDATE users SET email_verified_at = COALESCE(email_verified_at, NOW()), verify_token = NULL, verify_expires = NULL WHERE id = ?', [$row['id']]);
+    record_merge((int) $row['id']); // your team's record of them (same email) joins the account now that the email is theirs
     $me = current_user();
     if (promote_first_admin(db_one('SELECT * FROM users WHERE id = ?', [$row['id']]))) { // the site's first admin (admin_emails)
         if ($me && (int) $me['id'] === (int) $row['id']) {

@@ -130,6 +130,7 @@ if (is_post()) {
         }
     } elseif ($action === 'verify') {
         db_run('UPDATE users SET email_verified_at = NOW(), verify_token = NULL, verify_expires = NULL WHERE id = ?', [$id]);
+        record_merge($id);
         flash('success', $u['name'] . "'s email is now marked as confirmed.");
     } elseif ($action === 'resend') {
         $sent = send_verification($u);
@@ -238,6 +239,20 @@ admin_open('drivers');
   <?php endif; ?>
   </div>
 </section>
+
+<?php $fromRec = db_one('SELECT r.*, s.name AS added_name FROM member_records r LEFT JOIN users s ON s.id = r.added_by WHERE r.merged_user_id = ?', [$id]);
+if ($fromRec): ?>
+<div class="card pad rec-from">
+  <h3 class="mt-0"><?= icon('file') ?>From your records</h3>
+  <p class="muted">Record added <?= e(fmt_date((string) $fromRec['created_at'])) ?><?= $fromRec['added_name'] ? ' by ' . e(first_name((string) $fromRec['added_name'])) : '' ?>. It joined this account when they confirmed their email on <?= e(fmt_date((string) $fromRec['merged_at'])) ?>.</p>
+  <ul class="rec-facts">
+    <li><span>On the record</span><b><?= e(trim($fromRec['first_name'] . ' ' . $fromRec['last_name'])) ?><?= $fromRec['phone'] !== '' ? ' · ' . e((string) $fromRec['phone']) : '' ?><?= $fromRec['city'] !== '' ? ' · ' . e((string) $fromRec['city']) : '' ?></b></li>
+    <?php if (($rv = user_vehicles_label($fromRec)) !== ''): ?><li><span>Vehicles</span><b><?= e($rv) ?></b></li><?php endif; ?>
+    <li><span>Onboarding</span><b><?= e(record_onboarded_label((string) $fromRec['onboarded'])) ?></b></li>
+  </ul>
+  <?php if (trim((string) $fromRec['notes']) !== ''): ?><div class="rec-notes-box"><b>Notes</b><p class="mb-0"><?= nl2br(e((string) $fromRec['notes'])) ?></p></div><?php endif; ?>
+</div>
+<?php endif; ?>
 
 <div class="grid grid-2">
   <div class="card pad">

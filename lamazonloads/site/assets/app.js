@@ -782,14 +782,6 @@
     sel.addEventListener('change', sync); sync();
   });
 
-  // Add member: staff don't onboard, so the Onboarding choice hides when adding a moderator
-  document.querySelectorAll('select[data-access]').forEach(function (sel) {
-    var field = sel.form && sel.form.querySelector('[data-onb-field]');
-    if (!field) return;
-    var sync = function () { field.hidden = sel.value !== ''; };
-    sel.addEventListener('change', sync); sync();
-  });
-
   // Vehicle type cards: ticking "Other" opens the box to type the vehicle
   document.querySelectorAll('[data-veh-pick]').forEach(function (set) {
     var other = set.querySelector('input[value="other"]'), box = set.querySelector('[data-veh-other]');

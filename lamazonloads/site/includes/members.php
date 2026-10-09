@@ -3,8 +3,11 @@ declare(strict_types=1);
 defined('LL_APP') || exit;
 
 /*
- * Members added by staff (Admin → Drivers & members → Add member): the account is created and confirmed straight away,
- * the member gets their sign-in details by email, and chooses their own password the first time they sign in.
+ * Admin → Drivers & members:
+ *  - Add a record: a driver your team knows who has no account yet. Nothing is created or emailed; when they sign up
+ *    with that email and confirm it, the record joins their account (record_merge()).
+ *  - Add staff member: the staff account is created and confirmed straight away, they get their sign-in details by
+ *    email and choose their own password the first time they sign in.
  * Staff can also fill in a member's details and add the documents they emailed in (marked "Added by LamazonLoads staff").
  */
 
@@ -72,18 +75,130 @@ function temp_password(): string
 }
 
 /**
- * Creates a member for staff: email already confirmed, a generated password they must change at first sign-in.
- * $v: first_name, last_name, email, phone, account_type. Returns [user id, password].
+ * Creates a staff account (Drivers & members → Add staff member): email already confirmed, and a generated password they
+ * must change at first sign-in. $v: first_name, last_name, email, role (moderator / admin). Returns [user id, password].
  */
-function create_member(array $v, int $staffId): array
+function create_staff(array $v, int $staffId): array
 {
     $pass = temp_password();
-    db_run('INSERT INTO users (name, email, phone, password_hash, account_type, is_admin, email_verified_at, must_change_password, added_by, created_at)
-        VALUES (?, ?, ?, ?, ?, 0, NOW(), 1, ?, NOW())',
-        [trim($v['first_name'] . ' ' . $v['last_name']), $v['email'], $v['phone'], password_hash($pass, PASSWORD_DEFAULT), $v['account_type'], $staffId]);
+    db_run("INSERT INTO users (name, email, phone, password_hash, account_type, is_admin, staff_role, email_verified_at, must_change_password, added_by, created_at)
+        VALUES (?, ?, '', ?, 'other', 1, ?, NOW(), 1, ?, NOW())",
+        [trim($v['first_name'] . ' ' . $v['last_name']), $v['email'], password_hash($pass, PASSWORD_DEFAULT), $v['role'], $staffId]);
     $id = (int) db()->lastInsertId();
-    onboarding_apply_invite(db_one('SELECT * FROM users WHERE id = ?', [$id]) ?? []); // an onboarding email went out before the account existed
+    record_merge($id); // a record with this email (see below) moves onto the account
     return [$id, $pass];
+}
+
+/* ---------- Records: drivers your team knows who don't have an account yet ---------- */
+
+/** What the record says about onboarding: '' = not yet, or the program they finished with our team. */
+function record_onboarded_label(string $track): string
+{
+    return isset(ONB_TRACKS[$track]) ? 'Onboarded with our team: ' . ONB_TRACKS[$track] : 'Not onboarded yet';
+}
+
+/** A record that hasn't joined an account yet, by email. */
+function record_by_email(string $email): ?array
+{
+    return db_one('SELECT * FROM member_records WHERE email = ? AND merged_user_id IS NULL', [strtolower(trim($email))]);
+}
+
+/**
+ * The "Add a record" / "Edit record" form, checked. Fills $v (first_name, last_name, email, phone, city, account_type,
+ * vehicle, vehicle_other, onboarded, notes) and returns [errors, the member or record that already has this email].
+ */
+function record_from_post(array &$v, int $recordId = 0): array
+{
+    foreach (['first_name' => 50, 'last_name' => 50, 'email' => 190, 'phone' => 25, 'account_type' => 30, 'onboarded' => 20] as $k => $max) {
+        $v[$k] = post_line($k, $max);
+    }
+    $v['email'] = strtolower($v['email']);
+    $v['phone'] = $v['phone'] !== '' ? format_phone($v['phone']) : '';
+    $v['notes'] = post('notes', 2000);
+    [$vehicles, $v['vehicle_other']] = posted_vehicles();
+    $v['vehicle'] = implode(',', $vehicles);
+    $city = post('city', 120);
+    $errors = [];
+    $dup = null;
+    if ($v['first_name'] === '') $errors[] = 'Please enter their first name.';
+    if (!email_valid($v['email'])) {
+        $errors[] = 'Please enter a valid email address.';
+    } elseif ($u = db_one('SELECT id, name, is_admin FROM users WHERE email = ?', [$v['email']])) {
+        $dup = ['type' => 'member', 'id' => (int) $u['id'], 'name' => (string) $u['name'], 'staff' => (bool) $u['is_admin']];
+    } elseif ($r = db_one('SELECT id, first_name, last_name FROM member_records WHERE email = ? AND id <> ?', [$v['email'], $recordId])) {
+        $dup = ['type' => 'record', 'id' => (int) $r['id'], 'name' => trim($r['first_name'] . ' ' . $r['last_name'])];
+    }
+    if ($v['phone'] !== '' && !preg_match('/^[0-9+()\-. ]{7,25}$/', $v['phone'])) $errors[] = 'Please enter a valid phone number, or leave it empty.';
+    if (!isset(ACCOUNT_TYPES[$v['account_type']])) $errors[] = 'Please choose what describes them best.';
+    if ($city === '' || $city === $v['city']) { // a city saved before stays as it is
+        $v['city'] = $city;
+    } elseif (($found = us_city($city)) === null) {
+        $errors[] = 'Please choose their city from the list, or leave it empty.';
+        $v['city'] = $city;
+    } else {
+        $v['city'] = $found;
+    }
+    if (in_array('other', $vehicles, true) && $v['vehicle_other'] === '') $errors[] = 'Please type what their other vehicle is.';
+    if (!isset(ONB_TRACKS[$v['onboarded']])) $v['onboarded'] = '';
+    return [$errors, $dup];
+}
+
+/** "This email is already…" message for the record form, with a link to that member or record. */
+function record_dup_html(array $dup): string
+{
+    $link = url($dup['type'] === 'member' ? 'admin/driver.php?id=' . $dup['id'] : 'admin/record.php?id=' . $dup['id']);
+    return $dup['type'] === 'member'
+        ? 'This email is already ' . ($dup['staff'] ? 'a staff account' : 'a member') . ': <a href="' . e($link) . '">' . e($dup['name']) . '</a>. Open their page to add information.'
+        : 'You already have a record for this email: <a href="' . e($link) . '">' . e($dup['name']) . '</a>.';
+}
+
+/** The fields of the "Add a record" and "Edit record" forms. $p keeps the field ids unique on the page. */
+function record_fields_html(array $v, string $p = 'rc'): string
+{
+    $types = '';
+    foreach (ACCOUNT_TYPES as $k => $l) {
+        $types .= '<option value="' . e($k) . '"' . ($v['account_type'] === $k ? ' selected' : '') . '>' . e($l) . '</option>';
+    }
+    $onb = '<option value="">Not yet</option>';
+    foreach (ONB_TRACKS as $k => $l) {
+        $onb .= '<option value="' . e($k) . '"' . ($v['onboarded'] === $k ? ' selected' : '') . '>Already onboarded with our team: ' . e($l) . '</option>';
+    }
+    $in = fn (string $name, string $label, string $type, int $max, string $extra = '') => '<label for="' . $p . '-' . $name . '">' . $label . '</label>'
+        . '<input id="' . $p . '-' . $name . '" name="' . $name . '" type="' . $type . '" maxlength="' . $max . '" autocomplete="off" value="' . e((string) $v[$name]) . '"' . $extra . '>';
+    return '<div>' . $in('first_name', 'First name', 'text', 50, ' required') . '</div>'
+        . '<div>' . $in('last_name', 'Last name', 'text', 50) . '</div>'
+        . '<div class="full">' . $in('email', 'Email', 'email', 190, ' required') . '</div>'
+        . '<div>' . $in('phone', 'Phone <span class="opt">(optional)</span>', 'tel', 25, ' placeholder="(555) 123-4567"') . '</div>'
+        . '<div><label for="' . $p . '-type">I am a…</label><select id="' . $p . '-type" name="account_type" data-drives="owner_operator,driver">' . $types . '</select></div>'
+        . '<div class="full">' . city_picker('city', (string) $v['city'], $p . '-city', 'City and state (optional)') . '</div>'
+        . vehicle_picker(user_vehicles($v), (string) $v['vehicle_other'], 'full', !account_drives((string) $v['account_type']), 'Vehicles, if they have any', $p . '-vehicle-other')
+        . '<div class="full"><label for="' . $p . '-onb">Onboarding</label><select id="' . $p . '-onb" name="onboarded">' . $onb . '</select>'
+        . '<p class="hint">Choose “Already onboarded” for drivers who finished onboarding with your team. When they sign up, they skip the uploads.</p></div>'
+        . '<div class="full"><label for="' . $p . '-notes">Notes <span class="opt">(private, only your team sees them)</span></label>'
+        . '<textarea id="' . $p . '-notes" name="notes" maxlength="2000" rows="3" placeholder="e.g. Ran Walmart routes in Tampa in 2025. Prefers morning starts.">' . e((string) $v['notes']) . '</textarea></div>';
+}
+
+/**
+ * Someone with a record's email now has a confirmed account: the record moves onto it. What they typed when they signed up
+ * stays (it's the newest); the record fills in what's empty, adds the vehicles they didn't tick, and marks them onboarded
+ * when our team onboarded them. The record stays as "From your records" on their page, notes included.
+ */
+function record_merge(int $userId): bool
+{
+    $u = db_one('SELECT * FROM users WHERE id = ?', [$userId]);
+    $r = $u ? record_by_email((string) $u['email']) : null;
+    if (!$r) {
+        return false;
+    }
+    $vehicles = array_values(array_intersect(array_keys(APPLY_VEHICLES), array_merge(user_vehicles($u), user_vehicles($r))));
+    $other = trim((string) $u['vehicle_other']) !== '' ? (string) $u['vehicle_other'] : (in_array('other', $vehicles, true) ? (string) $r['vehicle_other'] : '');
+    db_run("UPDATE users SET name = IF(TRIM(name) = '', ?, name), phone = IF(phone = '', ?, phone), city = IF(city = '', ?, city), vehicle = ?, vehicle_other = ? WHERE id = ?",
+        [trim($r['first_name'] . ' ' . $r['last_name']), $r['phone'], $r['city'], implode(',', $vehicles), $other, $userId]);
+    if (!$u['is_admin'] && isset(ONB_TRACKS[$r['onboarded']]) && !is_onboarded(onboarding_row($userId)['stage'] ?? null)) {
+        onboarding_mark_done($userId, (string) $r['onboarded'], (int) ($r['added_by'] ?? 0));
+    }
+    db_run('UPDATE member_records SET merged_user_id = ?, merged_at = NOW(), updated_at = NOW() WHERE id = ?', [$userId, $r['id']]);
+    return true;
 }
 
 /** "Your LamazonLoads account is ready": sign-in email and the generated password. */

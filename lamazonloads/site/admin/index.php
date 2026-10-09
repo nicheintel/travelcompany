@@ -41,7 +41,7 @@ page_header('Admin overview');
 admin_open('overview');
 echo admin_head($hello, 'Here’s what’s happening at LamazonLoads and what needs your attention today.',
     '<a class="btn btn-ghost" href="' . e(url('admin/jobs.php?new=1')) . '">' . icon('plus') . ' New job post</a>'
-    . '<a class="btn btn-accent" href="' . e(url('admin/drivers.php#add-member')) . '">' . icon('plus') . ' Add member</a>');
+    . '<a class="btn btn-accent" href="' . e(url('admin/drivers.php#add-record')) . '">' . icon('plus') . ' Add a record</a>');
 ?>
 <div class="kpis">
   <?php foreach ($kpis as [$ic, $label, $n, $sub, $href]): ?>

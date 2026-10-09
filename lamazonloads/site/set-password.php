@@ -2,7 +2,7 @@
 declare(strict_types=1);
 require __DIR__ . '/includes/bootstrap.php';
 
-// First sign-in with a password staff generated (Add member, or a staff password reset): the member picks their own.
+// First sign-in with a password staff generated (Add staff member, a staff password reset, or a sign-in reminder): they pick their own.
 $u = require_login();
 $next = safe_next(as_str($_GET['next'] ?? $_POST['next'] ?? 'account.php'));
 if (empty($u['must_change_password'])) {

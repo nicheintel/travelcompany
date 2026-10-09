@@ -7,7 +7,8 @@ $me = require_admin();
 $cities = array_column(db_all('SELECT city FROM walmart_routes ORDER BY active DESC, city'), 'city');
 $f = ['email' => '', 'first_name' => '', 'type' => 'dispatch', 'city' => ''];
 if (email_valid($pre = strtolower(trim(as_str($_GET['email'] ?? ''))))) {
-    $f['email'] = $pre; // "Send onboarding email" on a member's page
+    $f['email'] = $pre; // "Send onboarding email" on a member's page or a record
+    $f['first_name'] = mb_substr(trim(as_str($_GET['first'] ?? '')), 0, 60) ?: (string) (record_by_email($pre)['first_name'] ?? '');
 }
 $errors = [];
 $preview = null;
@@ -52,8 +53,8 @@ if (is_post()) {
     }
 }
 
-$recent = db_all('SELECT m.*, u.name, u.id AS uid, s.name AS sender FROM onboarding_emails m LEFT JOIN users u ON u.id = m.user_id
-    LEFT JOIN users s ON s.id = m.sent_by ORDER BY m.id DESC LIMIT 30');
+$recent = db_all('SELECT m.*, u.name, u.id AS uid, s.name AS sender, r.id AS rec_id FROM onboarding_emails m LEFT JOIN users u ON u.id = m.user_id
+    LEFT JOIN users s ON s.id = m.sent_by LEFT JOIN member_records r ON r.email = m.email AND r.merged_user_id IS NULL ORDER BY m.id DESC LIMIT 30');
 
 page_header('Send onboarding email');
 admin_open('send');
@@ -110,7 +111,7 @@ admin_open('send');
         <div><dt>Subject</dt><dd><?= e($pSubject) ?></dd></div>
       </dl>
       <p class="os-who<?= $user && is_onboarded($row['stage'] ?? null) ? ' is-warn' : '' ?>"><?= icon($user ? 'user' : 'plus') ?><span><?php if (!$user): ?>
-        <b>No account with this email yet.</b> The button opens sign-up with their email filled in. Once they create the account, they go straight to their <?= e(ONB_TRACKS[$f['type']]) ?> documents.
+        <b>No account with this email yet<?= ($pRec = record_by_email($f['email'])) ? '. It’s on your records as ' . e(trim($pRec['first_name'] . ' ' . $pRec['last_name'])) : '' ?>.</b> The button opens sign-up with their email filled in. Once they create the account, they go straight to their <?= e(ONB_TRACKS[$f['type']]) ?> documents.
       <?php elseif (is_onboarded($row['stage'] ?? null)): ?>
         <b><?= e((string) $user['name']) ?> is already onboarded.</b> You can still send it.
       <?php else: ?>
@@ -133,7 +134,7 @@ admin_open('send');
             <span class="os-when"><?= e(fmt_date((string) $r['sent_at'], 'M j')) ?><small><?= e(fmt_date((string) $r['sent_at'], 'g:i a')) ?></small></span>
             <span class="os-to"><b><?= e($r['name'] !== null ? (string) $r['name'] : (string) $r['email']) ?></b><small><?= e($r['name'] !== null ? (string) $r['email'] : 'No account yet') ?></small></span>
             <span class="os-kind"><span class="mail-dot <?= e($r['type']) ?>"><?= e($r['type'] === 'walmart' ? 'Walmart' : 'Dispatch') ?></span><?php if ($r['city'] !== ''): ?><small><?= e((string) $r['city']) ?></small><?php endif; ?></span>
-            <span class="os-state"><?php if ($r['uid'] !== null): ?><a href="<?= e(url('admin/driver.php?id=' . (int) $r['uid'])) ?>"><?= $r['joined_at'] ? 'Signed up ' . e(fmt_date((string) $r['joined_at'], 'M j')) : 'Member' ?></a><?php else: ?><span class="muted">Waiting for sign-up</span><?php endif; ?>
+            <span class="os-state"><?php if ($r['uid'] !== null): ?><a href="<?= e(url('admin/driver.php?id=' . (int) $r['uid'])) ?>"><?= $r['joined_at'] ? 'Signed up ' . e(fmt_date((string) $r['joined_at'], 'M j')) : 'Member' ?></a><?php elseif ($r['rec_id'] !== null): ?><a href="<?= e(url('admin/record.php?id=' . (int) $r['rec_id'])) ?>">Waiting for sign-up</a><?php else: ?><span class="muted">Waiting for sign-up</span><?php endif; ?>
               <small>by <?= e(first_name((string) ($r['sender'] ?? 'Staff'))) ?></small></span>
           </li>
         <?php endforeach; ?>
