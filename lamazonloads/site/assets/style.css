@@ -2120,6 +2120,42 @@ a.nt-row:hover { background: var(--blue-50); text-decoration: none; }
 .os-who .ic { flex: none; width: 18px; height: 18px; margin-top: 2px; color: var(--blue); }
 .os-who.is-warn { background: #FFF6E5; color: #7A4B00; }
 .os-who.is-warn .ic { color: #B86E00; }
+.os-tabs { display: inline-flex; gap: 4px; margin: 0 0 18px; padding: 4px; border-radius: 14px; background: #fff; border: 1px solid var(--line); box-shadow: var(--shadow); max-width: 100%; overflow-x: auto; }
+.os-tabs a { display: inline-flex; align-items: center; gap: 8px; padding: 9px 16px; border-radius: 10px; font-weight: 700; font-size: .92rem; color: var(--text); white-space: nowrap; transition: background .2s, color .2s; }
+.os-tabs a .ic { width: 17px; height: 17px; }
+.os-tabs a:hover { background: var(--blue-50); color: var(--blue); }
+.os-tabs a.on { background: var(--blue); color: #fff; }
+.os-tab-n { padding: 2px 8px; border-radius: 99px; background: #FFF4DD; color: #9A5B00; font-size: .74rem; font-weight: 800; }
+.os-tabs a.on .os-tab-n { background: rgba(255, 255, 255, .2); color: #fff; }
+.os-acts-one { grid-template-columns: minmax(0, 1fr); }
+.os-form textarea { min-height: 220px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .86rem; line-height: 1.6; }
+.os-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 0 0 14px; }
+.os-stats-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.os-stats > div { display: grid; gap: 2px; padding: 12px 14px; border-radius: 12px; background: #F7F9FC; border: 1px solid var(--line); }
+.os-stats b { font-family: var(--display); font-size: 1.35rem; line-height: 1.1; color: var(--ink); }
+.os-stats span { font-size: .8rem; color: var(--muted); font-weight: 600; }
+.os-stats .is-ok { background: #EAF7EF; border-color: #CBEBD8; } .os-stats .is-ok b { color: #0D6B37; }
+.os-stats .is-warn { background: #FFF6E5; border-color: #F6DFB1; } .os-stats .is-warn b { color: #9A5B00; }
+.os-reasons { list-style: none; margin: 0 0 14px; padding: 0; display: grid; gap: 6px; font-size: .88rem; }
+.os-reasons li { display: flex; justify-content: space-between; gap: 12px; padding-bottom: 6px; border-bottom: 1px dashed var(--line); }
+.os-reasons b { color: var(--ink); }
+.os-plan { display: flex; gap: 10px; align-items: flex-start; margin: 0 0 14px; padding: 10px 14px; border-radius: 12px; background: var(--blue-50); color: var(--navy); font-size: .88rem; line-height: 1.5; }
+.os-plan .ic { flex: none; width: 17px; height: 17px; margin-top: 2px; color: var(--blue); }
+.os-skipped { margin-top: 14px; font-size: .88rem; }
+.os-skipped summary { cursor: pointer; font-weight: 700; color: var(--blue); }
+.os-skipped ul { list-style: none; margin: 10px 0 0; padding: 0; max-height: 260px; overflow: auto; display: grid; gap: 6px; }
+.os-skipped li { display: flex; justify-content: space-between; gap: 12px; }
+.os-skipped li span { min-width: 0; overflow-wrap: anywhere; color: var(--ink); }
+.os-skipped li small { flex: none; color: var(--muted); }
+.os-qacts { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; margin: 0 0 12px; }
+.os-perday { display: flex; align-items: center; gap: 8px; margin: 0; }
+.os-perday label { margin: 0; font-weight: 600; font-size: .88rem; }
+.os-perday input { width: 92px; padding: 6px 10px; border-radius: 9px; }
+.os-clear { color: var(--red); font-weight: 600; font-size: .88rem; }
+.os-qlist { border-top: 1px solid var(--line); }
+.os-qlist li.is-next { background: #FBFCFF; }
+.q-sent { color: #0D6B37; font-weight: 700; } .q-skipped, .q-removed { color: var(--muted); font-weight: 700; } .q-failed { color: var(--red); font-weight: 700; }
+@media (max-width: 640px) { .os-stats-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .os-again { margin: 0; padding: 10px 12px; border-radius: 10px; background: #FFF6E5; color: #7A4B00; font-weight: 600; }
 .os-meter { display: grid; gap: 8px; margin-top: 4px; padding-top: 14px; border-top: 1px solid var(--line); font-size: .86rem; color: var(--muted); }
 .os-meter p { margin: 0; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 12px; }

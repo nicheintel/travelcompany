@@ -360,3 +360,23 @@ CREATE TABLE IF NOT EXISTS mail_sent (
   KEY idx_mail_sent (sent_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+
+-- Send onboarding email → Send to a list: the people waiting for their Dispatch or Walmart email. The scheduled task
+-- sends them a few at a time, up to the daily amount you choose, between 9 am and 7 pm New York time.
+CREATE TABLE IF NOT EXISTS onboarding_queue (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  email VARCHAR(190) NOT NULL,
+  first_name VARCHAR(60) NOT NULL DEFAULT '',
+  type VARCHAR(20) NOT NULL,                     -- dispatch / walmart
+  city VARCHAR(80) NOT NULL DEFAULT '',
+  status VARCHAR(10) NOT NULL DEFAULT 'waiting',  -- waiting · sent · skipped · failed · removed
+  note VARCHAR(190) NOT NULL DEFAULT '',
+  attempts TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  added_by INT UNSIGNED NULL,
+  created_at DATETIME NOT NULL,
+  last_try_at DATETIME NULL,
+  sent_at DATETIME NULL,
+  KEY idx_queue_status (status, id),
+  KEY idx_queue_email (email),
+  KEY idx_queue_sent (sent_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

@@ -253,6 +253,8 @@ function run_automations(): array
     db_run('DELETE FROM mail_sent WHERE sent_at < NOW() - INTERVAL 3 DAY'); // only the last 24 hours count
     // Reminders to drivers, the staff's morning summary, optional "Not selected" (Admin → Automatic follow-ups)
     $done += run_followups();
+    // Send onboarding email → Send to a list: the next few
+    $done += bulk_run();
     // Catch-up for In review and auto-close
     foreach (db_all("SELECT DISTINCT a.user_id FROM applications a JOIN jobs j ON j.id = a.job_id WHERE j.auto_review = 1 AND a.status = 'new'") as $r) {
         auto_review_user((int) $r['user_id']);
