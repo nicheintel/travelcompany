@@ -4,10 +4,13 @@ require __DIR__ . '/includes/bootstrap.php';
 $site = e((string) config('site_name'));
 $who = business_identity();
 $mail = contact_email_link();
+$fee = change_service_fee();
+$feeText = money($fee);
+$carePct = round(travel_care_rate() * 100);
 $description = 'The terms for using FareFinders and booking flights, hotels and packages with us.';
 $title = 'Terms of use';
 require __DIR__ . '/includes/header.php';
-echo legal_page('Terms of use', "These terms apply when you use the $site website and when you book travel through us. Please read them before booking — by creating an account or making a reservation you agree to them.", 'October 5, 2026', [
+echo legal_page('Terms of use', "These terms apply when you use the $site website and when you book travel through us. Please read them before booking — by creating an account or making a reservation you agree to them.", 'October 9, 2026', [
     'about' => ['About us', "<p>$who is a travel assistant. We help you find flights, hotels and travel packages and book them with airlines, hotels and other travel companies (the <strong>suppliers</strong>). We act as your booking agent: the flight or stay itself is provided by the supplier, under its own conditions of carriage or hotel rules.</p>"],
     'account' => ['Your account', '<ul>
         <li>You must be 18 or older and give accurate information.</li>
@@ -34,9 +37,18 @@ echo legal_page('Terms of use', "These terms apply when you use the $site websit
     'changes' => ['Changes, cancellations and refunds', '<ul>
         <li><strong>Before payment:</strong> you can cancel your reservation for free on your trip page.</li>
         <li><strong>After payment:</strong> changes and cancellations follow the airline\'s fare rules and the hotel\'s policy. Many low fares are non-refundable. Contact us and we\'ll tell you what\'s possible and any supplier fees before anything is changed.</li>
-        <li>We don\'t add our own cancellation fee on top of the supplier\'s rules.</li>
+        ' . ($fee > 0
+            ? "<li>When we change or cancel a paid booking for you, our service fee is <strong>$feeText</strong> per change or cancellation, on top of the supplier's own fees. We tell you the full cost before anything is changed. There's no service fee if you have Travel Care Protection.</li>"
+            : "<li>We don't add our own fee on top of the supplier's rules.</li>") . '
         <li>Refunds are paid to your original payment method once the supplier has refunded us. This can take several weeks, depending on the supplier.</li>
         <li><strong>If the supplier cancels or changes your trip</strong> (for example a schedule change), we\'ll tell you and help you with the alternatives or refund the supplier offers.</li>
+    </ul>'],
+    'travel-care' => ['Travel Care Protection', ($carePct > 0 ? "<p>Travel Care Protection is an optional add-on for flight bookings. You can add it on your trip page before you pay, and it costs <strong>$carePct% of your ticket price</strong> (the amount is shown before you add it).</p>" : "<p>Travel Care Protection is an optional add-on for flight bookings that we may offer on your trip page before you pay. Its price is shown before you add it.</p>") . '<ul>
+        <li><strong>No service fee from us</strong> when you change the dates of your trip or cancel it' . ($fee > 0 ? " (normally $feeText each time)" : '') . '.</li>
+        <li><strong>Priority help:</strong> your change and cancellation requests are handled first by our travel assistants.</li>
+        <li>The airline\'s own penalties, fare differences and refund rules still apply. Travel Care doesn\'t make a non-refundable ticket refundable.</li>
+        <li>Travel Care is a service from ' . $site . ', not an insurance policy. It doesn\'t cover medical costs, lost baggage or other losses, so consider separate travel insurance for those.</li>
+        <li>It can only be added before you pay, and it is non-refundable once paid, except when your booking can\'t be ticketed and we refund everything you paid.</li>
     </ul>'],
     'packages' => ['Promo packages', '<p>Packages include exactly what is listed on the package (for example, round-trip flights and a hotel stay). Prices are per person and are only available for the departure dates shown. Each part of the package is provided by its supplier under its own rules.</p>'],
     'liability' => ['Our responsibility', '<p>We\'ll take reasonable care in arranging your bookings. We aren\'t responsible for the supplier\'s own services, delays, cancellations, overbooking or events outside our control (such as weather, strikes or government restrictions), but we\'ll help you deal with the supplier. Nothing in these terms limits rights you have under consumer protection law that can\'t be excluded.</p>'],

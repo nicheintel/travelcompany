@@ -18,6 +18,7 @@ const PERCENT_FIELDS = [
     'flight_markup_rate' => ['Flight markup', 300],
     'hotel_markup_rate' => ['Hotel markup', 300],
     'member_discount_rate' => ['Member discount', 90],
+    'travel_care_rate' => ['Travel Care Protection (flights)', 100],
 ];
 
 function save_setting(string $name, string $value): void
@@ -59,6 +60,11 @@ if (is_post() && post('action') === 'gcash_qr') {
             if (strlen($value) > 300 || preg_match('/\s/', $value)) $errors[$name] = 'That doesn\'t look like a valid key (no spaces).';
             else save_setting($name, $value);
         }
+    }
+    if (!config_fixed('change_service_fee')) {
+        $raw = trim((string) ($_POST['change_service_fee'] ?? ''));
+        if (!is_numeric($raw) || (float) $raw < 0 || (float) $raw > 1000) $errors['change_service_fee'] = 'Enter an amount from 0 to 1000.';
+        else save_setting('change_service_fee', (string) (int) round((float) $raw));
     }
     foreach (PERCENT_FIELDS as $name => [$label, $max]) {
         if (config_fixed($name)) continue;
@@ -189,7 +195,7 @@ $fixedNote = '<p class="mt-1 text-xs text-amber-700">Set in config.local.php or 
 
   <section class="rounded-xl border border-slate-200 bg-white p-6">
     <h2 class="text-lg font-semibold text-slate-900">Pricing</h2>
-    <p class="mt-1 text-sm text-slate-500">Markup is added to supplier prices; the member discount then comes off the total.</p>
+    <p class="mt-1 text-sm text-slate-500">Markup is added to supplier prices; the member discount then comes off the total. Travel Care Protection is the optional add-on customers see before paying for flights (a share of the ticket price; 0 = not offered).</p>
     <div class="mt-5 grid gap-4 sm:grid-cols-3">
       <?php foreach (PERCENT_FIELDS as $name => [$label, $max]): $fixed = config_fixed($name); ?>
         <div>
@@ -202,6 +208,15 @@ $fixedNote = '<p class="mt-1 text-xs text-amber-700">Set in config.local.php or 
           <?php if ($fixed): ?><?= $fixedNote ?><?php endif; ?>
         </div>
       <?php endforeach; ?>
+      <div>
+        <label for="s_change_service_fee" class="block text-sm font-medium text-slate-700">Our fee per change or cancellation</label>
+        <div class="relative mt-1">
+          <span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">$</span>
+          <input id="s_change_service_fee" name="change_service_fee" type="number" min="0" max="1000" step="1" value="<?= e(is_post() ? (string) ($_POST['change_service_fee'] ?? '') : (string) (int) config('change_service_fee')) ?>" class="<?= $input ?> pl-7"<?= config_fixed('change_service_fee') ? ' disabled' : '' ?>>
+        </div>
+        <?php if (isset($errors['change_service_fee'])): ?><p class="mt-1 text-sm text-red-600"><?= e($errors['change_service_fee']) ?></p><?php endif; ?>
+        <p class="mt-1 text-xs text-slate-500">Charged on top of the airline's penalty when a paid booking is changed or cancelled. Customers with Travel Care don't pay it. Shown to customers before they pay.</p>
+      </div>
     </div>
   </section>
 

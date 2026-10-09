@@ -250,6 +250,61 @@ function settle_bag_request(string $ref, ?int $amount, int $adminId, bool $alrea
     return true;
 }
 
+// ---------- Before paying: the checklist and Travel Care Protection ----------
+
+const TRAVEL_CARE_LABEL = 'Travel Care Protection';
+
+function travel_care_rate(): float
+{
+    return max(0.0, min(1.0, (float) config('travel_care_rate')));
+}
+
+/** Our own fee (USD) per change or cancellation of a paid booking; Travel Care waives it. */
+function change_service_fee(): int
+{
+    return max(0, (int) config('change_service_fee'));
+}
+
+/** Travel Care is offered on flights, before payment. */
+function travel_care_available(array $b): bool
+{
+    return $b['kind'] === 'flight' && $b['status'] === 'reserved' && travel_care_rate() > 0 && empty($b['gcash_ref']);
+}
+
+/** The ticket price Travel Care is a share of: the total without checked bags or Travel Care itself. */
+function travel_care_price(array $b): int
+{
+    $extras = array_sum(array_map(fn($l) => preg_match('/^(Checked bag × \d+|' . TRAVEL_CARE_LABEL . ')$/', $l['label']) ? $l['amount'] : 0, $b['quote']['lines']));
+    return (int) ceil(max(0, $b['total'] - $extras) * travel_care_rate());
+}
+
+/**
+ * The customer went through the "Before you pay" checklist and agreed: records that, and adds or removes
+ * Travel Care Protection on the unpaid booking (total and price breakdown). False if it can't be changed.
+ */
+function review_booking(string $ref, int $userId, bool $care): bool
+{
+    $r = db_one("SELECT * FROM bookings WHERE reference = ? AND user_id = ? AND status = 'reserved' AND gcash_ref IS NULL", [$ref, $userId]);
+    if (!$r) return false;
+    $b = to_booking($r);
+    $q = $b['quote'];
+    $old = (int) ($q['care'] ?? 0);
+    $q['lines'] = array_values(array_filter($q['lines'], fn($l) => $l['label'] !== TRAVEL_CARE_LABEL));
+    $b['quote'] = $q;
+    $b['total'] -= $old;
+    $new = $care && travel_care_available($b) ? travel_care_price($b) : 0;
+    if ($new) $q['lines'][] = ['label' => TRAVEL_CARE_LABEL, 'amount' => $new];
+    $q['subtotal'] += $new - $old;
+    $q['total'] = $b['total'] + $new;
+    $q['care'] = $new;
+    $q['reviewed_at'] = now_utc();
+    db_run("UPDATE bookings SET total = ?, quote_json = ? WHERE reference = ? AND status = 'reserved'", [$q['total'], json_encode($q, JSON_UNESCAPED_UNICODE), $ref]);
+    if ($new !== $old) {
+        add_event($ref, $userId, 'note', ($new ? 'Customer added Travel Care Protection (' . money($new) . ')' : 'Customer removed Travel Care Protection') . '. New total ' . money($q['total']) . '.');
+    }
+    return true;
+}
+
 /** Admin: permanently removes a booking and its activity log. */
 function delete_booking(string $ref): bool
 {

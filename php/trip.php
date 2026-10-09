@@ -13,6 +13,19 @@ if (is_post()) {
         notify_booking('cancelled', $ref);
         redirect(url('trip.php', ['ref' => $ref]));
     }
+    // "Before you pay": the customer confirms the checklist (and picks Travel Care) before paying.
+    if ($action === 'review' && $booking['status'] === 'reserved') {
+        if (empty($_POST['agree'])) {
+            flash(t('Please tick the box to confirm you have checked your trip details.'), 'error');
+            redirect(url('trip.php', ['ref' => $ref, 'review' => 1]) . '#review');
+        }
+        review_booking($ref, $user['id'], !empty($_POST['care']));
+        redirect(url('trip.php', ['ref' => $ref]) . '#pay');
+    }
+    if (in_array($action, ['pay', 'gcash'], true) && empty($booking['quote']['reviewed_at'])) {
+        flash(t('Please check your trip details below before paying.'), 'error');
+        redirect(url('trip.php', ['ref' => $ref, 'review' => 1]) . '#review');
+    }
     if ($action === 'gcash' && $booking['status'] === 'reserved' && gcash_enabled() && gcash_for_booking($booking) && ($booking['bag_status'] ?? null) !== 'pending') {
         // GCash reference numbers are 13 digits; allow spaces and a little slack for other formats.
         $gref = preg_replace('/[\s-]/', '', post('gcash_ref'));
@@ -79,6 +92,9 @@ $payFailed = $returned && $status === 'reserved';
 $bagPending = $status === 'reserved' && ($booking['bag_status'] ?? null) === 'pending';
 $canPay = $status === 'reserved' && payments_enabled() && !$bagPending;
 $canGcash = $status === 'reserved' && !$bagPending && gcash_enabled() && (gcash_for_booking($booking) || $booking['gcash_ref']);
+// Payment opens once the "Before you pay" checklist is confirmed (a GCash payment already sent skips it).
+$reviewed = !empty($booking['quote']['reviewed_at']) || $booking['gcash_ref'];
+$showReview = ($canPay || $canGcash) && !$booking['gcash_ref'] && (!$reviewed || ($_GET['review'] ?? '') === '1');
 $provider = payment_provider();
 $title = t('Trip {ref}', ['ref' => $ref]);
 require __DIR__ . '/includes/header.php';
@@ -177,7 +193,9 @@ $check = '<span class="grid h-10 w-10 shrink-0 place-items-center rounded-full b
       <?php elseif (($booking['bag_status'] ?? null) === 'declined' && $status === 'reserved'): ?>
         <div><?= alert_box(t("The airline couldn't add a checked bag to this booking, so your total hasn't changed. Contact us if you'd like other options."), 'success') ?></div>
       <?php endif; ?>
-      <?php if ($canPay || $canGcash):
+      <?php if ($showReview): ?>
+        <?= before_you_pay($booking, ($_GET['pay'] ?? '') === '1') ?>
+      <?php elseif ($canPay || $canGcash):
           $pesos = $canGcash ? gcash_amount($booking['total']) : null;
           $qr = $canGcash ? site_image('gcash_qr') : null;
           $both = $canPay && $canGcash;
@@ -185,6 +203,12 @@ $check = '<span class="grid h-10 w-10 shrink-0 place-items-center rounded-full b
           $gcashFirst = $canGcash && (!$canPay || $booking['gcash_ref'] || ($_GET['method'] ?? '') === 'gcash');
           $highlight = ($_GET['pay'] ?? '') === '1'; ?>
         <section id="pay" class="group scroll-mt-24 rounded-2xl border-2 bg-white p-6 <?= $highlight ? 'border-accent-500 ring-4 ring-accent-500/20' : 'border-brand-200' ?>"<?= $highlight ? ' data-scroll-into-view' : '' ?>>
+          <?php if (!$booking['gcash_ref']): ?>
+            <div class="mb-5 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-900 ring-1 ring-emerald-200">
+              <span class="flex items-center gap-2"><?= icon('check', 16, 'shrink-0 text-emerald-600') ?><?= e(t("You've checked your trip details.")) ?><?php if (!empty($booking['quote']['care'])): ?> <span class="font-semibold"><?= e(t('Travel Care Protection added.')) ?></span><?php endif; ?></span>
+              <a href="<?= e(url('trip.php', ['ref' => $ref, 'review' => 1])) ?>#review" class="font-semibold text-emerald-800 underline underline-offset-2 hover:text-emerald-950"><?= e(t('Review again')) ?></a>
+            </div>
+          <?php endif; ?>
           <h2 class="text-lg font-semibold text-slate-900"><?= e(t('Pay now to confirm')) ?></h2>
           <p class="mt-1 text-sm text-slate-600"><?= e(t('Total: {total}', ['total' => money($booking['total'])])) ?><?php if (($hint = price_hint($booking['total'])) !== ''): ?> <span class="text-slate-500">(<?= e($hint) ?>)</span><?php endif; ?></p>
 

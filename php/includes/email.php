@@ -174,6 +174,7 @@ function trip_rows(array $b): array
         'Travelers' => implode(', ', array_map(fn($t) => trim("{$t['first']} {$t['last']}"), $b['travelers'])),
         'Total' => money($b['total']),
     ] + (($tax = array_sum(array_map(fn($l) => $l['label'] === 'Taxes & fees' ? $l['amount'] : 0, $q['lines']))) > 0 ? ['Includes taxes & fees' => money($tax)] : [])
+      + (!empty($q['care']) ? ['Travel Care Protection' => 'Included (' . money((int) $q['care']) . ')'] : [])
       + (!empty($q['at_hotel']) ? ['Due at the hotel (not included)' => implode(', ', array_map(fn($f) => $f['label'] . ' ' . money($f['amount']), $q['at_hotel']))] : []);
 }
 

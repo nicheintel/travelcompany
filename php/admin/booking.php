@@ -98,7 +98,7 @@ echo admin_open('bookings');
   <nav class="text-sm text-slate-500"><a href="<?= e(url('admin/bookings.php')) ?>" class="hover:text-brand-700">← All bookings</a></nav>
   <?= alert_box($error) ?>
   <div class="flex flex-wrap items-center gap-3">
-    <h1 class="font-mono text-2xl font-bold text-slate-900"><?= e($ref) ?></h1><?= status_badge($booking['status']) ?>
+    <h1 class="font-mono text-2xl font-bold text-slate-900"><?= e($ref) ?></h1><?= status_badge($booking['status']) ?><?= !empty($q['care']) ? travel_care_badge() : '' ?>
     <span class="text-sm text-slate-500">Booked <?= local_time($booking['created_at']) ?>
       <?= $booking['paid_at'] ? ' · Paid ' . local_time($booking['paid_at']) . ' (' . e($booking['payment_method']) . ')' : '' ?>
       <?= $booking['ticketed_at'] ? ' · Ticketed ' . local_time($booking['ticketed_at']) : '' ?>
