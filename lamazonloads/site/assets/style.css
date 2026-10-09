@@ -2146,7 +2146,8 @@ a.nt-row:hover { background: var(--blue-50); text-decoration: none; }
 .fu-state-acts { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
 .fu-cron { grid-column: 1 / -1; display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; border-radius: 12px; background: #FFF6E5; color: #7A4B00; }
 .fu-cron > .ic { flex: none; width: 18px; height: 18px; margin-top: 3px; color: #B86E00; }
-.fu-cron b { display: block; color: inherit; font-size: .92rem; }
+.fu-cron > div > b { display: block; color: inherit; font-size: .92rem; }
+.fu-howto b { color: var(--ink); }
 .fu-cron small { color: inherit; opacity: .9; }
 .fu-cron.is-ok { background: #EAF7EF; color: #0D6B37; }
 .fu-cron.is-ok > .ic { color: var(--green); }
