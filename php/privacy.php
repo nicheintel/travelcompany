@@ -7,7 +7,7 @@ $mail = contact_email_link();
 $description = 'How FareFinders collects, uses and protects your personal information.';
 $title = 'Privacy policy';
 require __DIR__ . '/includes/header.php';
-echo legal_page('Privacy policy', "This policy explains what personal information $site collects when you use our website and book travel with us, why we need it, who we share it with and the choices you have.", 'October 6, 2026', [
+echo legal_page('Privacy policy', "This policy explains what personal information $site collects when you use our website and book travel with us, why we need it, who we share it with and the choices you have.", 'October 9, 2026', [
     'who' => ['Who we are', "<p>This website is run by $who, a travel assistant that helps customers find and book flights, hotels and travel packages. We decide how your personal information is used for the purposes below. Questions or requests: $mail.</p>"],
     'collect' => ['Information we collect', '<ul>
         <li><strong>Account details:</strong> your name, email address and password. Passwords are stored only in a securely scrambled (hashed) form — we can\'t see them.</li>
@@ -37,13 +37,13 @@ echo legal_page('Privacy policy', "This policy explains what personal informatio
         <p>We may also share information when the law requires it, or to protect our customers and business from fraud. Airlines and hotels use your information under their own privacy policies.</p>'],
     'abroad' => ['International transfers', '<p>Our suppliers and your airlines and hotels may be located in other countries, including outside the Philippines and the European Union. We only share what\'s needed for your trip, and we use established providers that protect personal information.</p>'],
     'keep' => ['How long we keep it', '<ul>
-        <li><strong>Your account:</strong> until you ask us to delete it.</li>
+        <li><strong>Your account:</strong> until you delete it (Account settings → Delete account) or ask us to delete it. Your saved details and chats are deleted with it.</li>
         <li><strong>Bookings and payment records:</strong> as long as the law requires us to keep business and tax records (usually several years), even if your account is deleted.</li>
         <li><strong>Security records</strong> such as sign-in attempt counters: a few hours at most.</li>
     </ul>'],
     'rights' => ['Your rights', "<p>Depending on where you live (including under the Philippine Data Privacy Act of 2012 and, for people in Europe, the GDPR), you can ask us to:</p>
         <ul><li>tell you what personal information we hold about you and give you a copy;</li><li>correct information that is wrong (you can change your name and email yourself in Account settings);</li>
-        <li>delete your account and personal information, unless we must keep it by law;</li><li>stop or limit some uses of your information, or object to them.</li></ul>
+        <li>delete your account and personal information, unless we must keep it by law (you can also delete your account yourself in Account settings);</li><li>stop or limit some uses of your information, or object to them.</li></ul>
         <p>Email $mail from the address on your account. We'll reply within 30 days. You can also complain to your data protection authority — in the Philippines, the National Privacy Commission.</p>"],
     'security' => ['How we protect it', '<p>The website uses an encrypted (https) connection, hashed passwords, protection against password guessing and forged requests, and limits who on our team can see bookings. No system is perfectly secure, but we work to protect your information and will tell you if a breach affects you, as the law requires.</p>'],
     'children' => ['Children', '<p>You must be 18 or older to create an account. Parents or guardians can book trips that include children; we only use children\'s details to book their travel.</p>'],

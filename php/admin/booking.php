@@ -112,7 +112,7 @@ echo admin_open('bookings');
           <p class="mt-2"><a href="tel:<?= e(preg_replace('/[^\d+]/', '', $booking['contact_phone'])) ?>" class="text-lg font-semibold text-brand-700 hover:underline"><?= e($booking['contact_phone']) ?></a></p>
           <p><a href="mailto:<?= e($booking['contact_email']) ?>?subject=<?= rawurlencode("Your trip $ref") ?>" class="text-brand-700 hover:underline"><?= e($booking['contact_email']) ?></a></p></div>
         <div><h2 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Account</h2>
-          <p class="mt-2 font-medium text-slate-900"><?= e($booking['customer_name']) ?></p><p class="text-sm text-slate-600"><?= e($booking['customer_email']) ?></p>
+          <p class="mt-2 font-medium text-slate-900"><?= e($booking['customer_name']) ?></p><?php if (!is_deleted_account(['email' => $booking['customer_email']])): ?><p class="text-sm text-slate-600"><?= e($booking['customer_email']) ?></p><?php endif; ?>
           <a href="<?= e(url('admin/bookings.php', ['user' => $booking['user_id']])) ?>" class="text-sm font-semibold text-brand-700 hover:underline">All bookings by this customer →</a></div>
       </section>
       <section class="rounded-xl border border-slate-200 bg-white p-5">

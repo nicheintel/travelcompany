@@ -20,6 +20,7 @@ const ICONS = [
     'headset' => '<path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"/>',
     'menu' => '<path d="M4 6h16M4 12h16M4 18h16"/>',
     'close' => '<path d="M18 6 6 18M6 6l12 12"/>',
+    'trash' => '<path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/>',
     'mail' => '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>',
     'chat' => '<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.4-5A8 8 0 1 1 21 12Z"/>',
 ];
@@ -383,8 +384,8 @@ function auth_shell_open(string $heading, string $subtitle, ?string $notice = nu
     return '<section class="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[1fr_1.1fr] lg:py-16">'
         . '<div class="relative hidden overflow-hidden rounded-3xl bg-gradient-to-br from-brand-900 via-brand-700 to-brand-500 p-10 text-white lg:block">'
         . icon('plane', 220, 'absolute -right-6 top-10 rotate-12 text-white/10', 1)
-        . '<div class="relative"><p class="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-sm font-medium ring-1 ring-white/20"><span class="h-2 w-2 rounded-full bg-accent-400"></span>' . e(t('Free membership')) . '</p>'
-        . '<h2 class="mt-6 text-3xl font-extrabold leading-tight">' . th('Travel smarter with your {free_account}', [], ['free_account' => '<span class="text-accent-400">' . e(t('free account')) . '</span>']) . '</h2><ul class="mt-8 space-y-4">' . $li . '</ul></div></div>'
+        . '<div class="relative"><p class="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-sm font-medium ring-1 ring-white/20"><span class="h-2 w-2 rounded-full bg-accent-400"></span>' . e(t('Member benefits')) . '</p>'
+        . '<h2 class="mt-6 text-3xl font-extrabold leading-tight">' . th('Travel smarter with {site}', [], ['site' => '<span class="text-accent-400">' . e(config('site_name')) . '</span>']) . '</h2><ul class="mt-8 space-y-4">' . $li . '</ul></div></div>'
         . '<div class="mx-auto w-full max-w-md self-center">'
         . ($notice ? '<p class="mb-5 rounded-xl bg-accent-500/10 px-4 py-3 text-sm font-medium text-accent-700 ring-1 ring-accent-500/30">' . e($notice) . '</p>' : '')
         . '<h1 class="text-3xl font-bold text-slate-900">' . e($heading) . '</h1><p class="mt-2 text-slate-600">' . e($subtitle) . '</p><div class="mt-8">';
@@ -400,7 +401,7 @@ function notice_for(?string $next): ?string
 {
     if (!$next) return null;
     $path = substr($next, strlen(base_path()));
-    if (str_starts_with($path, '/book.php')) return t('Sign in or create a free account to complete your booking.');
+    if (str_starts_with($path, '/book.php')) return t('Sign in or create an account to complete your booking.');
     if (str_starts_with($path, '/account') || str_starts_with($path, '/trip')) return t('Please sign in to view your account.');
     return null;
 }
@@ -557,7 +558,7 @@ function no_packages_box(): string
         $buttons .= '<a href="mailto:' . e($c['email']) . '?subject=' . rawurlencode('Custom flight + hotel trip') . '" class="flex items-center justify-center gap-2 rounded-xl bg-accent-500 px-5 py-3 font-semibold text-white hover:bg-accent-600">' . icon('mail', 18) . ' ' . e(t('Ask for a custom trip')) . '</a>';
     }
     if (!current_user()) {
-        $buttons .= '<a href="' . e(url('register.php')) . '" class="flex items-center justify-center rounded-xl px-5 py-3 font-semibold text-brand-700 ring-1 ring-brand-200 hover:bg-brand-50">' . e(t('Create free account')) . '</a>';
+        $buttons .= '<a href="' . e(url('register.php')) . '" class="flex items-center justify-center rounded-xl px-5 py-3 font-semibold text-brand-700 ring-1 ring-brand-200 hover:bg-brand-50">' . e(t('Create account')) . '</a>';
     }
     return '<div class="flex flex-col gap-4 rounded-xl bg-slate-50 p-5 lg:flex-row lg:items-center lg:justify-between">'
         . '<div><p class="font-semibold text-slate-900">' . e(t('New promo packages are coming soon.')) . '</p>'

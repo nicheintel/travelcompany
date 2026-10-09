@@ -95,7 +95,7 @@ require __DIR__ . '/includes/header.php';
         ['flights.php', 'from-sky-500 to-brand-700', 'plane', t('Flights'), t('Compare airlines'), t('Real fares from airlines worldwide.'), t('Search flights →')],
         $me
             ? ['account.php', 'from-emerald-500 to-teal-700', 'user', t('Your account'), t('Hi, {name}!', ['name' => explode(' ', $me['name'])[0]]), $memberPct > 0 ? t('Your {pct}% member discount is applied automatically on flights and hotels.', ['pct' => $memberPct]) : t('Your trips, confirmations and tickets in one place.'), t('My trips →')]
-            : ['register.php', 'from-emerald-500 to-teal-700', 'user', t('Members'), $memberPct > 0 ? t('Extra {pct}% off', ['pct' => $memberPct]) : t('Save your trips'), $memberPct > 0 ? t('Free account, member-only prices.') : t('Free account, faster booking.'), t('Create free account →')],
+            : ['register.php', 'from-emerald-500 to-teal-700', 'user', t('Members'), $memberPct > 0 ? t('Extra {pct}% off', ['pct' => $memberPct]) : t('Save your trips'), $memberPct > 0 ? t('Member-only prices on flights and hotels.') : t('Faster booking, all your trips in one place.'), t('Create account') . ' →'],
     ] as $tileNo => [$href, $grad, $ic, $kicker, $heading, $text, $cta]): ?>
       <a href="<?= e(url($href)) ?>" class="group relative isolate overflow-hidden rounded-2xl bg-gradient-to-br <?= $grad ?> p-6 text-white shadow-lg transition hover:-translate-y-1 hover:shadow-xl">
         <?= photo_fill(['tile-packages', 'tile-flights', 'tile-members'][$tileNo]) ?>
@@ -208,10 +208,10 @@ require __DIR__ . '/includes/header.php';
       <?php else: ?>
         <div>
           <h2 class="text-3xl font-bold"><?= e(t('Get member-only deals')) ?></h2>
-          <p class="mt-2 text-brand-100"><?= e(t('Create a free account to book faster, keep all your trips in one place and get member prices.')) ?></p>
+          <p class="mt-2 text-brand-100"><?= e(t('Create an account to book faster, keep all your trips in one place and get member prices.')) ?></p>
         </div>
         <div class="flex flex-col gap-3 sm:flex-row lg:justify-end">
-          <a href="<?= e(url('register.php')) ?>" class="rounded-xl bg-accent-500 px-6 py-3 text-center font-bold text-white shadow-lg hover:bg-accent-600"><?= e(t('Create free account')) ?></a>
+          <a href="<?= e(url('register.php')) ?>" class="rounded-xl bg-accent-500 px-6 py-3 text-center font-bold text-white shadow-lg hover:bg-accent-600"><?= e(t('Create account')) ?></a>
           <a href="<?= e(url('signin.php')) ?>" class="rounded-xl bg-white/10 px-6 py-3 text-center font-semibold text-white ring-1 ring-white/30 hover:bg-white/20"><?= e(t('I already have an account')) ?></a>
         </div>
       <?php endif; ?>

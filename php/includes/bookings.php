@@ -76,6 +76,12 @@ function user_bookings(int $userId): array
     return array_map('to_booking', db_all('SELECT * FROM bookings WHERE user_id = ? ORDER BY start_date ASC, created_at DESC', [$userId]));
 }
 
+/** Bookings that aren't cancelled and whose trip hasn't ended yet. */
+function upcoming_bookings(int $userId): array
+{
+    return array_values(array_filter(user_bookings($userId), fn($b) => $b['status'] !== 'cancelled' && ($b['quote']['end_date'] ?? $b['start_date']) >= today()));
+}
+
 /** Only returns the booking if it belongs to the user. */
 function user_booking(int $userId, string $reference): ?array
 {

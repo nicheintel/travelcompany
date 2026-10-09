@@ -1,7 +1,7 @@
 <?php
 require __DIR__ . '/includes/bootstrap.php';
 
-$user = require_user();
+$user = require_verified_user();
 $bookings = user_bookings($user['id']);
 $upcoming = array_values(array_filter($bookings, fn($b) => $b['status'] !== 'cancelled' && ($b['quote']['end_date'] ?? $b['start_date']) >= today()));
 $other = array_reverse(array_values(array_filter($bookings, fn($b) => !in_array($b, $upcoming, true))));
@@ -67,7 +67,7 @@ require __DIR__ . '/includes/header.php';
         <div class="min-w-0"><p class="truncate font-semibold text-slate-900"><?= e($user['name']) ?></p><p class="truncate text-sm text-slate-500"><?= e($user['email']) ?></p></div>
       </div>
       <dl class="mt-6 space-y-3 border-t border-slate-100 pt-4 text-sm">
-        <div class="flex justify-between"><dt class="text-slate-500"><?= e(t('Membership')) ?></dt><dd class="font-medium text-slate-900"><?= e(t('Free member')) ?></dd></div>
+        <div class="flex justify-between"><dt class="text-slate-500"><?= e(t('Membership')) ?></dt><dd class="font-medium text-slate-900"><?= e(t('Active')) ?></dd></div>
         <div class="flex justify-between"><dt class="text-slate-500"><?= e(t('Member since')) ?></dt><dd class="font-medium text-slate-900"><?= e($since) ?></dd></div>
       </dl>
       <?php if ($user['role'] === 'admin'): ?>

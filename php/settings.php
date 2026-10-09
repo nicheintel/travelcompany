@@ -17,20 +17,10 @@ if (is_post()) {
             redirect(url('settings.php'));
         }
     } elseif ($form === 'email') {
-        $email = normalize_email(post('email'));
-        if (!valid_email($email)) $errors['email'] = t('Please enter a valid email address.');
-        elseif ($email === $user['email']) $errors['email'] = t("That's already your email address.");
-        elseif ($err = check_password_with_lockout($row, (string) ($_POST['email_current'] ?? ''), t('Your current password is incorrect.'))) $errors['email_current'] = $err;
-        elseif (find_user_by_email($email)) $errors['email'] = t('Another account already uses this email.');
-        else {
-            db_run('UPDATE users SET email = ?, email_verified_at = NULL WHERE id = ?', [$email, $user['id']]);
-            send_verification_email(['email' => $email] + $user);
-            // Tell the old address, so a hijacked account doesn't go unnoticed.
-            send_email($user['email'], simple_email('Your ' . config('site_name') . ' email address was changed', 'Your email address was changed', explode(' ', $user['name'])[0], [
-                "The email address on your account was changed to $email. Future emails will go there.",
-                "If this wasn't you, reset your password right away and contact our support team.",
-            ], [], account_link('forgot-password.php'), 'Reset password'));
-            flash(t("Your email is now {email}. We've sent a confirmation link there — please open it.", ['email' => $email]));
+        $errors = change_email($user, post('email'), (string) ($_POST['email_current'] ?? ''));
+        if (isset($errors['password'])) $errors['email_current'] = $errors['password'];
+        if (!$errors) {
+            flash(t("Your email is now {email}. We've sent a confirmation link there — please open it.", ['email' => normalize_email(post('email'))]));
             redirect(url('settings.php'));
         }
     } elseif ($form === 'password') {
@@ -50,6 +40,23 @@ if (is_post()) {
             flash(t("Password changed. You've been signed out on all other devices."));
             redirect(url('settings.php'));
         }
+    } elseif ($form === 'delete' && $user['role'] !== 'admin') {
+        $trip = upcoming_bookings($user['id'])[0] ?? null;
+        if ($trip) $errors['delete_password'] = t('You have an upcoming trip ({ref}). Please contact us before deleting your account, so we can still reach you about it.', ['ref' => $trip['reference']]);
+        elseif ($err = check_password_with_lockout($row, (string) ($_POST['delete_password'] ?? ''), t('Your current password is incorrect.'))) $errors['delete_password'] = $err;
+        else {
+            if ($user['verified']) {
+                in_english(fn() => send_email($user['email'], simple_email('Your ' . config('site_name') . ' account was deleted', 'Your account was deleted', explode(' ', $user['name'])[0], [
+                    'As you asked, your ' . config('site_name') . ' account has been deleted and you have been signed out everywhere. You can no longer sign in with this email address and password.',
+                    'We keep records of past bookings only for as long as the law requires, as our privacy policy explains.',
+                    "If you didn't ask for this, please contact us right away.",
+                ], [], app_url(), 'Visit ' . config('site_name'))));
+            }
+            delete_account($user);
+            logout_user();
+            flash(t('Your account has been deleted. Thank you for travelling with us.'));
+            redirect(url());
+        }
     }
 }
 $title = 'Account settings';
@@ -59,9 +66,13 @@ $open = fn(string $id, string $icon, string $h, string $d) => '<section id="' . 
     . '<div class="flex items-start gap-4 border-b border-slate-100 p-6"><span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand-600">' . icon($icon, 20) . '</span>'
     . '<div><h2 class="text-lg font-semibold text-slate-900">' . e($h) . '</h2><p class="mt-0.5 text-sm text-slate-500">' . $d . '</p></div></div>';
 $actions = fn(string $label) => '<div class="flex justify-end border-t border-slate-100 bg-slate-50 px-6 py-4">' . submit_button($label, t('Saving…'), 'w-full px-6 sm:w-auto') . '</div>';
-$nav = [['profile', 'user', t('Profile')], ['email', 'mail', t('Email address')], ['password', 'shield', t('Password')], ['help', 'headset', t('Help')]];
 $contacts = support_contacts();
-if (!$contacts) array_pop($nav);
+$canDelete = $user['role'] !== 'admin';
+$nav = array_merge(
+    [['profile', 'user', t('Profile')], ['email', 'mail', t('Email address')], ['password', 'shield', t('Password')]],
+    $contacts ? [['help', 'headset', t('Help')]] : [],
+    $canDelete ? [['delete', 'trash', t('Delete account')]] : [],
+);
 ?>
 <div class="mx-auto max-w-6xl px-4 py-10 sm:px-6">
   <nav class="mb-4 text-sm text-slate-500"><a href="<?= e(url('account.php')) ?>" class="hover:text-brand-700">← <?= e(t('My account')) ?></a></nav>
@@ -126,6 +137,20 @@ if (!$contacts) array_pop($nav);
             <?php if (isset($contacts['whatsapp'])): ?><a href="https://wa.me/<?= e(preg_replace('/\D/', '', $contacts['whatsapp'])) ?>" target="_blank" rel="noopener" class="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-emerald-700 ring-1 ring-emerald-200 hover:bg-emerald-50"><?= icon('chat', 16) ?> WhatsApp <?= e($contacts['whatsapp']) ?></a><?php endif; ?>
             <?php if (isset($contacts['phone'])): ?><a href="tel:<?= e(preg_replace('/[^\d+]/', '', $contacts['phone'])) ?>" class="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50"><?= icon('headset', 16) ?> <?= e($contacts['phone']) ?></a><?php endif; ?>
           </div>
+        </section>
+      <?php endif; ?>
+
+      <?php if ($canDelete): ?>
+        <section id="delete" class="scroll-mt-24 overflow-hidden rounded-2xl border border-red-200 bg-white">
+          <div class="flex items-start gap-4 border-b border-red-100 p-6"><span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-red-50 text-red-600"><?= icon('trash', 20) ?></span>
+            <div><h2 class="text-lg font-semibold text-slate-900"><?= e(t('Delete account')) ?></h2><p class="mt-0.5 text-sm text-slate-500"><?= e(t('Permanently delete your account, saved details and chats. This cannot be undone.')) ?></p></div></div>
+          <form method="post" novalidate data-confirm="<?= e(t('Delete your account permanently? This cannot be undone.')) ?>"><?= csrf_field() ?><input type="hidden" name="form" value="delete">
+            <div class="space-y-4 p-6">
+              <p class="text-sm text-slate-600"><?= e(t('Records of past bookings are kept only as long as the law requires. If you have an upcoming trip, please contact us first.')) ?></p>
+              <div class="sm:max-w-md"><?= text_field('delete_password', t('Current password'), '', 'password', $errors['delete_password'] ?? null, ['autocomplete' => 'current-password']) ?></div>
+            </div>
+            <div class="flex justify-end border-t border-red-100 bg-red-50/50 px-6 py-4"><button type="submit" class="w-full rounded-xl bg-red-600 px-6 py-3 font-semibold text-white shadow-sm transition hover:bg-red-700 sm:w-auto"><?= e(t('Delete my account')) ?></button></div>
+          </form>
         </section>
       <?php endif; ?>
     </div>

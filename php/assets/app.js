@@ -545,6 +545,25 @@
       : "On: all animations play on this device.");
   }
 
+  // "Check your email" screen: moves on by itself once the link is opened (in another tab or on a phone).
+  function initVerifyWait() {
+    const box = $("[data-verify-wait]");
+    if (!box || !window.fetch) return;
+    const started = Date.now();
+    let busy = false;
+    const check = () => {
+      if (busy || document.hidden || Date.now() - started > 30 * 60 * 1000) return;
+      busy = true;
+      fetch(box.dataset.poll, { credentials: "same-origin", headers: { Accept: "application/json" } })
+        .then((r) => (r.ok ? r.json() : {}))
+        .then((j) => { if (j && j.verified) location.href = box.dataset.next; })
+        .catch(() => {})
+        .then(() => { busy = false; });
+    };
+    setInterval(check, 5000);
+    document.addEventListener("visibilitychange", check);
+  }
+
   // Booking page: the trip summary's "Checked bag" line follows the Add checked bag buttons.
   function initBagSummary() {
     const toggles = $$("[data-bag-toggle]");
@@ -571,7 +590,7 @@
     $$("[data-results]").forEach(initResults);
     $$("[data-tabs]").forEach(initTabs);
     // Each part runs on its own, so a problem in one never stops the others.
-    [initImageFade, initProgress, initMenus, initForms, initBagSummary, initSearchWait, initHeader, initHero, initReveal, initBrowserCheck].forEach((fn) => {
+    [initImageFade, initProgress, initMenus, initForms, initBagSummary, initSearchWait, initHeader, initHero, initReveal, initBrowserCheck, initVerifyWait].forEach((fn) => {
       try { fn(); } catch (e) { if (window.console) console.error(e); }
     });
   });

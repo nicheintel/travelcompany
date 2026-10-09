@@ -138,6 +138,7 @@ function chat_send(string $body, string $name, string $email, string $page = '')
             $email = normalize_email($email);
             if ($name === '' || mb_strlen($name) > 80) return [null, t('Enter your name.')];
             if (!valid_email($email) || mb_strlen($email) > 190) return [null, t('Enter a valid email, so we can reply if you leave.')];
+            if (($fix = email_typo($email)) !== null) return [null, t('Check the spelling. Did you mean {email}?', ['email' => $fix])];
             if (ip_throttled('chat-new', CHAT_NEW_PER_HOUR, 3600)) return [null, t('Please wait a little before starting another chat.')];
             if ($owner[1] === '') $owner[1] = chat_new_cookie();
         }

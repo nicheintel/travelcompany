@@ -122,6 +122,17 @@ function require_user(): array
     return $user;
 }
 
+/** Account, trip and booking pages: customers who haven't confirmed their email yet see the "Check your email"
+    screen first, then come back here. Admins are never held up (email may not be set up yet). */
+function require_verified_user(): array
+{
+    $user = require_user();
+    if (!$user['verified'] && $user['role'] !== 'admin') {
+        redirect(url('verify-email.php', ['next' => current_path_with_query()]));
+    }
+    return $user;
+}
+
 /** Admin pages and actions. Others get "not found" so the area isn't advertised. */
 function require_admin(): array
 {
@@ -154,6 +165,41 @@ function name_problem(string $name): ?string
 function valid_email(string $email): bool
 {
     return strlen($email) <= 254 && filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
+}
+
+/**
+ * A likely typo in the part after the @ (gmail.con, gmial.com, yahoo.co, hotmal.com…), so the confirmation
+ * link and tickets would never arrive. Returns the corrected address to suggest, or null when it looks fine.
+ */
+function email_typo(string $email): ?string
+{
+    $at = strrpos($email, '@');
+    if ($at === false) return null;
+    $domain = strtolower(substr($email, $at + 1));
+    $real = ['gmail.com', 'googlemail.com', 'yahoo.com', 'ymail.com', 'hotmail.com', 'outlook.com', 'live.com', 'icloud.com', 'me.com', 'mail.com', 'email.com', 'gmx.com', 'cloud.com'];
+    if (in_array($domain, $real, true)) return null;
+    $parts = explode('.', $domain);
+    $last = array_pop($parts);
+    // No website address ends in .con, .cmo, .comm… — these are always a slip for .com.
+    $end = in_array($last, ['con', 'cmo', 'ocm', 'comm', 'coom', 'cpm', 'vom', 'xom', 'cim', 'clm', 'cmm', 'conm', 'comn'], true) ? 'com' : $last;
+    // The big email providers: one letter missing, extra, wrong or swapped (two for the longer names).
+    if (count($parts) === 1 && in_array($end, ['com', 'co', 'cm', 'om'], true)) {
+        foreach (['gmail', 'yahoo', 'hotmail', 'outlook', 'icloud'] as $provider) {
+            if (email_typo_near($parts[0], $provider, strlen($provider) >= 7 ? 2 : 1)) return substr($email, 0, $at + 1) . "$provider.com";
+        }
+    }
+    return $end === $last ? null : substr($email, 0, $at + 1) . implode('.', [...$parts, $end]);
+}
+
+/** Whether $a is at most $max typing slips away from $b (two swapped letters count as one). */
+function email_typo_near(string $a, string $b, int $max): bool
+{
+    $d = levenshtein($a, $b);
+    if ($d === 2 && strlen($a) === strlen($b)) {
+        for ($i = 0; $a[$i] === $b[$i]; $i++);
+        if ($i < strlen($a) - 1 && $a[$i] === $b[$i + 1] && $a[$i + 1] === $b[$i] && substr($a, $i + 2) === substr($b, $i + 2)) $d = 1;
+    }
+    return $d <= $max;
 }
 
 // ---------- Rate limiting (stored in the database) ----------
@@ -300,6 +346,31 @@ function send_verification_email(array $user): void
     ));
 }
 
+/** Changes the sign-in email after checking the password: a confirmation link goes to the new address and,
+    if the old one was confirmed, a heads-up goes there. Returns problems by field ('email', 'password'); empty = done. */
+function change_email(array $user, string $email, string $password): array
+{
+    $email = normalize_email($email);
+    if (!valid_email($email)) return ['email' => t('Please enter a valid email address.')];
+    if ($email === $user['email']) return ['email' => t("That's already your email address.")];
+    if (($fix = email_typo($email)) !== null) return ['email' => t('Check the spelling. Did you mean {email}?', ['email' => $fix])];
+    $row = db_one('SELECT * FROM users WHERE id = ?', [$user['id']]);
+    if ($err = check_password_with_lockout($row, $password, t('Your current password is incorrect.'))) return ['password' => $err];
+    if (find_user_by_email($email)) return ['email' => t('Another account already uses this email.')];
+    if (rate_limited('email-change:' . $user['id'], 5)) return ['email' => t('Too many changes. Please try again in an hour.')];
+    rate_hit('email-change:' . $user['id'], 3600);
+    db_run('UPDATE users SET email = ?, email_verified_at = NULL WHERE id = ?', [$email, $user['id']]);
+    send_verification_email(['email' => $email] + $user);
+    // Tell the old address, so a hijacked account doesn't go unnoticed.
+    if ($user['verified']) {
+        send_email($user['email'], simple_email('Your ' . config('site_name') . ' email address was changed', 'Your email address was changed', explode(' ', $user['name'])[0], [
+            "The email address on your account was changed to $email. Future emails will go there.",
+            "If this wasn't you, reset your password right away and contact our support team.",
+        ], [], account_link('forgot-password.php'), 'Reset password'));
+    }
+    return [];
+}
+
 /** Confirms the email the link was sent to (if the account still uses it). Returns the user id or null. */
 function confirm_email_token(string $token): ?int
 {
@@ -313,4 +384,41 @@ function confirm_email_token(string $token): ?int
     db_run('UPDATE email_verifications SET used_at = ? WHERE token_hash = ?', [now_utc(), hash('sha256', $token)]);
     db_run('UPDATE users SET email_verified_at = COALESCE(email_verified_at, ?) WHERE id = ?', [now_utc(), $row['user_id']]);
     return (int) $row['user_id'];
+}
+
+// ---------- Deleting an account ----------
+
+const DELETED_EMAIL_DOMAIN = '@deleted.invalid';
+
+function is_deleted_account(array $user): bool
+{
+    return str_ends_with((string) ($user['email'] ?? ''), DELETED_EMAIL_DOMAIN);
+}
+
+/**
+ * Deletes an account with its chats and email links. Bookings are business and tax records the law makes us keep,
+ * so an account that has bookings is emptied instead: its name and email are removed, it can never sign in again,
+ * and the email address is free for a new account.
+ */
+function delete_account(array $user): void
+{
+    $pdo = db();
+    $pdo->beginTransaction();
+    try {
+        db_run('DELETE FROM support_threads WHERE user_id = ?', [$user['id']]); // their messages go with them
+        db_run('DELETE FROM email_verifications WHERE user_id = ?', [$user['id']]);
+        db_run('DELETE FROM password_resets WHERE user_id = ?', [$user['id']]);
+        if (db_one('SELECT 1 FROM bookings WHERE user_id = ? LIMIT 1', [$user['id']])) {
+            db_run(
+                "UPDATE users SET name = 'Deleted account', email = ?, password_hash = ?, role = 'customer', session_version = session_version + 1, email_verified_at = NULL WHERE id = ?",
+                ['deleted-' . $user['id'] . DELETED_EMAIL_DOMAIN, password_hash(bin2hex(random_bytes(32)), PASSWORD_DEFAULT), $user['id']],
+            );
+        } else {
+            db_run('DELETE FROM users WHERE id = ?', [$user['id']]);
+        }
+        $pdo->commit();
+    } catch (Throwable $e) {
+        $pdo->rollBack();
+        throw $e;
+    }
 }

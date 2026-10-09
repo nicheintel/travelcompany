@@ -41,7 +41,7 @@ echo auth_shell_open(t('Welcome back'), t('Sign in to manage your trips and unlo
   <?= text_field('password', t('Password'), '', 'password', $errors['password'] ?? null, ['autocomplete' => 'current-password']) ?>
   <div class="-mt-2 text-right"><a href="<?= e(url('forgot-password.php')) ?>" class="text-sm font-medium text-brand-700 hover:underline"><?= e(t('Forgot password?')) ?></a></div>
   <?= submit_button(t('Sign in'), t('Signing in…')) ?>
-  <p class="text-center text-sm text-slate-600"><?= th('New here? {link}', [], ['link' => '<a href="' . e(url('register.php', ['next' => $next ?: null])) . '" class="font-semibold text-brand-700 hover:underline">' . e(t('Create a free account')) . '</a>']) ?></p>
+  <p class="text-center text-sm text-slate-600"><?= th('New here? {link}', [], ['link' => '<a href="' . e(url('register.php', ['next' => $next ?: null])) . '" class="font-semibold text-brand-700 hover:underline">' . e(t('Create account')) . '</a>']) ?></p>
 </form>
 <?php
 echo auth_shell_close();

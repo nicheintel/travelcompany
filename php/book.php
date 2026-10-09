@@ -3,7 +3,7 @@ require __DIR__ . '/includes/bootstrap.php';
 
 $kind = (string) ($_GET['kind'] ?? '');
 if (!in_array($kind, BOOKING_KINDS, true)) not_found();
-$user = require_user();
+$user = require_verified_user();
 if (ip_throttled('quote', 60, 600)) {
     http_response_code(429);
     exit(t('Too many requests. Please wait a few minutes and try again.'));
@@ -69,6 +69,7 @@ if ($quote && is_post()) {
         $phoneNumber = preg_replace('/[\s().-]/', '', $values['phone'] ?? '');
         if (mb_strlen($contactName) < 2 || mb_strlen($contactName) > 100 || !preg_match($nameRe, $contactName)) $errors['contact_name'] = t('Enter the name of the person we should contact.');
         if (!valid_email($email)) $errors['email'] = t('Enter a valid email address.');
+        elseif (($fix = email_typo($email)) !== null) $errors['email'] = t('Check the spelling. Did you mean {email}?', ['email' => $fix]);
         if (!isset(COUNTRY_DIAL[$phoneCountry])) $errors['phone'] = t('Choose the country code.');
         elseif (!preg_match('/^\+?[0-9]{4,15}$/', $phoneNumber)) $errors['phone'] = t('Enter a valid mobile number.');
         // Stored as "+63 9171234567" (numbers typed with their own +code are kept as typed).

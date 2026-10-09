@@ -14,6 +14,7 @@ if (is_post()) {
     $confirm = (string) ($_POST['confirm'] ?? '');
     if ($err = name_problem($name)) $errors['name'] = $err;
     if (!valid_email($email)) $errors['email'] = t('Please enter a valid email address.');
+    elseif (($fix = email_typo(normalize_email($email))) !== null) $errors['email'] = t('Check the spelling. Did you mean {email}?', ['email' => $fix]);
     if ($err = password_problem($password)) $errors['password'] = $err;
     if ($password !== $confirm) $errors['confirm'] = t("Passwords don't match.");
     if (!$errors && ip_throttled('register', 10, 3600)) $errors['email'] = t('Too many new accounts from your network. Please try again in an hour.');
@@ -24,7 +25,7 @@ if (is_post()) {
             $newUser = find_user((int) db()->lastInsertId());
             login_user($newUser);
             send_verification_email($newUser);
-            redirect($next ?: url('account.php'));
+            redirect(url('verify-email.php', ['next' => $next ?: url('account.php')]));
         } catch (PDOException $e) {
             if ((int) ($e->errorInfo[1] ?? 0) !== 1062) throw $e;
             $errors['email'] = t('An account with this email already exists. Try signing in.');
@@ -33,7 +34,7 @@ if (is_post()) {
 }
 $title = 'Create account';
 require __DIR__ . '/includes/header.php';
-echo auth_shell_open(t('Create your free account'), t('It takes less than a minute. No credit card needed.'), notice_for($next));
+echo auth_shell_open(t('Create your account'), t('Book faster and keep all your trips in one place.'), notice_for($next));
 ?>
 <form method="post" class="space-y-5" novalidate data-pending-form>
   <?= csrf_field() ?><input type="hidden" name="next" value="<?= e($next) ?>">
