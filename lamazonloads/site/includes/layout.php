@@ -73,7 +73,8 @@ function tel_href(string $phone): string
 
 function logo_html(string $class = ''): string
 {
-    return '<img class="logo ' . e($class) . '" src="' . e(asset('brand/logo.webp')) . '" alt="LamazonLoads: Why wait? Let\'s freight." width="364" height="204">';
+    // The logo on solid white (not see-through): phones' automatic dark mode can't recolor it or hide its lettering
+    return '<img class="logo ' . e($class) . '" src="' . e(asset('brand/logo-on-white.webp')) . '" alt="LamazonLoads: Why wait? Let\'s freight." width="364" height="204">';
 }
 
 function page_header(string $title, string $active = '', string $description = '', string $bodyClass = ''): void
@@ -97,6 +98,7 @@ function page_header(string $title, string $active = '', string $description = '
 <title><?= e($title === '' ? "LamazonLoads | Why Wait? Let's Freight." : $title . ' | LamazonLoads') ?></title>
 <meta name="description" content="<?= e($desc) ?>">
 <meta name="theme-color" content="#0A2463">
+<meta name="color-scheme" content="only light"><?php // a light-only site: phones and browsers don't apply their automatic dark mode ?>
 <meta property="og:title" content="<?= e($title ?: 'LamazonLoads') ?>">
 <meta property="og:description" content="<?= e($desc) ?>">
 <meta property="og:type" content="website">
@@ -110,7 +112,7 @@ function page_header(string $title, string $active = '', string $description = '
 <?php // Icon addresses never change between uploads (Google asks for a stable favicon URL). To change an icon, give the file a new name. ?>
 <link rel="icon" href="<?= e(url('favicon.ico')) ?>" sizes="16x16 32x32 48x48">
 <link rel="icon" href="<?= e(url('assets/brand/favicon-192.png')) ?>" type="image/png" sizes="192x192">
-<link rel="apple-touch-icon" href="<?= e(url('assets/brand/apple-touch-icon.png')) ?>">
+<link rel="apple-touch-icon" href="<?= e(url('assets/brand/apple-touch-icon-on-white.png')) ?>"><?php // solid white square: iPhones fill see-through corners with black ?>
 <link rel="manifest" href="<?= e(url('site.webmanifest')) ?>">
 <link rel="preload" href="<?= e(url('assets/fonts/inter-latin.woff2')) ?>" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="<?= e(url('assets/fonts/montserrat-italic-latin.woff2')) ?>" as="font" type="font/woff2" crossorigin>

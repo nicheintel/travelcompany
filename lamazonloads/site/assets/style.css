@@ -32,6 +32,7 @@
 }
 *, *::before, *::after { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
+:root { color-scheme: only light; } /* LamazonLoads is blue on white: browsers keep it that way, logo included */
 body { margin: 0; font-family: var(--font); color: var(--text); background: var(--bg); line-height: 1.6; -webkit-font-smoothing: antialiased; }
 img { max-width: 100%; display: block; }
 a { color: var(--blue); text-decoration: none; }
@@ -87,7 +88,7 @@ html.is-sending::before { content: ""; position: fixed; z-index: 2000; top: 0; l
 .link-btn { background: none; border: 0; padding: 0; color: var(--blue); font: inherit; cursor: pointer; }
 
 /* ---------- Header ---------- */
-.site-header { position: sticky; top: 0; z-index: 50; background: rgba(255, 255, 255, .92); backdrop-filter: saturate(1.4) blur(10px); border-bottom: 1px solid var(--line); }
+.site-header { position: sticky; top: 0; z-index: 50; background: #fff; border-bottom: 1px solid var(--line); } /* solid white, like the logo's own background */
 .header-row { display: flex; align-items: center; justify-content: space-between; gap: 20px; min-height: 84px; }
 .brand:hover { text-decoration: none; }
 .site-nav { display: flex; align-items: center; gap: 24px; }
@@ -349,7 +350,7 @@ tr:last-child td { border-bottom: 0; }
 /* Header tightens once you scroll */
 .site-header { transition: box-shadow .25s, background .25s; }
 .site-header .logo { transition: height .25s; }
-.site-header.scrolled { box-shadow: 0 6px 20px rgba(10, 36, 99, .08); background: rgba(255, 255, 255, .97); }
+.site-header.scrolled { box-shadow: 0 6px 20px rgba(10, 36, 99, .08); }
 .site-header.scrolled .logo { height: 56px; }
 
 /* Hero entrance: copy rises in, the motto "drives" in, the card slides from the right */
