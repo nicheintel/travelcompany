@@ -33,8 +33,8 @@ $todo = array_filter([
     ['chat', 'Support chats waiting for a reply', $counts['chats'], 'admin/chats.php'],
     ['mail', 'Unread contact messages', $counts['messages'], 'admin/messages.php'],
     ['handshake', 'New partner requests', $counts['partners'], 'admin/partners.php?status=new'],
-    ['shield', 'Insurance expired or expiring within 30 days', $insurance, 'admin/drivers.php'],
-    ['user', 'Members who haven’t confirmed their email', $unconfirmed, 'admin/drivers.php'],
+    ['shield', 'Insurance expired or expiring within 30 days', $insurance, 'admin/drivers.php?acct=insurance'],
+    ['user', 'Members who haven’t confirmed their email', $unconfirmed, 'admin/drivers.php?acct=unconfirmed'],
 ], fn ($t) => $t[2] > 0);
 
 page_header('Admin overview');

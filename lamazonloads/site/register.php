@@ -60,7 +60,9 @@ if (is_post()) {
         $user = db_one('SELECT * FROM users WHERE id = ?', [(int) db()->lastInsertId()]);
         onboarding_apply_invite($user); // staff sent them an onboarding email before they had an account
         login_user($user);
-        send_verification($user);
+        if (!send_verification($user)) {
+            flash('error', 'We couldn’t send your confirmation email just now. Please tap “Resend email” below in a minute, or contact us.');
+        }
         if ($next !== 'account.php') {
             $_SESSION['after_verify'] = $next; // e.g. the job they were applying for
         }

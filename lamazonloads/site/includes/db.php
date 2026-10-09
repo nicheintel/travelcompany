@@ -101,10 +101,6 @@ function migrate(PDO $pdo): void
             OR EXISTS (SELECT 1 FROM documents d WHERE d.user_id = o.user_id AND d.kind IN ('vehicle_photo', 'w9', 'insurance', 'license'))
             OR EXISTS (SELECT 1 FROM driver_profiles p WHERE p.user_id = o.user_id AND p.payout_method <> '')");
     }
-    // Drivers who already got the Dispatch or Walmart email before website onboarding existed start at "upload documents"
-    $pdo->exec("INSERT IGNORE INTO onboarding (user_id, track, stage, created_at, updated_at)
-        SELECT user_id, IF(SUM(email_sent = 'dispatch') > 0, 'dispatch', 'walmart'), 'documents', MIN(COALESCE(email_sent_at, created_at)), NOW()
-        FROM applications WHERE email_sent IN ('dispatch', 'walmart') GROUP BY user_id");
     add_missing_columns($pdo, 'applications', [
         'resume_doc_id' => 'INT UNSIGNED NULL', 'reminded_at' => 'DATETIME NULL', 'auto_note' => "VARCHAR(255) NOT NULL DEFAULT ''",
         // Driver application form (vehicles, Walmart daily route) and the onboarding email that went out
@@ -116,6 +112,13 @@ function migrate(PDO $pdo): void
         'rate_requested' => "VARCHAR(40) NOT NULL DEFAULT ''",
         'email_sent' => "VARCHAR(20) NOT NULL DEFAULT ''", 'email_sent_at' => 'DATETIME NULL',
     ]);
+    // Drivers who already got the Dispatch or Walmart email before website onboarding existed start at "upload documents"
+    $pdo->exec("INSERT IGNORE INTO onboarding (user_id, track, stage, created_at, updated_at)
+        SELECT user_id, IF(SUM(email_sent = 'dispatch') > 0, 'dispatch', 'walmart'), 'documents', MIN(COALESCE(email_sent_at, created_at)), NOW()
+        FROM applications WHERE email_sent IN ('dispatch', 'walmart') GROUP BY user_id");
+    add_missing_columns($pdo, 'followup_log', ['failed' => 'TINYINT(1) NOT NULL DEFAULT 0']); // a reminder the mail server refused
+    // A follow-up's new confirm link doesn't cancel the one in the sign-up email (that one still works until it expires)
+    add_missing_columns($pdo, 'users', ['verify_prev' => 'CHAR(64) NULL', 'verify_prev_expires' => 'DATETIME NULL']);
     // Walmart daily route program: starting cities
     if (!$pdo->query("SELECT v FROM meta WHERE k = 'walmart_seeded'")->fetchColumn()) {
         $st = $pdo->prepare('INSERT INTO walmart_routes (city, active, created_at) VALUES (?, 1, NOW())');

@@ -66,7 +66,7 @@ const FAQ = [
             'Yes. Let our team know which available location works best for you. Placement is still subject to availability.'],
     ]],
     'walmart' => ['Walmart routes', 'cart', [
-        'walmart' => ['Does LamazonLoads have Walmart routes?',
+        'walmart-routes' => ['Does LamazonLoads have Walmart routes?',
             'LamazonLoads may have access to Walmart-related delivery opportunities in select markets when contracts and routes are available.'],
         'walmart-permanent' => ['Are Walmart routes permanent?',
             'Not necessarily. Route availability can change because of volume, customer decisions, performance or contract changes.'],
@@ -118,7 +118,7 @@ const FAQ = [
             "Contact LamazonLoads support with:\n- Your full name\n- Route/load date\n- Pickup location\n- Amount expected\nOur team can review the payment status."],
     ]],
     'referral' => ['Referral program', 'users', [
-        'referral' => ['Does LamazonLoads have a referral program?',
+        'referral-program' => ['Does LamazonLoads have a referral program?',
             'Yes. Referral opportunities may be offered for drivers who introduce qualified drivers to LamazonLoads.'],
         'referral-how' => ['How does the referral program work?',
             'You refer a driver to LamazonLoads. The driver must qualify, complete onboarding and successfully complete qualifying work before referral compensation becomes payable.'],

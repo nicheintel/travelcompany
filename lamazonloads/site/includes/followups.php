@@ -108,7 +108,9 @@ function followup_candidates(string $kind, int $window): array
 {
     $since = 'NOW() - INTERVAL ' . max(1, $window) . ' DAY';
     // Onboarding reminders need a signed-in driver: accounts your team added that never signed in get "signin" instead
-    $member = 'u.is_admin = 0 AND u.email_verified_at IS NOT NULL AND (u.added_by IS NULL OR u.last_login_at IS NOT NULL)';
+    $member = 'u.is_admin = 0 AND u.email_verified_at IS NOT NULL AND (u.added_by IS NULL OR u.last_login_at IS NOT NULL)'
+        // not someone your team turned down: every application they sent is "Not selected"
+        . " AND (NOT EXISTS (SELECT 1 FROM applications a WHERE a.user_id = u.id) OR EXISTS (SELECT 1 FROM applications a WHERE a.user_id = u.id AND a.status <> 'not_selected'))";
     $onb = 'SELECT u.id AS user_id, u.email, u.name, %s AS anchor%s FROM onboarding o JOIN users u ON u.id = o.user_id WHERE ' . $member . ' AND %s';
     return match ($kind) {
         'verify' => db_all("SELECT u.id AS user_id, u.email, u.name, u.created_at AS anchor FROM users u
@@ -118,7 +120,8 @@ function followup_candidates(string $kind, int $window): array
         'changes' => db_all(sprintf($onb, 'o.reviewed_at', ', o.review_note', "o.stage = 'changes' AND o.reviewed_at >= $since")),
         'sign' => db_all(sprintf($onb, 'o.approved_at', '', "o.stage = 'contract' AND o.approved_at >= $since")),
         'invite' => db_all("SELECT NULL AS user_id, m.email, m.first_name AS name, m.type, m.city, m.sent_at AS anchor FROM onboarding_emails m
-            WHERE m.user_id IS NULL AND m.sent_at >= $since AND m.id = (SELECT MAX(m2.id) FROM onboarding_emails m2 WHERE m2.email = m.email)
+            WHERE m.user_id IS NULL AND m.had_account = 0 AND m.joined_at IS NULL AND m.sent_at >= $since
+            AND m.id = (SELECT MAX(m2.id) FROM onboarding_emails m2 WHERE m2.email = m.email)
             AND NOT EXISTS (SELECT 1 FROM users x WHERE x.email = m.email)"),
         'signin' => db_all("SELECT u.id AS user_id, u.email, u.name, u.created_at AS anchor FROM users u
             WHERE u.is_admin = 0 AND u.added_by IS NOT NULL AND u.last_login_at IS NULL AND u.created_at >= $since"),
@@ -166,7 +169,8 @@ function followup_email(string $kind, array $c, bool $final, array $v = []): arr
                 $paras[] = 'All your documents are uploaded. Please open your onboarding page and tap “Submit for review” so our team can review your file.';
             }
             if ($final) {
-                $paras[] = 'This is our last reminder. Whenever you’re ready, upload the remaining items and we’ll pick it up from there.';
+                $paras[] = $missing ? 'This is our last reminder. Whenever you’re ready, upload the remaining items and we’ll pick it up from there.'
+                    : 'This is our last reminder. Whenever you’re ready, tap “Submit for review” and we’ll pick it up from there.';
             }
             $paras[] = $bye;
             return ['Your onboarding is incomplete', $paras, 'Finish my onboarding', $onbLink, $signIn];
@@ -229,8 +233,9 @@ function followup_send(string $kind, array $c, bool $final): bool
         return false;
     }
     if ($kind === 'verify') {
-        db_run('UPDATE users SET verify_token = ?, verify_expires = NOW() + INTERVAL ' . VERIFY_HOURS . ' HOUR, verify_sent_at = NOW() WHERE id = ?',
-            [hash('sha256', $raw), $c['user_id']]);
+        // The link in their sign-up email keeps working until it expires (verify_prev); this one is new
+        db_run('UPDATE users SET verify_prev = verify_token, verify_prev_expires = verify_expires, verify_token = ?, verify_expires = NOW() + INTERVAL ' . VERIFY_HOURS . ' HOUR,
+            verify_sent_at = NOW() WHERE id = ?', [hash('sha256', $raw), $c['user_id']]);
     } elseif ($kind === 'signin') {
         db_run('UPDATE users SET password_hash = ?, must_change_password = 1 WHERE id = ?', [password_hash($v['password'], PASSWORD_DEFAULT), $c['user_id']]);
     }
@@ -275,18 +280,16 @@ function run_followups(): array
             foreach ($k['days'] as $i => $d) {
                 if (time() >= $at + $d * 86400) $due = $i + 1;
             }
-            $last = (int) db_val('SELECT MAX(step) FROM followup_log WHERE kind = ? AND email = ? AND anchor = ?', [$kind, $email, $c['anchor']]);
+            $last = (int) db_val('SELECT MAX(step) FROM followup_log WHERE kind = ? AND email = ? AND anchor = ? AND failed = 0', [$kind, $email, $c['anchor']]);
             if ($due <= $last || db_val('SELECT 1 FROM followup_log WHERE email = ? AND sent_at > NOW() - INTERVAL 20 HOUR LIMIT 1', [$email])) {
                 continue;
             }
             $budget--;
-            if (followup_send($kind, ['email' => $email] + $c, $due === count($k['days']))) {
-                db_run('INSERT IGNORE INTO followup_log (kind, email, user_id, step, anchor, sent_at) VALUES (?, ?, ?, ?, ?, NOW())',
-                    [$kind, $email, $c['user_id'], $due, $c['anchor']]);
-                $done['sent']++;
-            } else {
-                $done['failed']++;
-            }
+            $ok = followup_send($kind, ['email' => $email] + $c, $due === count($k['days']));
+            // A failed try is logged too, so that address waits a day (the 20-hour rule) instead of using up every run
+            db_run('INSERT INTO followup_log (kind, email, user_id, step, anchor, sent_at, failed) VALUES (?, ?, ?, ?, ?, NOW(), ?)
+                ON DUPLICATE KEY UPDATE sent_at = VALUES(sent_at), failed = VALUES(failed)', [$kind, $email, $c['user_id'], $due, $c['anchor'], $ok ? 0 : 1]);
+            $done[$ok ? 'sent' : 'failed']++;
         }
     }
     return $done;
@@ -301,10 +304,12 @@ function followup_decline(): int
         return 0;
     }
     $n = 0;
-    $rows = db_all("SELECT DISTINCT l.user_id FROM followup_log l JOIN onboarding o ON o.user_id = l.user_id
-        WHERE l.kind = 'docs' AND l.step = ? AND l.sent_at <= NOW() - INTERVAL " . $s['decline_days'] . " DAY AND o.stage = 'documents'", [$last]);
+    $rows = db_all("SELECT l.user_id, MAX(l.sent_at) AS reminded FROM followup_log l JOIN onboarding o ON o.user_id = l.user_id
+        WHERE l.kind = 'docs' AND l.step = ? AND l.failed = 0 AND l.sent_at <= NOW() - INTERVAL " . $s['decline_days'] . " DAY AND o.stage = 'documents'
+        GROUP BY l.user_id", [$last]);
     foreach ($rows as $r) {
-        foreach (db_all("SELECT id FROM applications WHERE user_id = ? AND status = 'new'", [$r['user_id']]) as $a) {
+        // only what they'd already applied for when the last reminder went out; a later application gets its own chance
+        foreach (db_all("SELECT id FROM applications WHERE user_id = ? AND status = 'new' AND created_at < ?", [$r['user_id'], $r['reminded']]) as $a) {
             db_run("UPDATE applications SET status = 'not_selected', updated_at = NOW() WHERE id = ?", [$a['id']]);
             app_auto_note((int) $a['id'], 'Not selected (onboarding not finished after the last reminder)');
             $n++;

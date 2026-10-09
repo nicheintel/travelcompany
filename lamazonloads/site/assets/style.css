@@ -2186,6 +2186,7 @@ a.nt-row:hover { background: var(--blue-50); text-decoration: none; }
 .fu-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; align-items: start; }
 .fu-form > .row-actions { margin: 0; }
 .fu-log li { grid-template-columns: 70px minmax(0, 1.6fr) minmax(0, 1.2fr); }
+.fu-fail { color: var(--red); font-weight: 600; }
 .fu-log .os-kind b { display: block; color: var(--ink); font-weight: 600; }
 .fu-member { display: flex; flex-wrap: wrap; gap: 10px 12px; align-items: center; margin: 0 0 16px; padding: 12px 14px; border-radius: 12px; background: var(--blue-50); color: var(--navy); }
 .fu-member > .ic { flex: none; width: 18px; height: 18px; color: var(--blue); align-self: flex-start; margin-top: 3px; }
@@ -2214,6 +2215,8 @@ a.nt-row:hover { background: var(--blue-50); text-decoration: none; }
 .badge-noacct { background: #EEF1F6; color: #4A5878; }
 .ov-av.is-rec { background: #fff; border: 1.5px dashed #B9C3D6; color: var(--muted); }
 .ml-row.is-record .ml-n { opacity: .5; }
+.ml-eq small.ins-gone { color: var(--red); font-weight: 700; }
+.ml-eq small.ins-soon { color: #9A5B00; font-weight: 700; }
 .ml-date small { display: block; margin-top: 1px; font-size: .74rem; color: #8A96AD; }
 .rec-how { display: flex; gap: 12px; align-items: flex-start; margin: 0 0 20px; padding: 14px 18px; border-radius: 14px; background: var(--blue-50); color: var(--navy); }
 .rec-how > .ic { flex: none; width: 20px; height: 20px; margin-top: 2px; color: var(--blue); }

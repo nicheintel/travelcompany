@@ -60,9 +60,10 @@ if (is_post() && !$external) {
     }
     if (!$errors && $resumeMode !== 'no') { // resume is always optional on this form
         $choice = as_str($_POST['resume_choice'] ?? '');
-        if ($choice === 'file' && $onFile) {
+        $picked = ($_FILES['resume']['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE; // a file they just chose wins over the one on file
+        if ($choice === 'file' && $onFile && !$picked) {
             $resumeId = (int) $onFile['id'];
-        } elseif (($_FILES['resume']['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
+        } elseif ($picked) {
             [$docId, $err] = save_upload($_FILES['resume'], (int) $user['id'], 'resume');
             if ($err !== '') {
                 $errors[] = $err;

@@ -19,4 +19,9 @@ $_SERVER['SCRIPT_FILENAME'] = __FILE__;
 meta_set('cron_ran', (string) time());
 meta_set('automations_ran', (string) time()); // page visits leave it to this task
 $done = run_automations_locked();
-echo date('Y-m-d H:i:s') . ' ' . ($done ? json_encode($done) : 'another run is still busy, skipped') . PHP_EOL;
+echo date('Y-m-d H:i:s') . ' ' . match (true) {
+    !$done => 'another run is still busy, skipped',
+    isset($done['error']) => 'stopped with an error: ' . $done['error'],
+    default => json_encode($done),
+} . PHP_EOL;
+exit(isset($done['error']) ? 1 : 0);

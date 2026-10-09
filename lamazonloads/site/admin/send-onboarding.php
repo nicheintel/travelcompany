@@ -45,7 +45,7 @@ if (is_post()) {
                 flash('success', ONB_TRACKS[$f['type']] . ' email sent to ' . $f['email'] . ($f['city'] !== '' ? ' (' . $f['city'] . ')' : '') . '.');
                 redirect('admin/send-onboarding.php');
             }
-            $errors[] = 'The email could not be sent' . (mail_last_error() !== '' ? ' (' . mail_last_error() . ')' : '') . '. Check Admin → Email check, then try again.';
+            $errors[] = 'The email could not be sent' . (mail_last_error() !== '' ? ' (' . mail_last_error() . ')' : '') . (is_full_admin() ? '. Check Admin → Email check, then try again.' : '. Please try again, or ask an admin to check the email settings.');
         }
     }
     if (!$errors) {
@@ -101,7 +101,7 @@ admin_open('send');
   <?php if ($preview): [$pSubject, , $pHtml] = $preview;
       $row = $user ? onboarding_row((int) $user['id']) : null;
       $body = preg_match('#<body[^>]*>(.*)</body>#s', $pHtml, $m) ? $m[1] : '';
-      $body = str_replace(rtrim((string) config('app_url'), '/') . url('assets/brand/email-logo.png'), url('assets/brand/email-logo.png'), $body); // the logo from this site ?>
+      $body = str_replace(abs_url('assets/brand/email-logo.png'), url('assets/brand/email-logo.png'), $body); // the logo from this site ?>
   <section class="card panel os-preview" aria-labelledby="os-preview-title">
     <header class="panel-head"><h2 id="os-preview-title"><?= icon('eye') ?>Preview</h2>
       <button class="btn btn-primary btn-sm" type="submit" form="os-form" name="action" value="send"><?= icon('send') ?> Send this email</button></header>

@@ -127,7 +127,7 @@ page_hero('Privacy', 'Privacy policy', 'Plain and simple: what we collect, why w
             <thead><tr><th>Cookie</th><th>What it does</th><th>How long</th></tr></thead>
             <tbody>
               <tr><td>Sign-in</td><td>Keeps you signed in and protects your forms</td><td>Until you close your browser (up to 12 hours of inactivity)</td></tr>
-              <tr><td>Chat</td><td>Remembers your chat on this browser</td><td>Up to 1 year</td></tr>
+              <tr><td>Chat</td><td>Remembers your chat on this browser</td><td>Up to 30 days</td></tr>
             </tbody>
           </table></div>
         </section>

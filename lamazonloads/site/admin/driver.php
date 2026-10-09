@@ -28,6 +28,10 @@ if (is_post()) {
         flash('error', 'This is the owner’s account (or the only admin), so it can’t be demoted or deleted from the website.');
         redirect('admin/driver.php?id=' . $id);
     }
+    if ($action === 'password' && $id !== (int) $me['id'] && should_be_admin((string) $u['email'])) {
+        flash('error', 'This is the owner’s account, so only the owner can change its password (with “Forgot password” on the sign-in page).');
+        redirect('admin/driver.php?id=' . $id);
+    }
     if ($action === 'onb_start' && isset(ONB_TRACKS[as_str($_POST['track'] ?? '')])) {
         onboarding_start($id, (string) $_POST['track']);
         flash('success', 'Onboarding started (' . ONB_TRACKS[$_POST['track']] . '). Add their documents below or ask them to upload on their onboarding page.');
@@ -117,6 +121,8 @@ if (is_post()) {
             flash('success', (DOC_KINDS[$doc['kind']] ?? 'Document') . ' removed.');
         }
         redirect('admin/driver.php?id=' . $id . '#documents');
+    } elseif ($action === 'admin' && as_str($_POST['role'] ?? '') !== '' && empty($u['email_verified_at'])) {
+        flash('error', $u['name'] . ' hasn’t confirmed their email yet. Staff access needs a confirmed email: mark it as confirmed first if you know it’s theirs.');
     } elseif ($action === 'admin' && $id !== (int) $me['id'] && in_array($role = as_str($_POST['role'] ?? ''), ['', 'moderator', 'admin'], true)) {
         // Staff access: none, moderator or admin. They're signed out so the new access applies at their next sign-in.
         db_run('UPDATE users SET is_admin = ?, staff_role = ?, session_version = session_version + 1 WHERE id = ?', [$role === '' ? 0 : 1, $role, $id]);
@@ -129,7 +135,7 @@ if (is_post()) {
             flash('success', $pause ? 'Reminder emails to ' . $u['name'] . ' are paused.' : 'Reminder emails to ' . $u['name'] . ' are back on.');
         }
     } elseif ($action === 'verify') {
-        db_run('UPDATE users SET email_verified_at = NOW(), verify_token = NULL, verify_expires = NULL WHERE id = ?', [$id]);
+        db_run('UPDATE users SET email_verified_at = NOW(), verify_token = NULL, verify_expires = NULL, verify_prev = NULL, verify_prev_expires = NULL WHERE id = ?', [$id]);
         record_merge($id);
         flash('success', $u['name'] . "'s email is now marked as confirmed.");
     } elseif ($action === 'resend') {
@@ -164,12 +170,12 @@ $edit ??= ($p ?? array_fill_keys(array_keys(PROFILE_FIELDS), '')) + ['name' => $
     'city' => (string) $u['city'], 'vehicle_types' => user_vehicles($u), 'vehicle_other' => (string) $u['vehicle_other']];
 
 page_header($u['name']);
-admin_open('drivers');
+admin_open('drivers', false);
 ?>
 <a class="back-link" href="<?= e(url('admin/drivers.php')) ?>"><?= icon('chev-left') ?> All members</a>
 <?= admin_head((string) $u['name'],
     ($u['is_admin'] ? '<span class="badge badge-draft">' . e(STAFF_ROLES[staff_role($u)]) . '</span>' : e(explode(' (', ACCOUNT_TYPES[$u['account_type']] ?? 'Member')[0])) . ' · joined ' . e(fmt_date($u['created_at'])) . ($addedBy ? ' · added by ' . e($addedBy) : '')
-    . ' · ' . (is_verified($u) ? '<span class="badge badge-open">Email confirmed</span>' : '<span class="badge badge-reviewing">Email not confirmed</span>')
+    . ' · ' . (!empty($u['email_verified_at']) ? '<span class="badge badge-open">Email confirmed</span>' : '<span class="badge badge-reviewing">Email not confirmed</span>')
     . (!empty($u['must_change_password']) ? ' <span class="badge badge-reviewing">Hasn’t chosen a password yet</span>' : '')
     . (!$u['is_admin'] ? ' ' . preg_replace('#<small>.*</small>#', '', onboarding_badge(onboarding_row($id)['stage'] ?? null)) : ''),
     '<a class="btn btn-ghost" href="mailto:' . e($u['email']) . '">' . icon('mail') . ' Email</a>'
@@ -297,7 +303,7 @@ if ($fromRec): ?>
     <tr><td><b><?= e(DOC_KINDS[$d['kind']] ?? $d['kind']) ?></b><?php if ($d['added_by']): ?><br><span class="doc-staff" title="Added by <?= e($staffNames[$d['added_by']] ?? 'staff') ?>"><?= icon('shield') ?> Added by LamazonLoads staff</span><?php endif; ?></td>
       <td><?= doc_link($d, e($d['original_name'])) ?></td><td><?= e(fmt_date($d['created_at'])) ?></td>
       <td><div class="row-actions"><?= doc_link($d, icon('eye') . ' View', 'btn btn-primary btn-sm') ?><a class="btn btn-ghost btn-sm" href="<?= e(url('doc.php?id=' . (int) $d['id'] . '&download=1')) ?>"><?= icon('download') ?> Download</a>
-        <?php if (is_full_admin()): // admins only ?><form method="post" action="<?= e(url($self)) ?>" class="inline-form" data-confirm="Remove this document from their account?"><?= csrf_field() ?><input type="hidden" name="action" value="remove_doc"><input type="hidden" name="doc" value="<?= (int) $d['id'] ?>"><button class="btn btn-danger btn-sm" type="submit" aria-label="Remove <?= e(DOC_KINDS[$d['kind']] ?? 'document') ?>"><?= icon('trash') ?></button></form></div></td></tr><?php endif; ?>
+        <?php if (is_full_admin()): // admins only ?><form method="post" action="<?= e(url($self)) ?>" class="inline-form" data-confirm="Remove this document from their account?"><?= csrf_field() ?><input type="hidden" name="action" value="remove_doc"><input type="hidden" name="doc" value="<?= (int) $d['id'] ?>"><button class="btn btn-danger btn-sm" type="submit" aria-label="Remove <?= e(DOC_KINDS[$d['kind']] ?? 'document') ?>"><?= icon('trash') ?></button></form><?php endif; ?></div></td></tr>
   <?php endforeach; ?></tbody></table></div>
   <?php endif; ?>
 </div>
@@ -324,7 +330,7 @@ if ($fromRec): ?>
 <div class="card pad">
   <h3 class="mt-0">Account actions</h3>
   <?php if (!$u['is_admin']): $fuStop = db_one('SELECT o.*, s.name AS staff FROM followup_optout o LEFT JOIN users s ON s.id = o.by_staff WHERE o.email = ?', [$u['email']]);
-      $fuLast = db_one('SELECT kind, step, sent_at FROM followup_log WHERE email = ? ORDER BY id DESC LIMIT 1', [$u['email']]); ?>
+      $fuLast = db_one('SELECT kind, step, sent_at FROM followup_log WHERE email = ? AND failed = 0 ORDER BY sent_at DESC LIMIT 1', [$u['email']]); ?>
   <div class="fu-member<?= $fuStop ? ' is-off' : '' ?>"><?= icon('bell') ?>
     <div><b>Reminder emails: <?= $fuStop ? ($fuStop['by_staff'] !== null ? 'paused' : 'stopped by them') : (followup_settings()['on'] ? 'on' : 'off for everyone') ?></b>
       <small><?php if ($fuStop && $fuStop['by_staff'] !== null): ?>Paused by <?= e(first_name((string) ($fuStop['staff'] ?? 'Staff'))) ?> on <?= e(fmt_date((string) $fuStop['created_at'], 'M j')) ?>.
@@ -338,7 +344,7 @@ if ($fromRec): ?>
   </div>
   <?php endif; ?>
   <div class="row-actions">
-    <?php if (!is_verified($u) && $canManage): ?>
+    <?php if (empty($u['email_verified_at']) && $canManage): ?>
       <form method="post" action="<?= e(url($self)) ?>" class="inline-form"><?= csrf_field() ?><input type="hidden" name="action" value="verify"><button class="btn btn-primary btn-sm" type="submit">Mark email as confirmed</button></form>
       <form method="post" action="<?= e(url($self)) ?>" class="inline-form"><?= csrf_field() ?><input type="hidden" name="action" value="resend"><button class="btn btn-ghost btn-sm" type="submit">Resend confirmation email</button></form>
     <?php endif; ?>

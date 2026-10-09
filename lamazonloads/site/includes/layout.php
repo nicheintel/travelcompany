@@ -513,13 +513,14 @@ function is_admin_page(): bool
 }
 
 /** The admin side menu: who's signed in, then the pages in labeled groups. On phones it becomes a scrolling row of tabs. */
-function admin_open(string $active): void
+/** $list: the page is a list that can show new items (the live "N new · Show" bar); false on one member, record or request. */
+function admin_open(string $active, bool $list = true): void
 {
     global $adminGroup;
     $u = current_user();
     $counts = admin_counts();
     $initials = strtoupper(implode('', array_map(fn ($w) => mb_substr($w, 0, 1), array_slice(preg_split('/\s+/', trim((string) $u['name'])) ?: [], 0, 2))));
-    $live = ['url' => url('admin/live.php'), 'tops' => admin_live_tops(), 'counts' => $counts, 'page' => ADMIN_LIVE_PAGES[$active] ?? []];
+    $live = ['url' => url('admin/live.php'), 'tops' => admin_live_tops(), 'counts' => $counts, 'page' => $list ? (ADMIN_LIVE_PAGES[$active] ?? []) : []];
     echo '<div class="container dash admin-dash"><aside class="card admin-nav" aria-label="Admin menu" data-live="' . e((string) json_encode($live)) . '">'
         . '<div class="an-user"><span class="an-avatar" aria-hidden="true">' . e($initials ?: 'LL') . '</span><span><b>' . e((string) $u['name']) . '</b><small>' . e(STAFF_ROLES[staff_role($u)] ?? 'Staff') . '</small></span></div>'
         . '<nav class="an-links">';

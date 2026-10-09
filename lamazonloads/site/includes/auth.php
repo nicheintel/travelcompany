@@ -245,7 +245,7 @@ function require_verified(): array
 function send_verification(array $u): bool
 {
     $raw = bin2hex(random_bytes(32));
-    db_run('UPDATE users SET verify_token = ?, verify_expires = NOW() + INTERVAL ' . VERIFY_HOURS . ' HOUR, verify_sent_at = NOW() WHERE id = ?',
+    db_run('UPDATE users SET verify_token = ?, verify_expires = NOW() + INTERVAL ' . VERIFY_HOURS . ' HOUR, verify_sent_at = NOW(), verify_prev = NULL, verify_prev_expires = NULL WHERE id = ?',
         [hash('sha256', $raw), $u['id']]);
     $first = first_name((string) $u['name']);
     [$text, $html] = email_body('Confirm your email', [

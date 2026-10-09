@@ -57,7 +57,8 @@ $onbF = as_str($_GET['onb'] ?? '');  // onboarded · not (yet) · progress · no
 $loc = as_str($_GET['loc'] ?? '');   // "st:GA" (whole state) or "c:Atlanta, GA"
 $type = as_str($_GET['type'] ?? ''); // what they told us they are, or "staff"
 $acct = as_str($_GET['acct'] ?? ''); // has an account · no account yet (your records)
-const ACCT_FILTERS = ['yes' => 'Has an account', 'no' => 'No account yet'];
+const ACCT_FILTERS = ['yes' => 'Has an account', 'no' => 'No account yet', // + needs attention (the to-dos on the Overview):
+    'unconfirmed' => 'Email not confirmed', 'insurance' => 'Insurance expired or expiring'];
 if (!isset(ACCT_FILTERS[$acct])) $acct = '';
 // "Drivers" is everyone who drives, owner-operators included; "Owner-operators" narrows it to those who own their vehicle
 const TYPE_FILTERS = ['driver' => 'Drivers', 'owner_operator' => '· Owner-operators', 'dispatcher' => 'Dispatchers / support', 'recruiter' => 'Driver recruiters',
@@ -92,6 +93,8 @@ if (preg_match('/^st:([A-Z]{2})$/', $loc, $m) && isset(US_STATES[$m[1]])) { $whe
 elseif (str_starts_with($loc, 'c:')) { $where[] = 'u.city = ?'; $args[] = substr($loc, 2); }
 if (isset(ONB_FILTERS[$onbF])) $where[] = 'u.is_admin = 0'; // staff don't onboard
 if ($acct === 'no') $where[] = '0';
+if ($acct === 'unconfirmed') $where[] = 'u.is_admin = 0 AND u.email_verified_at IS NULL';
+if ($acct === 'insurance') $where[] = 'p.insurance_expires IS NOT NULL AND p.insurance_expires < CURDATE() + INTERVAL 30 DAY';
 $where = array_values(array_filter($where, fn ($w) => $w !== '1'));
 $filtered = $where || $acct !== '';
 // Your records (drivers without an account yet), with the same filters. They have no profile, documents or applications.
@@ -108,13 +111,13 @@ elseif (isset(ACCOUNT_TYPES[$type])) { $rw[] = 'r.account_type = ?'; $ra[] = $ty
 $rw[] = match ($onbF) { 'onboarded' => "r.onboarded <> ''", 'not', 'none' => "r.onboarded = ''", 'progress' => '0', default => '1' };
 if (preg_match('/^st:([A-Z]{2})$/', $loc, $m) && isset(US_STATES[$m[1]])) { $rw[] = 'r.city LIKE ?'; $ra[] = '%, ' . $m[1]; }
 elseif (str_starts_with($loc, 'c:')) { $rw[] = 'r.city = ?'; $ra[] = substr($loc, 2); }
-if ($acct === 'yes') $rw[] = '0';
+if (in_array($acct, ['yes', 'unconfirmed', 'insurance'], true)) $rw[] = '0'; // records have no account or insurance on file
 $records = db_all('SELECT r.* FROM member_records r WHERE ' . implode(' AND ', $rw) . ' ORDER BY r.created_at DESC LIMIT 500', $ra);
 // Today's sign-ups (New York time, the site's clock) have their own panel above the table and join the table after midnight.
 // The filters apply to both, so together they always show every match.
 $from = ' FROM users u LEFT JOIN driver_profiles p ON p.user_id = u.id LEFT JOIN onboarding o ON o.user_id = u.id WHERE ';
 $sqlWhere = fn (string ...$extra) => implode(' AND ', array_merge($where, $extra));
-$rows = db_all('SELECT u.*, p.equipment, p.home_zip, p.availability, o.stage onb_stage, (SELECT COUNT(*) FROM documents d WHERE d.user_id = u.id) docs,
+$rows = db_all('SELECT u.*, p.equipment, p.home_zip, p.availability, p.insurance_expires, o.stage onb_stage, (SELECT COUNT(*) FROM documents d WHERE d.user_id = u.id) docs,
     (SELECT COUNT(*) FROM applications a WHERE a.user_id = u.id) apps'
     . $from . $sqlWhere('(u.is_admin = 1 OR u.created_at < CURDATE())') . ' ORDER BY u.created_at DESC LIMIT 500', $args);
 $showToday = $type !== 'staff' && $acct !== 'no'; // staff and records aren't sign-ups
@@ -156,7 +159,7 @@ admin_open('drivers');
     . '<a class="btn btn-accent" href="#add-record" data-modal-open="add-record">' . icon('plus') . ' Add a record</a>') ?>
 <form method="get" action="<?= e(url('admin/drivers.php')) ?>" class="card pad mem-filters">
   <div class="mf-q"><label for="q">Search</label><div class="mf-qrow"><input id="q" name="q" type="search" placeholder="Name, email, phone, city or ZIP" value="<?= e($q) ?>"><button class="btn btn-primary" type="submit"><?= icon('search') ?> Search</button></div></div>
-  <div><label for="acct">Account</label><select id="acct" name="acct"><option value="">Everyone</option><?php foreach (ACCT_FILTERS as $k => $l): ?><option value="<?= e($k) ?>"<?= $acct === $k ? ' selected' : '' ?>><?= e($l) ?><?= $k === 'no' ? ' (' . (int) $recCounts['n'] . ')' : '' ?></option><?php endforeach; ?></select></div>
+  <div><label for="acct">Account</label><select id="acct" name="acct"><option value="">Everyone</option><?php foreach (ACCT_FILTERS as $k => $l): ?><?= $k === 'unconfirmed' ? '<optgroup label="Needs attention">' : '' ?><option value="<?= e($k) ?>"<?= $acct === $k ? ' selected' : '' ?>><?= e($l) ?><?= $k === 'no' ? ' (' . (int) $recCounts['n'] . ')' : '' ?></option><?php endforeach; ?></optgroup></select></div>
   <div><label for="type">Type</label><select id="type" name="type"><option value="">Everyone</option><?php foreach (TYPE_FILTERS as $k => $l): ?><option value="<?= e($k) ?>"<?= $type === $k ? ' selected' : '' ?>><?= e($l) ?> (<?= (int) ($typeCounts[$k] ?? 0) ?>)</option><?php endforeach; ?></select></div>
   <div><label for="onb">Onboarding</label><select id="onb" name="onb"><option value="">Anyone</option><?php foreach (ONB_FILTERS as $k => $l): ?><option value="<?= e($k) ?>"<?= $onbF === $k ? ' selected' : '' ?>><?= e($l) ?></option><?php endforeach; ?></select></div>
   <div><label for="loc">Location</label><select id="loc" name="loc"><option value="">All locations</option>
@@ -205,7 +208,8 @@ admin_open('drivers');
 </section>
 <?php endif; ?>
 
-<?php $nMem = count($rows); $nRec = count($records); $plural = fn (int $n, string $one, string $many) => $n . ' ' . ($n === 1 ? $one : $many); ?>
+<?php // the counts of what the list below shows
+$nRec = count(array_filter($list, fn ($r) => $r['kind'] === 'record')); $nMem = count($list) - $nRec; $plural = fn (int $n, string $one, string $many) => $n . ' ' . ($n === 1 ? $one : $many); ?>
 <p class="muted app-count"><?php if ($filtered): ?>Showing <b><?= e($plural($nMem, 'member', 'members')) ?></b><?= $nRec ? ' and <b>' . e($plural($nRec, 'record', 'records')) . '</b>' : '' ?> · <a href="<?= e(url('admin/drivers.php')) ?>">Clear filters</a><?= $newToday ? ' · ' . count($newToday) . ' more in New today above' : '' ?>
   <?php else: ?><span class="nowrap"><b><?= e($plural($nMem, 'member', 'members')) ?></b></span><?= $nRec ? ' · <span class="nowrap"><b>' . e($plural($nRec, 'record', 'records')) . '</b> with no account yet</span>' : '' ?> · <span class="onb-tally nowrap"><?= icon('check') ?><?= (int) $onbCounts['yes'] ?> onboarded · <?= (int) $onbCounts['no'] ?> not yet</span><?php endif; ?></p>
 <?php if (!$list): ?><div class="card empty"><?= !$newToday ? ($filtered ? 'Nobody matches your filters.' : 'No members yet.') : ($filtered ? 'No members from before today match your filters.' : 'No members from before today yet.') ?></div><?php else: ?>
@@ -233,7 +237,7 @@ admin_open('drivers');
           <small class="ml-contact"><span title="<?= e($r['email']) ?>"><?= e($r['email']) ?></span><?php if ($r['phone'] !== ''): ?><span><?= e($r['phone']) ?></span><?php endif; ?></small></span></span>
         <?php $tl = $r['is_admin'] ? STAFF_ROLES[staff_role($r)] : explode(' (', ACCOUNT_TYPES[$r['account_type']] ?? '')[0]; ?>
         <span class="ml-type"><span class="ml-t<?= str_contains($tl, ' ') ? '' : ' nw' ?>"><?= e($tl) ?></span><small><?= $r['city'] !== '' ? icon('pin') . e($r['city']) : 'No city yet' ?></small></span>
-        <span class="ml-eq"><?= isset(EQUIPMENT[$r['equipment'] ?? '']) ? e(EQUIPMENT[$r['equipment']]) : (($vl = user_vehicles_label($r)) !== '' ? '<span title="' . e($vl) . '">' . e($vl) . '</span>' : '<span class="muted">Not given</span>') ?><?php if ($r['home_zip']): ?><small>ZIP <?= e($r['home_zip']) ?><?= isset(AVAILABILITY[$r['availability'] ?? '']) ? ' · ' . e(explode(' (', AVAILABILITY[$r['availability']])[0]) : '' ?></small><?php endif; ?></span>
+        <span class="ml-eq"><?= isset(EQUIPMENT[$r['equipment'] ?? '']) ? e(EQUIPMENT[$r['equipment']]) : (($vl = user_vehicles_label($r)) !== '' ? '<span title="' . e($vl) . '">' . e($vl) . '</span>' : '<span class="muted">Not given</span>') ?><?php if ($acct === 'insurance' && !empty($r['insurance_expires'])): $gone = $r['insurance_expires'] < date('Y-m-d'); ?><small class="ins-<?= $gone ? 'gone' : 'soon' ?>">Insurance <?= $gone ? 'expired' : 'expires' ?> <?= e(fmt_date((string) $r['insurance_expires'], 'M j, Y')) ?></small><?php endif; ?><?php if ($r['home_zip']): ?><small>ZIP <?= e($r['home_zip']) ?><?= isset(AVAILABILITY[$r['availability'] ?? '']) ? ' · ' . e(explode(' (', AVAILABILITY[$r['availability']])[0]) : '' ?></small><?php endif; ?></span>
         <span class="ml-onb"><?= $r['is_admin'] ? '<span class="muted">Not needed</span>' : onboarding_badge($r['onb_stage']) ?></span>
         <span class="ml-n ml-docs<?= (int) $r['docs'] ? ' has' : '' ?>" title="Documents"><?= icon('file') ?><?= (int) $r['docs'] ?></span>
         <span class="ml-n ml-apps<?= (int) $r['apps'] ? ' has' : '' ?>" title="Applications"><?= icon('clipboard') ?><?= (int) $r['apps'] ?></span>

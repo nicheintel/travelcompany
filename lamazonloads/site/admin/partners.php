@@ -32,7 +32,7 @@ foreach (db_all('SELECT status, COUNT(*) AS n FROM partner_requests GROUP BY sta
 }
 
 page_header('Partner requests');
-admin_open('partners');
+admin_open('partners', !$req); // no "new requests" bar while one request is open
 
 $badge = fn (string $s): string => '<span class="badge badge-' . e($s) . '">' . e(PARTNER_STATUSES[$s] ?? $s) . '</span>';
 

@@ -32,7 +32,8 @@ function profile_from_post(array &$p): array
     if ($p['home_zip'] !== '' && !preg_match('/^\d{5}(-\d{4})?$/', $p['home_zip'])) $errors[] = 'Please enter a 5-digit ZIP code.';
     if ($p['mc_number'] !== '' && !preg_match('/^(MC-?)?\d{1,8}$/i', $p['mc_number'])) $errors[] = 'MC number should be digits only (e.g. 123456).';
     if ($p['dot_number'] !== '' && !preg_match('/^\d{1,9}$/', $p['dot_number'])) $errors[] = 'USDOT number should be digits only.';
-    if ($p['insurance_expires'] !== '' && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $p['insurance_expires'])) $errors[] = 'Please pick a valid insurance expiry date.';
+    if ($p['insurance_expires'] !== '' && (!preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $p['insurance_expires'], $d) || !checkdate((int) $d[2], (int) $d[3], (int) $d[1])
+        || $d[1] < 2000 || $d[1] > 2099)) $errors[] = 'Please pick a valid insurance expiry date.'; // a real day (not Feb 31), or the database refuses it
     return $errors;
 }
 
@@ -225,7 +226,12 @@ function delete_member(int $userId): void
         @unlink(dirname(__DIR__) . '/uploads/' . basename((string) $d['stored_name']));
     }
     chat_delete_for_user($userId);
-    db_run('DELETE FROM users WHERE id = ?', [$userId]); // profile, documents, applications and saved jobs go with it
+    // The onboarding emails staff sent them and the reminders log, so nothing treats them as "emailed, no account yet"
+    // (which would start sign-up reminders). A "Stop reminders" choice is kept.
+    $email = (string) db_val('SELECT email FROM users WHERE id = ?', [$userId]);
+    db_run('DELETE FROM onboarding_emails WHERE user_id = ? OR email = ?', [$userId, $email]);
+    db_run('DELETE FROM followup_log WHERE user_id = ? OR email = ?', [$userId, $email]);
+    db_run('DELETE FROM users WHERE id = ?', [$userId]); // profile, documents, applications, saved jobs and their record go with it
 }
 
 /**

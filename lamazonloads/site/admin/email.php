@@ -82,7 +82,7 @@ admin_open('email');
         $transport === 'smtp' ? '' : "Recommended: create info@lamazonloads.com in hPanel → Emails and put its password in config.local.php as smtp_pass.") ?>
     <?= $row('Sent from', $from !== '', e($from)) ?>
     <?= $row('Alerts go to', true, e(support_email()), 'Chat and application alerts. Change with support_email or contact_email in config.local.php.') ?>
-    <?= $row('Members waiting to confirm', $unconfirmed === 0, $unconfirmed . ' <a href="' . e(url('admin/drivers.php')) . '">See members</a>', $unconfirmed ? 'You can confirm someone by hand on their member page (Mark email as confirmed).' : '') ?>
+    <?= $row('Members waiting to confirm', $unconfirmed === 0, $unconfirmed . ' <a href="' . e(url('admin/drivers.php?acct=unconfirmed')) . '">See members</a>', $unconfirmed ? 'You can confirm someone by hand on their member page (Mark email as confirmed).' : '') ?>
   </tbody></table></div>
 </div>
 

@@ -30,9 +30,17 @@ if (is_post()) {
         db_run('UPDATE walmart_routes SET active = 1 - active WHERE id = ?', [$id]);
     } elseif ($action === 'rename') {
         $city = preg_replace('/\s+/', ' ', post('city', 80));
-        if (mb_strlen($city) >= 2) {
+        $old = (string) db_val('SELECT city FROM walmart_routes WHERE id = ?', [$id]);
+        if (mb_strlen($city) < 2 || $old === '') {
+            flash('error', 'Please type the city, for example “Tampa, FL”.');
+        } elseif ($city !== $old && db_val('SELECT 1 FROM walmart_routes WHERE city = ? AND id <> ?', [$city, $id])) {
+            flash('error', $city . ' is already on the list.');
+        } elseif ($city !== $old) {
+            // Applicants who chose this city (and onboarding emails sent for it) follow the new name
             db_run('UPDATE walmart_routes SET city = ? WHERE id = ?', [$city, $id]);
-            flash('success', 'City updated.');
+            db_run('UPDATE applications SET walmart_city = ? WHERE walmart = 1 AND walmart_city = ?', [$city, $old]);
+            db_run('UPDATE onboarding_emails SET city = ? WHERE city = ?', [$city, $old]);
+            flash('success', 'City updated. Its applicants now show under ' . $city . '.');
         }
     } elseif ($action === 'delete') {
         db_run('DELETE FROM walmart_routes WHERE id = ?', [$id]);

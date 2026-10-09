@@ -94,7 +94,8 @@
   // Hearts on job boxes: save / unsave without reloading the page.
   document.addEventListener('submit', function (ev) {
     var form = ev.target;
-    if (!form.hasAttribute || !form.hasAttribute('data-save') || !window.fetch) return;
+    // defaultPrevented: the form token is being refreshed first (page open 10+ minutes); the form is sent again right after
+    if (ev.defaultPrevented || !form.hasAttribute || !form.hasAttribute('data-save') || !window.fetch) return;
     ev.preventDefault();
     var btn = form.querySelector('.jc-save');
     fetch(form.action, { method: 'POST', body: new FormData(form), credentials: 'same-origin', headers: { Accept: 'application/json' } })

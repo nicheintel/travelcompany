@@ -55,7 +55,7 @@ page_header('Reminder emails', '', '', 'page-auth');
           <?= ss_chip($email) ?>
           <?= ss_hint('You’ll still get the emails you ask for, like password resets, and replies from our team.') ?>
           <?php if ($row['by_staff'] === null): ?>
-            <form method="post" action="<?= e(url('reminders.php')) ?>" class="ss-acts">
+            <form method="post" action="<?= e(url($self)) ?>" class="ss-acts">
               <?= csrf_field() ?>
               <input type="hidden" name="e" value="<?= e($email) ?>"><input type="hidden" name="t" value="<?= e($token) ?>">
               <button class="btn btn-ghost btn-block" type="submit" name="action" value="resume">Changed your mind? Turn them back on</button>
@@ -79,7 +79,7 @@ page_header('Reminder emails', '', '', 'page-auth');
             <p class="ss-lead">We’ll stop the reminders about unfinished steps for this address.</p>
             <?= ss_chip($email) ?>
             <?= ss_hint('You’ll still get the emails you ask for, like password resets, and replies from our team.') ?>
-            <form method="post" action="<?= e(url('reminders.php')) ?>" class="ss-acts">
+            <form method="post" action="<?= e(url($self)) ?>" class="ss-acts">
               <?= csrf_field() ?>
               <input type="hidden" name="e" value="<?= e($email) ?>"><input type="hidden" name="t" value="<?= e($token) ?>">
               <button class="btn btn-primary btn-block" type="submit" name="action" value="stop">Stop reminders</button>

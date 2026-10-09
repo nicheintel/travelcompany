@@ -42,13 +42,13 @@ if (is_post()) {
     }
 }
 
-$first = first_name($name);
+$first = first_name($name, '') ?: trim((string) $r['first_name']) ?: $name; // "J.R." stays "J.R.", never "there"
 $mails = db_all('SELECT m.*, s.name AS sender FROM onboarding_emails m LEFT JOIN users s ON s.id = m.sent_by WHERE m.email = ? ORDER BY m.id DESC LIMIT 10', [$r['email']]);
 $vl = user_vehicles_label($r);
 $type = explode(' (', ACCOUNT_TYPES[$r['account_type']] ?? 'Member')[0];
 
 page_header($name);
-admin_open('drivers');
+admin_open('drivers', false);
 ?>
 <a class="back-link" href="<?= e(url('admin/drivers.php')) ?>"><?= icon('chev-left') ?> All members</a>
 <?= admin_head($name,

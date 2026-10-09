@@ -279,8 +279,11 @@ function onboarding_approve(int $userId, int $staffId): string
         return ''; // only before approval: a signed agreement is never sent out again this way
     }
     $stage = contract_needed($row['track']) ? 'contract' : 'done';
-    db_run('UPDATE onboarding SET stage = ?, approved_at = NOW(), reviewed_at = NOW(), reviewed_by = ?, review_note = NULL, updated_at = NOW()'
-        . ($stage === 'done' ? ', telegram_sent_at = NOW()' : '') . ' WHERE user_id = ?', [$stage, $staffId, $userId]);
+    $changed = db_run('UPDATE onboarding SET stage = ?, approved_at = NOW(), reviewed_at = NOW(), reviewed_by = ?, review_note = NULL, updated_at = NOW()'
+        . ($stage === 'done' ? ', telegram_sent_at = NOW()' : '') . " WHERE user_id = ? AND stage IN ('documents', 'review', 'changes')", [$stage, $staffId, $userId]);
+    if ($changed !== 1) {
+        return ''; // approved a moment ago (a double tap, or two staff at once): the emails already went out
+    }
     if ($stage === 'contract') {
         $c = contract_get($row['track']);
         [$text, $html] = email_body('You’re approved!', [
@@ -381,10 +384,14 @@ function onboarding_sign(array $u): array
     }
     $now = time();
     $filled = contract_fill((string) $c['body'], ['name' => $name] + $u, $company, $now);
-    db_run("UPDATE onboarding SET stage = 'done', contract_version = ?, contract_title = ?, contract_text = ?, signed_at = ?, signed_name = ?, signed_company = ?,
-        signature = ?, signed_ip = ?, emergency_name = ?, emergency_relation = ?, emergency_phone = ?, telegram_sent_at = NOW(), updated_at = NOW() WHERE user_id = ?",
+    $changed = db_run("UPDATE onboarding SET stage = 'done', contract_version = ?, contract_title = ?, contract_text = ?, signed_at = ?, signed_name = ?, signed_company = ?,
+        signature = ?, signed_ip = ?, emergency_name = ?, emergency_relation = ?, emergency_phone = ?, telegram_sent_at = NOW(), updated_at = NOW()
+        WHERE user_id = ? AND stage = 'contract'",
         [$c['version'], $c['title'], $filled, date('Y-m-d H:i:s', $now), $name, $company, $sig, client_ip(),
          $em['emergency_name'], $em['emergency_relation'], $em['emergency_phone'], $u['id']]);
+    if ($changed !== 1) {
+        return []; // already signed a moment ago (a double tap or a second tab): keep that signature, send nothing twice
+    }
     onboarding_send_telegram($u, 'Thank you for signing the ' . $c['title'] . '. You can view or print your signed copy any time: ' . abs_url('contract.php'));
     onb_notify_staff('Agreement signed: ' . $u['name'], [
         $u['name'] . ' signed the ' . $c['title'] . ' (version ' . (int) $c['version'] . ') and was sent the Telegram link.',

@@ -16,6 +16,9 @@ if ($savedOnly) {
     $jobs = array_values(array_filter($jobs, fn ($j) => in_array((int) $j['id'], $savedIds, true)));
 }
 $showNetwork = network_enabled() && $cat === '' && (!$savedOnly || in_array(0, $savedIds, true));
+// "♥ Saved (N)": only saved jobs that can still be shown (open posts, and the network application while it's on)
+$savedCount = $savedIds ? (int) db_val("SELECT COUNT(*) FROM jobs WHERE status = 'open' AND id IN (" . implode(',', array_map('intval', $savedIds)) . ')')
+    + (network_enabled() && in_array(0, $savedIds, true) ? 1 : 0) : 0;
 $used = array_column(db_all("SELECT DISTINCT category FROM jobs WHERE status = 'open'"), 'category');
 
 preload_photo('banner_careers');
@@ -29,7 +32,7 @@ page_hero('Careers & opportunities', 'Open opportunities', 'Create an account, t
       <?php foreach (JOB_CATEGORIES as $k => $label): if (!in_array($k, $used, true)) continue; ?>
         <a href="<?= e(url('careers.php?category=' . $k)) ?>"<?= $cat === $k ? ' class="on"' : '' ?>><?= e($label) ?></a>
       <?php endforeach; ?>
-      <?php if ($me): ?><a href="<?= e(url('careers.php?saved=1')) ?>"<?= $savedOnly ? ' class="on"' : '' ?>>♥ Saved (<?= count($savedIds) ?>)</a><?php endif; ?>
+      <?php if ($me): ?><a href="<?= e(url('careers.php?saved=1')) ?>"<?= $savedOnly ? ' class="on"' : '' ?>>♥ Saved (<?= $savedCount ?>)</a><?php endif; ?>
     </div>
     <h2 class="sr-only">Openings</h2>
     <div class="jc-grid">

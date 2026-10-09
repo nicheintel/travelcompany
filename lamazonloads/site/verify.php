@@ -7,21 +7,26 @@ require __DIR__ . '/includes/bootstrap.php';
 // 1. The link from the email
 if (isset($_GET['t'])) {
     $raw = (string) $_GET['t'];
-    $row = preg_match('/^[a-f0-9]{64}$/', $raw) ? db_one('SELECT *, verify_expires < NOW() AS expired FROM users WHERE verify_token = ?', [hash('sha256', $raw)]) : null;
+    $h = hash('sha256', $raw); // the newest link, or the one before it (a reminder sent a new link while the first still worked)
+    $row = preg_match('/^[a-f0-9]{64}$/', $raw) ? db_one('SELECT *, IF(verify_token = ?, verify_expires, verify_prev_expires) < NOW() AS expired FROM users
+        WHERE verify_token = ? OR verify_prev = ? LIMIT 1', [$h, $h, $h]) : null;
     if (!$row) {
         $me = current_user();
         if ($me && is_verified($me)) {
             flash('success', 'Your email is already confirmed.');
             redirect('account.php');
         }
-        flash('error', 'That confirmation link is not valid any more. Send yourself a new one below.');
+        // Already used (some email apps open links to scan them), or replaced by a newer one
+        if ($me) flash('error', 'That confirmation link is not valid any more. Send yourself a new one below.');
+        else flash('info', 'That link was already used, or a newer one replaced it. If you already confirmed your email, just sign in. If not, sign in and we’ll send you a new link.');
         redirect($me ? 'verify.php' : 'login.php?next=verify.php');
     }
     if ((int) $row['expired']) { // compared in the database, so time zones can't get mixed up
-        flash('error', 'That confirmation link has expired. Send yourself a new one below.');
-        redirect(current_user() ? 'verify.php' : 'login.php?next=verify.php');
+        $me = current_user();
+        flash('error', $me ? 'That confirmation link has expired. Send yourself a new one below.' : 'That confirmation link has expired. Sign in and we’ll send you a new one.');
+        redirect($me ? 'verify.php' : 'login.php?next=verify.php');
     }
-    db_run('UPDATE users SET email_verified_at = COALESCE(email_verified_at, NOW()), verify_token = NULL, verify_expires = NULL WHERE id = ?', [$row['id']]);
+    db_run('UPDATE users SET email_verified_at = COALESCE(email_verified_at, NOW()), verify_token = NULL, verify_expires = NULL, verify_prev = NULL, verify_prev_expires = NULL WHERE id = ?', [$row['id']]);
     record_merge((int) $row['id']); // your team's record of them (same email) joins the account now that the email is theirs
     $me = current_user();
     if (promote_first_admin(db_one('SELECT * FROM users WHERE id = ?', [$row['id']]))) { // the site's first admin (admin_emails)
@@ -37,7 +42,7 @@ if (isset($_GET['t'])) {
         $back = (string) ($_SESSION['after_verify'] ?? '');
         unset($_SESSION['after_verify']);
         if ($back !== '') {
-            flash('success', 'Thanks, your email is confirmed! You can apply now.');
+            flash('success', 'Thanks, your email is confirmed! ' . (str_contains($back, 'onboarding') ? 'Next: upload your onboarding documents.' : (str_contains($back, 'job.php') ? 'You can apply now.' : '')));
             redirect(safe_next($back));
         }
         flash('success', 'Thanks, your email is confirmed! Next: tell us about your truck so we can match you.');
@@ -57,7 +62,9 @@ if (is_post()) {
     csrf_check();
     $action = $_POST['action'] ?? 'resend';
     $wait = 60 - (int) db_val('SELECT COALESCE(TIMESTAMPDIFF(SECOND, verify_sent_at, NOW()), 999) FROM users WHERE id = ?', [$u['id']]);
-    if ($wait > 0) {
+    // Fixing a typo in the email right after signing up isn't held up by the one-minute wait (that's for resending)
+    $changing = $action === 'change' && strtolower(post('email', 190)) !== strtolower((string) $u['email']);
+    if ($wait > 0 && !$changing) {
         $errors[] = "We just sent an email. Please wait $wait seconds before sending another one.";
     } elseif (rate_limited('verify', 'u' . $u['id'], 6, 86400)) {
         $errors[] = "You've asked for several emails today. Call us or tap Chat, and we'll confirm your account for you.";

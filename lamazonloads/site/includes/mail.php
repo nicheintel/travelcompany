@@ -136,7 +136,11 @@ function smtp_send(string $to, string $message): void
         $cmd('RCPT TO:<' . $to . '>', [250, 251]);
         $cmd('DATA', [354]);
         $cmd(rtrim((string) preg_replace('/^\./m', '..', $message), "\r\n") . "\r\n.", [250]);
-        $cmd('QUIT', [221]);
+        try {
+            $cmd('QUIT', [221]);
+        } catch (RuntimeException) {
+            // The message was already accepted (250 above): an odd goodbye doesn't make it unsent
+        }
     } finally {
         fclose($fp);
     }
@@ -145,14 +149,17 @@ function smtp_send(string $to, string $message): void
 /** Full link for emails, e.g. https://lamazonloads.com/account.php?chat=1 */
 function abs_url(string $path): string
 {
-    return rtrim((string) config('app_url'), '/') . url($path);
+    // The scheme and host from app_url; url() adds the site's folder (if it lives in one), so it's never there twice
+    $u = parse_url((string) config('app_url')) ?: [];
+    $origin = ($u['scheme'] ?? 'https') . '://' . ($u['host'] ?? 'lamazonloads.com') . (isset($u['port']) ? ':' . $u['port'] : '');
+    return $origin . url($path);
 }
 
 /** The look of every LamazonLoads email: logo, heading, text, blue button. Returns [text, html]. */
 function email_body(string $heading, array $paragraphs, ?string $button = null, ?string $link = null, string $footnote = '', bool $letter = false, int $buttonAfter = -1, string $stopLink = ''): array
 {
     // Logo on a solid white badge: a see-through logo turns grainy when Gmail / Outlook show emails in dark mode
-    $logo = rtrim((string) config('app_url'), '/') . url('assets/brand/email-logo.png');
+    $logo = abs_url('assets/brand/email-logo.png');
     $domain = parse_url((string) config('app_url'), PHP_URL_HOST) ?: 'lamazonloads.com';
     $html = '<!doctype html><html><body style="margin:0;padding:0;background:#F5F7FB;">'
         . '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F5F7FB;padding:32px 12px;"><tr><td align="center">'

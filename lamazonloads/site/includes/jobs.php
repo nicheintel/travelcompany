@@ -226,7 +226,8 @@ function run_automations_if_due(): void
     }
 }
 
-/** One run at a time (cron and a page visit could start together). Returns the counts, or [] when another run is busy. */
+/** One run at a time (cron and a page visit could start together). Returns the counts, [] when another run is busy,
+ *  or ['error' => message] when the run stopped with an error (details in the error log). */
 function run_automations_locked(): array
 {
     if (!(int) db_val("SELECT GET_LOCK('ll_automations', 0)")) {
@@ -239,7 +240,7 @@ function run_automations_locked(): array
         return run_automations();
     } catch (Throwable $e) {
         error_log('[automations] ' . $e->getMessage());
-        return [];
+        return ['error' => $e->getMessage()];
     } finally {
         db_val("SELECT RELEASE_LOCK('ll_automations')");
     }

@@ -314,6 +314,7 @@ CREATE TABLE IF NOT EXISTS followup_log (
   step TINYINT UNSIGNED NOT NULL,
   anchor DATETIME NOT NULL,
   sent_at DATETIME NOT NULL,
+  failed TINYINT(1) NOT NULL DEFAULT 0,  -- the mail server refused it: tried again a day later
   UNIQUE KEY uq_followup (kind, email, anchor, step),
   KEY idx_followup_email (email, sent_at),
   KEY idx_followup_sent (sent_at)

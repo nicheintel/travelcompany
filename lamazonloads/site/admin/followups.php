@@ -30,6 +30,8 @@ if (is_post()) {
         $quiet = $hour < FOLLOWUP_HOURS[0] || $hour >= FOLLOWUP_HOURS[1];
         if (!$done) {
             flash('info', 'Follow-ups are already being sent right now. Check the list below in a minute.');
+        } elseif (isset($done['error'])) {
+            flash('error', 'The follow-ups stopped with an error: ' . $done['error'] . '. Please try again in a few minutes.');
         } elseif ($done['sent'] || $done['failed']) {
             flash($done['failed'] ? 'error' : 'success', ($done['sent'] === 1 ? '1 reminder sent' : $done['sent'] . ' reminders sent')
                 . ($done['failed'] ? '. ' . $done['failed'] . ' could not be sent. Check Admin → Email check.' : '.'));
@@ -103,14 +105,14 @@ $ago = function (string $dt): string {
 };
 $root = realpath(dirname(__DIR__)) ?: dirname(__DIR__);
 $cronCmd = '/usr/bin/php ' . $root . '/cron.php';
-$week = (int) db_val('SELECT COUNT(*) FROM followup_log WHERE sent_at > NOW() - INTERVAL 7 DAY');
-$perKind = array_column(db_all('SELECT kind, COUNT(*) AS n FROM followup_log WHERE sent_at > NOW() - INTERVAL 30 DAY GROUP BY kind'), 'n', 'kind');
-$log = db_all('SELECT l.*, u.name FROM followup_log l LEFT JOIN users u ON u.id = l.user_id ORDER BY l.id DESC LIMIT 50');
+$week = (int) db_val('SELECT COUNT(*) FROM followup_log WHERE failed = 0 AND sent_at > NOW() - INTERVAL 7 DAY');
+$perKind = array_column(db_all('SELECT kind, COUNT(*) AS n FROM followup_log WHERE failed = 0 AND sent_at > NOW() - INTERVAL 30 DAY GROUP BY kind'), 'n', 'kind');
+$log = db_all('SELECT l.*, u.name FROM followup_log l LEFT JOIN users u ON u.id = l.user_id ORDER BY l.sent_at DESC, l.id DESC LIMIT 50');
 $stoppedN = (int) db_val('SELECT COUNT(*) FROM followup_optout');
 $stopped = db_all('SELECT o.*, u.id AS uid, u.name, s.name AS staff FROM followup_optout o LEFT JOIN users u ON u.email = o.email
     LEFT JOIN users s ON s.id = o.by_staff ORDER BY o.created_at DESC LIMIT 50');
 // An email's body for the preview, with the logo loaded from this site
-$mailBody = fn (string $html): string => str_replace(rtrim((string) config('app_url'), '/') . url('assets/brand/email-logo.png'), url('assets/brand/email-logo.png'),
+$mailBody = fn (string $html): string => str_replace(abs_url('assets/brand/email-logo.png'), url('assets/brand/email-logo.png'),
     preg_match('#<body[^>]*>(.*)</body>#s', $html, $mm) ? $mm[1] : '');
 $plural = fn (int $n, string $one, string $many): string => $n . ' ' . ($n === 1 ? $one : $many);
 
@@ -224,7 +226,7 @@ admin_open('followups');
           <span class="os-when"><?= e(fmt_date((string) $r['sent_at'], 'M j')) ?><small><?= e(fmt_date((string) $r['sent_at'], 'g:i a')) ?></small></span>
           <span class="os-to"><b><?php if ($r['user_id'] !== null && $r['name'] !== null): ?><a href="<?= e(url('admin/driver.php?id=' . (int) $r['user_id'])) ?>"><?= e((string) $r['name']) ?></a><?php else: ?><?= e((string) $r['email']) ?><?php endif; ?></b>
             <small><?= e($r['name'] !== null ? (string) $r['email'] : 'No account yet') ?></small></span>
-          <span class="os-kind"><b><?= e($kName) ?></b><small>Reminder <?= (int) $r['step'] ?></small></span>
+          <span class="os-kind"><b><?= e($kName) ?></b><small><?= (int) $r['failed'] ? '<span class="fu-fail">Couldn’t send, tries again tomorrow</span>' : 'Reminder ' . (int) $r['step'] ?></small></span>
         </li>
       <?php endforeach; ?>
     </ul>
