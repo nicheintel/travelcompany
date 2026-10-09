@@ -117,7 +117,7 @@ function followup_candidates(string $kind, int $window): array
             WHERE u.is_admin = 0 AND u.email_verified_at IS NULL AND u.added_by IS NULL AND u.created_at >= $since"),
         'open' => db_all(sprintf($onb, 'o.created_at', '', "o.stage = 'documents' AND o.opened_at IS NULL AND o.created_at >= $since")),
         'docs' => db_all(sprintf($onb, 'o.opened_at', '', "o.stage = 'documents' AND o.opened_at IS NOT NULL AND o.opened_at >= $since")),
-        'changes' => db_all(sprintf($onb, 'o.reviewed_at', ', o.review_note', "o.stage = 'changes' AND o.reviewed_at >= $since")),
+        'changes' => db_all(sprintf($onb, 'o.reviewed_at', ', o.review_note, o.review_fix', "o.stage = 'changes' AND o.reviewed_at >= $since")),
         'sign' => db_all(sprintf($onb, 'o.approved_at', '', "o.stage = 'contract' AND o.approved_at >= $since")),
         'invite' => db_all("SELECT NULL AS user_id, m.email, m.first_name AS name, m.type, m.city, m.sent_at AS anchor FROM onboarding_emails m
             WHERE m.user_id IS NULL AND m.had_account = 0 AND m.joined_at IS NULL AND m.sent_at >= $since
@@ -176,6 +176,22 @@ function followup_email(string $kind, array $c, bool $final, array $v = []): arr
             return ['Your onboarding is incomplete', $paras, 'Finish my onboarding', $onbLink, $signIn];
         case 'changes':
             $note = trim((string) ($c['review_note'] ?? ''));
+            $fix = !empty($c['review_fix']) && !empty($c['user_id']) ? onboarding_fix(['stage' => 'changes', 'review_fix' => $c['review_fix']]) : null;
+            if ($fix) { // the reasons your team ticked: only the items they haven't updated yet
+                $left = array_keys(array_filter(onboarding_items((int) $c['user_id']), fn ($i) => $i[4] && !$i[4][1]));
+                $groups = onb_fix_groups($fix['items'], $left);
+                return ['Action required: update to your documents', $groups ? [
+                    "Hello $first,",
+                    'Our team has reviewed your onboarding documents and asked for ' . (count($groups) === 1 && count($groups[0][1]) === 1 ? 'this update:' : 'these updates:'),
+                    ['list' => $groups, 'note' => $fix['note']],
+                    'Please make the ' . (count($groups) === 1 && count($groups[0][1]) === 1 ? 'change' : 'changes') . ' and resubmit for review.',
+                    $bye,
+                ] : [
+                    "Hello $first,",
+                    'Thank you for updating your documents. Please tap “Submit for review” so our team can take another look.',
+                    $bye,
+                ], 'Update my documents', $onbLink, $signIn];
+            }
             return ['Action required: update to your documents', array_values(array_filter([
                 "Hello $first,",
                 'Our team has reviewed your onboarding documents and requested the following update:',

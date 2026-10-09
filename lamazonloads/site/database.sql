@@ -249,6 +249,7 @@ CREATE TABLE IF NOT EXISTS onboarding (
   stage VARCHAR(20) NOT NULL DEFAULT 'documents',
   submitted_at DATETIME NULL,
   review_note TEXT NULL,
+  review_fix TEXT NULL,             -- the reasons ticked in Request changes, item by item (JSON)
   reviewed_at DATETIME NULL,
   reviewed_by INT UNSIGNED NULL,
   approved_at DATETIME NULL,

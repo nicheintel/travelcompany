@@ -142,6 +142,8 @@ if (!$row): ?>
 <?php dash_close(); page_footer(); return; endif;
 
 $items = onboarding_items($uid);
+$fix = onboarding_fix($row); // what our team asked them to fix (Request changes), item by item
+$fixLeft = $fix && $row['stage'] === 'changes' ? count(array_filter($items, fn ($i) => $i[4] && !$i[4][1])) : 0;
 $done = count(array_filter($items, fn ($i) => $i[2]));
 $total = count($items);
 $steps = onboarding_steps_view($row);
@@ -162,20 +164,28 @@ $stage = $row['stage'];
 </ol>
 
 <?php if ($canEdit): ?>
-  <?php if ($stage === 'changes' && trim((string) $row['review_note']) !== ''): ?>
+  <?php if ($stage === 'changes' && $fix): $teamNote = trim((string) $fix['note']); ?>
+    <?php if ($fixLeft): ?>
+      <div class="onb-note"><?= icon('chat') ?><div><b>Please fix <?= $fixLeft === 1 ? '1 thing' : $fixLeft . ' things' ?></b><p>They’re marked below. Once each one is updated, submit for&nbsp;review.</p>
+        <?php if ($teamNote !== ''): ?><p class="onb-note-extra"><b>A note from our team:</b> <?= nl2br(e($teamNote)) ?></p><?php endif; ?></div></div>
+    <?php else: ?>
+      <div class="onb-note onb-note-ok"><?= icon('check') ?><div><b>Thanks! Everything we asked for is updated</b><p>Tap “Submit for review” below and we’ll take another&nbsp;look.</p></div></div>
+    <?php endif; ?>
+  <?php elseif ($stage === 'changes' && trim((string) $row['review_note']) !== ''): ?>
     <div class="onb-note"><?= icon('chat') ?><div><b>Our team asked for a few changes</b><p><?= nl2br(e((string) $row['review_note'])) ?></p></div></div>
   <?php endif; ?>
   <p class="muted onb-lead">Upload each item below. Photos from your phone are fine (JPG or PNG), and so are PDFs. Only you and LamazonLoads staff can see them.</p>
   <?php if ($errors && $errItem === ''): ?><ul class="errors"><?php foreach ($errors as $er): ?><li><?= e($er) ?></li><?php endforeach; ?></ul><?php endif; ?>
 
   <div class="onb-list">
-    <?php foreach ($items as $k => [$label, $hint, $ok, $docs]): ?>
-      <section class="card onb-item<?= $ok ? ' is-done' : '' ?>" id="item-<?= e($k) ?>">
+    <?php foreach ($items as $k => [$label, $hint, $ok, $docs, $fx]): $fx = $stage === 'changes' ? $fx : null; $needFix = $fx && !$fx[1]; ?>
+      <section class="card onb-item<?= $ok ? ' is-done' : '' ?><?= $needFix ? ' is-fix' : '' ?>" id="item-<?= e($k) ?>">
         <header class="onb-item-head">
-          <span class="onb-tick"><?= $ok ? icon('check') : icon($k === 'payout' ? 'dollar' : 'upload') ?></span>
+          <span class="onb-tick"><?= $ok ? icon('check') : icon($needFix ? 'alert' : ($k === 'payout' ? 'dollar' : 'upload')) ?></span>
           <div><h3><?= e($label) ?></h3><p><?= e($hint) ?></p></div>
-          <span class="badge <?= $ok ? 'badge-open' : 'badge-reviewing' ?>"><?= $ok ? 'Done' : 'Needed' ?></span>
+          <span class="badge <?= $needFix ? 'badge-fix' : ($ok ? 'badge-open' : 'badge-reviewing') ?>"><?= $needFix ? 'Needs a fix' : ($ok ? ($fx ? 'Updated' : 'Done') : 'Needed') ?></span>
         </header>
+        <?php if ($needFix): ?><ul class="onb-fix" aria-label="What to fix"><?php foreach ($fx[0] as $r): ?><li><?= icon('alert') ?><span><?= e(onb_fix_reason($k, (string) $r)[1]) ?></span></li><?php endforeach; ?></ul><?php endif; ?>
         <?php if ($errItem === $k && ($errors || $payErrors)): ?><ul class="errors"><?php foreach (array_merge($errors, $payErrors) as $er): ?><li><?= e($er) ?></li><?php endforeach; ?></ul><?php endif; ?>
 
         <?php if ($k === 'payout'):
@@ -218,7 +228,7 @@ $stage = $row['stage'];
 
   <div class="card onb-submit<?= $done === $total ? ' is-ready' : '' ?>">
     <div>
-      <b><?= $done === $total ? 'All set! Send your documents to our team' : 'Finish ' . ($total - $done) . ' more item' . ($total - $done === 1 ? '' : 's') . ' to continue' ?></b>
+      <b><?= $done === $total ? 'All set! Send your documents to our team' : ($fixLeft === $total - $done ? 'Fix ' . $fixLeft . ' marked item' . ($fixLeft === 1 ? '' : 's') : 'Finish ' . ($total - $done) . ' more item' . ($total - $done === 1 ? '' : 's')) . ' to continue' ?></b>
       <p class="muted mb-0"><?= $done === $total ? 'We’ll review them and email you, usually within one business day.' : 'Your progress is saved. You can come back any time.' ?></p>
     </div>
     <form method="post" action="<?= e(url('onboarding.php')) ?>"><?= csrf_field() ?><input type="hidden" name="action" value="submit">

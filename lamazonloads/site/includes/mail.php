@@ -197,9 +197,9 @@ function email_body(string $heading, array $paragraphs, ?string $button = null, 
     $buttonAfter = $buttonAfter >= 0 && $buttonAfter < count($paragraphs) ? $buttonAfter : count($paragraphs) - 1; // where the button goes
     foreach (array_values($paragraphs) as $i => $p) {
         $quote = !$letter && $i === count($paragraphs) - 1 && count($paragraphs) > 1;
-        $html .= $quote
+        $html .= is_array($p) ? email_list_html($p) : ($quote
             ? '<p style="margin:0 0 14px;padding:12px 14px;border-left:4px solid #1E63E9;background:#EEF4FF;border-radius:8px;font-size:15px;line-height:1.55;color:#24304A;white-space:pre-wrap;">' . e($p) . '</p>'
-            : '<p style="margin:0 0 14px;font-size:15px;line-height:1.55;color:#24304A;white-space:pre-wrap;">' . e($p) . '</p>';
+            : '<p style="margin:0 0 14px;font-size:15px;line-height:1.55;color:#24304A;white-space:pre-wrap;">' . e($p) . '</p>');
         if ($i === $buttonAfter) {
             $html .= $btn;
         }
@@ -212,7 +212,7 @@ function email_body(string $heading, array $paragraphs, ?string $button = null, 
         . '</td></tr><tr><td style="padding:24px 32px 26px;font-size:12px;color:#8A96AD;">&copy; ' . date('Y') . ' LamazonLoads &middot; ' . e($domain)
         . ($stopLink !== '' ? ' &middot; <a href="' . e($stopLink) . '" style="color:#8A96AD;text-decoration:underline;">' . e($stopLabel) . '</a>' : '') . '</td></tr>'
         . '</table></td></tr></table></body></html>';
-    $paras = array_values($paragraphs);
+    $paras = array_map(fn ($p) => is_array($p) ? email_list_text($p) : $p, array_values($paragraphs));
     if ($button && $link) {
         $paras[$buttonAfter] .= "\n\n$button: $link";
     }
@@ -221,6 +221,35 @@ function email_body(string $heading, array $paragraphs, ?string $button = null, 
         . ($letter ? "\n\n" . $domain . "\n" : "\n\nThe LamazonLoads Team\nWhy wait? Let's freight.\n" . $domain . "\n")
         . ($stopLink !== '' ? "\n" . $stopLabel . ': ' . $stopLink . "\n" : '');
     return [$text, $html];
+}
+
+/**
+ * A list in an email (email_body takes it in place of a paragraph): ['list' => [[heading, [line, …]], …], 'note' => text].
+ * Shown as one highlighted box: each heading in bold with its lines as bullets, then the note.
+ */
+function email_list_html(array $b): string
+{
+    $out = '';
+    foreach ($b['list'] ?? [] as [$head, $lines]) {
+        $out .= '<p style="margin:' . ($out === '' ? '0' : '12px') . ' 0 4px;font-size:15px;line-height:1.4;font-weight:bold;color:#0A2463;">' . e((string) $head) . '</p>'
+            . '<ul style="margin:0;padding-left:20px;font-size:15px;line-height:1.55;color:#24304A;">';
+        foreach ($lines as $l) {
+            $out .= '<li style="margin:0 0 2px;">' . e((string) $l) . '</li>';
+        }
+        $out .= '</ul>';
+    }
+    $note = trim((string) ($b['note'] ?? ''));
+    if ($note !== '') {
+        $out .= '<p style="margin:' . ($out === '' ? '0' : '12px') . ' 0 0;font-size:15px;line-height:1.55;color:#24304A;white-space:pre-wrap;">' . e($note) . '</p>';
+    }
+    return '<div style="margin:0 0 14px;padding:14px 16px;border-left:4px solid #1E63E9;background:#EEF4FF;border-radius:8px;">' . $out . '</div>';
+}
+
+function email_list_text(array $b): string
+{
+    $parts = array_map(fn ($g) => $g[0] . "\n" . implode("\n", array_map(fn ($l) => '• ' . $l, $g[1])), $b['list'] ?? []);
+    $note = trim((string) ($b['note'] ?? ''));
+    return implode("\n\n", $note !== '' ? [...$parts, $note] : $parts);
 }
 
 /** "Open Gmail" style button after we email someone: [label, url] for common email providers, or [] for others. */

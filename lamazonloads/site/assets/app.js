@@ -585,6 +585,27 @@
     if (!document.hidden) run(); else if (!keep) t.classList.add('is-paused');
   });
 
+  // Request changes (member page): count what's ticked on each item and on the Send button; it needs a reason or a note
+  document.querySelectorAll('[data-rc]').forEach(function (f) {
+    var send = f.querySelector('[data-rc-send]'), hint = f.querySelector('[data-rc-hint]'), note = f.querySelector('textarea[name=note]');
+    var sync = function () {
+      var total = 0;
+      f.querySelectorAll('[data-rc-item]').forEach(function (it) {
+        var n = it.querySelectorAll('input:checked').length, b = it.querySelector('[data-rc-n]');
+        total += n;
+        it.classList.toggle('has', n > 0);
+        if (b) { b.hidden = !n; b.textContent = n + ' picked'; }
+      });
+      var typed = !!note && note.value.trim() !== '';
+      send.textContent = total ? 'Send to driver · ' + total + (total === 1 ? ' change' : ' changes') : 'Send to driver';
+      send.disabled = !total && !typed;
+      if (hint) hint.hidden = total > 0 || typed;
+    };
+    f.addEventListener('change', sync);
+    if (note) note.addEventListener('input', sync);
+    sync();
+  });
+
   // Applications list: tick rows, then "Delete selected".
   var bulk = document.querySelector('[data-bulk]');
   if (bulk) {

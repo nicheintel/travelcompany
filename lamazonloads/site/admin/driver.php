@@ -47,11 +47,12 @@ if (is_post()) {
         redirect($onbBack);
     } elseif ($action === 'onb_changes') {
         $note = post('note', 2000);
-        if ($note === '') {
-            flash('error', 'Please write what they need to change.');
+        $fix = onb_fix_from_post(); // the reasons ticked, item by item
+        if ($note === '' && !$fix) {
+            flash('error', 'Please pick what they need to fix, or write a note.');
         } else {
-            $asked = onboarding_request_changes($id, (int) $me['id'], $note);
-            flash($asked ? 'success' : 'error', $asked ? 'We emailed ' . $u['name'] . ' your note and the link to update their documents.' : 'Their onboarding is already approved, so changes can’t be requested here.');
+            $asked = onboarding_request_changes($id, (int) $me['id'], $note, $fix);
+            flash($asked ? 'success' : 'error', $asked ? 'We emailed ' . $u['name'] . ($fix ? ' what to fix' : ' your note') . ' and the link to update their documents.' : 'Their onboarding is already approved, so changes can’t be requested here.');
         }
         redirect($onbBack);
     } elseif ($action === 'onb_link') {
@@ -70,7 +71,7 @@ if (is_post()) {
         flash('success', $u['name'] . ' is marked as onboarded' . ($sent ? ', and we emailed them the Telegram link.' : '.'));
         redirect($onbBack);
     } elseif ($action === 'onb_restart') {
-        db_run("UPDATE onboarding SET stage = 'documents', submitted_at = NULL, review_note = NULL, approved_at = NULL, contract_version = NULL, contract_title = NULL,
+        db_run("UPDATE onboarding SET stage = 'documents', submitted_at = NULL, review_note = NULL, review_fix = NULL, approved_at = NULL, contract_version = NULL, contract_title = NULL,
             contract_text = NULL, signed_at = NULL, signed_name = NULL, signed_company = NULL, signature = NULL, signed_ip = NULL, emergency_name = NULL,
             emergency_relation = NULL, emergency_phone = NULL, telegram_sent_at = NULL, marked_at = NULL, marked_by = NULL, updated_at = NOW() WHERE user_id = ?", [$id]);
         flash('success', 'Onboarding restarted from "Upload documents".');
@@ -211,14 +212,21 @@ if (!$onb) { // where the list's Dispatch / Walmart label comes from before onbo
     <ol class="onb-steps onb-steps-sm" aria-label="Onboarding steps">
       <?php $n = 0; foreach (onboarding_steps_view($onb) as [$label, $state]): $n++; ?><li class="is-<?= e($state) ?>"><span class="onb-dot"><?= $state === 'done' ? icon('check') : $n ?></span><span><?= e($label) ?></span></li><?php endforeach; ?>
     </ol>
-    <?php if ($onb['stage'] === 'changes' && $onb['review_note']): ?><div class="onb-note"><?= icon('chat') ?><div><b>You asked for changes<?= $onb['reviewed_at'] ? ' on ' . e(fmt_date((string) $onb['reviewed_at'], 'M j')) : '' ?></b><p><?= nl2br(e((string) $onb['review_note'])) ?></p></div></div><?php endif; ?>
+    <?php $oFix = onboarding_fix($onb); $asked = $oFix && $onb['reviewed_at'] ? ' on ' . fmt_date((string) $onb['reviewed_at'], 'M j') : '';
+    if ($oFix): $fixAsked = array_filter($oItems, fn ($i) => $i[4] !== null); $fixDone = count(array_filter($fixAsked, fn ($i) => $i[4][1])); $allFixed = $fixDone === count($fixAsked); ?>
+      <div class="onb-note<?= $allFixed ? ' onb-note-ok' : '' ?>"><?= icon($allFixed ? 'check' : 'chat') ?><div><b>You asked for changes<?= e($asked) ?></b>
+        <p><?= $allFixed ? ($onb['stage'] === 'review' ? 'They updated everything you asked for and sent it back for review.' : 'They updated everything you asked for. Waiting for them to submit it for review.')
+            : '<span class="nowrap">' . $fixDone . ' of ' . count($fixAsked) . '</span> items updated so far. Each one is marked below.' ?></p>
+        <?php if (trim((string) $oFix['note']) !== ''): ?><p class="onb-note-extra"><b>Your note:</b> <?= nl2br(e((string) $oFix['note'])) ?></p><?php endif; ?></div></div>
+    <?php elseif ($onb['stage'] === 'changes' && $onb['review_note']): ?><div class="onb-note"><?= icon('chat') ?><div><b>You asked for changes<?= $onb['reviewed_at'] ? ' on ' . e(fmt_date((string) $onb['reviewed_at'], 'M j')) : '' ?></b><p><?= nl2br(e((string) $onb['review_note'])) ?></p></div></div><?php endif; ?>
     <div class="onb-check">
-      <?php foreach ($oItems as $k => [$label, , $ok, $oDocs]): ?>
-        <div class="onb-ck<?= $ok ? ' ok' : '' ?>"><span class="onb-ck-ico"><?= icon($ok ? 'check' : 'clock') ?></span>
+      <?php foreach ($oItems as $k => [$label, , $ok, $oDocs, $oFx]): $fixWait = $oFx && !$oFx[1]; ?>
+        <div class="onb-ck<?= $ok ? ' ok' : '' ?><?= $fixWait ? ' is-fix' : '' ?>"><span class="onb-ck-ico"><?= icon($ok ? 'check' : ($fixWait ? 'alert' : 'clock')) ?></span>
           <div><b><?= e($label) ?></b>
             <?php if ($k === 'payout'): ?><small><?= $ok ? e(payout_label($p)) . ' · name: ' . e((string) $p['payout_name']) : 'Not added yet' ?></small>
             <?php elseif ($oDocs): ?><small class="onb-ck-files"><?php foreach ($oDocs as $d): ?><?= doc_link($d, icon('eye') . e($d['original_name']), '', $label) ?><?php endforeach; ?></small>
             <?php else: ?><small>Not uploaded yet</small><?php endif; ?>
+            <?php if ($oFx): ?><small class="onb-ck-fix<?= $oFx[1] ? ' is-ok' : '' ?>"><?= icon($oFx[1] ? 'check' : 'alert') ?><span>You asked: <?= e(implode(' · ', array_map(fn ($r) => onb_fix_reason($k, (string) $r)[0], $oFx[0]))) ?>. <b class="nowrap"><?= $oFx[1] ? ($k === 'payout' ? 'Details updated' : 'New file added') : 'Not updated yet' ?></b></span></small><?php endif; ?>
           </div></div>
       <?php endforeach; ?>
     </div>
@@ -233,13 +241,9 @@ if (!$onb) { // where the list's Dispatch / Walmart label comes from before onbo
     <?php endif; ?>
     <div class="onb-actions">
       <?php if (in_array($onb['stage'], ['documents', 'review', 'changes'], true)): ?>
-        <form method="post" action="<?= e(url($self)) ?>" class="inline-form"<?= $oDone < count($oItems) ? ' data-confirm="Not every item is on file yet. Approve anyway?" data-confirm-ok="Approve anyway"' : '' ?>><?= csrf_field() ?><input type="hidden" name="action" value="onb_approve">
+        <form method="post" action="<?= e(url($self)) ?>" class="inline-form"<?= $oDone < count($oItems) ? ' data-confirm="Not every item is done yet. Approve anyway?" data-confirm-ok="Approve anyway"' : '' ?>><?= csrf_field() ?><input type="hidden" name="action" value="onb_approve">
           <button class="btn btn-accent" type="submit"><?= icon('check') ?> Approve<?= contract_needed($onb['track']) ? ' & send agreement' : ' & send Telegram link' ?></button></form>
-        <details class="onb-changes"><summary class="btn btn-ghost"><?= icon('chat') ?> Request changes</summary>
-          <form method="post" action="<?= e(url($self)) ?>"><?= csrf_field() ?><input type="hidden" name="action" value="onb_changes">
-            <label for="onb-note">What should they fix? (emailed to them)</label>
-            <textarea id="onb-note" name="note" maxlength="2000" rows="3" placeholder="e.g. Your insurance card is expired. Please upload your current one."></textarea>
-            <button class="btn btn-primary btn-sm mt" type="submit">Send to driver</button></form></details>
+        <a class="btn btn-ghost" href="#changes" data-modal-open="changes"><?= icon('chat') ?> Request changes</a>
         <?= onboarding_mark_form(url($self), (string) $onb['track'], (string) $u['name']) ?>
       <?php elseif ($onb['stage'] === 'contract'): ?>
         <span class="muted">Approved<?= $onb['approved_at'] ? ' ' . e(fmt_date((string) $onb['approved_at'], 'M j')) : '' ?>. Waiting for them to sign.</span>
@@ -373,6 +377,38 @@ if ($fromRec): ?>
     <?php endif; ?>
   </div>
 </div>
+
+<?php if ($onb && in_array($onb['stage'], ['documents', 'review', 'changes'], true)): $fn = first_name((string) $u['name']); ?>
+<div class="modal" id="changes" data-modal data-modal-param="changes" role="dialog" aria-modal="true" aria-labelledby="changes-title" aria-hidden="true">
+  <a class="modal-backdrop" href="#" data-modal-close aria-label="Close"></a>
+  <div class="modal-panel modal-wide">
+    <header class="modal-head">
+      <div><span class="eyebrow">Request changes</span><h2 id="changes-title">What should <?= e($fn) ?> fix?</h2></div>
+      <a class="modal-x" href="#" data-modal-close aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></a>
+    </header>
+    <div class="modal-body">
+      <form method="post" action="<?= e(url($self)) ?>" class="rc-form" data-rc novalidate>
+        <?= csrf_field() ?><input type="hidden" name="action" value="onb_changes">
+        <p class="rc-lead">Tick everything that needs fixing. We’ll email <?= e($fn) ?> the list with a link to update their documents.</p>
+        <div class="rc-grid">
+          <?php foreach ($oItems as $k => [$label, , , $oDocs]): // an item that isn't on file yet only offers "Not uploaded yet"
+              $onFile = $k === 'payout' ? ($p && $p['payout_method'] !== '' && $p['payout_name'] !== '') : (bool) $oDocs; ?>
+            <div class="rc-item" role="group" aria-labelledby="rc-<?= e($k) ?>" data-rc-item>
+              <h3 id="rc-<?= e($k) ?>"><?= e($label) ?><span class="rc-n" data-rc-n hidden></span></h3>
+              <div class="rc-chips">
+                <?php foreach ($onFile ? ONB_FIX_REASONS[$k] : ['missing' => ONB_FIX_MISSING[$k]] as $rk => [$short]): ?><label class="rc-chip"><input type="checkbox" name="fix[<?= e($k) ?>][]" value="<?= e($rk) ?>"><span><i aria-hidden="true"></i><?= e($short) ?></span></label><?php endforeach; ?>
+              </div>
+            </div>
+          <?php endforeach; ?>
+          <div class="rc-other"><label for="onb-note">Anything else? <span class="opt">(optional)</span></label>
+            <textarea id="onb-note" name="note" maxlength="2000" rows="2" placeholder="Only if something isn’t on the list above."></textarea></div>
+        </div>
+        <div class="rc-foot"><button class="btn btn-primary" type="submit" data-rc-send>Send to driver</button><span class="muted" data-rc-hint>Pick at least one reason, or write a note.</span></div>
+      </form>
+    </div>
+  </div>
+</div>
+<?php endif; ?>
 
 <div class="modal<?= $editErrors ? ' is-open' : '' ?>" id="edit" data-modal data-modal-param="edit" role="dialog" aria-modal="true" aria-labelledby="edit-title"<?= $editErrors ? '' : ' aria-hidden="true"' ?>>
   <a class="modal-backdrop" href="#" data-modal-close aria-label="Close"></a>

@@ -95,7 +95,8 @@ function migrate(PDO $pdo): void
     // Onboarding opens from the link in the email: each driver gets a personal link; drivers who already started stay unlocked
     $onbCols = $pdo->query("SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'onboarding'")->fetchAll(PDO::FETCH_COLUMN);
     add_missing_columns($pdo, 'onboarding', ['access_token' => 'CHAR(32) NULL', 'opened_at' => 'DATETIME NULL',
-        'marked_at' => 'DATETIME NULL', 'marked_by' => 'INT UNSIGNED NULL']); // marked as onboarded by staff (onboarded outside the website)
+        'marked_at' => 'DATETIME NULL', 'marked_by' => 'INT UNSIGNED NULL', // marked as onboarded by staff (onboarded outside the website)
+        'review_fix' => 'TEXT NULL']); // the reasons ticked in Request changes
     if ($onbCols && !in_array('opened_at', $onbCols, true)) {
         $pdo->exec("UPDATE onboarding o SET o.opened_at = NOW() WHERE o.stage <> 'documents'
             OR EXISTS (SELECT 1 FROM documents d WHERE d.user_id = o.user_id AND d.kind IN ('vehicle_photo', 'w9', 'insurance', 'license'))

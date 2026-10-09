@@ -27,6 +27,50 @@ const ONB_ITEMS = [
     'license' => ['Driver’s license', 'A clear photo of the front.'],
     'payout' => ['Payment details', 'How we pay you. Zelle is preferred.'],
 ];
+/** Request changes: the reasons staff tick for each item, as [what staff tap, what the driver reads]. */
+const ONB_FIX_REASONS = [
+    'vehicle_photo' => [
+        'dark' => ['Blurry or too dark', 'Some photos are blurry or too dark. Please retake them in good light.'],
+        'whole' => ['Whole vehicle not shown', 'Please send photos of the whole vehicle: the front, the back and both sides.'],
+        'cargo' => ['No cargo area photo', 'Please add a photo of the cargo area, with the doors open.'],
+        'plate' => ['Plate not readable', 'We need a photo where the license plate is easy to read.'],
+        'vehicle' => ['Not the vehicle on file', 'These photos don’t match the vehicle on your profile. Please upload photos of the vehicle you’ll drive.'],
+    ],
+    'w9' => [
+        'unsigned' => ['Not signed or dated', 'Your W-9 isn’t signed and dated. Please sign it, date it and upload it again.'],
+        'empty' => ['Boxes left empty', 'Some required boxes on your W-9 are empty, like your name, address or tax classification.'],
+        'tin' => ['SSN or EIN missing', 'Your SSN or EIN is missing or hard to read on your W-9.'],
+        'name' => ['Name doesn’t match', 'The name on your W-9 doesn’t match your driver’s license or business name.'],
+        'old' => ['Old or wrong form', 'This isn’t the current IRS W-9. Please download the latest one at irs.gov.'],
+    ],
+    'insurance' => [
+        'expired' => ['Expired', 'Your insurance has expired. Please upload your current card or certificate.'],
+        'name' => ['Name doesn’t match', 'The name on your insurance doesn’t match your name or business.'],
+        'vehicle' => ['Vehicle not listed', 'The vehicle you’ll drive isn’t listed on this policy.'],
+        'coverage' => ['Dates or coverage not shown', 'We can’t see your coverage or policy dates. Please upload your certificate of insurance (COI).'],
+        'blurry' => ['Blurry or cut off', 'Your insurance document is blurry or cut off. Please upload a clear copy.'],
+    ],
+    'license' => [
+        'expired' => ['Expired', 'Your driver’s license has expired. Please upload your current one.'],
+        'blurry' => ['Blurry or glare', 'Your license photo is blurry or has glare. Please retake it so every detail is easy to read.'],
+        'cut' => ['Cut off', 'Part of your license is cut off. Please show all four corners.'],
+        'name' => ['Name doesn’t match', 'The name on your license doesn’t match the name on your account.'],
+        'not_license' => ['Not a driver’s license', 'This isn’t a driver’s license. Please upload a photo of the front of your license.'],
+    ],
+    'payout' => [
+        'name' => ['Name doesn’t match', 'The name on your payment account doesn’t match your name or business.'],
+        'not_found' => ['Account not found', 'We couldn’t find an account with the email or phone number you gave. Please check it and enter it again.'],
+        'incomplete' => ['Details missing', 'Some of your payment details are missing. Please fill in every field.'],
+    ],
+];
+/** The one reason offered for an item that isn't on file yet. */
+const ONB_FIX_MISSING = [
+    'vehicle_photo' => ['Not uploaded yet', 'Please upload pictures of your vehicle.'],
+    'w9' => ['Not uploaded yet', 'Please upload your W-9 form.'],
+    'insurance' => ['Not uploaded yet', 'Please upload your proof of insurance.'],
+    'license' => ['Not uploaded yet', 'Please upload a photo of your driver’s license.'],
+    'payout' => ['Not added yet', 'Please add your payment details.'],
+];
 const PAYOUT_METHODS = [
     'zelle' => 'Zelle',
     'cashapp' => 'Cash App',
@@ -147,17 +191,73 @@ function payout_save(int $userId): array
 }
 
 /** The checklist: [key => ['label', 'hint', done, documents[]]]. */
+/**
+ * Each item: [label, hint, done, files, fix]. fix is null, or what staff asked them to fix (Request changes) as
+ * [reason keys, updated]: updated once they upload a new file for it (or save their payment details again). While
+ * changes are requested, an item that isn't updated yet doesn't count as done, so they can't submit without it.
+ */
 function onboarding_items(int $userId): array
 {
     $docs = db_all("SELECT * FROM documents WHERE user_id = ? AND kind IN ('vehicle_photo', 'w9', 'insurance', 'license') ORDER BY created_at, id", [$userId]);
-    $p = db_one('SELECT payout_method, payout_name, payout_handle FROM driver_profiles WHERE user_id = ?', [$userId]);
+    $p = db_one('SELECT payout_method, payout_name, payout_handle, payout_updated_at FROM driver_profiles WHERE user_id = ?', [$userId]);
+    $o = db_one('SELECT stage, review_fix, reviewed_at FROM onboarding WHERE user_id = ?', [$userId]);
+    $asked = $o ? (onboarding_fix($o)['items'] ?? []) : [];
     $out = [];
     foreach (ONB_ITEMS as $k => [$label, $hint]) {
         $mine = $k === 'payout' ? [] : array_values(array_filter($docs, fn ($d) => $d['kind'] === $k));
         $done = $k === 'payout' ? ($p && $p['payout_method'] !== '' && $p['payout_name'] !== '') : (bool) $mine;
-        $out[$k] = [$label, $hint, $done, $mine];
+        $fix = null;
+        if (isset($asked[$k])) {
+            $since = (string) $o['reviewed_at'];
+            $updated = $k === 'payout' ? (string) ($p['payout_updated_at'] ?? '') > $since
+                : (bool) array_filter($mine, fn ($d) => (string) $d['created_at'] > $since);
+            $fix = [$asked[$k], $updated];
+            $done = $done && ($updated || $o['stage'] !== 'changes');
+        }
+        $out[$k] = [$label, $hint, $done, $mine, $fix];
     }
     return $out;
+}
+
+/** What staff picked in Request changes: ['items' => [item => reason keys], 'note' => text], or null (none, or only a typed note). */
+function onboarding_fix(array $row): ?array
+{
+    if (!in_array($row['stage'] ?? '', ['changes', 'review'], true) || empty($row['review_fix'])) {
+        return null;
+    }
+    $f = json_decode((string) $row['review_fix'], true);
+    return is_array($f) && !empty($f['items']) && is_array($f['items']) ? $f + ['note' => ''] : null;
+}
+
+/** A reason as [what staff tap, what the driver reads]. */
+function onb_fix_reason(string $item, string $key): array
+{
+    return $key === 'missing' ? (ONB_FIX_MISSING[$item] ?? ['', '']) : (ONB_FIX_REASONS[$item][$key] ?? ['', '']);
+}
+
+/** The reasons ticked in the Request changes form, checked against the list: [item => reason keys], in checklist order. */
+function onb_fix_from_post(): array
+{
+    $in = is_array($_POST['fix'] ?? null) ? $_POST['fix'] : [];
+    $out = [];
+    foreach (array_keys(ONB_ITEMS) as $k) {
+        $keys = array_values(array_unique(array_filter(array_map('as_str', is_array($in[$k] ?? null) ? $in[$k] : []),
+            fn ($r) => $r === 'missing' || isset(ONB_FIX_REASONS[$k][$r]))));
+        if ($keys) $out[$k] = $keys;
+    }
+    return $out;
+}
+
+/** The list for emails: [[item label, [what the driver reads, …]], …]. $only: item keys to keep (the ones not fixed yet). */
+function onb_fix_groups(array $items, ?array $only = null): array
+{
+    $groups = [];
+    foreach ($items as $k => $keys) {
+        if (isset(ONB_ITEMS[$k]) && ($only === null || in_array($k, $only, true))) {
+            $groups[] = [ONB_ITEMS[$k][0], array_values(array_filter(array_map(fn ($r) => onb_fix_reason($k, (string) $r)[1], (array) $keys)))];
+        }
+    }
+    return $groups;
 }
 
 function onboarding_progress(int $userId): array
@@ -279,7 +379,7 @@ function onboarding_approve(int $userId, int $staffId): string
         return ''; // only before approval: a signed agreement is never sent out again this way
     }
     $stage = contract_needed($row['track']) ? 'contract' : 'done';
-    $changed = db_run('UPDATE onboarding SET stage = ?, approved_at = NOW(), reviewed_at = NOW(), reviewed_by = ?, review_note = NULL, updated_at = NOW()'
+    $changed = db_run('UPDATE onboarding SET stage = ?, approved_at = NOW(), reviewed_at = NOW(), reviewed_by = ?, review_note = NULL, review_fix = NULL, updated_at = NOW()'
         . ($stage === 'done' ? ', telegram_sent_at = NOW()' : '') . " WHERE user_id = ? AND stage IN ('documents', 'review', 'changes')", [$stage, $staffId, $userId]);
     if ($changed !== 1) {
         return ''; // approved a moment ago (a double tap, or two staff at once): the emails already went out
@@ -308,7 +408,7 @@ function onboarding_mark_done(int $userId, string $track, int $staffId): void
         return;
     }
     onboarding_start($userId, $track);
-    db_run("UPDATE onboarding SET track = ?, stage = 'done', approved_at = COALESCE(approved_at, NOW()), reviewed_at = NOW(), reviewed_by = ?, review_note = NULL,
+    db_run("UPDATE onboarding SET track = ?, stage = 'done', approved_at = COALESCE(approved_at, NOW()), reviewed_at = NOW(), reviewed_by = ?, review_note = NULL, review_fix = NULL,
         opened_at = COALESCE(opened_at, NOW()), marked_at = NOW(), marked_by = ?, updated_at = NOW() WHERE user_id = ?", [$track, $staffId, $staffId, $userId]);
 }
 
@@ -339,18 +439,24 @@ function onboarding_send_telegram(array $u, string $lead): bool
 }
 
 /** Staff ask for changes; the driver gets an email with the note. */
-function onboarding_request_changes(int $userId, int $staffId, string $note): bool
+/** $items: the reasons staff ticked ([item => reason keys], from onb_fix_from_post); $note: anything else they typed. */
+function onboarding_request_changes(int $userId, int $staffId, string $note, array $items = []): bool
 {
     $u = db_one('SELECT * FROM users WHERE id = ?', [$userId]);
     $row = onboarding_row($userId);
     if (!$u || !$row || !in_array($row['stage'], ['documents', 'review', 'changes'], true)) {
         return false; // only before approval
     }
-    db_run("UPDATE onboarding SET stage = 'changes', review_note = ?, reviewed_at = NOW(), reviewed_by = ?, updated_at = NOW() WHERE user_id = ?", [$note, $staffId, $userId]);
+    $groups = onb_fix_groups($items);
+    // the note as plain text too: staff see it on the member page, and the follow-up reminders fall back to it
+    $plain = trim(implode("\n\n", array_map(fn ($g) => $g[0] . "\n• " . implode("\n• ", $g[1]), $groups)) . "\n\n" . $note);
+    db_run("UPDATE onboarding SET stage = 'changes', review_note = ?, review_fix = ?, reviewed_at = NOW(), reviewed_by = ?, updated_at = NOW() WHERE user_id = ?",
+        [$plain, $items ? json_encode(['items' => $items, 'note' => $note], JSON_UNESCAPED_UNICODE) : null, $staffId, $userId]);
+    $one = count($items) === 1 && count(reset($items) ?: []) === 1 && $note === '';
     [$text, $html] = email_body('Please update your documents', [
         'Hi ' . onb_first($u) . ',',
-        'Thanks for sending your documents. Our team needs a few changes before we can approve you:',
-        $note,
+        'Thanks for sending your documents. Our team needs ' . ($one ? 'one change' : 'a few changes') . ' before we can approve you:',
+        $items ? ['list' => $groups, 'note' => $note] : $note,
     ], 'Update my documents', onboarding_link($userId), 'Questions? Just reply to this email.');
     send_mail((string) $u['email'], 'Action needed: please update your LamazonLoads documents', $text, $html, support_email());
     return true;
