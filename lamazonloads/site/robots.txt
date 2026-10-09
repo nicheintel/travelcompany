@@ -11,5 +11,6 @@ Disallow: /reset-password.php
 Disallow: /doc.php
 Disallow: /chat.php
 Disallow: /csrf.php
+Disallow: /reminders.php
 
 Sitemap: https://lamazonloads.com/sitemap.php

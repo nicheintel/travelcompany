@@ -303,3 +303,25 @@ CREATE TABLE IF NOT EXISTS onboarding_emails (
   KEY idx_onbmail_sent (sent_at),
   CONSTRAINT fk_onbmail_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Automatic follow-ups (Admin → Automatic follow-ups): one row per reminder sent. "anchor" is when the stage began,
+-- so a new round (for example a second "changes requested") starts its reminders again.
+CREATE TABLE IF NOT EXISTS followup_log (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  kind VARCHAR(20) NOT NULL,
+  email VARCHAR(190) NOT NULL,
+  user_id INT UNSIGNED NULL,
+  step TINYINT UNSIGNED NOT NULL,
+  anchor DATETIME NOT NULL,
+  sent_at DATETIME NOT NULL,
+  UNIQUE KEY uq_followup (kind, email, anchor, step),
+  KEY idx_followup_email (email, sent_at),
+  KEY idx_followup_sent (sent_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- People who tapped "Stop reminders" (or were paused by staff): no automatic follow-ups go to these addresses
+CREATE TABLE IF NOT EXISTS followup_optout (
+  email VARCHAR(190) NOT NULL PRIMARY KEY,
+  by_staff INT UNSIGNED NULL,
+  created_at DATETIME NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

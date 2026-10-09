@@ -6,9 +6,8 @@ require_admin();
 $statuses = ['open' => 'Open (visible on the website)', 'draft' => 'Draft (hidden)', 'closed' => 'Closed (hidden)'];
 $text = ['title' => 150, 'category' => 30, 'location' => 120, 'equipment' => 120, 'pay' => 120, 'description' => 8000, 'requirements' => 4000,
     'status' => 10, 'hires_needed' => 10, 'apply_method' => 10, 'apply_url' => 300, 'resume' => 10, 'notify_emails' => 300, 'contact_email' => 190,
-    'hiring_timeline' => 10, 'welcome_message' => 3000, 'remind_days' => 2, 'decline_days' => 2];
-$flags = ['notify_on', 'contact_by_email', 'fair_chance', 'background_check', 'auto_welcome', 'auto_review', 'auto_remind', 'auto_decline', 'auto_close'];
-$dayChoices = [1 => '1 day', 2 => '2 days', 3 => '3 days', 5 => '5 days', 7 => '7 days'];
+    'hiring_timeline' => 10, 'welcome_message' => 3000];
+$flags = ['notify_on', 'contact_by_email', 'fair_chance', 'background_check', 'auto_welcome', 'auto_review', 'auto_close'];
 $errors = [];
 $editId = isset($_GET['edit']) ? (int) $_GET['edit'] : null;
 $job = $editId ? db_one('SELECT * FROM jobs WHERE id = ?', [$editId]) : null;
@@ -17,12 +16,15 @@ if ($editId && !$job) {
 }
 $defaults = array_merge(array_fill_keys(array_keys($text), ''), array_fill_keys($flags, 0), [
     'category' => 'light_truck', 'status' => 'open', 'hires_needed' => '', 'apply_method' => 'site', 'resume' => 'optional', 'notify_on' => 1,
-    'notify_emails' => (string) config('contact_email'), 'contact_email' => (string) config('contact_email'), 'remind_days' => 2, 'decline_days' => 5,
+    'notify_emails' => (string) config('contact_email'), 'contact_email' => (string) config('contact_email'),
     'job_types' => '', 'welcome_message' => DEFAULT_WELCOME,
 ]);
 $form = $job ? array_merge($defaults, $job) : $defaults;
 if ($job && trim((string) $job['welcome_message']) === '') {
     $form['welcome_message'] = DEFAULT_WELCOME;
+}
+if ($job && !emails_in((string) $job['notify_emails'])) { // the starter posts came without one (updates went to the contact email)
+    $form['notify_emails'] = (string) config('contact_email');
 }
 
 if (is_post()) {
@@ -58,8 +60,6 @@ if (is_post()) {
     }
     $types = array_values(array_intersect(array_keys(JOB_TYPES), (array) ($_POST['job_types'] ?? [])));
     $form['job_types'] = implode(',', $types);
-    $form['remind_days'] = isset($dayChoices[(int) $form['remind_days']]) ? (int) $form['remind_days'] : 2;
-    $form['decline_days'] = isset($dayChoices[(int) $form['decline_days']]) ? (int) $form['decline_days'] : 5;
 
     if ($form['title'] === '') $errors[] = 'Please enter a job title.';
     if (!isset(JOB_CATEGORIES[$form['category']])) $errors[] = 'Please choose a category.';
@@ -74,7 +74,6 @@ if (is_post()) {
     if ($form['contact_by_email'] && !email_valid($form['contact_email'])) $errors[] = 'Please enter the email candidates can contact.';
     if ($form['hiring_timeline'] !== '' && !isset(HIRING_TIMELINES[$form['hiring_timeline']])) $form['hiring_timeline'] = '';
     if ($form['auto_close'] && !ctype_digit($form['hires_needed'])) $errors[] = 'Closing the post automatically needs an exact number of people to hire (1 to 10).';
-    if ($form['auto_decline'] && !$form['auto_remind']) $errors[] = '"Mark as Not selected" works together with the onboarding reminder. Turn the reminder on too.';
     $form['country'] = 'United States';
     $form['language'] = 'English';
 
@@ -206,10 +205,9 @@ admin_open('jobs');
         <span><b>Onboarding email: always on</b><small>Right after someone applies, they get the Dispatch email (box truck, semi truck, cargo van or Sprinter) or the Walmart daily route email (SUV / other), from info@lamazonloads.com. Cities and pay rate: <a href="<?= e(url('admin/walmart.php')) ?>">Admin → Walmart routes</a>.</small></span></div>
       <label class="auto"><input type="checkbox" name="auto_review" value="1"<?= $checked('auto_review') ?>>
         <span><b>Move complete applicants to "In review"</b><small>As soon as an applicant has their profile, W-9, insurance and driver's license on file.</small></span></label>
-      <label class="auto"><input type="checkbox" name="auto_remind" value="1"<?= $checked('auto_remind') ?>>
-        <span><b>Remind applicants to finish onboarding</b><small>One friendly email listing what's missing, <select name="remind_days" aria-label="Days after applying"><?php foreach ($dayChoices as $d => $l): ?><option value="<?= $d ?>"<?= (int) $form['remind_days'] === $d ? ' selected' : '' ?>><?= $l ?></option><?php endforeach; ?></select> after they apply.</small></span></label>
-      <label class="auto"><input type="checkbox" name="auto_decline" value="1"<?= $checked('auto_decline') ?>>
-        <span><b>Focus on responsive candidates</b><small>Mark as "Not selected" if onboarding still isn't done <select name="decline_days" aria-label="Days after the reminder"><?php foreach ($dayChoices as $d => $l): ?><option value="<?= $d ?>"<?= (int) $form['decline_days'] === $d ? ' selected' : '' ?>><?= $l ?></option><?php endforeach; ?></select> after the reminder. They see it in their dashboard.</small></span></label>
+      <?php $fuOn = followup_settings()['on']; ?>
+      <div class="auto <?= $fuOn ? 'auto-on' : 'auto-off' ?>"><span class="auto-tick"><?= icon($fuOn ? 'check' : 'minus') ?></span>
+        <span><b>Reminders to finish onboarding: <?= $fuOn ? 'on for every post' : 'off' ?></b><small>Applicants who stop partway get a few short reminders, and you can mark them "Not selected" when they don't finish. <?= is_full_admin() ? 'Set it up in <a href="' . e(url('admin/followups.php')) . '">Admin → Automatic follow-ups</a>.' : 'An admin sets it up in Admin → Automatic follow-ups.' ?></small></span></div>
       <label class="auto"><input type="checkbox" name="auto_close" value="1"<?= $checked('auto_close') ?>>
         <span><b>Close the post when you've hired enough</b><small>When the number of "Approved" applicants reaches the number to hire.</small></span></label>
     </div>
@@ -239,7 +237,7 @@ admin_open('jobs');
   <?php if (!$jobs): ?><div class="panel-body"><div class="empty">No job posts yet. Click <b>New job post</b> to add one.</div></div><?php else: ?>
   <div class="panel-body flush jl">
     <div class="jl-row jl-head" aria-hidden="true"><span>Job</span><span>Type</span><span>Hiring</span><span>Status</span><span>Applicants</span><span>Actions</span></div>
-    <?php foreach ($jobs as $j): $autos = array_filter(['In review' => $j['auto_review'], 'Reminder' => $j['auto_remind'], 'Not selected' => $j['auto_decline'], 'Auto-close' => $j['auto_close']]); ?>
+    <?php foreach ($jobs as $j): $autos = array_filter(['In review' => $j['auto_review'], 'Auto-close' => $j['auto_close']]); ?>
       <div class="jl-row">
         <div class="jl-job"><a href="<?= e(url('admin/jobs.php?edit=' . (int) $j['id'])) ?>"><b><?= e($j['title']) ?></b></a>
           <small><?= e(JOB_CATEGORIES[$j['category']] ?? $j['category']) ?><?= $j['location'] !== '' ? ' · ' . e($j['location']) : '' ?></small>

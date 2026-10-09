@@ -2135,6 +2135,80 @@ a.nt-row:hover { background: var(--blue-50); text-decoration: none; }
   .os-kind small, .os-state small { display: inline; margin-left: 6px; }
 }
 
+/* Admin: automatic follow-ups (status, one card per reminder, previews, log); the pause switch on a member's page */
+.fu-status { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px 20px; align-items: center; padding: 20px 22px; margin-bottom: 20px; }
+.fu-state { display: flex; gap: 14px; align-items: center; min-width: 0; }
+.fu-state-ico { flex: none; display: grid; place-items: center; width: 46px; height: 46px; border-radius: 14px; background: #EEF1F6; color: var(--muted); }
+.fu-state-ico .ic { width: 22px; height: 22px; }
+.fu-status.is-on .fu-state-ico { background: var(--blue-50); color: var(--blue); }
+.fu-state b { display: block; font-family: var(--display); font-size: 1.1rem; color: var(--ink); }
+.fu-state small, .fu-cron small { display: block; color: var(--muted); font-size: .88rem; line-height: 1.5; }
+.fu-state-acts { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+.fu-cron { grid-column: 1 / -1; display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; border-radius: 12px; background: #FFF6E5; color: #7A4B00; }
+.fu-cron > .ic { flex: none; width: 18px; height: 18px; margin-top: 3px; color: #B86E00; }
+.fu-cron b { display: block; color: inherit; font-size: .92rem; }
+.fu-cron small { color: inherit; opacity: .9; }
+.fu-cron.is-ok { background: #EAF7EF; color: #0D6B37; }
+.fu-cron.is-ok > .ic { color: var(--green); }
+.fu-howto { margin-top: 8px; font-size: .88rem; }
+.fu-howto summary { cursor: pointer; font-weight: 700; color: var(--blue); }
+.fu-howto ol { margin: 10px 0 8px; padding-left: 20px; display: grid; gap: 6px; color: var(--text); }
+.fu-code { display: block; margin-top: 6px; padding: 8px 10px; border-radius: 8px; background: #fff; border: 1px solid var(--line); font-size: .8rem; color: var(--ink); overflow-wrap: anywhere; user-select: all; }
+.fu-form { display: grid; gap: 20px; margin-bottom: 20px; }
+.fu-form .errors { margin: 0; }
+.fu-list { display: grid; gap: 12px; }
+.fu-item { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px 16px; padding: 16px; border: 1.5px solid var(--blue); border-radius: 14px; background: #FBFCFF; }
+.fu-item.is-off { border-color: var(--line); background: #fff; }
+.fu-item.is-off .fu-when, .fu-item.is-off .fu-stats { opacity: .6; }
+.fu-top { display: flex; gap: 12px; align-items: flex-start; margin: 0; cursor: pointer; font-weight: 500; }
+.fu-top input { margin-top: 3px; width: 18px; height: 18px; accent-color: var(--blue); flex: none; }
+.fu-top b { display: block; color: var(--ink); }
+.fu-top small { display: block; color: var(--muted); font-size: .88rem; line-height: 1.5; }
+.fu-stats { margin: 0; display: grid; justify-items: end; align-content: start; gap: 2px; font-size: .8rem; color: var(--muted); font-weight: 600; white-space: nowrap; }
+.fu-stats span:first-child { color: var(--navy); }
+.fu-when { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; padding-left: 30px; font-size: .9rem; color: var(--text); }
+.fu-when label { margin: 0; font-weight: 600; }
+.fu-when input { width: 96px; padding: 6px 10px; border-radius: 9px; }
+.fu-opt .fu-when { padding-left: 0; }
+.fu-opt .fu-when input { width: 64px; }
+.fu-prev { grid-column: 1 / -1; padding-left: 30px; }
+.fu-prev summary { display: inline-flex; gap: 6px; align-items: center; cursor: pointer; font-size: .86rem; font-weight: 600; color: var(--blue); }
+.fu-prev summary .ic { width: 16px; height: 16px; flex: none; }
+.fu-prev[open] summary { margin-bottom: 10px; }
+.fu-prev .os-mail { max-width: 560px; }
+.fu-opt { display: grid; gap: 14px; align-content: start; }
+.fu-opt .check { margin: 0; }
+.fu-opt .hint { margin-bottom: 0; }
+.fu-opt label[for] { margin-bottom: 6px; }
+.fu-opt .fu-when label[for] { margin-bottom: 0; }
+.fu-opt .fu-prev { padding-left: 0; }
+.fu-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; align-items: start; }
+.fu-form > .row-actions { margin: 0; }
+.fu-log li { grid-template-columns: 70px minmax(0, 1.6fr) minmax(0, 1.2fr); }
+.fu-log .os-kind b { display: block; color: var(--ink); font-weight: 600; }
+.fu-member { display: flex; flex-wrap: wrap; gap: 10px 12px; align-items: center; margin: 0 0 16px; padding: 12px 14px; border-radius: 12px; background: var(--blue-50); color: var(--navy); }
+.fu-member > .ic { flex: none; width: 18px; height: 18px; color: var(--blue); align-self: flex-start; margin-top: 3px; }
+.fu-member > div { flex: 1 1 260px; min-width: 0; }
+.fu-member b { display: block; font-size: .92rem; }
+.fu-member small { display: block; color: var(--muted); font-size: .85rem; line-height: 1.5; }
+.fu-member.is-off { background: #F3F5F9; }
+.fu-member.is-off > .ic { color: var(--muted); }
+.auto-on { cursor: default; border-color: var(--blue); background: var(--blue-50); }
+.auto-tick { flex: none; display: grid; place-items: center; width: 18px; height: 18px; margin: 4px 3px 0 4px; border-radius: 4px; background: var(--blue); color: #fff; }
+.auto-tick .ic { width: 13px; height: 13px; }
+.auto-off { cursor: default; }
+.auto-off .auto-tick { background: #C5CDDB; }
+@media (max-width: 1100px) { .fu-pair { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 640px) {
+  .fu-status { grid-template-columns: minmax(0, 1fr); padding: 16px; }
+  .fu-state-acts { justify-content: flex-start; }
+  .fu-item { grid-template-columns: minmax(0, 1fr); padding: 14px; }
+  .fu-stats { justify-items: start; grid-auto-flow: column; justify-content: start; gap: 12px; padding-left: 30px; }
+  .fu-log li { grid-template-columns: 58px minmax(0, 1fr); }
+  .fu-prev { padding-left: 0; }
+  .os-mail td { padding-left: 14px !important; padding-right: 14px !important; } /* the email's own side padding (inline), so the preview isn't squeezed */
+}
+
 /* Admin: members list */
 .mem-filters { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px 16px; align-items: end; }
 .mem-filters .mf-q { grid-column: 1 / -1; }

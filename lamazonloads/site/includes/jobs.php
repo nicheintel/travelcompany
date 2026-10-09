@@ -137,17 +137,6 @@ function onboarding_complete(int $userId): bool
     return true;
 }
 
-function onboarding_missing(int $userId): array
-{
-    $out = [];
-    foreach (onboarding_steps($userId) as [$label, $ok, $href]) {
-        if (!$ok && $href !== 'careers.php') {
-            $out[] = $label;
-        }
-    }
-    return $out;
-}
-
 /** Right after someone applies: send the Dispatch or Walmart onboarding email, alert staff, maybe move to In review. */
 function on_new_application(int $appId): void
 {
@@ -218,7 +207,10 @@ function auto_close_job(int $jobId): bool
     return false;
 }
 
-/** Time-based automations. Runs at most every 30 minutes, when someone opens a page. */
+/**
+ * Time-based automations, every 30 minutes: from cron.php when the hosting's scheduled task is set up, otherwise
+ * when someone opens a page (after that page has loaded, so nobody waits on the emails).
+ */
 function run_automations_if_due(): void
 {
     try {
@@ -226,46 +218,39 @@ function run_automations_if_due(): void
             return;
         }
         db_run("INSERT INTO meta (k, v) VALUES ('automations_ran', ?) ON DUPLICATE KEY UPDATE v = VALUES(v)", [(string) time()]);
-        run_automations();
+        after_response(function (): void {
+            run_automations_locked();
+        });
     } catch (Throwable $e) {
         error_log('[automations] ' . $e->getMessage());
     }
 }
 
+/** One run at a time (cron and a page visit could start together). Returns the counts, or [] when another run is busy. */
+function run_automations_locked(): array
+{
+    if (!(int) db_val("SELECT GET_LOCK('ll_automations', 0)")) {
+        return [];
+    }
+    if (function_exists('set_time_limit')) {
+        @set_time_limit(300); // up to 20 emails, each its own trip to the mail server
+    }
+    try {
+        return run_automations();
+    } catch (Throwable $e) {
+        error_log('[automations] ' . $e->getMessage());
+        return [];
+    } finally {
+        db_val("SELECT RELEASE_LOCK('ll_automations')");
+    }
+}
+
 function run_automations(): array
 {
-    $done = ['reminded' => 0, 'declined' => 0, 'reviewed' => 0, 'closed' => 0];
+    $done = ['closed' => 0];
     refresh_disposable_list(); // weekly fresh list of disposable email domains
-    // Remind applicants who haven't finished onboarding after N days (once)
-    $rows = db_all("SELECT a.id, a.user_id, u.name, u.email, j.title FROM applications a JOIN users u ON u.id = a.user_id JOIN jobs j ON j.id = a.job_id
-        WHERE j.auto_remind = 1 AND a.status IN ('new', 'reviewing') AND a.reminded_at IS NULL AND a.created_at <= NOW() - INTERVAL j.remind_days DAY");
-    foreach ($rows as $r) {
-        $missing = onboarding_missing((int) $r['user_id']);
-        if (!$missing) {
-            continue;
-        }
-        [$text, $html] = email_body('Finish your onboarding', [
-            'Hi ' . chat_first_name((string) $r['name']) . ',',
-            'Thanks again for applying for ' . $r['title'] . '. Your application is waiting on a few things:',
-            '• ' . implode("\n• ", $missing),
-            'It only takes a few minutes, and complete applications are reviewed first.',
-        ], 'Finish my onboarding', onboarding_row((int) $r['user_id']) ? onboarding_link((int) $r['user_id']) : abs_url('account.php'));
-        send_mail((string) $r['email'], 'Your LamazonLoads application: a few things left', $text, $html, support_email());
-        db_run('UPDATE applications SET reminded_at = NOW() WHERE id = ?', [$r['id']]);
-        app_auto_note((int) $r['id'], 'onboarding reminder sent');
-        $done['reminded']++;
-    }
-    // Not selected: still not complete N days after the reminder
-    $rows = db_all("SELECT a.id, a.user_id FROM applications a JOIN jobs j ON j.id = a.job_id
-        WHERE j.auto_decline = 1 AND a.status = 'new' AND a.reminded_at IS NOT NULL AND a.reminded_at <= NOW() - INTERVAL j.decline_days DAY");
-    foreach ($rows as $r) {
-        if (onboarding_complete((int) $r['user_id'])) {
-            continue;
-        }
-        db_run("UPDATE applications SET status = 'not_selected', updated_at = NOW() WHERE id = ?", [$r['id']]);
-        app_auto_note((int) $r['id'], 'Not selected (onboarding not finished after reminder)');
-        $done['declined']++;
-    }
+    // Reminders to drivers, the staff's morning summary, optional "Not selected" (Admin → Automatic follow-ups)
+    $done += run_followups();
     // Catch-up for In review and auto-close
     foreach (db_all("SELECT DISTINCT a.user_id FROM applications a JOIN jobs j ON j.id = a.job_id WHERE j.auto_review = 1 AND a.status = 'new'") as $r) {
         auto_review_user((int) $r['user_id']);
@@ -273,6 +258,7 @@ function run_automations(): array
     foreach (db_all("SELECT id FROM jobs WHERE status = 'open' AND auto_close = 1") as $j) {
         $done['closed'] += auto_close_job((int) $j['id']) ? 1 : 0;
     }
+    meta_set('automations_done', date('Y-m-d H:i:s') . ' ' . json_encode($done));
     return $done;
 }
 

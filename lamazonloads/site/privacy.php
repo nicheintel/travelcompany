@@ -4,7 +4,7 @@ require __DIR__ . '/includes/bootstrap.php';
 
 $email = (string) config('contact_email') ?: 'info@lamazonloads.com';
 $phone = (string) config('contact_phone');
-$updated = 'October 6, 2026';
+$updated = 'October 9, 2026';
 $mail = '<a href="mailto:' . e($email) . '">' . e($email) . '</a>';
 
 $sections = [
@@ -102,6 +102,7 @@ page_hero('Privacy', 'Privacy policy', 'Plain and simple: what we collect, why w
           <ul>
             <li><b>Account emails:</b> if our staff create your account for you, your sign-in details (you choose your own password the first time you sign in); confirming your email address, password reset links, “your password was changed” notices, and a confirmation when your account is deleted or closed.</li>
             <li><b>Application and onboarding emails:</b> right after you apply, or when our team sends it to you directly, our Dispatch Services email or our Walmart Daily Route welcome email with a link to upload your documents; then the result of our review, a link to sign your agreement, and your Telegram invitation.</li>
+            <li><b>Reminders:</b> if a step is waiting for you (confirming your email, uploading your onboarding documents, fixing something we asked about, signing your agreement, creating your account after our onboarding email, or signing in to an account our staff made for you), up to three short reminders, never more than one a day. They stop as soon as you finish the step. To stop them sooner, tap <b>Stop reminders</b> at the bottom of any reminder. A reminder to sign in includes a new temporary password, and the one before it stops working. We keep a record of the reminders we sent you and whether you stopped them.</li>
             <li><b>Replies:</b> answers to your chat messages, contact form or partner request.</li>
           </ul>
           <p>We don't send newsletters or marketing emails from the website. If you'd like us to stop emailing you, just reply and tell us; we'll still send emails that are needed to keep your account secure.</p>
@@ -163,7 +164,7 @@ page_hero('Privacy', 'Privacy policy', 'Plain and simple: what we collect, why w
             <li><b>Get a copy:</b> ask us for a copy of the information we have about you.</li>
             <li><b>Correct:</b> ask us to fix anything that's wrong.</li>
             <li><b>Delete:</b> delete your account and everything in it yourself under <b>Account settings → Delete my account</b>, or ask us to do it. We may keep records the law requires (such as tax records).</li>
-            <li><b>Stop emails:</b> reply to any email and tell us.</li>
+            <li><b>Stop emails:</b> tap <b>Stop reminders</b> at the bottom of a reminder, or reply to any email and tell us.</li>
           </ul>
           <p>Some states (such as California, Virginia and Colorado) give residents specific privacy rights. We honor these requests for everyone, wherever you live, and we'll never treat you differently for using them. Email <?= $mail ?> and we'll reply within 30 days. We may ask you to confirm it's really you first.</p>
         </section>

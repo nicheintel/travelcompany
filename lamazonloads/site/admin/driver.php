@@ -121,6 +121,13 @@ if (is_post()) {
         // Staff access: none, moderator or admin. They're signed out so the new access applies at their next sign-in.
         db_run('UPDATE users SET is_admin = ?, staff_role = ?, session_version = session_version + 1 WHERE id = ?', [$role === '' ? 0 : 1, $role, $id]);
         flash('success', match ($role) { 'admin' => $u['name'] . ' is now an admin.', 'moderator' => $u['name'] . ' is now a moderator.', default => $u['name'] . ' no longer has staff access.' });
+    } elseif ($action === 'reminders' && !$u['is_admin']) {
+        // Pause automatic follow-ups for this member (or turn them back on, unless they stopped them from the email themselves)
+        $pause = as_str($_POST['on'] ?? '') === '0';
+        if ($pause || db_val('SELECT 1 FROM followup_optout WHERE email = ? AND by_staff IS NOT NULL', [$u['email']])) {
+            followup_set_optout((string) $u['email'], $pause, (int) $me['id']);
+            flash('success', $pause ? 'Reminder emails to ' . $u['name'] . ' are paused.' : 'Reminder emails to ' . $u['name'] . ' are back on.');
+        }
     } elseif ($action === 'verify') {
         db_run('UPDATE users SET email_verified_at = NOW(), verify_token = NULL, verify_expires = NULL WHERE id = ?', [$id]);
         flash('success', $u['name'] . "'s email is now marked as confirmed.");
@@ -301,6 +308,20 @@ admin_open('drivers');
 
 <div class="card pad">
   <h3 class="mt-0">Account actions</h3>
+  <?php if (!$u['is_admin']): $fuStop = db_one('SELECT o.*, s.name AS staff FROM followup_optout o LEFT JOIN users s ON s.id = o.by_staff WHERE o.email = ?', [$u['email']]);
+      $fuLast = db_one('SELECT kind, step, sent_at FROM followup_log WHERE email = ? ORDER BY id DESC LIMIT 1', [$u['email']]); ?>
+  <div class="fu-member<?= $fuStop ? ' is-off' : '' ?>"><?= icon('bell') ?>
+    <div><b>Reminder emails: <?= $fuStop ? ($fuStop['by_staff'] !== null ? 'paused' : 'stopped by them') : (followup_settings()['on'] ? 'on' : 'off for everyone') ?></b>
+      <small><?php if ($fuStop && $fuStop['by_staff'] !== null): ?>Paused by <?= e(first_name((string) ($fuStop['staff'] ?? 'Staff'))) ?> on <?= e(fmt_date((string) $fuStop['created_at'], 'M j')) ?>.
+        <?php elseif ($fuStop): ?>They tapped “Stop reminders” in an email on <?= e(fmt_date((string) $fuStop['created_at'], 'M j')) ?>.
+        <?php else: ?>Short reminders when a step of sign-up or onboarding is waiting<?= is_full_admin() ? ' (<a href="' . e(url('admin/followups.php')) . '">settings</a>)' : '' ?>.<?php endif; ?>
+        <?php if ($fuLast): ?>Last one: <?= e(FOLLOWUPS[$fuLast['kind']][0] ?? $fuLast['kind']) ?>, <?= e(fmt_date((string) $fuLast['sent_at'], 'M j')) ?>.<?php endif; ?></small></div>
+    <?php if (!$fuStop || $fuStop['by_staff'] !== null): ?>
+      <form method="post" action="<?= e(url($self)) ?>" class="inline-form"><?= csrf_field() ?><input type="hidden" name="action" value="reminders"><input type="hidden" name="on" value="<?= $fuStop ? '1' : '0' ?>">
+        <button class="btn btn-ghost btn-sm" type="submit"><?= $fuStop ? 'Turn back on' : 'Pause for this member' ?></button></form>
+    <?php endif; ?>
+  </div>
+  <?php endif; ?>
   <div class="row-actions">
     <?php if (!is_verified($u) && $canManage): ?>
       <form method="post" action="<?= e(url($self)) ?>" class="inline-form"><?= csrf_field() ?><input type="hidden" name="action" value="verify"><button class="btn btn-primary btn-sm" type="submit">Mark email as confirmed</button></form>

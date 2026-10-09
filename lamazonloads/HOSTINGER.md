@@ -69,6 +69,18 @@ These two addresses must show **403 Forbidden** (not a download):
 - https://lamazonloads.com/database.sql
 - https://lamazonloads.com/uploads/
 
+## 8. Turn on the scheduled task (automatic follow-ups)
+The reminder emails and the morning summary are checked every 30 minutes by `cron.php`.
+1. Sign in to the website as admin and open **Admin → Automatic follow-ups**. Under "Scheduled task not set up yet",
+   tap **How to set it up** and copy the command shown there (it has your exact folder), for example:
+   `/usr/bin/php /home/u123456789/domains/lamazonloads.com/public_html/cron.php`
+2. In hPanel open **Advanced → Cron Jobs**, choose **Custom**, paste the command, set it to run
+   **every 30 minutes** (`*/30 * * * *`) and click **Save**.
+3. Within 30 minutes the box on that admin page turns green: "Scheduled task is running".
+
+Without it, the follow-ups still go out when someone visits the website, only less on time.
+`cron.php` only runs from the server: opened in a browser it shows "403 Forbidden", which is correct.
+
 ## Good to know
 - **Updating later:** upload only the changed files, or upload a new zip and extract it over the old files.
   Never overwrite `config.local.php` or delete the `uploads` folder (drivers' documents are there).

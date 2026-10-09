@@ -22,6 +22,7 @@ require __DIR__ . '/fleet.php';
 require __DIR__ . '/apply.php';
 require __DIR__ . '/members.php';
 require __DIR__ . '/onboarding.php';
+require __DIR__ . '/followups.php';
 require __DIR__ . '/faq.php';
 require __DIR__ . '/layout.php';
 

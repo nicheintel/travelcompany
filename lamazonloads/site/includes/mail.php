@@ -149,7 +149,7 @@ function abs_url(string $path): string
 }
 
 /** The look of every LamazonLoads email: logo, heading, text, blue button. Returns [text, html]. */
-function email_body(string $heading, array $paragraphs, ?string $button = null, ?string $link = null, string $footnote = '', bool $letter = false, int $buttonAfter = -1): array
+function email_body(string $heading, array $paragraphs, ?string $button = null, ?string $link = null, string $footnote = '', bool $letter = false, int $buttonAfter = -1, string $stopLink = ''): array
 {
     // Logo on a solid white badge: a see-through logo turns grainy when Gmail / Outlook show emails in dark mode
     $logo = rtrim((string) config('app_url'), '/') . url('assets/brand/email-logo.png');
@@ -179,7 +179,8 @@ function email_body(string $heading, array $paragraphs, ?string $button = null, 
     }
     $html .= ($letter ? '<p style="margin:8px 0 0;font-size:14px;color:#1E63E9;font-weight:bold;font-style:italic;">Why wait? Let\'s freight.</p>'
             : '<p style="margin:22px 0 0;font-size:15px;line-height:1.55;color:#0A2463;">The LamazonLoads Team<br><span style="color:#1E63E9;font-weight:bold;font-style:italic;">Why wait? Let\'s freight.</span></p>')
-        . '</td></tr><tr><td style="padding:24px 32px 26px;font-size:12px;color:#8A96AD;">&copy; ' . date('Y') . ' LamazonLoads &middot; ' . e($domain) . '</td></tr>'
+        . '</td></tr><tr><td style="padding:24px 32px 26px;font-size:12px;color:#8A96AD;">&copy; ' . date('Y') . ' LamazonLoads &middot; ' . e($domain)
+        . ($stopLink !== '' ? ' &middot; <a href="' . e($stopLink) . '" style="color:#8A96AD;text-decoration:underline;">Stop reminders</a>' : '') . '</td></tr>'
         . '</table></td></tr></table></body></html>';
     $paras = array_values($paragraphs);
     if ($button && $link) {
@@ -187,7 +188,8 @@ function email_body(string $heading, array $paragraphs, ?string $button = null, 
     }
     $text = ($heading !== '' ? $heading . "\n\n" : '') . implode("\n\n", $paras)
         . ($footnote !== '' ? "\n\n$footnote" : '')
-        . ($letter ? "\n\n" . $domain . "\n" : "\n\nThe LamazonLoads Team\nWhy wait? Let's freight.\n" . $domain . "\n");
+        . ($letter ? "\n\n" . $domain . "\n" : "\n\nThe LamazonLoads Team\nWhy wait? Let's freight.\n" . $domain . "\n")
+        . ($stopLink !== '' ? "\nStop these reminders: " . $stopLink . "\n" : '');
     return [$text, $html];
 }
 
