@@ -61,7 +61,7 @@ const ACCT_FILTERS = ['yes' => 'Has an account', 'no' => 'No account yet', // + 
     'unconfirmed' => 'Email not confirmed', 'insurance' => 'Insurance expired or expiring'];
 if (!isset(ACCT_FILTERS[$acct])) $acct = '';
 $prog = as_str($_GET['prog'] ?? ''); // Professional Dispatch · Walmart Daily Route · not chosen yet
-const PROG_FILTERS = ['dispatch' => 'Professional Dispatch', 'walmart' => 'Walmart Daily Route', 'none' => 'Not chosen yet'];
+const PROG_FILTERS = ['dispatch' => 'Dispatch', 'walmart' => 'Walmart', 'none' => 'Not chosen yet']; // short, like the labels in the list
 if (!isset(PROG_FILTERS[$prog])) $prog = '';
 // A member's program: their onboarding track, else the onboarding email we sent them, else their application (a Walmart route chosen)
 const PROG_SQL = "COALESCE(o.track, (SELECT m.type FROM onboarding_emails m WHERE m.user_id = u.id OR m.email = u.email ORDER BY m.id DESC LIMIT 1),
