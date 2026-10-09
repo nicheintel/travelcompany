@@ -155,7 +155,7 @@ $here = 'job.php?id=' . $id;
     <div class="card job-cta" id="apply-now">
       <?php if ($existing): ?>
         <div><span class="eyebrow">Your application</span><h2>You've applied</h2>
-          <p class="muted mb-0">Applied on <?= e(fmt_date($existing['created_at'])) ?> · Status: <?= status_badge($existing['status']) ?></p></div>
+          <p class="muted mb-0">Applied on <span class="nowrap"><?= e(fmt_date($existing['created_at'])) ?></span> · <span class="nowrap">Status: <?= status_badge($existing['status']) ?></span></p></div>
         <a class="btn btn-primary btn-lg" href="<?= e(url('account.php')) ?>">Go to my dashboard <?= icon('arrow') ?></a>
       <?php elseif ($job['status'] !== 'open'): ?>
         <div><span class="eyebrow">Closed</span><h2>This opening is closed</h2><p class="muted mb-0">It may have been filled. New openings are posted on our Careers page.</p></div>

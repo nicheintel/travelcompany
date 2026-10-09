@@ -207,7 +207,7 @@ admin_open('drivers');
 
 <?php $nMem = count($rows); $nRec = count($records); $plural = fn (int $n, string $one, string $many) => $n . ' ' . ($n === 1 ? $one : $many); ?>
 <p class="muted app-count"><?php if ($filtered): ?>Showing <b><?= e($plural($nMem, 'member', 'members')) ?></b><?= $nRec ? ' and <b>' . e($plural($nRec, 'record', 'records')) . '</b>' : '' ?> · <a href="<?= e(url('admin/drivers.php')) ?>">Clear filters</a><?= $newToday ? ' · ' . count($newToday) . ' more in New today above' : '' ?>
-  <?php else: ?><b><?= e($plural($nMem, 'member', 'members')) ?></b><?= $nRec ? ' · <b>' . e($plural($nRec, 'record', 'records')) . '</b> with no account yet' : '' ?> · <span class="onb-tally"><?= icon('check') ?><?= (int) $onbCounts['yes'] ?> onboarded · <?= (int) $onbCounts['no'] ?> not yet</span><?php endif; ?></p>
+  <?php else: ?><span class="nowrap"><b><?= e($plural($nMem, 'member', 'members')) ?></b></span><?= $nRec ? ' · <span class="nowrap"><b>' . e($plural($nRec, 'record', 'records')) . '</b> with no account yet</span>' : '' ?> · <span class="onb-tally nowrap"><?= icon('check') ?><?= (int) $onbCounts['yes'] ?> onboarded · <?= (int) $onbCounts['no'] ?> not yet</span><?php endif; ?></p>
 <?php if (!$list): ?><div class="card empty"><?= !$newToday ? ($filtered ? 'Nobody matches your filters.' : 'No members yet.') : ($filtered ? 'No members from before today match your filters.' : 'No members from before today yet.') ?></div><?php else: ?>
 <section class="card panel">
   <div class="panel-body flush ml">

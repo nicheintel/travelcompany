@@ -2271,6 +2271,7 @@ a.ml-row:hover .ar-go { opacity: 1; transform: translateX(3px); }
 .ml-who small.ml-contact { white-space: normal; line-height: 1.4; }
 .ml-contact > span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ml-type { color: var(--text); }
+.nowrap { white-space: nowrap; } /* keeps a short phrase together; lines break between phrases */
 .ml-t.nw { white-space: nowrap; } /* "Owner-operator" doesn't break at its hyphen */
 @container (max-width: 900px) { .ml-row .ov-av { display: none; } } /* room for the name and email on smaller screens */
 .ml-type small { display: flex; align-items: center; gap: 4px; margin-top: 2px; color: var(--muted); font-size: .8rem; }
