@@ -486,6 +486,12 @@ function is_onboarded(?string $stage): bool
 }
 
 /** Status badge for admin lists: Onboarded / In review / Uploading / Changes requested / Not started. */
+/** The program as a small colored label ("● Dispatch" / "● Walmart"), or '' when it isn't known yet. */
+function prog_dot(?string $program): string
+{
+    return isset(ONB_TRACKS[$program ?? '']) ? '<span class="mail-dot prog-dot ' . e((string) $program) . '">' . ($program === 'walmart' ? 'Walmart' : 'Dispatch') . '</span>' : '';
+}
+
 function onboarding_badge(?string $stage): string
 {
     return match ($stage) {

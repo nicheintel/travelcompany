@@ -182,13 +182,22 @@ admin_open('drivers', false);
     . (!$u['is_admin'] ? '<a class="btn btn-ghost" href="' . e(url('admin/send-onboarding.php?email=' . rawurlencode((string) $u['email']))) . '">' . icon('send') . ' Onboarding email</a>' : '')
     . ($u['phone'] !== '' ? '<a class="btn btn-ghost" href="' . e(tel_href((string) $u['phone'])) . '">' . icon('phone') . ' Call</a>' : '')
     . ($canManage ? '<a class="btn btn-primary" href="#edit" data-modal-open="edit">' . icon('edit') . ' Edit information</a>' : ''), 'Member') ?>
-<?php $onb = onboarding_row($id); ?>
+<?php $onb = onboarding_row($id);
+if (!$onb) { // where the list's Dispatch / Walmart label comes from before onboarding starts: the email we sent them, else their application
+    $preMail = db_one('SELECT type, sent_at FROM onboarding_emails WHERE user_id = ? OR email = ? ORDER BY id DESC LIMIT 1', [$id, $u['email']]);
+    $preApp = $preMail ? null : db_val("SELECT IF(walmart = 1, 'walmart', email_sent) FROM applications WHERE user_id = ? AND (walmart = 1 OR email_sent <> '') ORDER BY id DESC LIMIT 1", [$id]);
+    $preTrack = (string) ($preMail['type'] ?? $preApp ?? '');
+} ?>
 <section class="card panel onb-panel" id="onboarding">
   <header class="panel-head"><h2><?= icon('check') ?>Onboarding</h2>
-    <?php if ($onb): ?><span class="row-actions"><span class="badge badge-track-<?= e($onb['track']) ?>"><?= e(ONB_TRACKS[$onb['track']]) ?></span><span class="badge badge-stage-<?= e($onb['stage']) ?>"><?= e(ONB_STAGES[$onb['stage']]) ?></span></span><?php endif; ?></header>
+    <?php if ($onb): ?><span class="row-actions"><span class="badge badge-track-<?= e($onb['track']) ?>"><?= e(ONB_TRACKS[$onb['track']]) ?></span><span class="badge badge-stage-<?= e($onb['stage']) ?>"><?= e(ONB_STAGES[$onb['stage']]) ?></span></span><?php elseif (isset(ONB_TRACKS[$preTrack])): ?><span class="row-actions"><span class="badge badge-track-<?= e($preTrack) ?>"><?= e(ONB_TRACKS[$preTrack]) ?></span></span><?php endif; ?></header>
   <div class="panel-body">
   <?php if (!$onb): ?>
-    <p class="muted">Not started. Onboarding starts automatically when they apply and get the Dispatch or Walmart email. You can also start it yourself:</p>
+    <?php if (isset(ONB_TRACKS[$preTrack])): $pl = ONB_TRACKS[$preTrack]; ?>
+      <p class="muted">Not started yet. <?= $preMail ? 'We sent them the ' . ($preTrack === 'walmart' ? 'Walmart' : 'Dispatch') . ' email on <span class="nowrap">' . e(fmt_date((string) $preMail['sent_at'], 'M j, Y')) . '</span>' : ($preTrack === 'walmart' ? 'They picked a Walmart route on their application' : 'Their application got the Dispatch email') ?>, so they show under <span class="nowrap"><?= e($pl) ?></span> in Drivers &amp; members. You can start it yourself:</p>
+    <?php else: ?>
+      <p class="muted">Not started. Onboarding starts automatically when they apply and get the Dispatch or Walmart email. You can also start it yourself:</p>
+    <?php endif; ?>
     <div class="row-actions">
       <?php foreach (ONB_TRACKS as $tk => $tl): ?><form method="post" action="<?= e(url($self)) ?>" class="inline-form"><?= csrf_field() ?><input type="hidden" name="action" value="onb_start"><input type="hidden" name="track" value="<?= e($tk) ?>"><button class="btn btn-ghost btn-sm" type="submit"><?= icon('plus') ?> Start <?= e($tl) ?></button></form><?php endforeach; ?>
     </div>
