@@ -5,7 +5,11 @@ require dirname(__DIR__) . '/includes/bootstrap.php';
 // Send the Professional Dispatch or Walmart onboarding email by hand: to a member, or to someone who hasn't signed up yet.
 $me = require_admin();
 $cities = array_column(db_all('SELECT city FROM walmart_routes ORDER BY active DESC, city'), 'city');
-$f = ['email' => '', 'first_name' => '', 'type' => 'dispatch', 'city' => ''];
+// The email type and city stay picked after each send, so the next one only needs the address (and a first name)
+$last = (array) ($_SESSION['os_last'] ?? []);
+$f = ['email' => '', 'first_name' => '', 'type' => isset(ONB_TRACKS[$last['type'] ?? '']) ? $last['type'] : 'dispatch', 'city' => (string) ($last['city'] ?? '')];
+$mailSent = mail_sent_24h();
+$mailLimit = mail_daily_limit();
 if (email_valid($pre = strtolower(trim(as_str($_GET['email'] ?? ''))))) {
     $f['email'] = $pre; // "Send onboarding email" on a member's page or a record
     $f['first_name'] = mb_substr(trim(as_str($_GET['first'] ?? '')), 0, 60) ?: (string) (record_by_email($pre)['first_name'] ?? '');
@@ -25,9 +29,17 @@ if (is_post()) {
     if ($f['type'] === 'walmart' && !in_array($f['city'], $cities, true)) $errors[] = 'Please choose the city for the Walmart email.';
     $user = $errors ? null : db_one('SELECT * FROM users WHERE email = ?', [$f['email']]);
     if ($user && $user['is_admin']) $errors[] = 'That email belongs to a staff account.';
+    if (!$errors && ($stop = db_one('SELECT created_at, by_staff FROM followup_optout WHERE email = ?', [$f['email']])) && $stop['by_staff'] === null) {
+        $errors[] = 'This person unsubscribed from our emails on ' . fmt_date((string) $stop['created_at']) . ', so it can’t be sent.';
+    }
+    $again = !$errors ? db_one('SELECT type, sent_at FROM onboarding_emails WHERE email = ? AND sent_at > NOW() - INTERVAL 7 DAY ORDER BY id DESC LIMIT 1', [$f['email']]) : null;
     if (!$errors && as_str($_POST['action'] ?? '') === 'send') {
-        if (rate_limited('onb_manual', (string) $me['id'], 60, 3600)) {
-            $errors[] = 'You sent a lot of onboarding emails in the last hour. Please wait a little before sending more.';
+        if ($again && empty($_POST['again'])) {
+            $errors[] = 'You already sent them the ' . (ONB_TRACKS[$again['type']] ?? 'onboarding') . ' email on ' . fmt_date((string) $again['sent_at'], 'M j, g:i a') . '. Tick “Send it again” to send another.';
+        } elseif ($mailSent >= $mailLimit - 20) {
+            $errors[] = 'Your mailbox has sent ' . $mailSent . ' emails in the last 24 hours, and Hostinger’s limit is ' . number_format($mailLimit) . ' a day. Please wait a few hours so sign-up emails keep going out.';
+        } elseif (rate_limited('onb_manual', (string) $me['id'], 200, 3600)) {
+            $errors[] = 'You sent 200 onboarding emails in the last hour. Please take a short break before sending more.';
         } else {
             record_hit('onb_manual', (string) $me['id']);
             if ($user) { // their onboarding page asks for this email's documents (unless staff already reviewed them)
@@ -42,6 +54,7 @@ if (is_post()) {
             if (send_mail($f['email'], $subject, $text, $html, support_email())) {
                 db_run('INSERT INTO onboarding_emails (email, user_id, type, city, first_name, had_account, sent_by, sent_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())',
                     [$f['email'], $user['id'] ?? null, $f['type'], $f['city'], $f['first_name'], $user ? 1 : 0, $me['id']]);
+                $_SESSION['os_last'] = ['type' => $f['type'], 'city' => $f['city']];
                 flash('success', ONB_TRACKS[$f['type']] . ' email sent to ' . $f['email'] . ($f['city'] !== '' ? ' (' . $f['city'] . ')' : '') . '.');
                 redirect('admin/send-onboarding.php');
             }
@@ -68,7 +81,7 @@ admin_open('send');
     <?= csrf_field() ?>
     <?php if ($errors): ?><ul class="errors"><?php foreach ($errors as $er): ?><li><?= e($er) ?></li><?php endforeach; ?></ul><?php endif; ?>
     <div><label for="os-email">Email address</label>
-      <input id="os-email" name="email" type="email" maxlength="190" required value="<?= e($f['email']) ?>" placeholder="driver@email.com" autocomplete="off"></div>
+      <input id="os-email" name="email" type="email" maxlength="190" required value="<?= e($f['email']) ?>" placeholder="driver@email.com" autocomplete="off"<?= $f['email'] === '' ? ' autofocus' : '' ?>></div>
     <div><label for="os-first">First name <span class="opt">(optional)</span></label>
       <input id="os-first" name="first_name" type="text" maxlength="60" value="<?= e($f['first_name']) ?>" placeholder="e.g. Marcus" autocomplete="off">
       <p class="hint">Left empty, the email uses the name on their account, or “Hello there”.</p></div>
@@ -90,9 +103,17 @@ admin_open('send');
         <p class="hint">No Walmart cities yet. Add them in <a href="<?= e(url('admin/walmart.php')) ?>">Walmart routes</a> first.</p>
       <?php endif; ?>
     </div>
+    <?php if (!empty($again)): ?><label class="check os-again"><input type="checkbox" name="again" value="1"> Send it again</label><?php endif; ?>
     <div class="os-acts">
       <button class="btn btn-ghost" type="submit" name="action" value="preview" data-busy="Loading preview…"><?= icon('eye') ?> Preview</button>
       <button class="btn btn-primary" type="submit" name="action" value="send"><?= icon('send') ?> Send email</button>
+    </div>
+    <?php $today = (int) db_val('SELECT COUNT(*) FROM onboarding_emails WHERE sent_at >= CURDATE()'); $pct = min(100, (int) round($mailSent / $mailLimit * 100)); ?>
+    <div class="os-meter<?= $pct >= 85 ? ' is-high' : '' ?>">
+      <p><span><b><?= number_format($today) ?></b> onboarding <?= $today === 1 ? 'email' : 'emails' ?> sent today</span>
+        <span>Mailbox: <b><?= number_format($mailSent) ?></b> of <?= number_format($mailLimit) ?> in the last 24 hours</span></p>
+      <span class="os-meter-bar" aria-hidden="true"><span style="width: <?= $pct ?>%"></span></span>
+      <p class="hint mb-0">Hostinger’s daily limit counts every email the website sends, including sign-up emails and reminders.</p>
     </div>
   </form>
 </section>

@@ -258,7 +258,9 @@ function manual_onboarding_email(string $email, string $type, string $city, stri
     [$subject, $paras] = onboarding_email_content($type, $first, $city, $user !== null);
     $link = $user === null ? abs_url('register.php?email=' . rawurlencode($email) . '&next=onboarding.php')
         : ($preview ? abs_url('onboarding.php') : onboarding_link((int) $user['id']));
-    [$text, $html] = email_body('', $paras, $user === null ? 'Create my account' : 'Upload my documents', $link, '', true, $type === 'walmart' ? 2 : 3);
+    // Someone without an account didn't ask for this email, so it carries an Unsubscribe link (also stops reminders)
+    [$text, $html] = email_body('', $paras, $user === null ? 'Create my account' : 'Upload my documents', $link, '', true, $type === 'walmart' ? 2 : 3,
+        $user === null ? followup_stop_link($email) : '', 'Unsubscribe');
     return [$subject, $text, $html, $link];
 }
 

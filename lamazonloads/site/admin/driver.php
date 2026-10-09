@@ -334,7 +334,7 @@ if ($fromRec): ?>
   <div class="fu-member<?= $fuStop ? ' is-off' : '' ?>"><?= icon('bell') ?>
     <div><b>Reminder emails: <?= $fuStop ? ($fuStop['by_staff'] !== null ? 'paused' : 'stopped by them') : (followup_settings()['on'] ? 'on' : 'off for everyone') ?></b>
       <small><?php if ($fuStop && $fuStop['by_staff'] !== null): ?>Paused by <?= e(first_name((string) ($fuStop['staff'] ?? 'Staff'))) ?> on <?= e(fmt_date((string) $fuStop['created_at'], 'M j')) ?>.
-        <?php elseif ($fuStop): ?>They tapped “Stop reminders” in an email on <?= e(fmt_date((string) $fuStop['created_at'], 'M j')) ?>.
+        <?php elseif ($fuStop): ?>They unsubscribed from our emails on <?= e(fmt_date((string) $fuStop['created_at'], 'M j')) ?>.
         <?php else: ?>Short reminders when a step of sign-up or onboarding is waiting<?= is_full_admin() ? ' (<a href="' . e(url('admin/followups.php')) . '">settings</a>)' : '' ?>.<?php endif; ?>
         <?php if ($fuLast): ?>Last one: <?= e(FOLLOWUPS[$fuLast['kind']][0] ?? $fuLast['kind']) ?>, <?= e(fmt_date((string) $fuLast['sent_at'], 'M j')) ?>.<?php endif; ?></small></div>
     <?php if (!$fuStop || $fuStop['by_staff'] !== null): ?>

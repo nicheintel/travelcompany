@@ -60,11 +60,34 @@ function send_mail(string $to, string $subject, string $text, string $html, stri
                 throw new RuntimeException('mail() returned false');
             }
         }
+        mail_count_sent();
         return true;
     } catch (Throwable $ex) {
         error_log('[mail] could not send to ' . $to . ': ' . $ex->getMessage());
         mail_last_error($ex->getMessage());
         return false;
+    }
+}
+
+/** How many emails the website sent in the last 24 hours (Hostinger counts a rolling 24 hours). */
+function mail_sent_24h(): int
+{
+    return (int) db_val('SELECT COUNT(*) FROM mail_sent WHERE sent_at > NOW() - INTERVAL 24 HOUR');
+}
+
+/** The mailbox's daily sending limit (config mail_daily_limit; Hostinger Business Starter: 1,000). */
+function mail_daily_limit(): int
+{
+    return max(50, (int) config('mail_daily_limit'));
+}
+
+/** Counts a sent email toward the mailbox's daily limit. Never stops the email itself. */
+function mail_count_sent(): void
+{
+    try {
+        db_run('INSERT INTO mail_sent (sent_at) VALUES (NOW())');
+    } catch (Throwable $e) {
+        error_log('[mail] count: ' . $e->getMessage());
     }
 }
 
@@ -156,7 +179,7 @@ function abs_url(string $path): string
 }
 
 /** The look of every LamazonLoads email: logo, heading, text, blue button. Returns [text, html]. */
-function email_body(string $heading, array $paragraphs, ?string $button = null, ?string $link = null, string $footnote = '', bool $letter = false, int $buttonAfter = -1, string $stopLink = ''): array
+function email_body(string $heading, array $paragraphs, ?string $button = null, ?string $link = null, string $footnote = '', bool $letter = false, int $buttonAfter = -1, string $stopLink = '', string $stopLabel = 'Stop reminders'): array
 {
     // Logo on a solid white badge: a see-through logo turns grainy when Gmail / Outlook show emails in dark mode
     $logo = abs_url('assets/brand/email-logo.png');
@@ -187,7 +210,7 @@ function email_body(string $heading, array $paragraphs, ?string $button = null, 
     $html .= ($letter ? '<p style="margin:8px 0 0;font-size:14px;color:#1E63E9;font-weight:bold;font-style:italic;">Why wait? Let\'s freight.</p>'
             : '<p style="margin:22px 0 0;font-size:15px;line-height:1.55;color:#0A2463;">The LamazonLoads Team<br><span style="color:#1E63E9;font-weight:bold;font-style:italic;">Why wait? Let\'s freight.</span></p>')
         . '</td></tr><tr><td style="padding:24px 32px 26px;font-size:12px;color:#8A96AD;">&copy; ' . date('Y') . ' LamazonLoads &middot; ' . e($domain)
-        . ($stopLink !== '' ? ' &middot; <a href="' . e($stopLink) . '" style="color:#8A96AD;text-decoration:underline;">Stop reminders</a>' : '') . '</td></tr>'
+        . ($stopLink !== '' ? ' &middot; <a href="' . e($stopLink) . '" style="color:#8A96AD;text-decoration:underline;">' . e($stopLabel) . '</a>' : '') . '</td></tr>'
         . '</table></td></tr></table></body></html>';
     $paras = array_values($paragraphs);
     if ($button && $link) {
@@ -196,7 +219,7 @@ function email_body(string $heading, array $paragraphs, ?string $button = null, 
     $text = ($heading !== '' ? $heading . "\n\n" : '') . implode("\n\n", $paras)
         . ($footnote !== '' ? "\n\n$footnote" : '')
         . ($letter ? "\n\n" . $domain . "\n" : "\n\nThe LamazonLoads Team\nWhy wait? Let's freight.\n" . $domain . "\n")
-        . ($stopLink !== '' ? "\nStop these reminders: " . $stopLink . "\n" : '');
+        . ($stopLink !== '' ? "\n" . $stopLabel . ': ' . $stopLink . "\n" : '');
     return [$text, $html];
 }
 

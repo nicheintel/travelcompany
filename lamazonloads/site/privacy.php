@@ -165,7 +165,7 @@ page_hero('Privacy', 'Privacy policy', 'Plain and simple: what we collect, why w
             <li><b>Get a copy:</b> ask us for a copy of the information we have about you.</li>
             <li><b>Correct:</b> ask us to fix anything that's wrong.</li>
             <li><b>Delete:</b> delete your account and everything in it yourself under <b>Account settings → Delete my account</b>, or ask us to do it. We may keep records the law requires (such as tax records).</li>
-            <li><b>Stop emails:</b> tap <b>Stop reminders</b> at the bottom of a reminder, or reply to any email and tell us.</li>
+            <li><b>Stop emails:</b> tap <b>Stop reminders</b> or <b>Unsubscribe</b> at the bottom of our emails, or reply to any email and tell us.</li>
           </ul>
           <p>Some states (such as California, Virginia and Colorado) give residents specific privacy rights. We honor these requests for everyone, wherever you live, and we'll never treat you differently for using them. Email <?= $mail ?> and we'll reply within 30 days. We may ask you to confirm it's really you first.</p>
         </section>

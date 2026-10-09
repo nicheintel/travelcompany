@@ -42,6 +42,7 @@ The tables and four starter job posts are created automatically on the first vis
 | `admin_emails` | Emails that become admins when they sign up |
 | `db_host`, `db_name`, `db_user`, `db_pass` | Database login from hPanel → Databases |
 | `max_upload_mb` | Biggest document upload (default 8 MB) |
+| `mail_daily_limit` | Emails the Hostinger mailbox may send in 24 hours (default 1000, Business Starter). Send onboarding email stops just before it, and automatic reminders keep 200 free |
 | `smtp_user`, `smtp_pass` | Hostinger mailbox for chat emails (`smtp_host` smtp.hostinger.com, port 465 by default). `support_email` = where chat alerts go (default `contact_email`) |
 
 ## Security

@@ -250,6 +250,7 @@ function run_automations(): array
 {
     $done = ['closed' => 0];
     refresh_disposable_list(); // weekly fresh list of disposable email domains
+    db_run('DELETE FROM mail_sent WHERE sent_at < NOW() - INTERVAL 3 DAY'); // only the last 24 hours count
     // Reminders to drivers, the staff's morning summary, optional "Not selected" (Admin → Automatic follow-ups)
     $done += run_followups();
     // Catch-up for In review and auto-close

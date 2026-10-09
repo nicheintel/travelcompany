@@ -2,7 +2,7 @@
 declare(strict_types=1);
 require __DIR__ . '/includes/bootstrap.php';
 
-// "Stop reminders" from the bottom of a follow-up email. The link carries a code made from the address, so only the
+// "Stop reminders" (follow-up emails) or "Unsubscribe" (onboarding emails to people without an account) from the bottom of an email. The link carries a code made from the address, so only the
 // person who got the email can use it. Stopping needs a tap on this page: some email apps open links to scan them.
 $email = strtolower(trim(as_str($_GET['e'] ?? $_POST['e'] ?? '')));
 $token = as_str($_GET['t'] ?? $_POST['t'] ?? '');
@@ -33,7 +33,7 @@ page_header('Reminder emails', '', '', 'page-auth');
   <aside class="auth-side">
     <span class="logo-badge"><?= logo_html() ?></span>
     <h2 class="mt">Your inbox, your call.</h2>
-    <p>We send a few short reminders when a step of your sign-up or onboarding is waiting. You can stop them anytime.</p>
+    <p>We email drivers about joining LamazonLoads and send a few short reminders when a step is waiting. You can stop them anytime.</p>
     <p class="quote">Why wait? Let's freight.</p>
     <div class="road" aria-hidden="true"></div>
   </aside>
@@ -44,14 +44,14 @@ page_header('Reminder emails', '', '', 'page-auth');
           <div class="ss-ico" aria-hidden="true"><?= icon('info') ?></div>
           <h1 class="ss-title">This link doesn’t work</h1>
           <p class="ss-lead">It may have been cut off when it was copied. Please open it again from the bottom of our email.</p>
-          <?= ss_hint('Still stuck? <a href="' . e(url('contact.php')) . '">Contact us</a> and we’ll stop the reminders for you.') ?>
+          <?= ss_hint('Still stuck? <a href="' . e(url('contact.php')) . '">Contact us</a> and we’ll stop the emails for you.') ?>
           <div class="ss-acts"><a class="btn btn-ghost btn-block" href="<?= e(url('')) ?>">Go to the homepage</a></div>
         </div>
       <?php elseif ($row): ?>
         <div class="ss">
           <div class="ss-ico" aria-hidden="true"><?= icon('check') ?></div>
-          <h1 class="ss-title">Reminders stopped</h1>
-          <p class="ss-lead">We won’t send any more reminder emails to this address.</p>
+          <h1 class="ss-title">You’re unsubscribed</h1>
+          <p class="ss-lead">We won’t send any more onboarding emails or reminders to this address.</p>
           <?= ss_chip($email) ?>
           <?= ss_hint('You’ll still get the emails you ask for, like password resets, and replies from our team.') ?>
           <?php if ($row['by_staff'] === null): ?>
@@ -66,7 +66,7 @@ page_header('Reminder emails', '', '', 'page-auth');
         <div class="ss">
           <div class="ss-ico" aria-hidden="true"><?= icon($done === 'resumed' ? 'check' : 'mail') ?></div>
           <?php if ($done === 'resumed'): ?>
-            <h1 class="ss-title">Reminders are back on</h1>
+            <h1 class="ss-title">Emails are back on</h1>
             <p class="ss-lead">We’ll let you know when a step is waiting for you.</p>
             <?= ss_chip($email) ?>
             <div class="ss-acts"><?php if (db_val('SELECT 1 FROM users WHERE email = ?', [$email])): ?>
@@ -75,14 +75,14 @@ page_header('Reminder emails', '', '', 'page-auth');
               <a class="btn btn-primary btn-block" href="<?= e(url('register.php?email=' . rawurlencode($email) . '&next=onboarding.php')) ?>">Create my account</a>
             <?php endif; ?></div>
           <?php else: ?>
-            <h1 class="ss-title">Stop reminder emails?</h1>
-            <p class="ss-lead">We’ll stop the reminders about unfinished steps for this address.</p>
+            <h1 class="ss-title">Unsubscribe from our emails?</h1>
+            <p class="ss-lead">We’ll stop onboarding emails and reminders to this address.</p>
             <?= ss_chip($email) ?>
             <?= ss_hint('You’ll still get the emails you ask for, like password resets, and replies from our team.') ?>
             <form method="post" action="<?= e(url($self)) ?>" class="ss-acts">
               <?= csrf_field() ?>
               <input type="hidden" name="e" value="<?= e($email) ?>"><input type="hidden" name="t" value="<?= e($token) ?>">
-              <button class="btn btn-primary btn-block" type="submit" name="action" value="stop">Stop reminders</button>
+              <button class="btn btn-primary btn-block" type="submit" name="action" value="stop">Unsubscribe</button>
               <a class="btn btn-ghost btn-block" href="<?= e(url('')) ?>">Keep getting them</a>
             </form>
           <?php endif; ?>

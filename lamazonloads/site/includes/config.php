@@ -22,6 +22,7 @@ function config(string $key): mixed
             'contact_email' => 'info@lamazonloads.com',
             'contact_phone' => '(678) 528-1181',
             'max_upload_mb' => 8,
+            'mail_daily_limit' => 1000,         // emails your Hostinger mailbox may send in 24 hours (Business Starter: 1,000)
             // Sign-up email rules
             'block_disposable_emails' => true,  // no temporary / disposable email addresses
             'allowed_email_domains'   => '',    // always allow these domains (comma separated)

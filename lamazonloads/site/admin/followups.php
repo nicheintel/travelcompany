@@ -236,7 +236,7 @@ admin_open('followups');
 <section class="card panel" id="stopped">
   <header class="panel-head"><h2><?= icon('bell') ?>Stopped reminders</h2><small><?= $stoppedN ?: '' ?></small></header>
   <?php if (!$stopped): ?>
-    <div class="panel-body"><p class="muted mb-0">Nobody has stopped reminders. People who tap “Stop reminders” in an email, or whom you pause on their member page, are listed here.</p></div>
+    <div class="panel-body"><p class="muted mb-0">Nobody has stopped reminders. People who unsubscribe from one of our emails, or whom you pause on their member page, are listed here.</p></div>
   <?php else: ?>
     <ul class="os-list fu-log">
       <?php foreach ($stopped as $r): ?>

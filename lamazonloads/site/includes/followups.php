@@ -262,7 +262,8 @@ function run_followups(): array
     if ($hour < FOLLOWUP_HOURS[0] || $hour >= FOLLOWUP_HOURS[1]) {
         return $done;
     }
-    $budget = FOLLOWUP_BATCH;
+    // Leave 200 of the mailbox's daily limit for emails people are waiting on (sign-ups, onboarding emails your team sends)
+    $budget = min(FOLLOWUP_BATCH, mail_daily_limit() - 200 - mail_sent_24h());
     foreach ($s['kinds'] as $kind => $k) {
         if (!$k['on'] || !$k['days']) {
             continue;

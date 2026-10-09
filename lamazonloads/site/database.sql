@@ -351,3 +351,12 @@ CREATE TABLE IF NOT EXISTS member_records (
   KEY idx_record_merged (merged_user_id),
   CONSTRAINT fk_record_user FOREIGN KEY (merged_user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Every email the website sends (only the time): Hostinger limits each mailbox per 24 hours (Business Starter: 1,000),
+-- so Send onboarding email stops just before it and automatic reminders leave room. Kept for 3 days.
+CREATE TABLE IF NOT EXISTS mail_sent (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  sent_at DATETIME NOT NULL,
+  KEY idx_mail_sent (sent_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+

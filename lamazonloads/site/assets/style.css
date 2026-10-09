@@ -2120,6 +2120,14 @@ a.nt-row:hover { background: var(--blue-50); text-decoration: none; }
 .os-who .ic { flex: none; width: 18px; height: 18px; margin-top: 2px; color: var(--blue); }
 .os-who.is-warn { background: #FFF6E5; color: #7A4B00; }
 .os-who.is-warn .ic { color: #B86E00; }
+.os-again { margin: 0; padding: 10px 12px; border-radius: 10px; background: #FFF6E5; color: #7A4B00; font-weight: 600; }
+.os-meter { display: grid; gap: 8px; margin-top: 4px; padding-top: 14px; border-top: 1px solid var(--line); font-size: .86rem; color: var(--muted); }
+.os-meter p { margin: 0; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 12px; }
+.os-meter b { color: var(--ink); }
+.os-meter-bar { display: block; height: 6px; border-radius: 99px; background: #EEF1F6; overflow: hidden; }
+.os-meter-bar span { display: block; height: 100%; border-radius: inherit; background: var(--blue); transition: width .4s ease; }
+.os-meter.is-high .os-meter-bar span { background: #E08A00; }
+.os-meter .hint { font-size: .78rem; }
 .os-mail { border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
 .os-mail > table { width: 100%; }
 .os-list { list-style: none; margin: 0; padding: 0; }
