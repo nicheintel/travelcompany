@@ -837,5 +837,16 @@
  "Your package": "您的套裝行程",
  "Your travel assistant": "您的旅遊顧問",
  "Your trip": "您的行程",
- "{rate}% of your ticket price": "機票價格的 {rate}%"
+ "{rate}% of your ticket price": "機票價格的 {rate}%",
+ "A tip is added to your total and paid together with your trip.": "小費會計入您的總計，並與行程費用一併支付。",
+ "Average": "普通",
+ "Enter a tip in whole US dollars, from 1 to {max}, or choose No tip.": "請輸入 1 至 {max} 之間的整數美元小費金額，或選擇「不給小費」。",
+ "Great": "很棒",
+ "How was my service?": "我的服務如何？",
+ "If you feel the service was exceptional, you can say thank you with a tip for your travel assistant. It is completely optional.": "如果您覺得服務特別出色，可以給您的旅遊顧問一點小費表達謝意。小費完全由您自由決定。",
+ "No tip": "不給小費",
+ "Perfect": "完美",
+ "Think I did better? Other amount": "覺得我表現更好？其他金額",
+ "Tip amount in US dollars": "小費金額（美元）",
+ "Tip for your travel assistant": "給旅遊顧問的小費"
 }

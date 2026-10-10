@@ -837,5 +837,16 @@
  "Your package": "Gói du lịch của bạn",
  "Your travel assistant": "Trợ lý du lịch của bạn",
  "Your trip": "Chuyến đi của bạn",
- "{rate}% of your ticket price": "{rate}% giá vé của bạn"
+ "{rate}% of your ticket price": "{rate}% giá vé của bạn",
+ "A tip is added to your total and paid together with your trip.": "Tiền tip được cộng vào tổng tiền và thanh toán cùng với chuyến đi của bạn.",
+ "Average": "Trung bình",
+ "Enter a tip in whole US dollars, from 1 to {max}, or choose No tip.": "Nhập tiền tip là số đô la Mỹ chẵn, từ 1 đến {max}, hoặc chọn Không tip.",
+ "Great": "Rất tốt",
+ "How was my service?": "Dịch vụ của tôi thế nào?",
+ "If you feel the service was exceptional, you can say thank you with a tip for your travel assistant. It is completely optional.": "Nếu bạn thấy dịch vụ thật sự xuất sắc, bạn có thể gửi lời cảm ơn bằng tiền tip cho trợ lý du lịch của mình. Việc này hoàn toàn không bắt buộc.",
+ "No tip": "Không tip",
+ "Perfect": "Hoàn hảo",
+ "Think I did better? Other amount": "Bạn thấy tôi làm tốt hơn thế? Số tiền khác",
+ "Tip amount in US dollars": "Số tiền tip bằng đô la Mỹ",
+ "Tip for your travel assistant": "Tiền tip cho trợ lý du lịch của bạn"
 }

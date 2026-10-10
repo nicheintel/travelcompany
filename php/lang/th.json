@@ -837,5 +837,16 @@
  "Your package": "แพ็กเกจของคุณ",
  "Your travel assistant": "ผู้ช่วยการเดินทางของคุณ",
  "Your trip": "การเดินทางของคุณ",
- "{rate}% of your ticket price": "{rate}% ของราคาตั๋วของคุณ"
+ "{rate}% of your ticket price": "{rate}% ของราคาตั๋วของคุณ",
+ "A tip is added to your total and paid together with your trip.": "ทิปจะถูกเพิ่มในยอดรวมและชำระพร้อมกับค่าการเดินทางของคุณ",
+ "Average": "พอใช้",
+ "Enter a tip in whole US dollars, from 1 to {max}, or choose No tip.": "กรอกทิปเป็นจำนวนเต็มดอลลาร์สหรัฐ ตั้งแต่ 1 ถึง {max} หรือเลือกไม่ให้ทิป",
+ "Great": "ดีมาก",
+ "How was my service?": "บริการของฉันเป็นอย่างไรบ้าง?",
+ "If you feel the service was exceptional, you can say thank you with a tip for your travel assistant. It is completely optional.": "หากคุณรู้สึกว่าบริการดีเป็นพิเศษ คุณสามารถแสดงความขอบคุณด้วยการให้ทิปแก่ผู้ช่วยการเดินทางของคุณได้ ทั้งนี้ไม่บังคับแต่อย่างใด",
+ "No tip": "ไม่ให้ทิป",
+ "Perfect": "สมบูรณ์แบบ",
+ "Think I did better? Other amount": "คิดว่าฉันทำได้ดีกว่านั้นไหม? จำนวนเงินอื่น",
+ "Tip amount in US dollars": "จำนวนทิปเป็นดอลลาร์สหรัฐ",
+ "Tip for your travel assistant": "ทิปสำหรับผู้ช่วยการเดินทางของคุณ"
 }

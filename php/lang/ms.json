@@ -837,5 +837,16 @@
  "Your package": "Pakej anda",
  "Your travel assistant": "Pembantu perjalanan anda",
  "Your trip": "Perjalanan anda",
- "{rate}% of your ticket price": "{rate}% daripada harga tiket anda"
+ "{rate}% of your ticket price": "{rate}% daripada harga tiket anda",
+ "A tip is added to your total and paid together with your trip.": "Tip ditambah kepada jumlah anda dan dibayar bersama perjalanan anda.",
+ "Average": "Sederhana",
+ "Enter a tip in whole US dollars, from 1 to {max}, or choose No tip.": "Masukkan tip dalam nombor bulat dolar AS, dari 1 hingga {max}, atau pilih Tiada tip.",
+ "Great": "Sangat baik",
+ "How was my service?": "Bagaimana perkhidmatan saya?",
+ "If you feel the service was exceptional, you can say thank you with a tip for your travel assistant. It is completely optional.": "Jika anda rasa perkhidmatan itu luar biasa, anda boleh berterima kasih dengan memberikan tip kepada pembantu perjalanan anda. Ia sepenuhnya pilihan anda.",
+ "No tip": "Tiada tip",
+ "Perfect": "Sempurna",
+ "Think I did better? Other amount": "Rasa saya lebih baik daripada itu? Jumlah lain",
+ "Tip amount in US dollars": "Jumlah tip dalam dolar AS",
+ "Tip for your travel assistant": "Tip untuk pembantu perjalanan anda"
 }

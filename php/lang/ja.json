@@ -837,5 +837,16 @@
  "Your package": "ご予約のパッケージ",
  "Your travel assistant": "担当トラベルアシスタント",
  "Your trip": "ご旅行",
- "{rate}% of your ticket price": "航空券代金の{rate}%"
+ "{rate}% of your ticket price": "航空券代金の{rate}%",
+ "A tip is added to your total and paid together with your trip.": "チップは合計に加算され、ご旅行の代金と一緒にお支払いいただきます。",
+ "Average": "普通",
+ "Enter a tip in whole US dollars, from 1 to {max}, or choose No tip.": "チップは1から{max}までの整数（米ドル）で入力するか、「チップなし」を選択してください。",
+ "Great": "とても良い",
+ "How was my service?": "私の対応はいかがでしたか？",
+ "If you feel the service was exceptional, you can say thank you with a tip for your travel assistant. It is completely optional.": "対応が特に良かったと感じられた場合は、担当トラベルアシスタントにチップで感謝の気持ちをお伝えいただけます。チップは完全に任意です。",
+ "No tip": "チップなし",
+ "Perfect": "完璧",
+ "Think I did better? Other amount": "さらに良かったと思われますか？その他の金額",
+ "Tip amount in US dollars": "チップ金額（米ドル）",
+ "Tip for your travel assistant": "担当トラベルアシスタントへのチップ"
 }

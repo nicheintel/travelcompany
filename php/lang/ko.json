@@ -837,5 +837,16 @@
  "Your package": "패키지 정보",
  "Your travel assistant": "담당 여행 상담원",
  "Your trip": "여행 일정",
- "{rate}% of your ticket price": "항공권 가격의 {rate}%"
+ "{rate}% of your ticket price": "항공권 가격의 {rate}%",
+ "A tip is added to your total and paid together with your trip.": "팁은 합계에 추가되어 여행 요금과 함께 결제됩니다.",
+ "Average": "보통",
+ "Enter a tip in whole US dollars, from 1 to {max}, or choose No tip.": "팁은 1부터 {max}까지의 미국 달러 정수 금액으로 입력하거나 팁 없음을 선택해 주세요.",
+ "Great": "매우 좋음",
+ "How was my service?": "제 서비스는 어떠셨나요?",
+ "If you feel the service was exceptional, you can say thank you with a tip for your travel assistant. It is completely optional.": "서비스가 특별히 만족스러우셨다면 담당 여행 상담원에게 팁으로 감사의 마음을 전하실 수 있습니다. 팁은 전적으로 선택 사항입니다.",
+ "No tip": "팁 없음",
+ "Perfect": "완벽함",
+ "Think I did better? Other amount": "더 잘했다고 생각하시나요? 다른 금액",
+ "Tip amount in US dollars": "팁 금액 (미국 달러)",
+ "Tip for your travel assistant": "담당 여행 상담원에게 드리는 팁"
 }

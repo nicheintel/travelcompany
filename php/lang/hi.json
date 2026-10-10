@@ -837,5 +837,16 @@
  "Your package": "आपका पैकेज",
  "Your travel assistant": "आपका ट्रैवल असिस्टेंट",
  "Your trip": "आपकी यात्रा",
- "{rate}% of your ticket price": "आपके टिकट की कीमत का {rate}%"
+ "{rate}% of your ticket price": "आपके टिकट की कीमत का {rate}%",
+ "A tip is added to your total and paid together with your trip.": "टिप आपके कुल योग में जोड़ी जाती है और आपकी यात्रा के साथ ही चुकाई जाती है।",
+ "Average": "औसत",
+ "Enter a tip in whole US dollars, from 1 to {max}, or choose No tip.": "1 से {max} तक पूरे अमेरिकी डॉलर में टिप दर्ज करें, या 'कोई टिप नहीं' चुनें।",
+ "Great": "बहुत बढ़िया",
+ "How was my service?": "मेरी सेवा कैसी रही?",
+ "If you feel the service was exceptional, you can say thank you with a tip for your travel assistant. It is completely optional.": "अगर आपको लगता है कि सेवा असाधारण रही, तो आप अपने ट्रैवल असिस्टेंट को टिप देकर धन्यवाद कह सकते हैं। यह पूरी तरह वैकल्पिक है।",
+ "No tip": "कोई टिप नहीं",
+ "Perfect": "परफ़ेक्ट",
+ "Think I did better? Other amount": "लगता है मैंने इससे बेहतर किया? कोई और राशि",
+ "Tip amount in US dollars": "अमेरिकी डॉलर में टिप की राशि",
+ "Tip for your travel assistant": "आपके ट्रैवल असिस्टेंट के लिए टिप"
 }
