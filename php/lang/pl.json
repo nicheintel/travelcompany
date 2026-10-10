@@ -873,5 +873,16 @@
  "Your package": "Pakiet",
  "Your travel assistant": "Państwa asystent podróży",
  "Your trip": "Podróż",
- "{rate}% of your ticket price": "{rate}% ceny biletu"
+ "{rate}% of your ticket price": "{rate}% ceny biletu",
+ "A tip is added to your total and paid together with your trip.": "Napiwek zostanie doliczony do łącznej kwoty i opłacony razem z podróżą.",
+ "Average": "Przeciętny",
+ "Enter a tip in whole US dollars, from 1 to {max}, or choose No tip.": "Proszę podać napiwek w pełnych dolarach amerykańskich, od 1 do {max}, lub wybrać Bez napiwku.",
+ "Great": "Bardzo dobry",
+ "How was my service?": "Jak oceniają Państwo moją obsługę?",
+ "If you feel the service was exceptional, you can say thank you with a tip for your travel assistant. It is completely optional.": "Jeśli uważają Państwo, że obsługa była wyjątkowa, mogą Państwo podziękować swojemu asystentowi podróży napiwkiem. Jest to całkowicie dobrowolne.",
+ "No tip": "Bez napiwku",
+ "Perfect": "Idealny",
+ "Think I did better? Other amount": "Moja obsługa była jeszcze lepsza? Inna kwota",
+ "Tip amount in US dollars": "Kwota napiwku w dolarach amerykańskich",
+ "Tip for your travel assistant": "Napiwek dla Państwa asystenta podróży"
 }

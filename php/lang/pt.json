@@ -837,5 +837,16 @@
  "Your package": "O seu pacote",
  "Your travel assistant": "O seu assistente de viagem",
  "Your trip": "A sua viagem",
- "{rate}% of your ticket price": "{rate}% do preço do seu bilhete"
+ "{rate}% of your ticket price": "{rate}% do preço do seu bilhete",
+ "A tip is added to your total and paid together with your trip.": "A gorjeta é adicionada ao seu total e paga juntamente com a sua viagem.",
+ "Average": "Razoável",
+ "Enter a tip in whole US dollars, from 1 to {max}, or choose No tip.": "Introduza uma gorjeta em dólares americanos inteiros, de 1 a {max}, ou escolha Sem gorjeta.",
+ "Great": "Muito bom",
+ "How was my service?": "O que achou do meu serviço?",
+ "If you feel the service was exceptional, you can say thank you with a tip for your travel assistant. It is completely optional.": "Se considera que o serviço foi excecional, pode agradecer ao seu assistente de viagem com uma gorjeta. É totalmente opcional.",
+ "No tip": "Sem gorjeta",
+ "Perfect": "Perfeito",
+ "Think I did better? Other amount": "Acha que fiz ainda melhor? Outro valor",
+ "Tip amount in US dollars": "Valor da gorjeta em dólares americanos",
+ "Tip for your travel assistant": "Gorjeta para o seu assistente de viagem"
 }

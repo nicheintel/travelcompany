@@ -837,5 +837,16 @@
  "Your package": "Il tuo pacchetto",
  "Your travel assistant": "Il tuo assistente di viaggio",
  "Your trip": "Il tuo viaggio",
- "{rate}% of your ticket price": "{rate}% del prezzo del biglietto"
+ "{rate}% of your ticket price": "{rate}% del prezzo del biglietto",
+ "A tip is added to your total and paid together with your trip.": "La mancia viene aggiunta al totale e pagata insieme al tuo viaggio.",
+ "Average": "Nella media",
+ "Enter a tip in whole US dollars, from 1 to {max}, or choose No tip.": "Inserisci una mancia in dollari USA interi, da 1 a {max}, oppure scegli Nessuna mancia.",
+ "Great": "Ottimo",
+ "How was my service?": "Com'è stato il mio servizio?",
+ "If you feel the service was exceptional, you can say thank you with a tip for your travel assistant. It is completely optional.": "Se ritieni che il servizio sia stato eccezionale, puoi ringraziare il tuo assistente di viaggio con una mancia. È del tutto facoltativa.",
+ "No tip": "Nessuna mancia",
+ "Perfect": "Perfetto",
+ "Think I did better? Other amount": "Pensi che abbia fatto ancora meglio? Altro importo",
+ "Tip amount in US dollars": "Importo della mancia in dollari USA",
+ "Tip for your travel assistant": "Mancia per il tuo assistente di viaggio"
 }

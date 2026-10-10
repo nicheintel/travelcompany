@@ -837,5 +837,16 @@
  "Your package": "Uw pakket",
  "Your travel assistant": "Uw reisassistent",
  "Your trip": "Uw reis",
- "{rate}% of your ticket price": "{rate}% van uw ticketprijs"
+ "{rate}% of your ticket price": "{rate}% van uw ticketprijs",
+ "A tip is added to your total and paid together with your trip.": "De fooi wordt bij uw totaal opgeteld en samen met uw reis betaald.",
+ "Average": "Gemiddeld",
+ "Enter a tip in whole US dollars, from 1 to {max}, or choose No tip.": "Voer een fooi in hele Amerikaanse dollars in, van 1 tot en met {max}, of kies Geen fooi.",
+ "Great": "Zeer goed",
+ "How was my service?": "Hoe was mijn service?",
+ "If you feel the service was exceptional, you can say thank you with a tip for your travel assistant. It is completely optional.": "Als u vindt dat de service uitzonderlijk was, kunt u uw reisassistent bedanken met een fooi. Dit is geheel vrijblijvend.",
+ "No tip": "Geen fooi",
+ "Perfect": "Perfect",
+ "Think I did better? Other amount": "Vindt u dat ik het nog beter heb gedaan? Ander bedrag",
+ "Tip amount in US dollars": "Fooibedrag in Amerikaanse dollars",
+ "Tip for your travel assistant": "Fooi voor uw reisassistent"
 }

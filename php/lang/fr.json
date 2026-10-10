@@ -837,5 +837,16 @@
  "Your package": "Votre forfait",
  "Your travel assistant": "Votre conseiller voyage",
  "Your trip": "Votre voyage",
- "{rate}% of your ticket price": "{rate} % du prix de votre billet"
+ "{rate}% of your ticket price": "{rate} % du prix de votre billet",
+ "A tip is added to your total and paid together with your trip.": "Le pourboire est ajouté à votre total et réglé en même temps que votre voyage.",
+ "Average": "Correct",
+ "Enter a tip in whole US dollars, from 1 to {max}, or choose No tip.": "Saisissez un pourboire en dollars américains entiers, de 1 à {max}, ou choisissez Sans pourboire.",
+ "Great": "Très bien",
+ "How was my service?": "Comment avez-vous trouvé mon service ?",
+ "If you feel the service was exceptional, you can say thank you with a tip for your travel assistant. It is completely optional.": "Si vous estimez que le service a été exceptionnel, vous pouvez remercier votre conseiller voyage avec un pourboire. C'est entièrement facultatif.",
+ "No tip": "Sans pourboire",
+ "Perfect": "Parfait",
+ "Think I did better? Other amount": "Vous trouvez que j'ai fait encore mieux ? Autre montant",
+ "Tip amount in US dollars": "Montant du pourboire en dollars américains",
+ "Tip for your travel assistant": "Pourboire pour votre conseiller voyage"
 }

@@ -837,5 +837,16 @@
  "Your package": "Ang iyong package",
  "Your travel assistant": "Ang iyong travel assistant",
  "Your trip": "Ang iyong biyahe",
- "{rate}% of your ticket price": "{rate}% ng presyo ng iyong ticket"
+ "{rate}% of your ticket price": "{rate}% ng presyo ng iyong ticket",
+ "A tip is added to your total and paid together with your trip.": "Idinadagdag ang tip sa iyong kabuuan at binabayaran kasabay ng iyong biyahe.",
+ "Average": "Katamtaman",
+ "Enter a tip in whole US dollars, from 1 to {max}, or choose No tip.": "Maglagay ng tip sa buong US dollar, mula 1 hanggang {max}, o piliin ang Walang tip.",
+ "Great": "Napakabuti",
+ "How was my service?": "Kumusta ang aking serbisyo?",
+ "If you feel the service was exceptional, you can say thank you with a tip for your travel assistant. It is completely optional.": "Kung sa tingin mo ay pambihira ang serbisyo, maaari kang magpasalamat sa iyong travel assistant sa pamamagitan ng tip. Ito ay ganap na opsyonal.",
+ "No tip": "Walang tip",
+ "Perfect": "Perpekto",
+ "Think I did better? Other amount": "Sa tingin mo ay mas mahusay pa ang ginawa ko? Ibang halaga",
+ "Tip amount in US dollars": "Halaga ng tip sa US dollar",
+ "Tip for your travel assistant": "Tip para sa iyong travel assistant"
 }

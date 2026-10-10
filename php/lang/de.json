@@ -837,5 +837,16 @@
  "Your package": "Ihr Paket",
  "Your travel assistant": "Ihr Reiseberater",
  "Your trip": "Ihre Reise",
- "{rate}% of your ticket price": "{rate} % Ihres Ticketpreises"
+ "{rate}% of your ticket price": "{rate} % Ihres Ticketpreises",
+ "A tip is added to your total and paid together with your trip.": "Das Trinkgeld wird zu Ihrem Gesamtbetrag hinzugefügt und zusammen mit Ihrer Reise bezahlt.",
+ "Average": "Durchschnittlich",
+ "Enter a tip in whole US dollars, from 1 to {max}, or choose No tip.": "Geben Sie ein Trinkgeld in ganzen US-Dollar von 1 bis {max} ein oder wählen Sie „Kein Trinkgeld“.",
+ "Great": "Sehr gut",
+ "How was my service?": "Wie war mein Service?",
+ "If you feel the service was exceptional, you can say thank you with a tip for your travel assistant. It is completely optional.": "Wenn Sie den Service als außergewöhnlich empfunden haben, können Sie sich mit einem Trinkgeld bei Ihrem Reiseberater bedanken. Es ist völlig freiwillig.",
+ "No tip": "Kein Trinkgeld",
+ "Perfect": "Perfekt",
+ "Think I did better? Other amount": "Finden Sie, ich war noch besser? Anderer Betrag",
+ "Tip amount in US dollars": "Trinkgeldbetrag in US-Dollar",
+ "Tip for your travel assistant": "Trinkgeld für Ihren Reiseberater"
 }

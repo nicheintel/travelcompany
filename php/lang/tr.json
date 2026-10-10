@@ -837,5 +837,16 @@
  "Your package": "Paketiniz",
  "Your travel assistant": "Seyahat asistanınız",
  "Your trip": "Seyahatiniz",
- "{rate}% of your ticket price": "Bilet fiyatınız üzerinden %{rate}"
+ "{rate}% of your ticket price": "Bilet fiyatınız üzerinden %{rate}",
+ "A tip is added to your total and paid together with your trip.": "Bahşiş toplam tutarınıza eklenir ve seyahatinizle birlikte ödenir.",
+ "Average": "Ortalama",
+ "Enter a tip in whole US dollars, from 1 to {max}, or choose No tip.": "1 ile {max} arasında, tam ABD doları olarak bir bahşiş tutarı girin veya Bahşiş yok seçeneğini seçin.",
+ "Great": "Çok iyi",
+ "How was my service?": "Hizmetimi nasıl buldunuz?",
+ "If you feel the service was exceptional, you can say thank you with a tip for your travel assistant. It is completely optional.": "Hizmetin olağanüstü olduğunu düşünüyorsanız, seyahat asistanınıza bir bahşişle teşekkür edebilirsiniz. Tamamen isteğe bağlıdır.",
+ "No tip": "Bahşiş yok",
+ "Perfect": "Kusursuz",
+ "Think I did better? Other amount": "Daha da iyi olduğunu mu düşünüyorsunuz? Başka bir tutar",
+ "Tip amount in US dollars": "ABD doları cinsinden bahşiş tutarı",
+ "Tip for your travel assistant": "Seyahat asistanınız için bahşiş"
 }

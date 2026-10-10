@@ -873,5 +873,16 @@
  "Your package": "Ваш пакет",
  "Your travel assistant": "Ваш турагент",
  "Your trip": "Ваша поездка",
- "{rate}% of your ticket price": "{rate}% от стоимости билета"
+ "{rate}% of your ticket price": "{rate}% от стоимости билета",
+ "A tip is added to your total and paid together with your trip.": "Чаевые добавляются к итоговой сумме и оплачиваются вместе с поездкой.",
+ "Average": "Нормально",
+ "Enter a tip in whole US dollars, from 1 to {max}, or choose No tip.": "Введите сумму чаевых в целых долларах США, от 1 до {max}, или выберите «Без чаевых».",
+ "Great": "Очень хорошо",
+ "How was my service?": "Как вам моя помощь?",
+ "If you feel the service was exceptional, you can say thank you with a tip for your travel assistant. It is completely optional.": "Если вы считаете, что обслуживание было исключительным, вы можете поблагодарить своего турагента чаевыми. Это совершенно необязательно.",
+ "No tip": "Без чаевых",
+ "Perfect": "Идеально",
+ "Think I did better? Other amount": "Думаете, было ещё лучше? Другая сумма",
+ "Tip amount in US dollars": "Сумма чаевых в долларах США",
+ "Tip for your travel assistant": "Чаевые для вашего турагента"
 }
