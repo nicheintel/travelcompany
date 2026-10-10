@@ -318,30 +318,19 @@ function trip_summary(array $q): string
 }
 
 /**
- * What a customer should check before paying, as numbered steps [key, icon, title, body HTML]. Used by the
- * "Before you pay" checklist on the trip page and by the reservation email ($email: inline styles, English).
+ * What a customer should check before paying, as [key, icon, title, body HTML]: passports & visas (flights and
+ * packages), payment limit and the change/cancellation rules; in emails ($email: inline styles, English) also the
+ * Travel Care offer. Shown on the trip page ("Before you pay") and in the trip email.
  */
 function checklist_steps(array $b, bool $email = false): array
 {
     $q = $b['quote'];
     $kind = $b['kind'];
     $fee = change_service_fee();
-    $care = (int) ($q['care'] ?? 0);
     $red = fn(string $s) => '<strong ' . ($email ? 'style="color:#dc2626"' : 'class="font-semibold text-red-600"') . '>' . e($s) . '</strong>';
     $bold = fn(string $html) => '<strong' . ($email ? '' : ' class="text-slate-900"') . ">$html</strong>";
-    $block = fn(string $html) => $email ? "<br>$html" : '<span class="mt-1 block">' . $html . '</span>';
     $facts = array_column($q['facts'], 1, 0);
     $steps = [];
-
-    $steps[] = $kind === 'hotel'
-        ? ['stay', 'bed', t('Your stay'), e(t('Check the hotel, room and dates in your trip summary.'))]
-        : ['itinerary', 'plane', t('Itinerary'), e(t('Check the dates, times and airports in your trip summary. Pay special attention to the airline that operates each flight.'))];
-
-    $names = implode(', ', array_map(fn($t) => $bold(e(trim("{$t['first']} {$t['last']}"))), $b['travelers']));
-    $fix = $email ? "Something wrong? Don't pay yet. Reply to this email and we'll correct it first." : t("Something wrong? Don't pay yet. Message us on Chat and we'll correct it first.");
-    $steps[] = $kind === 'hotel'
-        ? ['names', 'user', t('Guest name'), $red(t("The guest's name must match their ID at check-in.")) . $block($names) . $block(e($fix))]
-        : ['names', 'user', t('Traveler names'), $red(t("Names must match each traveler's passport or ID exactly.")) . ' ' . e(t("Airlines don't allow name changes once tickets are issued.")) . $block($names) . $block(e($fix))];
 
     if ($kind !== 'hotel') {
         $leg = $q['flight']['outbound'] ?? null;
@@ -356,7 +345,6 @@ function checklist_steps(array $b, bool $email = false): array
                 : e(t('For domestic flights, bring a valid government-issued photo ID.')))];
     }
 
-    $steps[] = ['total', 'tag', t('Total amount'), th('Your total is {total} and includes all taxes and fees.', [], ['total' => $bold(money($b['total'] - $care))])];
     $steps[] = ['limit', 'card', t('Payment limit'), e(t('Make sure your card, PayPal or GCash account has enough funds and no daily or single-payment limit.'))];
 
     $refundable = ($facts['Fare'] ?? $facts['Cancellation'] ?? '') !== 'Non-refundable';
@@ -372,24 +360,15 @@ function checklist_steps(array $b, bool $email = false): array
         (!$refundable ? $red($kind === 'hotel' ? t('This room is non-refundable.') : t('Your tickets are non-refundable.')) . ' ' : '')
         . e(t('Low prices come with restrictions.')) . ' ' . e($help) . ' ' . e(t('Prices are not guaranteed until your booking is issued.'))];
 
-    if (travel_care_available($b)) {
+    if ($email && travel_care_available($b) && empty($q['care'])) {
         $perks = array_values(array_filter([
-            $fee > 0 ? t('No {site} service fee when you change dates or cancel (normally {fee} each time).', ['site' => config('site_name'), 'fee' => money($fee)]) : null,
-            t('Priority help: your change and cancellation requests are handled first by our travel assistants.'),
-            t("You still pay the airline's own penalty and any fare difference."),
+            $fee > 0 ? 'No ' . config('site_name') . ' service fee when you change dates or cancel (normally ' . money($fee) . ' each time).' : null,
+            'Priority help: your change and cancellation requests are handled first by our travel assistants.',
+            "You still pay the airline's own penalty and any fare difference.",
         ]));
-        $steps[] = ['care', 'shield-check', t('Travel Care Protection'), $email
-            ? $red('We highly recommend Travel Care Protection!') . ' For just ' . $bold(money(travel_care_price($b))) . ' (' . round(travel_care_rate() * 100) . '% of your ticket price) you get extra flexibility if your plans change:'
-                . implode('', array_map(fn($p) => '<br>&#10003; ' . e($p), $perks))
-                . '<br>You can add it on your trip page before you pay. Travel Care is a ' . e((string) config('site_name')) . ' service, not insurance.'
-            : ['perks' => $perks]];
-    }
-
-    $steps[] = ['final', 'flag', t('Final step'), $email
-        ? 'Open your trip page with the button below, tick the box to confirm you have checked everything, and pay securely.'
-        : e(t('When everything above is correct, tick the box and continue to payment.'))];
-    if ($email) {
-        $steps[] = ['more', 'package', 'Additional services', 'As a full-service travel agency, we can also arrange hotel stays and car rentals. Just reply to this email if you need anything else.'];
+        $steps[] = ['care', 'shield-check', 'Travel Care Protection (recommended)', 'For just ' . $bold(money(travel_care_price($b))) . ' (' . round(travel_care_rate() * 100) . '% of your ticket price) you get extra flexibility if your plans change:'
+            . implode('', array_map(fn($p) => '<br>&#10003; ' . e($p), $perks))
+            . '<br>You can add it on your review page before you pay. Travel Care is a ' . e((string) config('site_name')) . ' service, not insurance.'];
     }
     return $steps;
 }

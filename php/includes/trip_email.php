@@ -37,10 +37,8 @@ function trip_email(array $b, string $subject, string $kicker, string $heading, 
         . '<p style="margin:20px 0 0;font-size:12px;line-height:1.5;color:#94a3b8">If the button doesn\'t work, copy this link into your browser:<br><a href="' . e($link) . '" style="color:#64748b;word-break:break-all">' . e($link) . '</a></p>';
 
     $text = "Dear $first,\n\n" . implode("\n\n", $intro) . "\n\n" . rows_text(trip_rows($b)) . "\n\n$button: $link\n";
-    foreach (checklist_steps($b, true) as [$key, , $title, $body]) {
-        if (in_array($key, ['documents', 'limit', 'important', 'care'], true)) {
-            $text .= "\n$title\n" . html_entity_decode(strip_tags(str_replace('<br>', "\n", $body)), ENT_QUOTES | ENT_HTML5, 'UTF-8') . "\n";
-        }
+    foreach (checklist_steps($b, true) as [, , $title, $body]) {
+        $text .= "\n$title\n" . html_entity_decode(strip_tags(str_replace('<br>', "\n", $body)), ENT_QUOTES | ENT_HTML5, 'UTF-8') . "\n";
     }
     $text .= "\nIf you have any questions, just reply to this email. We're always happy to help.\n\n" . email_signoff(true);
 
