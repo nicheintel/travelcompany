@@ -142,21 +142,65 @@ function smtp_message(string $from, string $to, array $mail): string
     return implode("\r\n", $headers) . "\r\n\r\n" . $part('text/plain', $mail['text']) . $part('text/html', $mail['html']) . "--$boundary--";
 }
 
-function email_layout(string $heading, string $body): string
+/** An image that ships with the website for emails (assets/email/), as a full web address. */
+function email_image(string $file): string
+{
+    $path = dirname(__DIR__) . '/assets/email/' . $file;
+    return app_url_or_local() . '/assets/email/' . $file . (is_file($path) ? '?v=' . filemtime($path) : '');
+}
+
+/**
+ * Every email: navy header with the logo, an optional big photo (e.g. the trip's destination),
+ * the message, then our contact details. Email apps don't show modern image formats, so these are JPG/PNG.
+ */
+function email_layout(string $heading, string $body, ?array $photo = null): string
 {
     $site = e(config('site_name'));
-    return '<!doctype html><html><body style="margin:0;background:#f6f8fc;font-family:Arial,Helvetica,sans-serif;color:#0f172a">'
-        . '<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:24px 12px">'
-        . '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#fff;border-radius:16px;overflow:hidden">'
-        . "<tr><td style=\"background:#1c54f0;padding:20px 28px;color:#fff;font-size:20px;font-weight:bold\">$site</td></tr>"
-        . '<tr><td style="padding:28px"><h1 style="margin:0 0 16px;font-size:22px">' . e($heading) . "</h1>$body</td></tr>"
-        . "<tr><td style=\"padding:16px 28px;background:#f1f5f9;color:#64748b;font-size:12px\">You're receiving this because you have an account with $site.</td></tr>"
+    $home = e(app_url_or_local() . '/');
+    $c = support_contacts();
+    $contact = implode(' &nbsp;·&nbsp; ', array_filter([
+        isset($c['email']) ? '<a href="mailto:' . e($c['email']) . '" style="color:#1c54f0;text-decoration:none">' . e($c['email']) . '</a>' : null,
+        isset($c['whatsapp']) ? '<a href="https://wa.me/' . e(preg_replace('/\D/', '', $c['whatsapp'])) . '" style="color:#1c54f0;text-decoration:none">WhatsApp ' . e($c['whatsapp']) . '</a>' : null,
+        isset($c['phone']) ? e($c['phone']) : null,
+    ]));
+    return '<!doctype html><html><head><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="color-scheme" content="light"><style>@media (max-width:480px){.ff-tag{display:none!important}}</style></head>'
+        . '<body style="margin:0;background:#eef2f9;font-family:Arial,Helvetica,sans-serif;color:#0f172a">'
+        . '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#eef2f9"><tr><td align="center" style="padding:24px 12px">'
+        . '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;background:#ffffff;border-radius:18px;overflow:hidden;box-shadow:0 8px 24px rgba(15,29,79,0.08)">'
+        . '<tr><td bgcolor="#0f1d4f" style="background:#0f1d4f;padding:20px 28px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>'
+        . '<td><a href="' . $home . '" style="text-decoration:none"><img src="' . e(email_image('logo-light.png')) . '" width="182" height="40" alt="' . $site . '" style="display:block;border:0;width:182px;height:40px;color:#ffffff;font-size:22px;font-weight:bold"></a></td>'
+        . '<td class="ff-tag" align="right" style="color:#e9c46a;font-size:12px;font-weight:bold;letter-spacing:0.04em;white-space:nowrap">FLIGHTS · HOTELS · PACKAGES</td></tr></table></td></tr>'
+        . ($photo ? '<tr><td style="line-height:0;font-size:0"><img src="' . e($photo['url']) . '" width="600" alt="' . e($photo['alt']) . '" style="display:block;width:100%;max-width:600px;height:auto;border:0"></td></tr>'
+            . '<tr><td bgcolor="#d4af37" style="background:#d4af37;height:4px;line-height:4px;font-size:0">&nbsp;</td></tr>' : '')
+        . '<tr><td style="padding:28px"><h1 style="margin:0 0 16px;font-size:24px;line-height:1.25;color:#0f1d4f">' . e($heading) . "</h1>$body</td></tr>"
+        . '<tr><td style="padding:20px 28px;background:#f6f8fc;border-top:1px solid #e2e8f0;font-size:12px;line-height:1.6;color:#64748b">'
+        . '<a href="' . $home . '" style="color:#0f1d4f;font-weight:bold;text-decoration:none">' . $site . '</a>: your travel assistant for affordable flights, hotels and holiday packages.'
+        . ($contact !== '' ? '<br>' . $contact : '')
+        . "<br>You're receiving this because you have an account with $site.</td></tr>"
         . '</table></td></tr></table></body></html>';
+}
+
+/**
+ * The trip's destination photo for booking emails (assets/email/dest-<airport>.jpg), or a photo for the kind of
+ * trip, plus the destination city when we know it.
+ */
+function trip_photo(array $b): array
+{
+    $q = $b['quote'];
+    $code = match ($b['kind']) {
+        'flight' => $q['flight']['outbound']['to'] ?? null,
+        'hotel' => (function () use ($q) { parse_str((string) ($q['query'] ?? ''), $p); return $p['to'] ?? null; })(),
+        default => ($pkg = find_package((string) ($q['package']['slug'] ?? ''), false)) ? $pkg['to_code'] : null,
+    };
+    $code = strtolower(preg_replace('/[^A-Za-z]/', '', (string) $code));
+    $city = $code !== '' ? (airport($code)['city'] ?? null) : null;
+    $file = $code !== '' && is_file(dirname(__DIR__) . "/assets/email/dest-$code.jpg") ? "dest-$code.jpg" : "trip-{$b['kind']}.jpg";
+    return ['url' => email_image($file), 'alt' => $city ?? $q['title'], 'city' => $city];
 }
 
 function email_button(string $href, string $label): string
 {
-    return '<p style="margin:24px 0"><a href="' . e($href) . '" style="display:inline-block;padding:12px 20px;background:#1c54f0;color:#fff;border-radius:10px;text-decoration:none;font-weight:bold">' . e($label) . '</a></p>';
+    return '<p style="margin:24px 0"><a href="' . e($href) . '" style="display:inline-block;padding:14px 24px;background:#d4af37;color:#ffffff;border-radius:12px;text-decoration:none;font-weight:bold;font-size:16px;box-shadow:0 4px 12px rgba(212,175,55,0.35)">' . e($label) . '</a></p>';
 }
 
 function email_p(string $html): string
@@ -193,7 +237,7 @@ function rows_text(array $rows): string
 }
 
 /** $formal: "Dear …" and a "Kind regards" sign-off instead of "Hi …". */
-function simple_email(string $subject, string $heading, string $firstName, array $paragraphs, array $rows, string $link, string $button, bool $formal = false): array
+function simple_email(string $subject, string $heading, string $firstName, array $paragraphs, array $rows, string $link, string $button, bool $formal = false, ?array $photo = null): array
 {
     $site = config('site_name');
     $hello = ($formal ? 'Dear ' : 'Hi ') . $firstName . ',';
@@ -201,7 +245,7 @@ function simple_email(string $subject, string $heading, string $firstName, array
         . ($formal ? "Kind regards,\nThe $site Team" : "The $site team");
     $html = email_p(e($hello)) . implode('', array_map(fn($p) => email_p(nl2br(e($p))), $paragraphs)) . ($rows ? rows_html($rows) : '') . email_button($link, $button)
         . ($formal ? email_p('Kind regards,<br>The ' . e($site) . ' Team') : '');
-    return ['subject' => $subject, 'text' => $text, 'html' => email_layout($heading, $html)];
+    return ['subject' => $subject, 'text' => $text, 'html' => email_layout($heading, $html, $photo)];
 }
 
 /** Emails the booking contact about a status change. */
@@ -221,28 +265,34 @@ function notify_booking_now(string $event, string $reference): void
         $link = app_url() . '/trip.php?ref=' . rawurlencode($reference);
         $rows = trip_rows($b);
         $title = "{$b['quote']['title']} ({$reference})";
+        $photo = trip_photo($b);
+        $excited = $photo['city']
+            ? ($b['kind'] === 'hotel' ? "Thank you for choosing {site}! We're excited to help you plan your stay in {$photo['city']}." : "Thank you for choosing {site}! We're excited to help you get to {$photo['city']}.")
+            : 'Thank you for choosing {site}! We have received your reservation.';
+        $excited = str_replace('{site}', (string) config('site_name'), $excited);
         $mail = match ($event) {
             // A checked bag was requested: payment waits until the bag price is added (no "Pay now" yet).
             'reserved' => ($b['bag_status'] ?? null) === 'pending'
-                ? simple_email("Trip reserved: $title", 'Your trip is reserved', $first, [
-                    'Thank you for choosing ' . config('site_name') . '. We have received your reservation.',
+                ? simple_email("Trip reserved: $title", trip_heading($b, 'reserved'), $first, [
+                    $excited,
                     'Since you added a checked bag, our team is confirming the baggage fee with the airline. You will receive an email shortly with your final total and a secure link to complete your payment.',
                     'You will only be charged once you have seen and approved the final price.',
-                ], array_diff_key($rows, ['Total' => true]) + ['Checked bag' => 'Requested (price to be confirmed)', 'Total so far' => money($b['total']) . ' + checked bag'], $link, 'View my trip', true)
+                ], array_diff_key($rows, ['Total' => true]) + ['Checked bag' => 'Requested (price to be confirmed)', 'Total so far' => money($b['total']) . ' + checked bag'], $link, 'View my trip', true, $photo)
                 : (payments_enabled() || gcash_enabled()
-                ? checklist_email($b, "Trip reserved: $title", 'Your trip is reserved!', [
-                    'Thank you for choosing ' . config('site_name') . '. We have received your reservation.',
+                ? checklist_email($b, "Trip reserved: $title", trip_heading($b, 'reserved'), [
+                    $excited,
                     payments_enabled()
                         ? 'You can pay securely online now to confirm it' . (gcash_enabled() ? ' (PayPal, card or GCash)' : '') . '. If you prefer, a travel assistant will contact you within 24 hours.'
                         : 'You can pay with GCash on your trip page to confirm it. If you prefer, a travel assistant will contact you within 24 hours.',
                 ])
-                : simple_email("Trip reserved: $title", 'Your trip is reserved!', $first, [
+                : simple_email("Trip reserved: $title", trip_heading($b, 'reserved'), $first, [
+                    $excited,
                     'A travel assistant will contact you within 24 hours to confirm availability and arrange payment.',
-                ], $rows, $link, 'View my trip')),
+                ], $rows, $link, 'View my trip', false, $photo)),
             'paid' => simple_email("Payment received: $title", 'Payment received. Thank you!', $first, [
                 'Thank you, we\'ve received your payment of ' . money($b['total']) . '.',
                 'A travel assistant is now ' . ($b['kind'] === 'hotel' ? 'booking your room' : 'issuing your tickets') . '. You\'ll get another email with your confirmation code, usually within a few hours.',
-            ], $rows, $link, 'View my trip'),
+            ], $rows, $link, 'View my trip', false, $photo),
             'ticketed' => simple_email(
                 ($b['kind'] === 'hotel' ? 'Room booked' : 'Ticket issued') . ": $title, code {$b['supplier_ref']}",
                 $b['kind'] === 'hotel' ? 'Your room is booked!' : 'Your ticket is issued!',
@@ -255,6 +305,8 @@ function notify_booking_now(string $event, string $reference): void
                 ['Confirmation' => (string) $b['supplier_ref']] + $rows,
                 $link,
                 'View my trip',
+                false,
+                $photo,
             ),
             'cancelled' => simple_email("Reservation cancelled: $title", 'Reservation cancelled', $first, [
                 'Your reservation has been cancelled. ' . ($b['paid_at']
@@ -296,24 +348,49 @@ function checklist_email(array $b, string $subject, string $heading, array $intr
     $link = pay_link($b['reference']);
     $button = 'Review & pay securely: ' . money($b['total']);
     $rows = trip_rows($b);
+    $photo = trip_photo($b);
+    $emoji = ['itinerary' => '✈️', 'stay' => '🏨', 'names' => '👤', 'documents' => '🛂', 'total' => '💵', 'limit' => '💳', 'important' => '⚠️', 'care' => '🛡️', 'final' => '✅', 'more' => '🌴'];
     $html = email_p(e("Dear $first,")) . implode('', array_map(fn($p) => email_p(nl2br(e($p))), $intro))
         . email_p('Please take a few moments and <strong style="color:#dc2626">read the steps below</strong> before you pay.')
         . rows_html($rows) . '<table role="presentation" width="100%" cellpadding="0" cellspacing="0">';
     $text = "Dear $first,\n\n" . implode("\n\n", $intro) . "\n\nPlease take a few moments and read the steps below before you pay.\n\n" . rows_text($rows) . "\n";
-    foreach (checklist_steps($b, true) as $i => [, , $title, $body]) {
+    foreach (checklist_steps($b, true) as $i => [$key, , $title, $body]) {
         $n = $i + 1;
         $html .= '<tr><td valign="top" width="44" style="padding:14px 0"><div style="width:32px;height:32px;border-radius:16px;background:#d4af37;color:#ffffff;font-weight:bold;font-size:15px;line-height:32px;text-align:center">' . $n . '</div></td>'
-            . '<td valign="top" style="padding:14px 0 14px 8px;border-bottom:1px solid #e2e8f0"><p style="margin:0 0 4px;font-weight:bold;font-size:15px">' . e($title) . '</p>'
+            . '<td valign="top" style="padding:14px 0 14px 8px;border-bottom:1px solid #e2e8f0"><p style="margin:0 0 4px;font-weight:bold;font-size:15px;color:#0f1d4f">' . ($emoji[$key] ?? '') . ' ' . e($title) . '</p>'
             . '<p style="margin:0;font-size:14px;line-height:1.55;color:#334155">' . $body . '</p></td></tr>';
         $text .= "\n$n. $title\n" . html_entity_decode(strip_tags(str_replace('<br>', "\n", $body)), ENT_QUOTES | ENT_HTML5, 'UTF-8') . "\n";
     }
     $html .= '</table>' . email_button($link, $button)
         . email_p('<span style="font-size:13px;color:#64748b">If the button doesn\'t work, copy this link into your browser:<br><a href="' . e($link) . '" style="color:#1c54f0;word-break:break-all">' . e($link) . '</a></span>')
-        . email_p('If you have any questions, just reply to this email. We\'re happy to help.')
-        . email_p('Kind regards,<br>The ' . e($site) . ' Team');
-    $text .= "\n$button: $link\n\nIf you have any questions, just reply to this email. We're happy to help.\n\nKind regards,\nThe $site Team";
+        . email_p('If you have any questions, just reply to this email. We\'re always happy to help.')
+        . email_signoff();
+    $text .= "\n$button: $link\n\nIf you have any questions, just reply to this email. We're always happy to help.\n\n" . email_signoff(true);
     $reply = (string) config('support_email') ?: (string) config('smtp_user');
-    return ['subject' => $subject, 'text' => $text, 'html' => email_layout($heading, $html)] + (valid_email($reply) ? ['reply_to' => $reply] : []);
+    return ['subject' => $subject, 'text' => $text, 'html' => email_layout($heading, $html, $photo)] + (valid_email($reply) ? ['reply_to' => $reply] : []);
+}
+
+/** "Warm regards, Angel, your FareFinders travel assistant" (the name customers see in the chat). */
+function email_signoff(bool $text = false): string
+{
+    $site = (string) config('site_name');
+    $name = trim((string) config('chat_name')) ?: "The $site team";
+    return $text
+        ? "Warm regards,\n$name\nYour $site travel assistant"
+        : '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:20px 0 4px"><tr>'
+            . '<td valign="middle" style="padding-right:12px"><div style="width:44px;height:44px;border-radius:22px;background:#0f1d4f;color:#e9c46a;font-weight:bold;font-size:18px;line-height:44px;text-align:center">' . e(mb_strtoupper(mb_substr($name, 0, 1))) . '</div></td>'
+            . '<td valign="middle" style="font-size:14px;line-height:1.45;color:#334155">Warm regards,<br><strong style="color:#0f1d4f">' . e($name) . '</strong><br>Your ' . e($site) . ' travel assistant</td></tr></table>';
+}
+
+/** "Your trip to Tokyo is reserved!" / "Ready to confirm your stay in Bangkok?" when we know the destination. */
+function trip_heading(array $b, string $moment): string
+{
+    $city = trip_photo($b)['city'];
+    $what = $b['kind'] === 'hotel' ? ($city ? "your stay in $city" : 'your stay') : ($city ? "your trip to $city" : 'your trip');
+    return match ($moment) {
+        'reserved' => ucfirst($what) . ' is reserved!',
+        default => "Ready to confirm $what?",
+    };
 }
 
 /** Staff-sent payment reminder with a Pay now button and an optional personal message. */
@@ -327,5 +404,5 @@ function send_payment_link_now(array $b, string $message): void
 {
     $paragraphs = ["Your trip {$b['reference']} is reserved and waiting for payment. You can pay securely with PayPal or a debit/credit card. It only takes a minute."];
     if ($message !== '') array_unshift($paragraphs, $message);
-    send_email($b['contact_email'], checklist_email($b, "Payment for your trip {$b['reference']} (" . money($b['total']) . ')', 'Ready to confirm your trip?', $paragraphs));
+    send_email($b['contact_email'], checklist_email($b, "Payment for your trip {$b['reference']} (" . money($b['total']) . ')', trip_heading($b, 'pay'), $paragraphs));
 }
