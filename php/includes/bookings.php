@@ -157,13 +157,19 @@ function admin_stats(): array
     ];
 }
 
-/** Paid trips whose tickets/rooms haven't been issued yet. Paid longest ago first. */
 /** Unpaid bookings where the customer says they sent a GCash payment. */
 function admin_gcash_to_check(): array
 {
     return array_map('to_booking', db_all(ADMIN_SELECT . " WHERE b.status = 'reserved' AND b.gcash_ref IS NOT NULL ORDER BY b.gcash_sent_at ASC LIMIT 50"));
 }
 
+/** Unpaid bookings waiting for the airline's checked-bag price (the customer can't pay until it's set). */
+function admin_bags_to_price(): array
+{
+    return array_map('to_booking', db_all(ADMIN_SELECT . " WHERE b.status = 'reserved' AND b.bag_status = 'pending' ORDER BY b.start_date ASC LIMIT 50"));
+}
+
+/** Paid trips whose tickets/rooms haven't been issued yet. Paid longest ago first. */
 function admin_needs_ticket(): array
 {
     return array_map('to_booking', db_all(ADMIN_SELECT . " WHERE b.status = 'paid' ORDER BY b.paid_at ASC LIMIT 50"));

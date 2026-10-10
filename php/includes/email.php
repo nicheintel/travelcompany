@@ -406,3 +406,24 @@ function send_payment_link_now(array $b, string $message): void
     if ($message !== '') array_unshift($paragraphs, $message);
     send_email($b['contact_email'], checklist_email($b, "Payment for your trip {$b['reference']} (" . money($b['total']) . ')', trip_heading($b, 'pay'), $paragraphs));
 }
+
+/** Emails every admin that a customer asked for checked bags on the trip page (payment waits for the bag price). */
+function notify_admins_bag(string $ref, int $bags): void
+{
+    in_english(function () use ($ref, $bags) {
+        $admins = array_unique(array_merge(configured_admins(), array_column(db_all("SELECT email FROM users WHERE role = 'admin'"), 'email')));
+        if (!$admins) return;
+        try {
+            $link = app_url() . '/admin/booking.php?ref=' . rawurlencode($ref);
+        } catch (RuntimeException $e) {
+            $link = url('admin/booking.php', ['ref' => $ref]);
+        }
+        $mail = simple_email("Checked bag to price: $ref", 'Add the checked-bag price', 'there', [
+            'A customer asked for ' . plural($bags, 'checked bag') . " on booking $ref before paying.",
+            "Check the airline's bag price, then open the booking and enter what the customer pays. They can't pay until you do.",
+        ], [], $link, 'Open the booking');
+        foreach ($admins as $to) {
+            try { send_email($to, $mail); } catch (Throwable $e) { error_log('[bags] admin email failed: ' . $e->getMessage()); }
+        }
+    });
+}

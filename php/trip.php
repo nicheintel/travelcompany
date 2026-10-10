@@ -13,18 +13,72 @@ if (is_post()) {
         notify_booking('cancelled', $ref);
         redirect(url('trip.php', ['ref' => $ref]));
     }
-    // "Before you pay": the customer confirms the checklist (and picks Travel Care) before paying.
-    if ($action === 'review' && $booking['status'] === 'reserved') {
+    // Before payment the customer can still correct the travelers and contact person, and ask for checked bags.
+    $canEdit = $booking['status'] === 'reserved' && empty($booking['gcash_ref']);
+    if ($action === 'travelers' && $canEdit) {
+        $values = array_map(fn($v) => is_string($v) ? trim($v) : '', $_POST);
+        [$travelers, $errors] = validate_travelers($booking['quote'], $values, $booking['kind'] !== 'hotel');
+        if ($errors) {
+            $_SESSION['trip_form'] = ['travelers', $values, $errors];
+            redirect(url('trip.php', ['ref' => $ref, 'edit' => 'travelers']) . '#travelers');
+        }
+        foreach ($travelers as $i => &$t) if (!empty($booking['travelers'][$i]['extra_bag'])) $t['extra_bag'] = true; // bag requests stay
+        unset($t);
+        db_run("UPDATE bookings SET travelers_json = ? WHERE reference = ? AND status = 'reserved'", [json_encode($travelers, JSON_UNESCAPED_UNICODE), $ref]);
+        $names = fn(array $list) => implode(', ', array_map(fn($x) => trim("{$x['first']} {$x['last']}"), $list));
+        add_event($ref, $user['id'], 'note', 'Customer updated the traveler details before paying. Now: ' . $names($travelers) . ' (was: ' . $names($booking['travelers']) . ').');
+        flash(t('Traveler details saved.'));
+        redirect(url('trip.php', ['ref' => $ref]) . '#travelers');
+    }
+    if ($action === 'contact' && $canEdit) {
+        $values = array_map(fn($v) => is_string($v) ? trim($v) : '', $_POST);
+        [[$name, $email, $phone], $errors] = validate_contact($values);
+        if ($errors) {
+            $_SESSION['trip_form'] = ['contact', $values, $errors];
+            redirect(url('trip.php', ['ref' => $ref, 'edit' => 'contact']) . '#contact');
+        }
+        db_run("UPDATE bookings SET contact_name = ?, contact_email = ?, contact_phone = ? WHERE reference = ? AND status = 'reserved'", [$name, $email, $phone, $ref]);
+        add_event($ref, $user['id'], 'note', "Customer updated the contact person: $name, $email, $phone.");
+        flash(t('Contact details saved.'));
+        redirect(url('trip.php', ['ref' => $ref]) . '#contact');
+    }
+    if ($action === 'add_bag' && $canEdit && $booking['kind'] !== 'hotel' && empty($booking['quote']['baggage']['checked']) && ($booking['bag_status'] ?? null) === null) {
+        $travelers = $booking['travelers'];
+        $added = 0;
+        foreach ((array) ($_POST['bag'] ?? []) as $i) {
+            $i = (int) $i;
+            if (isset($travelers[$i]) && empty($travelers[$i]['extra_bag']) && !str_starts_with($booking['quote']['slots'][$i]['label'] ?? '', 'Infant')) {
+                $travelers[$i]['extra_bag'] = true;
+                $added++;
+            }
+        }
+        if (!$added) {
+            flash(t('Choose who needs a checked bag.'), 'error');
+            redirect(url('trip.php', ['ref' => $ref]) . '#baggage');
+        }
+        db_run("UPDATE bookings SET travelers_json = ?, bag_status = 'pending' WHERE reference = ? AND status = 'reserved'", [json_encode($travelers, JSON_UNESCAPED_UNICODE), $ref]);
+        add_event($ref, $user['id'], 'note', 'Customer requested ' . plural($added, 'checked bag') . ' on the trip page — set the price before the customer pays.');
+        notify_admins_bag($ref, $added);
+        flash(t("Thanks! We'll confirm the airline's bag price and email you your new total, usually within a few hours."));
+        redirect(url('trip.php', ['ref' => $ref]) . '#baggage');
+    }
+    // "Pay securely now": the customer agreed to the terms (and chose Travel Care or not), then pays.
+    if ($action === 'checkout' && $booking['status'] === 'reserved' && empty($booking['gcash_ref'])) {
         if (empty($_POST['agree'])) {
             flash(t('Please tick the box to confirm you have checked your trip details.'), 'error');
-            redirect(url('trip.php', ['ref' => $ref, 'review' => 1]) . '#review');
+            redirect(url('trip.php', ['ref' => $ref]) . '#pay');
         }
         review_booking($ref, $user['id'], !empty($_POST['care']));
-        redirect(url('trip.php', ['ref' => $ref]) . '#pay');
+        $booking = user_booking($user['id'], $ref);
+        $wantsGcash = post('method') === 'gcash' || !payments_enabled();
+        if ($wantsGcash && gcash_enabled() && gcash_for_booking($booking)) {
+            redirect(url('trip.php', ['ref' => $ref, 'method' => 'gcash']) . '#gcash');
+        }
+        $action = 'pay';
     }
     if (in_array($action, ['pay', 'gcash'], true) && empty($booking['quote']['reviewed_at'])) {
         flash(t('Please check your trip details below before paying.'), 'error');
-        redirect(url('trip.php', ['ref' => $ref, 'review' => 1]) . '#review');
+        redirect(url('trip.php', ['ref' => $ref]) . '#pay');
     }
     if ($action === 'gcash' && $booking['status'] === 'reserved' && gcash_enabled() && gcash_for_booking($booking) && ($booking['bag_status'] ?? null) !== 'pending') {
         // GCash reference numbers are 13 digits; allow spaces and a little slack for other formats.
@@ -92,9 +146,6 @@ $payFailed = $returned && $status === 'reserved';
 $bagPending = $status === 'reserved' && ($booking['bag_status'] ?? null) === 'pending';
 $canPay = $status === 'reserved' && payments_enabled() && !$bagPending;
 $canGcash = $status === 'reserved' && !$bagPending && gcash_enabled() && (gcash_for_booking($booking) || $booking['gcash_ref']);
-// Payment opens once the "Before you pay" checklist is confirmed (a GCash payment already sent skips it).
-$reviewed = !empty($booking['quote']['reviewed_at']) || $booking['gcash_ref'];
-$showReview = ($canPay || $canGcash) && !$booking['gcash_ref'] && (!$reviewed || ($_GET['review'] ?? '') === '1');
 $provider = payment_provider();
 $title = t('Trip {ref}', ['ref' => $ref]);
 require __DIR__ . '/includes/header.php';
@@ -140,6 +191,100 @@ $check = '<span class="grid h-10 w-10 shrink-0 place-items-center rounded-full b
   </div>
   <p class="mt-1 text-sm text-slate-500"><?= th('Booked {date}', [], ['date' => local_time($booking['created_at'], true)]) ?><?= $booking['paid_at'] ? ' · ' . th('Paid {date}', [], ['date' => local_time($booking['paid_at'], true)]) : '' ?><?= $booking['ticketed_at'] ? ' · ' . th('Confirmed {date}', [], ['date' => local_time($booking['ticketed_at'], true)]) : '' ?><?= $booking['cancelled_at'] ? ' · ' . th('Cancelled {date}', [], ['date' => local_time($booking['cancelled_at'], true)]) : '' ?></p>
 
+  <?php if ($status === 'reserved'):
+      $canEdit = empty($booking['gcash_ref']);
+      $edit = $canEdit ? (string) ($_GET['edit'] ?? '') : '';
+      // A form that didn't pass the checks comes back with what was typed and the errors.
+      $saved = $_SESSION['trip_form'] ?? null;
+      unset($_SESSION['trip_form']);
+      $formFor = fn(string $which, array $stored) => $edit !== $which ? null : (($saved[0] ?? '') === $which ? [$saved[1], $saved[2]] : [$stored, []]);
+      [$pc, $pn] = split_phone($booking['contact_phone']);
+      $self = url('trip.php', ['ref' => $ref]);
+      $method = (string) ($_GET['method'] ?? '');
+      $gcashStep = $canGcash && !$booking['gcash_ref'] && !empty($booking['quote']['reviewed_at']) && ($method === 'gcash' || !$canPay); ?>
+    <div class="mt-6"><?= checkout_banner() ?></div>
+    <div class="mt-8 grid gap-8 lg:grid-cols-[1fr_380px]">
+      <div class="min-w-0 space-y-6">
+        <?= checkout_trip($booking) ?>
+        <?php if ($booking['kind'] !== 'hotel'): ?><?= checkout_baggage($booking, $canEdit) ?><?php endif; ?>
+        <?= checkout_travelers($booking, $canEdit, $formFor('travelers', traveler_form_values($booking['travelers'])), url('trip.php', ['ref' => $ref, 'edit' => 'travelers']) . '#travelers', $self . '#travelers') ?>
+        <?= checkout_contact($booking, $canEdit, $formFor('contact', ['contact_name' => (string) $booking['contact_name'], 'email' => $booking['contact_email'], 'phone_country' => $pc, 'phone' => $pn]), url('trip.php', ['ref' => $ref, 'edit' => 'contact']) . '#contact', $self . '#contact') ?>
+        <?php if ($bagPending): ?>
+        <section class="rounded-2xl border border-amber-200 bg-amber-50 p-6">
+          <h2 class="text-lg font-semibold text-amber-900"><?= e(t("We're checking the price of your checked bag")) ?></h2>
+          <p class="mt-1 text-sm text-amber-900"><?= e(t("Bag prices are set by the airline. A travel assistant will add the exact price to your total and email you a payment link — usually within a few hours. You don't pay anything for the bag without seeing the price first.")) ?></p>
+        </section>
+      <?php elseif (($booking['bag_status'] ?? null) === 'included' && $status === 'reserved'): ?>
+        <div><?= alert_box(t("Good news: a checked bag is already included in your fare, so there's nothing extra to pay."), 'success') ?></div>
+      <?php elseif (($booking['bag_status'] ?? null) === 'declined' && $status === 'reserved'): ?>
+        <div><?= alert_box(t("The airline couldn't add a checked bag to this booking, so your total hasn't changed. Contact us if you'd like other options."), 'success') ?></div>
+      <?php endif; ?>
+        <?php if ($booking['gcash_ref']): ?>
+          <section id="pay" class="scroll-mt-24 rounded-2xl border-2 border-brand-200 bg-white p-6">
+            <h2 class="text-lg font-semibold text-slate-900"><?= e(t('Payment information')) ?></h2>
+            <div class="mt-4 rounded-xl bg-amber-50 p-4 text-sm text-amber-900 ring-1 ring-amber-200">
+              <p class="font-semibold"><?= e(t("We're checking your GCash payment")) ?></p>
+              <p class="mt-1"><?= e(t('Reference {ref} · ₱{amount}. A travel assistant will confirm it by email, usually within a few hours.', ['ref' => $booking['gcash_ref'], 'amount' => number_format((int) $booking['gcash_php'])])) ?></p>
+            </div>
+          </section>
+        <?php elseif ($canPay || $canGcash): ?>
+          <?= checkout_good_to_know($booking) ?>
+          <form method="post" action="<?= e($self) ?>" class="space-y-6" data-pending-form><?= csrf_field() ?><input type="hidden" name="action" value="checkout">
+            <?php if (travel_care_available($booking)): ?><?= checkout_care($booking) ?><?php endif; ?>
+            <?= checkout_payment($booking, $canPay, $canGcash, $gcashStep ? 'gcash' : $method) ?>
+          </form>
+          <?php if ($gcashStep):
+              $pesos = gcash_amount($booking['total']);
+              $qr = site_image('gcash_qr'); ?>
+            <section id="gcash" class="scroll-mt-24 rounded-2xl border-2 border-sky-300 bg-white p-6" data-scroll-into-view>
+              <h2 class="mb-4 text-lg font-semibold text-slate-900"><?= e(t('Pay with GCash')) ?></h2>
+                <div class="grid gap-5 sm:grid-cols-[auto_1fr]">
+                  <?php if ($qr): ?><img src="<?= e($qr) ?>" alt="<?= e(t('GCash QR code')) ?>" class="mx-auto h-40 w-40 rounded-xl object-contain ring-1 ring-slate-200 sm:mx-0"><?php endif; ?>
+                  <div class="space-y-3 text-sm">
+                    <div class="rounded-xl bg-sky-50 p-4 ring-1 ring-sky-100">
+                      <p class="text-sky-800"><?= e(t('Send exactly')) ?></p>
+                      <p class="text-2xl font-extrabold text-slate-900">₱<?= number_format((int) $pesos) ?></p>
+                      <p class="mt-1 text-xs text-slate-500"><?= e(t("{usd} at today's exchange rate. If you pay on another day, refresh this page for the current amount.", ['usd' => money($booking['total'])])) ?></p>
+                    </div>
+                    <dl class="space-y-1.5">
+                      <div class="flex justify-between gap-4"><dt class="text-slate-500"><?= e(t('GCash number')) ?></dt><dd class="font-mono font-semibold text-slate-900"><?= e((string) config('gcash_number')) ?></dd></div>
+                      <?php if (config('gcash_name')): ?><div class="flex justify-between gap-4"><dt class="text-slate-500"><?= e(t('Account name')) ?></dt><dd class="font-semibold text-slate-900"><?= e((string) config('gcash_name')) ?></dd></div><?php endif; ?>
+                      <div class="flex justify-between gap-4"><dt class="text-slate-500"><?= e(t('Message / note')) ?></dt><dd class="font-mono font-semibold text-slate-900"><?= e($ref) ?></dd></div>
+                    </dl>
+                  </div>
+                </div>
+                <ol class="mt-4 list-decimal space-y-1 pl-5 text-sm text-slate-600">
+                  <li><?= e($qr ? t('Scan the QR code in your GCash app, or send to the number above.') : t('In your GCash app, choose Send Money and send to the number above.')) ?></li>
+                  <li><?= e(t('Add your trip reference {ref} as the message.', ['ref' => $ref])) ?></li>
+                  <li><?= e(t('Enter the reference number from your GCash receipt below.')) ?></li>
+                </ol>
+                <form method="post" class="mt-4 flex flex-col gap-2 sm:flex-row"><?= csrf_field() ?><input type="hidden" name="action" value="gcash">
+                  <input name="gcash_ref" inputmode="numeric" autocomplete="off" required placeholder="<?= e(t('GCash reference no., e.g. 1234 567 890123')) ?>" aria-label="<?= e(t('GCash reference number')) ?>" class="min-w-0 flex-1 rounded-xl border border-slate-300 px-4 py-3 text-slate-900 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100">
+                  <button type="submit" class="rounded-xl bg-sky-600 px-5 py-3 font-bold text-white hover:bg-sky-700"><?= e(t("I've sent the payment")) ?></button>
+                </form>
+            </section>
+          <?php endif; ?>
+        <?php elseif (!$bagPending): ?>
+          <section class="rounded-2xl border border-slate-200 bg-white p-6 text-sm text-slate-600"><?= e(t('A travel assistant will contact you at {email} within 24 hours to confirm availability and arrange payment.', ['email' => $booking['contact_email']])) ?></section>
+        <?php endif; ?>
+        <?php if ($status === 'paid' || $status === 'ticketed'): ?>
+          <section class="rounded-2xl border border-slate-200 bg-white p-6">
+            <h2 class="text-lg font-semibold text-slate-900"><?= e(t('Need to change plans?')) ?></h2>
+            <p class="mt-1 text-sm text-slate-600"><?= e(t('Your trip is paid. To change or cancel it, contact our travel assistants with your reference {ref} — refunds depend on the fare and hotel rules.', ['ref' => $ref])) ?></p>
+          </section>
+        <?php elseif ($status === 'reserved'): ?>
+          <section class="rounded-2xl border border-slate-200 bg-white p-6">
+            <h2 class="text-lg font-semibold text-slate-900"><?= e(t('Need to change plans?')) ?></h2>
+            <p class="mt-1 text-sm text-slate-600"><?= e(t('Reservations can be cancelled free of charge until payment is made.')) ?></p>
+            <form method="post" class="mt-4 sm:w-64" data-confirm="<?= e(t("Cancel this reservation? This can't be undone.")) ?>"><?= csrf_field() ?><input type="hidden" name="action" value="cancel">
+                <button type="submit" class="w-full rounded-xl py-2.5 text-sm font-semibold text-red-600 ring-1 ring-red-200 hover:bg-red-50"><?= e(t('Cancel reservation')) ?></button>
+            </form>
+          </section>
+        <?php endif; ?>
+      </div>
+      <aside class="h-fit lg:sticky lg:top-20"><?= checkout_summary($booking) ?></aside>
+    </div>
+  <?php else: ?>
   <div class="mt-8 grid gap-8 lg:grid-cols-[1fr_380px]">
     <div class="space-y-6">
       <?php if ($status === 'ticketed'): ?>
@@ -183,100 +328,6 @@ $check = '<span class="grid h-10 w-10 shrink-0 place-items-center rounded-full b
           <div class="flex justify-between"><dt class="text-slate-500"><?= e(t('Phone')) ?></dt><dd class="font-medium text-slate-900"><?= e($booking['contact_phone']) ?></dd></div>
         </dl>
       </section>
-      <?php if ($bagPending): ?>
-        <section class="rounded-2xl border border-amber-200 bg-amber-50 p-6">
-          <h2 class="text-lg font-semibold text-amber-900"><?= e(t("We're checking the price of your checked bag")) ?></h2>
-          <p class="mt-1 text-sm text-amber-900"><?= e(t("Bag prices are set by the airline. A travel assistant will add the exact price to your total and email you a payment link — usually within a few hours. You don't pay anything for the bag without seeing the price first.")) ?></p>
-        </section>
-      <?php elseif (($booking['bag_status'] ?? null) === 'included' && $status === 'reserved'): ?>
-        <div><?= alert_box(t("Good news: a checked bag is already included in your fare, so there's nothing extra to pay."), 'success') ?></div>
-      <?php elseif (($booking['bag_status'] ?? null) === 'declined' && $status === 'reserved'): ?>
-        <div><?= alert_box(t("The airline couldn't add a checked bag to this booking, so your total hasn't changed. Contact us if you'd like other options."), 'success') ?></div>
-      <?php endif; ?>
-      <?php if ($showReview): ?>
-        <?= before_you_pay($booking, ($_GET['pay'] ?? '') === '1') ?>
-      <?php elseif ($canPay || $canGcash):
-          $pesos = $canGcash ? gcash_amount($booking['total']) : null;
-          $qr = $canGcash ? site_image('gcash_qr') : null;
-          $both = $canPay && $canGcash;
-          // GCash is picked first when the customer already sent a GCash payment or came back from submitting one.
-          $gcashFirst = $canGcash && (!$canPay || $booking['gcash_ref'] || ($_GET['method'] ?? '') === 'gcash');
-          $highlight = ($_GET['pay'] ?? '') === '1'; ?>
-        <section id="pay" class="group scroll-mt-24 rounded-2xl border-2 bg-white p-6 <?= $highlight ? 'border-accent-500 ring-4 ring-accent-500/20' : 'border-brand-200' ?>"<?= $highlight ? ' data-scroll-into-view' : '' ?>>
-          <?php if (!$booking['gcash_ref']): ?>
-            <div class="mb-5 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-900 ring-1 ring-emerald-200">
-              <span class="flex items-center gap-2"><?= icon('check', 16, 'shrink-0 text-emerald-600') ?><?= e(t("You've checked your trip details.")) ?><?php if (!empty($booking['quote']['care'])): ?> <span class="font-semibold"><?= e(t('Travel Care Protection added.')) ?></span><?php endif; ?></span>
-              <a href="<?= e(url('trip.php', ['ref' => $ref, 'review' => 1])) ?>#review" class="font-semibold text-emerald-800 underline underline-offset-2 hover:text-emerald-950"><?= e(t('Review again')) ?></a>
-            </div>
-          <?php endif; ?>
-          <h2 class="text-lg font-semibold text-slate-900"><?= e(t('Pay now to confirm')) ?></h2>
-          <p class="mt-1 text-sm text-slate-600"><?= e(t('Total: {total}', ['total' => money($booking['total'])])) ?><?php if (($hint = price_hint($booking['total'])) !== ''): ?> <span class="text-slate-500">(<?= e($hint) ?>)</span><?php endif; ?></p>
-
-          <?php if ($both): ?>
-            <fieldset class="mt-4">
-              <legend class="mb-2 text-sm font-medium text-slate-700"><?= e(t('Choose how to pay')) ?></legend>
-              <div class="grid gap-3 sm:grid-cols-2">
-                <label class="flex cursor-pointer items-center gap-3 rounded-xl border-2 border-slate-200 p-4 hover:border-slate-300 has-[:checked]:border-brand-500 has-[:checked]:bg-brand-50/50">
-                  <input type="radio" name="pay_method" id="pm-paypal" value="paypal"<?= $gcashFirst ? '' : ' checked' ?> class="h-4 w-4 accent-brand-600">
-                  <span><span class="block font-semibold text-slate-900"><?= e($provider === 'paypal' ? t('PayPal or card') : t('Card')) ?></span><span class="block text-xs text-slate-500"><?= e(t('Pay in US dollars · confirmed instantly')) ?></span></span>
-                </label>
-                <label class="flex cursor-pointer items-center gap-3 rounded-xl border-2 border-slate-200 p-4 hover:border-slate-300 has-[:checked]:border-sky-500 has-[:checked]:bg-sky-50/50">
-                  <input type="radio" name="pay_method" id="pm-gcash" value="gcash"<?= $gcashFirst ? ' checked' : '' ?> class="h-4 w-4 accent-sky-600">
-                  <span><span class="block font-semibold text-slate-900">GCash</span><span class="block text-xs text-slate-500"><?= e(t('Pay in pesos · confirmed within a few hours')) ?></span></span>
-                </label>
-              </div>
-            </fieldset>
-          <?php endif; ?>
-
-          <?php if ($canPay): ?>
-            <div class="mt-5 <?= $both ? 'hidden group-has-[#pm-paypal:checked]:block' : '' ?>">
-              <p class="text-sm text-slate-600"><?= e($provider === 'paypal'
-                  ? t("Pay {total} securely with your PayPal account or any debit/credit card. You'll be taken to PayPal and brought back here afterwards.", ['total' => money($booking['total'])])
-                  : t("Pay {total} securely by card. You'll be taken to our payment partner Stripe and brought back here afterwards.", ['total' => money($booking['total'])])) ?></p>
-              <form method="post" class="mt-4 sm:w-72"><?= csrf_field() ?><input type="hidden" name="action" value="pay">
-                <button type="submit" class="w-full rounded-xl bg-accent-500 py-3 font-bold text-white shadow-sm hover:bg-accent-600"><?= e($provider === 'paypal' ? t('Pay {total} with PayPal', ['total' => money($booking['total'])]) : t('Pay {total}', ['total' => money($booking['total'])])) ?></button>
-              </form>
-              <?php if (current_currency() !== 'USD'): ?><p class="mt-2 text-xs text-slate-500"><?= e(t('You will be charged in US dollars.')) ?></p><?php endif; ?>
-            </div>
-          <?php endif; ?>
-
-          <?php if ($canGcash): ?>
-            <div id="gcash" class="mt-5 scroll-mt-24 <?= $both ? 'hidden group-has-[#pm-gcash:checked]:block' : '' ?>">
-              <?php if ($booking['gcash_ref']): ?>
-                <div class="rounded-xl bg-amber-50 p-4 text-sm text-amber-900 ring-1 ring-amber-200">
-                  <p class="font-semibold"><?= e(t("We're checking your GCash payment")) ?></p>
-                  <p class="mt-1"><?= e(t('Reference {ref} · ₱{amount}. A travel assistant will confirm it by email, usually within a few hours.', ['ref' => $booking['gcash_ref'], 'amount' => number_format((int) $booking['gcash_php'])])) ?></p>
-                </div>
-              <?php else: ?>
-                <div class="grid gap-5 sm:grid-cols-[auto_1fr]">
-                  <?php if ($qr): ?><img src="<?= e($qr) ?>" alt="<?= e(t('GCash QR code')) ?>" class="mx-auto h-40 w-40 rounded-xl object-contain ring-1 ring-slate-200 sm:mx-0"><?php endif; ?>
-                  <div class="space-y-3 text-sm">
-                    <div class="rounded-xl bg-sky-50 p-4 ring-1 ring-sky-100">
-                      <p class="text-sky-800"><?= e(t('Send exactly')) ?></p>
-                      <p class="text-2xl font-extrabold text-slate-900">₱<?= number_format((int) $pesos) ?></p>
-                      <p class="mt-1 text-xs text-slate-500"><?= e(t("{usd} at today's exchange rate. If you pay on another day, refresh this page for the current amount.", ['usd' => money($booking['total'])])) ?></p>
-                    </div>
-                    <dl class="space-y-1.5">
-                      <div class="flex justify-between gap-4"><dt class="text-slate-500"><?= e(t('GCash number')) ?></dt><dd class="font-mono font-semibold text-slate-900"><?= e((string) config('gcash_number')) ?></dd></div>
-                      <?php if (config('gcash_name')): ?><div class="flex justify-between gap-4"><dt class="text-slate-500"><?= e(t('Account name')) ?></dt><dd class="font-semibold text-slate-900"><?= e((string) config('gcash_name')) ?></dd></div><?php endif; ?>
-                      <div class="flex justify-between gap-4"><dt class="text-slate-500"><?= e(t('Message / note')) ?></dt><dd class="font-mono font-semibold text-slate-900"><?= e($ref) ?></dd></div>
-                    </dl>
-                  </div>
-                </div>
-                <ol class="mt-4 list-decimal space-y-1 pl-5 text-sm text-slate-600">
-                  <li><?= e($qr ? t('Scan the QR code in your GCash app, or send to the number above.') : t('In your GCash app, choose Send Money and send to the number above.')) ?></li>
-                  <li><?= e(t('Add your trip reference {ref} as the message.', ['ref' => $ref])) ?></li>
-                  <li><?= e(t('Enter the reference number from your GCash receipt below.')) ?></li>
-                </ol>
-                <form method="post" class="mt-4 flex flex-col gap-2 sm:flex-row"><?= csrf_field() ?><input type="hidden" name="action" value="gcash">
-                  <input name="gcash_ref" inputmode="numeric" autocomplete="off" required placeholder="<?= e(t('GCash reference no., e.g. 1234 567 890123')) ?>" aria-label="<?= e(t('GCash reference number')) ?>" class="min-w-0 flex-1 rounded-xl border border-slate-300 px-4 py-3 text-slate-900 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100">
-                  <button type="submit" class="rounded-xl bg-sky-600 px-5 py-3 font-bold text-white hover:bg-sky-700"><?= e(t("I've sent the payment")) ?></button>
-                </form>
-              <?php endif; ?>
-            </div>
-          <?php endif; ?>
-        </section>
-      <?php endif; ?>
       <?php if ($status === 'paid' || $status === 'ticketed'): ?>
         <section class="rounded-2xl border border-slate-200 bg-white p-6">
           <h2 class="text-lg font-semibold text-slate-900"><?= e(t('Need to change plans?')) ?></h2>
@@ -294,5 +345,6 @@ $check = '<span class="grid h-10 w-10 shrink-0 place-items-center rounded-full b
     </div>
     <aside class="h-fit lg:sticky lg:top-20"><?= trip_summary($booking['quote']) ?></aside>
   </div>
+  <?php endif; ?>
 </div>
 <?php require __DIR__ . '/includes/footer.php';

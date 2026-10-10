@@ -25,6 +25,7 @@ const ICONS = [
     'alert' => '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4M12 17h.01"/>',
     'shield-check' => '<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/>',
     'flag' => '<path d="M4 22V4a1 1 0 0 1 .4-.8A6 6 0 0 1 8 2c3 0 5 2 7.33 2q2 0 3.67-.8a1 1 0 0 1 1 .2V15a1 1 0 0 1-.4.8A6 6 0 0 1 16 17c-3 0-5-2-8-2a6 6 0 0 0-4 1.53"/>',
+    'luggage' => '<path d="M6 20a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2"/><path d="M8 18V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v14M10 20h4"/><circle cx="16" cy="20" r="2"/><circle cx="8" cy="20" r="2"/>',
     'trash' => '<path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/>',
     'mail' => '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>',
     'chat' => '<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.4-5A8 8 0 1 1 21 12Z"/>',
@@ -392,39 +393,6 @@ function checklist_steps(array $b, bool $email = false): array
         $steps[] = ['more', 'package', 'Additional services', 'As a full-service travel agency, we can also arrange hotel stays and car rentals. Just reply to this email if you need anything else.'];
     }
     return $steps;
-}
-
-/**
- * The "Before you pay" checklist on the trip page: the steps above, the optional Travel Care
- * Protection (flights) and the agreement. Posts action=review to trip.php.
- */
-function before_you_pay(array $b, bool $highlight = false): string
-{
-    $site = e((string) config('site_name'));
-    $terms = '<a href="' . e(url('terms.php')) . '#bookings" target="_blank" class="font-semibold text-brand-700 underline underline-offset-2">' . e(t('booking terms')) . '</a>';
-    $html = '<section id="review" class="scroll-mt-24 rounded-2xl border-2 bg-white p-6 ' . ($highlight ? 'border-accent-500 ring-4 ring-accent-500/20' : 'border-brand-200') . '"' . ($highlight ? ' data-scroll-into-view' : '') . '>'
-        . '<h2 class="text-lg font-semibold text-slate-900">' . e(t('Before you pay')) . '</h2>'
-        . '<p class="mt-1 text-sm text-slate-600">' . e(t('Please take a minute to check these details. It helps avoid problems at the airport or hotel.')) . '</p>'
-        . '<form method="post" class="mt-6" data-pending-form>' . csrf_field() . '<input type="hidden" name="action" value="review"><ol class="space-y-6">';
-    foreach (checklist_steps($b) as $i => [$key, $ic, $title, $body]) {
-        if ($key === 'care') {
-            $body = '<span class="mr-1 inline-block rounded-full bg-accent-500 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white">' . e(t('Recommended')) . '</span>'
-                . e(t('Extra flexibility if your plans change, for a small fee.'))
-                . '<div class="mt-3 rounded-xl border-2 border-accent-400/60 bg-accent-500/5 p-4 has-[:checked]:border-accent-500 has-[:checked]:bg-accent-500/10">'
-                . '<ul class="space-y-1.5">' . implode('', array_map(fn($p) => '<li class="flex gap-2">' . icon('check', 16, 'mt-0.5 shrink-0 text-emerald-600') . '<span>' . e($p) . '</span></li>', $body['perks'])) . '</ul>'
-                . '<label class="mt-3 flex cursor-pointer items-start gap-3 rounded-lg bg-white p-3 ring-1 ring-accent-400/50"><input type="checkbox" name="care" value="1"' . (!empty($b['quote']['care']) ? ' checked' : '') . ' class="mt-0.5 h-5 w-5 shrink-0 accent-accent-600">'
-                . '<span class="font-semibold text-slate-900">' . th('Add Travel Care Protection for {price}', [], ['price' => '<span class="whitespace-nowrap text-accent-700">' . money(travel_care_price($b)) . '</span>']) . '</span></label>'
-                . '<p class="mt-2 text-xs text-slate-500">' . th('{rate}% of your ticket price. Travel Care is a {site} service, not insurance, and is non-refundable once you pay. See our {terms}.', ['rate' => round(travel_care_rate() * 100)], ['site' => $site, 'terms' => '<a href="' . e(url('terms.php')) . '#travel-care" target="_blank" class="font-semibold text-brand-700 underline underline-offset-2">' . e(t('terms')) . '</a>']) . '</p></div>';
-        } elseif ($key === 'final') {
-            $body .= '<label class="mt-3 flex cursor-pointer items-start gap-3 rounded-lg bg-slate-50 p-3 ring-1 ring-slate-200 has-[:checked]:bg-emerald-50 has-[:checked]:ring-emerald-300"><input type="checkbox" name="agree" value="1" required class="mt-0.5 h-5 w-5 shrink-0 accent-emerald-600">'
-                . '<span class="text-slate-800">' . th('I have checked the details above and agree to the {terms}.', [], ['terms' => $terms]) . '</span></label>';
-        }
-        $html .= '<li class="flex gap-4"><span class="relative grid h-12 w-12 shrink-0 place-items-center rounded-full bg-brand-50 text-brand-600 ring-1 ring-brand-100">' . icon($ic, 22)
-            . '<span class="absolute -right-1 -top-1 grid h-5 w-5 place-items-center rounded-full bg-accent-500 text-[11px] font-bold text-white">' . ($i + 1) . '</span></span>'
-            . '<div class="min-w-0 flex-1 pt-1"><h3 class="font-semibold text-slate-900">' . e($title) . '</h3><div class="mt-1 text-sm leading-relaxed text-slate-600">' . $body . '</div></div></li>';
-    }
-    return $html . '</ol><div class="mt-6 sm:pl-16">' . submit_button(t('Continue to payment'), t('Saving…'), 'w-full sm:w-72') . '</div></form>'
-        . '<p class="mt-6 border-t border-slate-100 pt-4 text-sm text-slate-500">' . e(t('Need a hotel or rental car too? As a full-service travel agency, we can arrange those as well. Just message us on Chat.')) . '</p></section>';
 }
 
 /** Admin: marks bookings with Travel Care Protection (no service fee on changes, handled first). */

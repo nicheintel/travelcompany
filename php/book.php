@@ -27,53 +27,9 @@ if ($quote && is_post()) {
     if ((int) post('expected_total') !== $quote['total']) {
         $message = t('The price has changed to {price}. Please review and confirm again.', ['price' => money($quote['total'])]);
     } else {
-        $travelers = [];
-        $nameRe = '/^\p{L}[\p{L}\p{M}\' .-]*$/u';
-        foreach ($quote['slots'] as $i => $slot) {
-            $first = $values["t{$i}_first"] ?? '';
-            $noLast = $airTravel && !empty($values["t{$i}_nolast"]);
-            $last = $noLast ? '' : ($values["t{$i}_last"] ?? '');
-            $dob = $values["t{$i}_dob"] ?? '';
-            if ($first === '' || mb_strlen($first) > 50 || !preg_match($nameRe, $first)) $errors["t{$i}_first"] = t('Enter a first name as it appears on the passport.');
-            if (!$noLast && ($last === '' || mb_strlen($last) > 50 || !preg_match($nameRe, $last))) $errors["t{$i}_last"] = t('Enter a last name as it appears on the passport.');
-            $extra = [];
-            if ($airTravel) {
-                // What airlines need to issue a ticket (and check-in needs to match).
-                $gender = $values["t{$i}_gender"] ?? '';
-                $nat = strtoupper($values["t{$i}_nationality"] ?? '');
-                if (!in_array($gender, ['M', 'F'], true)) $errors["t{$i}_gender"] = t('Choose the gender shown on the passport or ID.');
-                if (!isset(COUNTRY_DIAL[$nat])) $errors["t{$i}_nationality"] = t('Choose a nationality.');
-                $extra = ['gender' => $gender, 'nationality' => $nat] + ($noLast ? ['no_last_name' => true] : []);
-                $ff = strtoupper(trim($values["t{$i}_ff"] ?? ''));
-                if ($ff !== '') {
-                    if (!preg_match('/^[A-Z0-9][A-Z0-9 -]{3,29}$/', $ff)) $errors["t{$i}_ff"] = t('Enter the frequent flyer number (letters and numbers only), or leave it empty.');
-                    $extra['frequent_flyer'] = $ff;
-                }
-                if ($bagOffer && !str_starts_with($slot['label'], 'Infant') && !empty($values["t{$i}_bag"])) $extra['extra_bag'] = true;
-            }
-            if ($slot['dob']) {
-                $d = DateTimeImmutable::createFromFormat('!Y-m-d', $dob);
-                $start = new DateTimeImmutable($quote['start_date']);
-                // Age on the travel date; -1 for invalid or future dates.
-                $age = $d && $d->format('Y-m-d') === $dob && $d <= $start ? $d->diff($start)->y : -1;
-                if ($age < 0 || $age > 120) $errors["t{$i}_dob"] = t('Enter a valid date of birth.');
-                elseif (str_starts_with($slot['label'], 'Child') && ($age < 2 || $age > 11)) $errors["t{$i}_dob"] = t('Children must be 2–11 years old on the travel date.');
-                elseif (str_starts_with($slot['label'], 'Adult') && $age < 12) $errors["t{$i}_dob"] = t('Adults must be 12 or older on the travel date.');
-                elseif (str_starts_with($slot['label'], 'Infant') && $d->diff(new DateTimeImmutable($quote['end_date'] ?? $quote['start_date']))->y >= 2) $errors["t{$i}_dob"] = t('Infants must be under 2 for the whole trip — book them as a child instead.');
-            }
-            $travelers[] = ['first' => $first, 'last' => $last] + ($slot['dob'] ? ['dob' => $dob] : []) + $extra;
-        }
-        $contactName = preg_replace('/\s+/', ' ', $values['contact_name'] ?? '');
-        $email = normalize_email($values['email'] ?? '');
-        $phoneCountry = strtoupper($values['phone_country'] ?? '');
-        $phoneNumber = preg_replace('/[\s().-]/', '', $values['phone'] ?? '');
-        if (mb_strlen($contactName) < 2 || mb_strlen($contactName) > 100 || !preg_match($nameRe, $contactName)) $errors['contact_name'] = t('Enter the name of the person we should contact.');
-        if (!valid_email($email)) $errors['email'] = t('Enter a valid email address.');
-        elseif (($fix = email_typo($email)) !== null) $errors['email'] = t('Check the spelling. Did you mean {email}?', ['email' => $fix]);
-        if (!isset(COUNTRY_DIAL[$phoneCountry])) $errors['phone'] = t('Choose the country code.');
-        elseif (!preg_match('/^\+?[0-9]{4,15}$/', $phoneNumber)) $errors['phone'] = t('Enter a valid mobile number.');
-        // Stored as "+63 9171234567" (numbers typed with their own +code are kept as typed).
-        $phone = str_starts_with($phoneNumber, '+') ? $phoneNumber : '+' . (COUNTRY_DIAL[$phoneCountry] ?? '') . ' ' . ltrim($phoneNumber, '0');
+        [$travelers, $errors] = validate_travelers($quote, $values, $airTravel, $bagOffer);
+        [[$contactName, $email, $phone], $contactErrors] = validate_contact($values);
+        $errors += $contactErrors;
         if (!$user['verified']) {
             $message = t('Please confirm your email address first — open the link we emailed you.');
         } elseif ($errors) {
@@ -140,29 +96,7 @@ parse_str($quote['query'], $qp);
           <p class="mt-1 text-sm text-slate-500"><?= e(t("Names must match each traveler's passport or government ID.")) ?></p>
           <div class="mt-5 space-y-6">
             <?php foreach ($quote['slots'] as $i => $slot): ?>
-              <fieldset class="space-y-4 border-t border-slate-100 pt-5 first:border-0 first:pt-0">
-                <legend class="mb-3 text-sm font-semibold text-brand-700"><?= e(slot_label($slot['label'])) ?></legend>
-                <div class="grid gap-4 sm:grid-cols-2">
-                  <?= text_field("t{$i}_first", $airTravel ? t('First name (as on passport)') : t('First name'), $v("t{$i}_first", $i === 0 ? $firstName : ''), 'text', $errors["t{$i}_first"] ?? null, ['autocomplete' => $i === 0 ? 'given-name' : 'off']) ?>
-                  <div class="space-y-1.5">
-                    <?= text_field("t{$i}_last", $airTravel ? t('Last name (surname)') : t('Last name'), $v("t{$i}_last", $i === 0 ? $lastName : ''), 'text', $errors["t{$i}_last"] ?? null, ['autocomplete' => $i === 0 ? 'family-name' : 'off']) ?>
-                    <?php if ($airTravel): ?><label class="flex items-center gap-2 text-sm text-slate-600"><input type="checkbox" name="t<?= $i ?>_nolast" value="1"<?= !empty($values["t{$i}_nolast"]) ? ' checked' : '' ?> class="h-4 w-4 accent-brand-600"> <?= e(t('No surname on passport')) ?></label><?php endif; ?>
-                  </div>
-                </div>
-                <?php if ($airTravel): ?>
-                  <div class="grid gap-4 sm:grid-cols-3">
-                    <?= select_field("t{$i}_gender", t('Gender on passport/ID'), ['M' => t('Male'), 'F' => t('Female')], $v("t{$i}_gender"), $errors["t{$i}_gender"] ?? null, t('Choose…')) ?>
-                    <?= text_field("t{$i}_dob", t('Date of birth'), $v("t{$i}_dob"), 'date', $errors["t{$i}_dob"] ?? null, ['min' => '1900-01-01', 'max' => today()]) ?>
-                    <?= select_field("t{$i}_nationality", t('Nationality'), country_list(), $v("t{$i}_nationality"), $errors["t{$i}_nationality"] ?? null, t('Choose…')) ?>
-                  </div>
-                  <?php if ($kind === 'flight'): ?>
-                    <details class="group"<?= $v("t{$i}_ff") !== '' || isset($errors["t{$i}_ff"]) ? ' open' : '' ?>>
-                      <summary class="cursor-pointer text-sm font-semibold text-brand-700 hover:underline"><?= e(t('Frequent flyer number (optional)')) ?></summary>
-                      <div class="mt-3 sm:w-1/2 sm:pr-2"><?= text_field("t{$i}_ff", t('Airline and number, e.g. PR 1234567'), $v("t{$i}_ff"), 'text', $errors["t{$i}_ff"] ?? null, ['autocomplete' => 'off']) ?></div>
-                    </details>
-                  <?php endif; ?>
-                <?php elseif ($slot['dob']): ?><div class="sm:w-1/2 sm:pr-2"><?= text_field("t{$i}_dob", t('Date of birth'), $v("t{$i}_dob"), 'date', $errors["t{$i}_dob"] ?? null, ['min' => '1900-01-01', 'max' => today()]) ?></div><?php endif; ?>
-              </fieldset>
+              <?= traveler_fieldset($i, $slot, fn(string $k) => $v($k, ['t0_first' => $firstName, 't0_last' => $lastName][$k] ?? ''), $errors, $airTravel, $kind) ?>
             <?php endforeach; ?>
           </div>
         </section>
@@ -213,20 +147,7 @@ parse_str($quote['query'], $qp);
         <section class="rounded-2xl border border-slate-200 bg-white p-6">
           <h2 class="text-lg font-semibold text-slate-900"><?= e(t('Contact details')) ?></h2>
           <p class="mt-1 text-sm text-slate-500"><?= e(t("We'll send your confirmation and updates here.")) ?></p>
-          <div class="mt-5 grid gap-4 sm:grid-cols-2">
-            <?= text_field('contact_name', t('Contact name'), $v('contact_name', $user['name']), 'text', $errors['contact_name'] ?? null, ['autocomplete' => 'name']) ?>
-            <?= text_field('email', t('Email'), $v('email', $user['email']), 'email', $errors['email'] ?? null, ['autocomplete' => 'email']) ?>
-            <div class="sm:col-span-2">
-              <label for="f_phone" class="mb-1.5 block text-sm font-medium text-slate-700"><?= e(t('Mobile phone')) ?></label>
-              <div class="flex gap-2">
-                <select name="phone_country" aria-label="<?= e(t('Country code')) ?>" class="w-32 shrink-0 rounded-xl border border-slate-300 bg-white px-3 py-3 text-slate-900 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 sm:w-44">
-                  <?php $pc = $v('phone_country', default_phone_country()); foreach (country_list() as $cc => $cname): ?><option value="<?= e($cc) ?>"<?= $cc === $pc ? ' selected' : '' ?>><?= e("+" . COUNTRY_DIAL[$cc] . " · $cname") ?></option><?php endforeach; ?>
-                </select>
-                <input id="f_phone" name="phone" type="tel" value="<?= e($v('phone')) ?>" autocomplete="tel-national" placeholder="917 123 4567"<?= isset($errors['phone']) ? ' aria-invalid="true" aria-describedby="f_phone_err"' : '' ?> class="min-w-0 flex-1 rounded-xl border bg-white px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:ring-2 <?= isset($errors['phone']) ? 'border-red-400 focus:border-red-500 focus:ring-red-100' : 'border-slate-300 focus:border-brand-500 focus:ring-brand-100' ?>">
-              </div>
-              <?php if (isset($errors['phone'])): ?><p id="f_phone_err" class="mt-1.5 text-sm text-red-600"><?= e($errors['phone']) ?></p><?php endif; ?>
-            </div>
-          </div>
+          <div class="mt-5"><?= contact_fields(fn(string $k) => $v($k, ['contact_name' => $user['name'], 'email' => $user['email']][$k] ?? ''), $errors) ?></div>
         </section>
         <div class="rounded-2xl bg-brand-50 p-5 text-sm text-brand-900 ring-1 ring-brand-100">
           <p class="font-semibold"><?= e(payments_enabled() ? t('Reserve, then pay securely') : t('Reserve now, pay later')) ?></p>

@@ -545,6 +545,18 @@
       : "On: all animations play on this device.");
   }
 
+  // Trip page: the Travel Care Add/Added button switches the totals and summary line straight away.
+  function initCareToggle() {
+    const box = $("#care-toggle");
+    if (!box) return;
+    const sync = () => {
+      $$("[data-care-on]").forEach((el) => { el.hidden = !box.checked; });
+      $$("[data-care-off]").forEach((el) => { el.hidden = box.checked; });
+    };
+    box.addEventListener("change", sync);
+    sync();
+  }
+
   // "Check your email" screen: moves on by itself once the link is opened (in another tab or on a phone).
   function initVerifyWait() {
     const box = $("[data-verify-wait]");
@@ -590,7 +602,7 @@
     $$("[data-results]").forEach(initResults);
     $$("[data-tabs]").forEach(initTabs);
     // Each part runs on its own, so a problem in one never stops the others.
-    [initImageFade, initProgress, initMenus, initForms, initBagSummary, initSearchWait, initHeader, initHero, initReveal, initBrowserCheck, initVerifyWait].forEach((fn) => {
+    [initImageFade, initProgress, initMenus, initForms, initBagSummary, initSearchWait, initHeader, initHero, initReveal, initBrowserCheck, initVerifyWait, initCareToggle].forEach((fn) => {
       try { fn(); } catch (e) { if (window.console) console.error(e); }
     });
   });

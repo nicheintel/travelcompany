@@ -29,6 +29,13 @@ echo admin_open('overview');
       <?= bookings_table($gcashToCheck, '') ?>
     </section>
   <?php endif; ?>
+  <?php if ($bagsToPrice = admin_bags_to_price()): ?>
+    <section class="rounded-2xl border-2 border-amber-300 bg-amber-50 p-5">
+      <div class="mb-3"><h2 class="text-lg font-bold text-amber-900">Checked bags to price (<?= count($bagsToPrice) ?>)</h2>
+        <p class="text-sm text-amber-800">These customers asked for a checked bag and can't pay until you add the airline's bag price. Open each booking and enter the price.</p></div>
+      <?= bookings_table($bagsToPrice, '') ?>
+    </section>
+  <?php endif; ?>
   <?php if ($toTicket): ?>
     <section class="rounded-2xl border-2 border-red-300 bg-red-50 p-5">
       <div class="mb-3"><h2 class="text-lg font-bold text-red-800">Paid — issue the tickets now (<?= count($toTicket) ?>)</h2>
