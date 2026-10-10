@@ -367,7 +367,7 @@ function checkout_summary(array $b): string
 function checkout_check_email(array $b, string $typed = '', string $error = ''): string
 {
     // The button the customer looks for in the (English) reservation email.
-    $button = payments_enabled() || gcash_enabled() ? 'Review & pay securely' : 'View my trip';
+    $button = payments_enabled() || gcash_enabled() ? 'Review & pay securely' : 'Review my trip';
     $steps = [
         t('Open the email from {site} with the subject "Trip reserved".', ['site' => config('site_name')]),
         t('Tap the "{button}" button in the email.', ['button' => $button]),

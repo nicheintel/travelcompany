@@ -221,6 +221,8 @@ function hotel_quote(array $params): ?array
         'supplier' => $h['cost'] ?? null,
         // Charges the hotel collects itself at check-in (not part of what the customer pays us).
         'at_hotel' => $h['at_hotel'] ?? [],
+        // The hotel's own photo for the booking emails (a web address from the supplier).
+        'photo' => $h['photo'] ?? null,
     ]);
 }
 

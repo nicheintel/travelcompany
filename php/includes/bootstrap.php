@@ -24,6 +24,7 @@ require __DIR__ . '/bookings.php';
 require __DIR__ . '/travelers.php';
 require __DIR__ . '/packages.php';
 require __DIR__ . '/email.php';
+require __DIR__ . '/trip_email.php';
 require __DIR__ . '/payments.php';
 require __DIR__ . '/gcash.php';
 require __DIR__ . '/chat.php';
