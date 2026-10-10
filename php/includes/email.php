@@ -263,7 +263,7 @@ function notify_booking_now(string $event, string $reference): void
         if (!$r) return;
         $b = to_booking($r);
         $first = $b['travelers'][0]['first'] ?? 'there';
-        $link = app_url() . '/trip.php?ref=' . rawurlencode($reference);
+        $link = trip_link($b);
         $rows = trip_rows($b);
         $title = "{$b['quote']['title']} ({$reference})";
         $photo = trip_photo($b);
@@ -332,10 +332,19 @@ function account_link(string $page): string
     }
 }
 
-/** Link that opens the trip page at the payment box (after signing in if needed). */
-function pay_link(string $reference): string
+/**
+ * Link to the trip page (after signing in if needed). While the trip is unpaid it carries the booking's private key,
+ * which opens "Review details and confirm your trip" (see review_locked). $pay: straight to the payment box.
+ */
+function trip_link(array $b, bool $pay = false): string
 {
-    return app_url() . '/trip.php?ref=' . rawurlencode($reference) . '&pay=1';
+    $key = $b['status'] === 'reserved' ? (string) ($b['quote']['review_key'] ?? '') : '';
+    return app_url() . '/trip.php?' . http_build_query(['ref' => $b['reference']] + ($pay ? ['pay' => 1] : []) + ($key !== '' ? ['k' => $key] : []));
+}
+
+function pay_link(array $b): string
+{
+    return trip_link($b, true);
 }
 
 /**
@@ -346,7 +355,7 @@ function checklist_email(array $b, string $subject, string $heading, array $intr
 {
     $site = (string) config('site_name');
     $first = $b['travelers'][0]['first'] ?? 'there';
-    $link = pay_link($b['reference']);
+    $link = pay_link($b);
     $button = 'Review & pay securely: ' . money($b['total']);
     $rows = trip_rows($b);
     $photo = trip_photo($b);

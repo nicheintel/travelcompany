@@ -22,6 +22,15 @@ if (is_post()) {
         if (!in_array($method, $methods, true)) $error = 'Choose how the customer paid.';
         elseif (!mark_paid($ref, $method, $admin['id'], "Marked as paid — $method." . ($note ? " $note" : ''))) $error = 'Only reserved (unpaid) bookings can be marked as paid.';
         else { notify_booking('paid', $ref); flash('Marked as paid. The customer has been emailed a receipt.'); redirect($self); }
+    } elseif ($action === 'resend_review' && review_locked($booking)) {
+        notify_booking('reserved', $ref);
+        add_event($ref, $admin['id'], 'email', "Reservation email sent again to {$booking['contact_email']}.");
+        flash("Reservation email sent again to {$booking['contact_email']}.");
+        redirect($self);
+    } elseif ($action === 'unlock_review' && review_locked($booking)) {
+        unlock_review($ref, $admin['id'], 'Review page unlocked by staff (the customer can now review and pay without the email link).');
+        flash('Unlocked. The customer can now review and pay from My trips.');
+        redirect($self);
     } elseif ($action === 'paylink') {
         $message = mb_substr(post('message'), 0, 500);
         if ($booking['status'] !== 'reserved') $error = 'Only unpaid bookings can get a payment link.';
@@ -149,6 +158,17 @@ echo admin_open('bookings');
       </section>
     </div>
     <aside class="space-y-6">
+      <?php if (review_locked($booking)): ?>
+        <section class="rounded-xl border-2 border-amber-300 bg-white p-5">
+          <h2 class="font-semibold text-slate-900">Waiting for the customer to open their email</h2>
+          <p class="mt-1 text-sm text-slate-600">The review &amp; payment page opens when the customer taps the button in their reservation email (sent to <strong><?= e($booking['contact_email']) ?></strong>). Until then they see "Check your email".</p>
+          <form method="post" class="mt-3"><?= csrf_field() ?><input type="hidden" name="action" value="resend_review">
+            <button type="submit" class="w-full rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700">Send the reservation email again</button></form>
+          <form method="post" class="mt-2" data-confirm="Unlock the review page for this customer without the email link?"><?= csrf_field() ?><input type="hidden" name="action" value="unlock_review">
+            <button type="submit" class="w-full rounded-lg px-4 py-2 text-sm font-semibold text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50">Unlock the review page</button></form>
+          <p class="mt-2 text-xs text-slate-500">Unlock only if their email isn't working and you've checked their details with them by phone or chat.</p>
+        </section>
+      <?php endif; ?>
       <?php if ($booking['status'] === 'reserved' && $booking['gcash_ref']): ?>
         <section class="rounded-xl border-2 border-sky-400 bg-white p-5 ring-4 ring-sky-100">
           <h2 class="font-semibold text-slate-900">GCash payment to check</h2>

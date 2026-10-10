@@ -6,9 +6,52 @@ $ref = (string) ($_GET['ref'] ?? '');
 $booking = user_booking($user['id'], $ref);
 if (!$booking) not_found();
 
+// The button in our emails carries the booking's private key: it opens "Review details and confirm your trip".
+if (!is_post() && isset($_GET['k'])) {
+    $key = (string) ($booking['quote']['review_key'] ?? '');
+    if ($key !== '' && is_string($_GET['k']) && hash_equals($key, $_GET['k'])) {
+        if (review_locked($booking)) unlock_review($ref, $user['id'], 'Customer opened the review link from the email.');
+    } elseif (review_locked($booking)) {
+        flash(t('That link is out of date. Please use the newest email we sent you, or send it again below.'), 'error');
+    }
+    redirect(url('trip.php', ['ref' => $ref]) . (isset($_GET['pay']) ? '#pay' : ''));
+}
+$locked = review_locked($booking);
+
 if (is_post()) {
     verify_csrf();
     $action = post('action');
+    // Until the email link is opened, only "send it again", "fix the email address" and cancelling are possible.
+    if ($locked && !in_array($action, ['cancel', 'resend_review', 'fix_email'], true)) {
+        flash(t('Please open the link in the email we sent you first.'), 'error');
+        redirect(url('trip.php', ['ref' => $ref]) . '#check-email');
+    }
+    if ($action === 'resend_review' && $locked) {
+        if (rate_limited('review-mail:' . $ref, 3) || ip_throttled('review-mail', 10, 3600)) {
+            flash(t('Too many requests. Please wait a few minutes and try again.'), 'error');
+        } else {
+            rate_hit('review-mail:' . $ref, 3600);
+            notify_booking('reserved', $ref);
+            add_event($ref, $user['id'], 'email', "Customer asked for the reservation email again ({$booking['contact_email']}).");
+            flash(t("We've sent the email again to {email}.", ['email' => $booking['contact_email']]));
+        }
+        redirect(url('trip.php', ['ref' => $ref]) . '#check-email');
+    }
+    if ($action === 'fix_email' && $locked) {
+        $email = normalize_email(post('email'));
+        $error = !valid_email($email) ? t('Enter a valid email address.')
+            : (($fix = email_typo($email)) !== null ? t('Check the spelling. Did you mean {email}?', ['email' => $fix])
+            : (rate_limited('review-mail:' . $ref, 3) || ip_throttled('review-mail', 10, 3600) ? t('Too many requests. Please wait a few minutes and try again.') : ''));
+        if ($error !== '') {
+            $_SESSION['trip_form'] = ['fix_email', mb_substr(post('email'), 0, 254), $error];
+            redirect(url('trip.php', ['ref' => $ref]) . '#check-email');
+        }
+        rate_hit('review-mail:' . $ref, 3600);
+        if ($email !== $booking['contact_email']) change_review_email($ref, $user['id'], $booking['contact_email'], $email);
+        notify_booking('reserved', $ref);
+        flash(t("Thanks! We've sent the email to {email}.", ['email' => $email]));
+        redirect(url('trip.php', ['ref' => $ref]) . '#check-email');
+    }
     if ($action === 'cancel' && customer_cancel($user['id'], $ref)) {
         notify_booking('cancelled', $ref);
         redirect(url('trip.php', ['ref' => $ref]));
@@ -158,7 +201,7 @@ $check = '<span class="grid h-10 w-10 shrink-0 place-items-center rounded-full b
 ?>
 <div class="mx-auto max-w-6xl px-4 py-8 sm:px-6">
   <nav class="mb-4 text-sm text-slate-500"><a href="<?= e(url('account.php')) ?>" class="hover:text-brand-700">← <?= e(t('My trips')) ?></a></nav>
-  <?php if ($isNew): ?>
+  <?php if ($isNew && !$locked): ?>
     <div class="mb-6 flex items-start gap-4 rounded-2xl bg-emerald-50 p-5 ring-1 ring-emerald-200"><?= $check ?>
       <div><p class="text-lg font-semibold text-emerald-900"><?= e(t('Your trip is reserved!')) ?></p>
         <p class="mt-1 text-sm text-emerald-800"><?= e($canPay ? t('Pay securely below to confirm it now, or a travel assistant will contact you within 24 hours.') : t('A travel assistant will contact you at {email} within 24 hours to confirm availability and arrange payment.', ['email' => $booking['contact_email']])) ?>
@@ -196,7 +239,18 @@ $check = '<span class="grid h-10 w-10 shrink-0 place-items-center rounded-full b
   </div>
   <p class="mt-1 text-sm text-slate-500"><?= th('Booked {date}', [], ['date' => local_time($booking['created_at'], true)]) ?><?= $booking['paid_at'] ? ' · ' . th('Paid {date}', [], ['date' => local_time($booking['paid_at'], true)]) : '' ?><?= $booking['ticketed_at'] ? ' · ' . th('Confirmed {date}', [], ['date' => local_time($booking['ticketed_at'], true)]) : '' ?><?= $booking['cancelled_at'] ? ' · ' . th('Cancelled {date}', [], ['date' => local_time($booking['cancelled_at'], true)]) : '' ?></p>
 
-  <?php if ($status === 'reserved'):
+  <?php if ($status === 'reserved' && $locked):
+      $saved = $_SESSION['trip_form'] ?? null;
+      unset($_SESSION['trip_form']);
+      [$typed, $fixError] = ($saved[0] ?? '') === 'fix_email' ? [$saved[1], $saved[2]] : ['', '']; ?>
+    <div class="mt-8 grid gap-8 lg:grid-cols-[1fr_380px]">
+      <div class="min-w-0 space-y-6">
+        <?= checkout_check_email($booking, $typed, $fixError) ?>
+        <?= cancel_reservation_box() ?>
+      </div>
+      <aside class="h-fit lg:sticky lg:top-20"><?= trip_summary($booking['quote']) ?></aside>
+    </div>
+  <?php elseif ($status === 'reserved'):
       $canEdit = empty($booking['gcash_ref']);
       $edit = $canEdit ? (string) ($_GET['edit'] ?? '') : '';
       // A form that didn't pass the checks comes back with what was typed and the errors.
@@ -278,13 +332,7 @@ $check = '<span class="grid h-10 w-10 shrink-0 place-items-center rounded-full b
             <p class="mt-1 text-sm text-slate-600"><?= e(t('Your trip is paid. To change or cancel it, contact our travel assistants with your reference {ref} — refunds depend on the fare and hotel rules.', ['ref' => $ref])) ?></p>
           </section>
         <?php elseif ($status === 'reserved'): ?>
-          <section class="rounded-2xl border border-slate-200 bg-white p-6">
-            <h2 class="text-lg font-semibold text-slate-900"><?= e(t('Need to change plans?')) ?></h2>
-            <p class="mt-1 text-sm text-slate-600"><?= e(t('Reservations can be cancelled free of charge until payment is made.')) ?></p>
-            <form method="post" class="mt-4 sm:w-64" data-confirm="<?= e(t("Cancel this reservation? This can't be undone.")) ?>"><?= csrf_field() ?><input type="hidden" name="action" value="cancel">
-                <button type="submit" class="w-full rounded-xl py-2.5 text-sm font-semibold text-red-600 ring-1 ring-red-200 hover:bg-red-50"><?= e(t('Cancel reservation')) ?></button>
-            </form>
-          </section>
+          <?= cancel_reservation_box() ?>
         <?php endif; ?>
       </div>
       <aside class="h-fit lg:sticky lg:top-20"><?= checkout_summary($booking) ?></aside>

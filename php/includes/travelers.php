@@ -20,9 +20,9 @@ const MEAL_PREFERENCES = [
 
 /**
  * Checks the traveler fields (t{i}_first, t{i}_last, t{i}_dob, …) against the quote's traveler slots.
- * $bagOffer: travelers may ask for a checked bag (t{i}_bag). Returns [travelers, errors].
+ * Returns [travelers, errors].
  */
-function validate_travelers(array $quote, array $values, bool $airTravel, bool $bagOffer = false): array
+function validate_travelers(array $quote, array $values, bool $airTravel): array
 {
     $travelers = [];
     $errors = [];
@@ -56,7 +56,6 @@ function validate_travelers(array $quote, array $values, bool $airTravel, bool $
                 if (!preg_match('/^[A-Z0-9]{5,15}$/', $redress)) $errors["t{$i}_redress"] = t('Enter the redress number (letters and numbers only), or leave it empty.');
                 $extra['redress'] = $redress;
             }
-            if ($bagOffer && !str_starts_with($slot['label'], 'Infant') && !empty($values["t{$i}_bag"])) $extra['extra_bag'] = true;
         }
         if ($slot['dob']) {
             $d = DateTimeImmutable::createFromFormat('!Y-m-d', $dob);

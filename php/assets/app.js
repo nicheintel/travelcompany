@@ -600,19 +600,6 @@
   }
 
   // Booking page: the trip summary's "Checked bag" line follows the Add checked bag buttons.
-  function initBagSummary() {
-    const toggles = $$("[data-bag-toggle]");
-    const summary = $("[data-bag-summary]");
-    if (!toggles.length || !summary) return;
-    const sync = () => {
-      const any = toggles.some((t) => t.checked);
-      $("[data-bag-none]", summary).hidden = any;
-      $("[data-bag-requested]", summary).hidden = !any;
-    };
-    toggles.forEach((t) => t.addEventListener("change", sync));
-    sync();
-  }
-
   document.addEventListener("DOMContentLoaded", () => {
     $$("form[data-search-form]").forEach(initSearchForm);
     // Airport/date fields outside search forms (e.g. package options on the booking page)
@@ -625,7 +612,7 @@
     $$("[data-results]").forEach(initResults);
     $$("[data-tabs]").forEach(initTabs);
     // Each part runs on its own, so a problem in one never stops the others.
-    [initImageFade, initProgress, initMenus, initForms, initBagSummary, initSearchWait, initHeader, initHero, initReveal, initBrowserCheck, initVerifyWait, initCheckoutTotals].forEach((fn) => {
+    [initImageFade, initProgress, initMenus, initForms, initSearchWait, initHeader, initHero, initReveal, initBrowserCheck, initVerifyWait, initCheckoutTotals].forEach((fn) => {
       try { fn(); } catch (e) { if (window.console) console.error(e); }
     });
   });

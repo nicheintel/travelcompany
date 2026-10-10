@@ -53,6 +53,7 @@ function create_booking(int $userId, array $quote, array $travelers, string $ema
 {
     $alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
     $bags = count(array_filter($travelers, fn($t) => !empty($t['extra_bag'])));
+    $quote['review_key'] = new_review_key(); // the review page opens from the reservation email (see review_locked)
     for ($attempt = 0; $attempt < 5; $attempt++) {
         $ref = 'FF-'; // FareFinders (older bookings start with TC-)
         for ($i = 0; $i < 6; $i++) $ref .= $alphabet[random_int(0, strlen($alphabet) - 1)];
@@ -69,6 +70,44 @@ function create_booking(int $userId, array $quote, array $travelers, string $ema
         }
     }
     throw new RuntimeException('Could not allocate a booking reference');
+}
+
+/**
+ * "Review details and confirm your trip" opens only from the link in the reservation email, so the customer reads
+ * the email and we know the contact address works. Bookings made before this (no key) and unlocked ones are open.
+ */
+function review_locked(array $b): bool
+{
+    return $b['status'] === 'reserved' && !empty($b['quote']['review_key']) && empty($b['quote']['review_opened_at']);
+}
+
+/** The private key in the email link; a new one when the contact email changes, so old links stop working. */
+function new_review_key(): string
+{
+    return rtrim(strtr(base64_encode(random_bytes(18)), '+/', '-_'), '=');
+}
+
+/** Changes a field of an unpaid booking's stored quote. */
+function update_reserved_quote(string $ref, callable $change): bool
+{
+    $r = db_one("SELECT quote_json FROM bookings WHERE reference = ? AND status = 'reserved'", [$ref]);
+    if (!$r) return false;
+    $q = $change(json_decode($r['quote_json'], true));
+    return db_run("UPDATE bookings SET quote_json = ? WHERE reference = ? AND status = 'reserved'", [json_encode($q, JSON_UNESCAPED_UNICODE), $ref]) > 0;
+}
+
+/** Opens the review page for good: the customer used the email link, or staff unlocked it. */
+function unlock_review(string $ref, int $actorId, string $why): void
+{
+    if (update_reserved_quote($ref, fn(array $q) => ['review_opened_at' => now_utc()] + $q)) add_event($ref, $actorId, 'note', $why);
+}
+
+/** The customer corrected the contact email before opening the review link: new address, new link. */
+function change_review_email(string $ref, int $actorId, string $old, string $email): void
+{
+    db_run("UPDATE bookings SET contact_email = ? WHERE reference = ? AND status = 'reserved'", [$email, $ref]);
+    update_reserved_quote($ref, fn(array $q) => ['review_key' => new_review_key()] + $q);
+    add_event($ref, $actorId, 'note', "Customer corrected the contact email before opening the review link: $old → $email.");
 }
 
 function user_bookings(int $userId): array

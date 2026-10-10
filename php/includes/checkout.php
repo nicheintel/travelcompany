@@ -359,3 +359,49 @@ function checkout_summary(array $b): string
     }
     return $html . '</dl></div>';
 }
+
+/**
+ * A new reservation before its email link is opened (review_locked): where to find the email, "send it again" and
+ * "wrong email address? fix it". The review page itself opens from the button in that email.
+ */
+function checkout_check_email(array $b, string $typed = '', string $error = ''): string
+{
+    // The button the customer looks for in the (English) reservation email.
+    $button = payments_enabled() || gcash_enabled() ? 'Review & pay securely' : 'View my trip';
+    $steps = [
+        t('Open the email from {site} with the subject "Trip reserved".', ['site' => config('site_name')]),
+        t('Tap the "{button}" button in the email.', ['button' => $button]),
+        t('Check your trip details, then pay securely.'),
+    ];
+    $list = '';
+    foreach ($steps as $i => $step) {
+        $list .= '<li class="flex items-start gap-3"><span class="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-accent-500 text-sm font-bold text-white">' . ($i + 1) . '</span><span class="pt-0.5">' . e($step) . '</span></li>';
+    }
+    $field = 'w-full min-w-0 rounded-xl border px-4 py-2.5 text-slate-900 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 ' . ($error !== '' ? 'border-red-400' : 'border-slate-300');
+    return '<section id="check-email" class="scroll-mt-24 overflow-hidden rounded-2xl border-2 border-brand-200 bg-white">'
+        . '<div class="relative overflow-hidden bg-gradient-to-r from-brand-950 to-brand-700 px-6 py-6 text-white sm:px-8">' . icon('mail', 130, 'pointer-events-none absolute -right-6 -top-6 text-white/10', 1.2)
+        . '<p class="relative flex items-center gap-2 text-sm font-semibold text-accent-400">' . icon('check', 16, '', 2.5) . e(t('Your trip is reserved!')) . '</p>'
+        . '<h2 class="relative mt-1 text-2xl font-bold">' . e(t('Check your email to review and pay')) . '</h2>'
+        . '<p class="relative mt-2 text-brand-100">' . th('We sent your booking details to {email}. Open the email to review your trip and pay securely.', [], ['email' => '<strong class="text-white">' . e($b['contact_email']) . '</strong>']) . '</p></div>'
+        . '<div class="space-y-5 p-6 sm:p-8"><ol class="space-y-3 text-slate-700">' . $list . '</ol>'
+        . '<p class="rounded-xl bg-amber-50 p-3 text-sm text-amber-900 ring-1 ring-amber-200">' . e(t("Can't find it? Check your spam or promotions folder. It can take a few minutes to arrive.")) . '</p>'
+        . '<form method="post" data-pending-form>' . csrf_field() . '<input type="hidden" name="action" value="resend_review">'
+        . '<button type="submit" data-pending="' . e(t('Sending…')) . '" class="flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 font-semibold text-brand-700 ring-1 ring-brand-300 transition hover:bg-brand-50 disabled:cursor-wait disabled:opacity-70">' . icon('mail', 18) . e(t('Send the email again')) . '</button></form>'
+        . '<details class="rounded-xl border border-slate-200"' . ($error !== '' ? ' open' : '') . '><summary class="cursor-pointer px-4 py-3 text-sm font-semibold text-brand-700">' . e(t('Wrong email address? Fix it')) . '</summary>'
+        . '<form method="post" novalidate data-pending-form class="space-y-2 px-4 pb-4">' . csrf_field() . '<input type="hidden" name="action" value="fix_email">'
+        . '<label for="fix-email" class="block text-sm font-medium text-slate-700">' . e(t('Correct email address')) . '</label>'
+        . '<div class="flex flex-col gap-2 sm:flex-row"><input id="fix-email" name="email" type="email" autocomplete="email" maxlength="254" required value="' . e($typed) . '"' . ($error !== '' ? ' aria-invalid="true" aria-describedby="fix-email-error"' : '') . ' class="' . $field . '">'
+        . '<button type="submit" data-pending="' . e(t('Sending…')) . '" class="shrink-0 rounded-xl bg-brand-600 px-5 py-2.5 font-semibold text-white hover:bg-brand-700 disabled:cursor-wait disabled:opacity-70">' . e(t('Send to this address')) . '</button></div>'
+        . ($error !== '' ? '<p id="fix-email-error" class="text-sm text-red-600">' . e($error) . '</p>' : '')
+        . '</form></details>'
+        . '<p class="text-sm text-slate-500">' . e(t('Need help? Tap the Chat button and a travel assistant will help you.')) . '</p></div></section>';
+}
+
+/** "Need to change plans?": an unpaid reservation can be cancelled free of charge. */
+function cancel_reservation_box(): string
+{
+    return '<section class="rounded-2xl border border-slate-200 bg-white p-6"><h2 class="text-lg font-semibold text-slate-900">' . e(t('Need to change plans?')) . '</h2>'
+        . '<p class="mt-1 text-sm text-slate-600">' . e(t('Reservations can be cancelled free of charge until payment is made.')) . '</p>'
+        . '<form method="post" class="mt-4 sm:w-64" data-confirm="' . e(t("Cancel this reservation? This can't be undone.")) . '">' . csrf_field() . '<input type="hidden" name="action" value="cancel">'
+        . '<button type="submit" class="w-full rounded-xl py-2.5 text-sm font-semibold text-red-600 ring-1 ring-red-200 hover:bg-red-50">' . e(t('Cancel reservation')) . '</button></form></section>';
+}
