@@ -276,7 +276,8 @@ function checkout_total_html(array $b, string $class = 'font-bold text-slate-900
 function amount_in_words(int $usd): ?string
 {
     if (!class_exists('NumberFormatter')) return null;
-    $words = (new NumberFormatter(str_replace('-', '_', html_lang()), NumberFormatter::SPELLOUT))->format($usd);
+    // Filipino amounts in words are written in English, as on checks (ICU's Tagalog spelling looks unfamiliar).
+    $words = (new NumberFormatter(html_lang() === 'fil' ? 'en' : str_replace('-', '_', html_lang()), NumberFormatter::SPELLOUT))->format($usd);
     return $words === false ? null : t('({words} US dollars)', ['words' => $words]);
 }
 
