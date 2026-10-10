@@ -277,36 +277,67 @@ function travel_care_available(array $b): bool
     return $b['kind'] === 'flight' && $b['status'] === 'reserved' && travel_care_rate() > 0 && empty($b['gcash_ref']);
 }
 
-/** The ticket price Travel Care is a share of: the total without checked bags or Travel Care itself. */
+/** The ticket price Travel Care is a share of: the total without checked bags, Travel Care or a tip. */
 function travel_care_price(array $b): int
 {
-    $extras = array_sum(array_map(fn($l) => preg_match('/^(Checked bag × \d+|' . TRAVEL_CARE_LABEL . ')$/', $l['label']) ? $l['amount'] : 0, $b['quote']['lines']));
+    $extras = array_sum(array_map(fn($l) => is_extra_line($l) ? $l['amount'] : 0, $b['quote']['lines']));
     return (int) ceil(max(0, $b['total'] - $extras) * travel_care_rate());
+}
+
+/** Price lines added on top of the trip itself (checked bags, Travel Care, a tip): listed after the member discount. */
+function is_extra_line(array $l): bool
+{
+    return (bool) preg_match('/^Checked bag × \d+$/', $l['label']) || in_array($l['label'], [TRAVEL_CARE_LABEL, TIP_LABEL], true);
+}
+
+const TIP_LABEL = 'Tip for your travel assistant';
+const TIP_MAX = 500;
+
+/** "How was my service?" tip choices in US dollars, lowest first (Admin → Site settings). Empty: no tips asked. */
+function tip_amounts(): array
+{
+    $list = array_map('intval', preg_split('/[\s,]+/', trim((string) config('tip_amounts')), -1, PREG_SPLIT_NO_EMPTY));
+    $list = array_values(array_unique(array_filter($list, fn($n) => $n > 0 && $n <= TIP_MAX)));
+    sort($list);
+    return array_slice($list, 0, 5);
+}
+
+/** An optional tip can be added (or changed) while the booking is unpaid. */
+function tips_available(array $b): bool
+{
+    return $b['status'] === 'reserved' && empty($b['gcash_ref']) && tip_amounts() !== [];
 }
 
 /**
  * The customer went through the "Before you pay" checklist and agreed: records that, and adds or removes
- * Travel Care Protection on the unpaid booking (total and price breakdown). False if it can't be changed.
+ * Travel Care Protection and the optional tip on the unpaid booking (total and price breakdown). False if it can't be changed.
  */
-function review_booking(string $ref, int $userId, bool $care): bool
+function review_booking(string $ref, int $userId, bool $care, int $tip = 0): bool
 {
     $r = db_one("SELECT * FROM bookings WHERE reference = ? AND user_id = ? AND status = 'reserved' AND gcash_ref IS NULL", [$ref, $userId]);
     if (!$r) return false;
     $b = to_booking($r);
     $q = $b['quote'];
     $old = (int) ($q['care'] ?? 0);
-    $q['lines'] = array_values(array_filter($q['lines'], fn($l) => $l['label'] !== TRAVEL_CARE_LABEL));
+    $oldTip = (int) ($q['tip'] ?? 0);
+    $q['lines'] = array_values(array_filter($q['lines'], fn($l) => !in_array($l['label'], [TRAVEL_CARE_LABEL, TIP_LABEL], true)));
     $b['quote'] = $q;
-    $b['total'] -= $old;
+    $b['total'] -= $old + $oldTip;
     $new = $care && travel_care_available($b) ? travel_care_price($b) : 0;
+    $tip = tips_available($b) ? max(0, min(TIP_MAX, $tip)) : 0;
     if ($new) $q['lines'][] = ['label' => TRAVEL_CARE_LABEL, 'amount' => $new];
-    $q['subtotal'] += $new - $old;
-    $q['total'] = $b['total'] + $new;
+    if ($tip) $q['lines'][] = ['label' => TIP_LABEL, 'amount' => $tip];
+    $q['subtotal'] += $new - $old + $tip - $oldTip;
+    $q['total'] = $b['total'] + $new + $tip;
     $q['care'] = $new;
+    $q['tip'] = $tip;
     $q['reviewed_at'] = now_utc();
     db_run("UPDATE bookings SET total = ?, quote_json = ? WHERE reference = ? AND status = 'reserved'", [$q['total'], json_encode($q, JSON_UNESCAPED_UNICODE), $ref]);
     if ($new !== $old) {
         add_event($ref, $userId, 'note', ($new ? 'Customer added Travel Care Protection (' . money($new) . ')' : 'Customer removed Travel Care Protection') . '. New total ' . money($q['total']) . '.');
+    }
+    if ($tip !== $oldTip) {
+        add_event($ref, $userId, 'note', (!$tip ? 'Customer removed the tip' : ($oldTip ? 'Customer changed the tip to ' . money($tip) : 'Customer added a ' . money($tip) . ' tip for the travel assistant')) . '. New total ' . money($q['total']) . '.');
     }
     return true;
 }

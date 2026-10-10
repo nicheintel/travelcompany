@@ -66,6 +66,13 @@ if (is_post() && post('action') === 'gcash_qr') {
         if (!is_numeric($raw) || (float) $raw < 0 || (float) $raw > 1000) $errors['change_service_fee'] = 'Enter an amount from 0 to 1000.';
         else save_setting('change_service_fee', (string) (int) round((float) $raw));
     }
+    if (!config_fixed('tip_amounts')) {
+        $raw = trim((string) ($_POST['tip_amounts'] ?? ''));
+        $list = preg_split('/[\s,]+/', $raw, -1, PREG_SPLIT_NO_EMPTY);
+        $ok = count($list) <= 5 && !array_filter($list, fn($n) => !preg_match('/^\d{1,3}$/', $n) || (int) $n < 1 || (int) $n > TIP_MAX);
+        if (!$ok) $errors['tip_amounts'] = 'Enter up to 5 whole dollar amounts from 1 to ' . TIP_MAX . ', separated by commas — or leave it empty.';
+        else save_setting('tip_amounts', implode(', ', array_map('intval', $list)));
+    }
     foreach (PERCENT_FIELDS as $name => [$label, $max]) {
         if (config_fixed($name)) continue;
         $raw = trim((string) ($_POST[$name] ?? ''));
@@ -216,6 +223,12 @@ $fixedNote = '<p class="mt-1 text-xs text-amber-700">Set in config.local.php or 
         </div>
         <?php if (isset($errors['change_service_fee'])): ?><p class="mt-1 text-sm text-red-600"><?= e($errors['change_service_fee']) ?></p><?php endif; ?>
         <p class="mt-1 text-xs text-slate-500">Charged on top of the airline's penalty when a paid booking is changed or cancelled. Customers with Travel Care don't pay it. Shown to customers before they pay.</p>
+      </div>
+      <div>
+        <label for="s_tip_amounts" class="block text-sm font-medium text-slate-700">"How was my service?" tip amounts (US$)</label>
+        <input id="s_tip_amounts" name="tip_amounts" type="text" inputmode="numeric" maxlength="40" value="<?= e(is_post() ? (string) ($_POST['tip_amounts'] ?? '') : (string) config('tip_amounts')) ?>" class="<?= $input ?> mt-1"<?= config_fixed('tip_amounts') ? ' disabled' : '' ?>>
+        <?php if (isset($errors['tip_amounts'])): ?><p class="mt-1 text-sm text-red-600"><?= e($errors['tip_amounts']) ?></p><?php endif; ?>
+        <p class="mt-1 text-xs text-slate-500">Up to 5 amounts, e.g. 20, 30, 40, 55, 65 (shown as Average, Good, Great, Excellent, Perfect). Customers can also type their own amount, and "No tip" is always picked first. Leave empty to stop asking for tips.</p>
       </div>
     </div>
   </section>

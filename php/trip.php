@@ -62,13 +62,18 @@ if (is_post()) {
         flash(t("Thanks! We'll confirm the airline's bag price and email you your new total, usually within a few hours."));
         redirect(url('trip.php', ['ref' => $ref]) . '#baggage');
     }
-    // "Pay securely now": the customer agreed to the terms (and chose Travel Care or not), then pays.
+    // "Pay securely now": the customer agreed to the terms (and chose Travel Care and a tip or not), then pays.
     if ($action === 'checkout' && $booking['status'] === 'reserved' && empty($booking['gcash_ref'])) {
         if (empty($_POST['agree'])) {
             flash(t('Please tick the box to confirm you have checked your trip details.'), 'error');
             redirect(url('trip.php', ['ref' => $ref]) . '#pay');
         }
-        review_booking($ref, $user['id'], !empty($_POST['care']));
+        $tip = post('tip') === 'other' ? trim(post('tip_other')) : post('tip');
+        if (post('tip') === 'other' && (!preg_match('/^\d{1,4}$/', $tip) || (int) $tip < 1 || (int) $tip > TIP_MAX)) {
+            flash(t('Enter a tip in whole US dollars, from 1 to {max}, or choose No tip.', ['max' => TIP_MAX]), 'error');
+            redirect(url('trip.php', ['ref' => $ref]) . '#tip');
+        }
+        review_booking($ref, $user['id'], !empty($_POST['care']), preg_match('/^\d{1,4}$/', $tip) ? (int) $tip : 0);
         $booking = user_booking($user['id'], $ref);
         $wantsGcash = post('method') === 'gcash' || !payments_enabled();
         if ($wantsGcash && gcash_enabled() && gcash_for_booking($booking)) {

@@ -546,14 +546,37 @@
   }
 
   // Trip page: the Travel Care Add/Added button switches the totals and summary line straight away.
-  function initCareToggle() {
-    const box = $("#care-toggle");
-    if (!box) return;
-    const sync = () => {
-      $$("[data-care-on]").forEach((el) => { el.hidden = !box.checked; });
-      $$("[data-care-off]").forEach((el) => { el.hidden = box.checked; });
+  // Trip page: the Travel Care button and the tip choice update the summary lines and the total as they change.
+  function initCheckoutTotals() {
+    const care = $("#care-toggle"), tips = $$("input[name=tip]"), other = $("#tip-other");
+    if (!care && !tips.length) return;
+    const money = (n) => "$" + n.toLocaleString("en-US");
+    const tipAmount = () => {
+      const picked = tips.filter((r) => r.checked)[0];
+      if (!picked) return 0;
+      const n = parseInt(picked.value === "other" ? (other && other.value) : picked.value, 10);
+      return n > 0 && n <= (parseInt(other && other.getAttribute("max"), 10) || 500) ? n : 0;
     };
-    box.addEventListener("change", sync);
+    const sync = () => {
+      const withCare = !!(care && care.checked), tip = tipAmount();
+      let total = null;
+      $$("[data-care-on]").forEach((el) => { el.hidden = !withCare; });
+      $$("[data-care-off]").forEach((el) => { el.hidden = withCare; });
+      $$("[data-tip-line]").forEach((el) => { el.hidden = !tip; });
+      $$("[data-tip-amount]").forEach((el) => { el.textContent = money(tip); });
+      $$("[data-total]").forEach((el) => {
+        total = (parseInt(el.getAttribute("data-base"), 10) || 0) + (withCare ? parseInt(el.getAttribute("data-care"), 10) || 0 : 0) + tip;
+        el.textContent = money(total);
+      });
+      $$("[data-words]").forEach((el) => { el.hidden = parseInt(el.getAttribute("data-words"), 10) !== total; });
+    };
+    if (care) care.addEventListener("change", sync);
+    tips.forEach((r) => r.addEventListener("change", sync));
+    if (other) {
+      const pickOther = () => { const r = $("#tip-other-choice"); if (r && !r.checked) r.checked = true; sync(); };
+      other.addEventListener("focus", pickOther);
+      other.addEventListener("input", pickOther);
+    }
     sync();
   }
 
@@ -602,7 +625,7 @@
     $$("[data-results]").forEach(initResults);
     $$("[data-tabs]").forEach(initTabs);
     // Each part runs on its own, so a problem in one never stops the others.
-    [initImageFade, initProgress, initMenus, initForms, initBagSummary, initSearchWait, initHeader, initHero, initReveal, initBrowserCheck, initVerifyWait, initCareToggle].forEach((fn) => {
+    [initImageFade, initProgress, initMenus, initForms, initBagSummary, initSearchWait, initHeader, initHero, initReveal, initBrowserCheck, initVerifyWait, initCheckoutTotals].forEach((fn) => {
       try { fn(); } catch (e) { if (window.console) console.error(e); }
     });
   });

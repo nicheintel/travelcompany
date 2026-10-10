@@ -25,6 +25,7 @@ const ICONS = [
     'alert' => '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4M12 17h.01"/>',
     'shield-check' => '<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/>',
     'flag' => '<path d="M4 22V4a1 1 0 0 1 .4-.8A6 6 0 0 1 8 2c3 0 5 2 7.33 2q2 0 3.67-.8a1 1 0 0 1 1 .2V15a1 1 0 0 1-.4.8A6 6 0 0 1 16 17c-3 0-5-2-8-2a6 6 0 0 0-4 1.53"/>',
+    'heart' => '<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>',
     'luggage' => '<path d="M6 20a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2"/><path d="M8 18V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v14M10 20h4"/><circle cx="16" cy="20" r="2"/><circle cx="8" cy="20" r="2"/>',
     'trash' => '<path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/>',
     'mail' => '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>',
@@ -295,14 +296,13 @@ function trip_summary(array $q): string
         $html .= '</div>';
     }
     $html .= '<dl class="space-y-2 p-5 text-sm">';
-    // The member discount comes off the trip itself, so it's listed before extras added later (checked bags, Travel Care).
+    // The member discount comes off the trip itself, so it's listed before extras added later (checked bags, Travel Care, a tip).
     $line = fn(array $l) => '<div class="flex justify-between"><dt class="text-slate-600">' . e(quote_text($l['label'])) . '</dt><dd class="text-slate-900">' . money($l['amount']) . '</dd></div>';
-    $isExtra = fn(array $l) => (bool) preg_match('/^(Checked bag × \d+|' . TRAVEL_CARE_LABEL . ')$/', $l['label']);
-    foreach ($q['lines'] as $l) if (!$isExtra($l)) $html .= $line($l);
+    foreach ($q['lines'] as $l) if (!is_extra_line($l)) $html .= $line($l);
     if ($q['discount'] > 0) {
         $html .= '<div class="flex justify-between text-emerald-700"><dt>' . e(t('Member discount ({pct}%)', ['pct' => round($q['discount_rate'] * 100)])) . '</dt><dd>−' . money($q['discount']) . '</dd></div>';
     }
-    foreach ($q['lines'] as $l) if ($isExtra($l)) $html .= $line($l);
+    foreach ($q['lines'] as $l) if (is_extra_line($l)) $html .= $line($l);
     $html .= '<div class="flex items-end justify-between border-t border-slate-100 pt-3"><dt class="font-semibold text-slate-900">' . e(t('Total')) . '</dt><dd class="text-right"><span class="text-2xl font-extrabold text-slate-900">' . money($q['total']) . '</span>'
         . (($hint = price_hint($q['total'])) !== '' ? '<span class="block text-xs font-medium text-slate-500">' . e($hint) . '</span>' : '') . '</dd></div>'
         . '<p class="text-right text-xs text-slate-500">' . e(t('Taxes and fees included')) . '</p>'

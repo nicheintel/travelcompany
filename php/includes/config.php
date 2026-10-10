@@ -9,7 +9,7 @@ defined('TC_APP') || exit;
 
 /** Settings admins can change on the Admin → Site settings page. */
 const EDITABLE_SETTINGS = [
-    'app_url', 'admin_emails', 'flight_markup_rate', 'hotel_markup_rate', 'member_discount_rate', 'travel_care_rate', 'change_service_fee',
+    'app_url', 'admin_emails', 'flight_markup_rate', 'hotel_markup_rate', 'member_discount_rate', 'travel_care_rate', 'change_service_fee', 'tip_amounts',
     'flight_supplier', 'duffel_access_token', 'liteapi_key', 'resend_api_key', 'email_from',
     'smtp_host', 'smtp_port', 'smtp_user', 'smtp_pass',
     'support_email', 'support_phone', 'support_whatsapp', 'business_name', 'business_address',
@@ -52,6 +52,7 @@ function config(string $key, mixed $default = null): mixed
             'member_discount_rate' => 0.10, // members' discount on bookings (0 = off)
             'travel_care_rate' => 0.25,     // Travel Care Protection on flights: share of the ticket price (0 = not offered)
             'change_service_fee' => 50,     // our own fee (USD) per change or cancellation; waived with Travel Care
+            'tip_amounts' => '20, 30, 40, 55, 65', // optional "How was my service?" tip choices in USD at checkout ('' = don't ask)
             // Real daily exchange rates for showing prices in other currencies ('' = US dollars only).
             'fx_api_url' => 'https://open.er-api.com/v6/latest/USD',
             'fx_backup_url' => 'https://api.frankfurter.dev/v1/latest?base=USD',

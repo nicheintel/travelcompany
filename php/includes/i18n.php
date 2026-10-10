@@ -314,7 +314,7 @@ function quote_text(?string $s, ?string $startIso = null): string
 {
     $s = (string) $s;
     if ($s === '' || current_lang() === 'en') return $s;
-    // i18n-keys: 'Refundable', 'Non-refundable', 'Free cancellation', 'Economy', 'Premium Economy', 'Business', 'First', 'Round trip', 'One way', 'Taxes & fees', 'Carry-on included', 'No carry-on included', 'checked bag included', 'checked bag not included', 'Round-trip flights', 'Hotel', 'Rental car', "Live airline fare. Fares can change until your ticket is issued — we'll confirm before charging any difference.", 'Live hotel rate. Some cities charge a local tourist tax, payable at the hotel.', 'Travel Care Protection'
+    // i18n-keys: 'Refundable', 'Non-refundable', 'Free cancellation', 'Economy', 'Premium Economy', 'Business', 'First', 'Round trip', 'One way', 'Taxes & fees', 'Carry-on included', 'No carry-on included', 'checked bag included', 'checked bag not included', 'Round-trip flights', 'Hotel', 'Rental car', "Live airline fare. Fares can change until your ticket is issued — we'll confirm before charging any difference.", 'Live hotel rate. Some cities charge a local tourist tax, payable at the hotel.', 'Travel Care Protection', 'Tip for your travel assistant'
     $whole = t($s);
     if ($whole !== $s) return $whole;
     $m = [];

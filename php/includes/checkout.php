@@ -247,6 +247,7 @@ function checkout_payment(array $b, bool $canPay, bool $canGcash, string $method
             . e($canPay ? ($provider === 'paypal' ? t("Pay securely with your PayPal account or any debit/credit card. You'll be taken to PayPal and brought back here afterwards.") : t("Pay securely by card. You'll be taken to our payment partner Stripe and brought back here afterwards.")) : t('Pay in pesos with GCash. We show you the amount and our GCash details next.'))
             . '</p>';
     }
+    if (tips_available($b)) $html .= checkout_tip($b);
     $html .= '<label class="mt-5 flex cursor-pointer items-start gap-3 rounded-xl bg-slate-50 p-4 text-sm text-slate-700 ring-1 ring-slate-200 has-[:checked]:bg-emerald-50 has-[:checked]:ring-emerald-300">'
         . '<input type="checkbox" name="agree" value="1" required class="mt-0.5 h-5 w-5 shrink-0 accent-emerald-600"><span>'
         . th("By ticking this box I confirm that I have read and accept the {terms}, the {care} and the {privacy}, that I have checked the itinerary, and that every traveler's name matches their passport or travel document. I also confirm that I have the consent of the card holder and of every traveler.", [], [
@@ -261,15 +262,36 @@ function checkout_payment(array $b, bool $canPay, bool $canGcash, string $method
         . '<div class="p-6">' . $html . '</div></section>';
 }
 
-/** The total, with and without Travel Care; the page shows the right one as the Travel Care button is switched. */
+/** "How was my service?": an optional thank-you tip for the travel assistant. No tip unless the customer picks one. */
+function checkout_tip(array $b): string
+{
+    $amounts = tip_amounts();
+    // i18n-keys: 'Average', 'Good', 'Great', 'Excellent', 'Perfect'
+    $labels = array_slice(['Average', 'Good', 'Great', 'Excellent', 'Perfect'], -count($amounts));
+    $tip = (int) ($b['quote']['tip'] ?? 0);
+    $other = $tip > 0 && !in_array($tip, $amounts, true);
+    $box = 'flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-slate-200 px-2 py-2.5 text-center transition hover:border-slate-300 has-[:checked]:border-accent-500 has-[:checked]:bg-accent-500/10 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-accent-400';
+    $choice = fn(string $value, string $title, string $amount, bool $checked) => '<label class="' . $box . '"><input type="radio" name="tip" value="' . $value . '"' . ($checked ? ' checked' : '') . ' class="sr-only">'
+        . '<span class="text-xs text-slate-500">' . e($title) . '</span><span class="font-bold text-slate-900">' . e($amount) . '</span></label>';
+    $html = $choice('0', t('No tip'), money(0), $tip === 0);
+    foreach ($amounts as $i => $amount) $html .= $choice((string) $amount, t($labels[$i]), money($amount), $tip === $amount);
+    $html .= '<label class="col-span-2 ' . $box . '"><input type="radio" name="tip" value="other" id="tip-other-choice"' . ($other ? ' checked' : '') . ' class="sr-only">'
+        . '<span class="text-xs text-slate-500">' . e(t('Think I did better? Other amount')) . '</span>'
+        . '<span class="mt-0.5 flex items-center gap-1 font-bold text-slate-900">$<input type="number" name="tip_other" id="tip-other" min="1" max="' . TIP_MAX . '" step="1" inputmode="numeric" placeholder="0" value="' . ($other ? $tip : '') . '" aria-label="' . e(t('Tip amount in US dollars')) . '" class="w-20 rounded-lg border border-slate-300 px-2 py-1 text-center font-bold focus:border-accent-500 focus:outline-none focus:ring-2 focus:ring-accent-400/40"></span></label>';
+    return '<div id="tip" class="mt-6 scroll-mt-24 border-t border-slate-100 pt-5"><h3 class="flex items-center gap-2 font-semibold text-slate-900">' . icon('heart', 18, 'text-accent-500') . e(t('How was my service?')) . '</h3>'
+        . '<p class="mt-1 text-sm text-slate-600">' . e(t('If you feel the service was exceptional, you can say thank you with a tip for your travel assistant. It is completely optional.')) . '</p>'
+        . '<fieldset class="mt-3"><legend class="sr-only">' . e(t('Tip for your travel assistant')) . '</legend><div class="grid grid-cols-2 gap-2 sm:grid-cols-4">' . $html . '</div></fieldset>'
+        . '<p class="mt-2 text-xs text-slate-500">' . e(t('A tip is added to your total and paid together with your trip.')) . '</p></div>';
+}
+
+/** The total; the page recalculates it as Travel Care and the tip are chosen (data-base: without either). */
 function checkout_total_html(array $b, string $class = 'font-bold text-slate-900'): string
 {
     $care = (int) ($b['quote']['care'] ?? 0);
-    $base = $b['total'] - $care;
-    if (!travel_care_available($b)) return '<strong class="' . $class . '">' . money($b['total']) . '</strong>';
-    $with = $base + travel_care_price($b);
-    return '<strong class="' . $class . '" data-care-off' . ($care ? ' hidden' : '') . '>' . money($base) . '</strong>'
-        . '<strong class="' . $class . '" data-care-on' . ($care ? '' : ' hidden') . '>' . money($with) . '</strong>';
+    $tip = (int) ($b['quote']['tip'] ?? 0);
+    if (!travel_care_available($b) && !tips_available($b)) return '<strong class="' . $class . '">' . money($b['total']) . '</strong>';
+    $carePrice = travel_care_available($b) ? travel_care_price($b) : 0;
+    return '<strong class="' . $class . '" data-total data-base="' . ($b['total'] - $care - $tip) . '" data-care="' . $carePrice . '">' . money($b['total']) . '</strong>';
 }
 
 /** "(one thousand two hundred US dollars)", in the visitor's language when the server can spell numbers. */
@@ -288,7 +310,9 @@ function checkout_summary(array $b): string
     $kinds = ['flight' => ['plane', t('Flight')], 'package' => ['package', t('Flight + Hotel package')], 'hotel' => ['bed', t('Hotel')]];
     [$ic, $label] = $kinds[$b['kind']];
     $care = (int) ($q['care'] ?? 0);
+    $tip = (int) ($q['tip'] ?? 0);
     $offer = travel_care_available($b);
+    $tips = tips_available($b);
     $carePrice = $offer ? travel_care_price($b) : $care;
     $html = '<div class="overflow-hidden rounded-2xl border border-slate-200 bg-white">'
         . '<div class="bg-gradient-to-br from-brand-800 to-brand-600 p-5 text-white"><p class="flex items-center gap-2 text-sm font-medium text-brand-100">' . icon($ic, 16) . ' ' . e($label) . '</p>'
@@ -308,19 +332,25 @@ function checkout_summary(array $b): string
         . '</dl><div class="px-5 pt-4"><p class="rounded-lg border border-dashed border-brand-300 bg-brand-50 py-2 text-center text-sm font-semibold text-brand-800">' . e(t('Booking reference')) . ': <span class="font-mono">' . e($b['reference']) . '</span></p></div>'
         . '<dl class="space-y-2 p-5 text-sm">';
     $line = fn(array $l, string $attr = '') => '<div class="flex justify-between"' . $attr . '><dt class="text-slate-600">' . e(quote_text($l['label'])) . '</dt><dd class="text-slate-900">' . money($l['amount']) . '</dd></div>';
-    $isExtra = fn(array $l) => (bool) preg_match('/^(Checked bag × \d+|' . TRAVEL_CARE_LABEL . ')$/', $l['label']);
-    foreach ($q['lines'] as $l) if (!$isExtra($l)) $html .= $line($l);
+    foreach ($q['lines'] as $l) if (!is_extra_line($l)) $html .= $line($l);
     if ($q['discount'] > 0) {
         $html .= '<div class="flex justify-between text-emerald-700"><dt>' . e(t('Member discount ({pct}%)', ['pct' => round($q['discount_rate'] * 100)])) . '</dt><dd>−' . money($q['discount']) . '</dd></div>';
     }
-    foreach ($q['lines'] as $l) if ($isExtra($l) && $l['label'] !== TRAVEL_CARE_LABEL) $html .= $line($l);
+    foreach ($q['lines'] as $l) if (is_extra_line($l) && !in_array($l['label'], [TRAVEL_CARE_LABEL, TIP_LABEL], true)) $html .= $line($l);
     if ($offer || $care) $html .= $line(['label' => TRAVEL_CARE_LABEL, 'amount' => $carePrice], ' data-care-on' . ($care ? '' : ' hidden'));
-    $base = $b['total'] - $care;
-    $words = fn(int $usd, string $attr) => ($w = amount_in_words($usd)) ? '<p class="text-right text-xs text-slate-500"' . $attr . '>' . e($w) . '</p>' : '';
+    if ($tips || $tip) $html .= '<div class="flex justify-between" data-tip-line' . ($tip ? '' : ' hidden') . '><dt class="text-slate-600">' . e(t(TIP_LABEL)) . '</dt><dd class="text-slate-900" data-tip-amount>' . money($tip) . '</dd></div>';
+    // The total in words for each total the Travel Care button and the tip choices can make (a typed tip shows none).
+    $base = $b['total'] - $care - $tip;
+    $totals = [$b['total']];
+    foreach ($offer ? [0, $carePrice] : [$care] as $c) foreach ($tips ? array_merge([0], tip_amounts()) : [$tip] as $t) $totals[] = $base + $c + $t;
+    $words = '';
+    foreach (array_unique($totals) as $usd) {
+        if ($w = amount_in_words($usd)) $words .= '<p class="text-right text-xs text-slate-500" data-words="' . $usd . '"' . ($usd === $b['total'] ? '' : ' hidden') . '>' . e($w) . '</p>';
+    }
     $html .= '<div class="flex items-end justify-between border-t border-slate-100 pt-3"><dt class="font-semibold text-slate-900">' . e(t('Total')) . '</dt><dd class="text-right">'
         . checkout_total_html($b, 'text-2xl font-extrabold text-slate-900') . '</dd></div>'
-        . ($offer ? $words($base, ' data-care-off' . ($care ? ' hidden' : '')) . $words($base + travel_care_price($b), ' data-care-on' . ($care ? '' : ' hidden')) : $words($b['total'], ''))
-        . (($hint = price_hint($b['total'])) !== '' && !$offer ? '<p class="text-right text-xs text-slate-500">' . e($hint) . '</p>' : '')
+        . $words
+        . (($hint = price_hint($b['total'])) !== '' && !$offer && !$tips ? '<p class="text-right text-xs text-slate-500">' . e($hint) . '</p>' : '')
         . '<p class="text-right text-xs text-slate-500">' . e(t('Taxes and fees included')) . '</p>';
     if (!empty($q['at_hotel'])) {
         $html .= '<div class="mt-3 rounded-xl bg-amber-50 p-3 text-xs text-amber-900 ring-1 ring-amber-200"><p class="font-semibold">' . e(t('Due at the hotel')) . '</p>'
