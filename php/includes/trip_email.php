@@ -31,7 +31,6 @@ function trip_email(array $b, string $subject, string $kicker, string $heading, 
         . email_section('receipt', 'Price summary') . email_price($b)
         . email_section('clipboard', 'Before you pay') . email_tips($b)
         . ($offerCare ? email_care($b) : '')
-        . '<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:28px 0 8px">' . email_cta($link, $button) . '</td></tr></table>'
         . email_help()
         . email_trust()
         . '<p style="margin:20px 0 0;font-size:12px;line-height:1.5;color:#94a3b8">If the button doesn\'t work, copy this link into your browser:<br><a href="' . e($link) . '" style="color:#64748b;word-break:break-all">' . e($link) . '</a></p>';
@@ -82,15 +81,9 @@ function email_progress(array $b): string
     return '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:22px 0 4px"><tr>' . $bars . '</tr><tr>' . $labels . '</tr></table>';
 }
 
-/** The total, how to pay and the main button, in a soft gold box. */
+/** The total, how to pay and the one button to the review page, in a soft gold box near the top. */
 function email_pay_box(array $b, string $link, string $button, bool $canPay): string
 {
-    $q = $b['quote'];
-    $nights = (int) round((strtotime((string) $q['end_date']) - strtotime((string) $q['start_date'])) / 86400);
-    $guests = (int) (array_column($q['facts'], 1, 0)['Guests'] ?? 0);
-    $who = $b['kind'] === 'hotel'
-        ? implode(' · ', array_filter([$nights > 0 ? plural($nights, 'night') : null, $guests > 0 ? plural($guests, 'guest') : null]))
-        : plural(count($b['travelers']), 'traveler');
     $ways = array_values(array_filter([
         payments_enabled() ? (payment_provider() === 'paypal' ? 'PayPal or card' : 'card') : null,
         gcash_enabled() ? 'GCash' : null,
@@ -100,7 +93,7 @@ function email_pay_box(array $b, string $link, string $button, bool $canPay): st
         . '<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>'
         . '<td class="ff-stack" valign="middle"><p style="margin:0;font-size:12px;font-weight:bold;letter-spacing:0.06em;color:#a8841f;text-transform:uppercase">' . ($canPay ? 'Total to pay' : 'Trip total') . '</p>'
         . '<p style="margin:2px 0 0;font-size:32px;line-height:1.1;font-weight:bold;color:#0f1d4f">' . money($b['total']) . '</p>'
-        . '<p style="margin:4px 0 0;font-size:13px;color:#64748b">Taxes and fees included' . ($who !== '' ? ' · ' . e($who) : '') . '</p></td>'
+        . '<p style="margin:4px 0 0;font-size:13px;color:#64748b">Taxes and fees included</p></td>'
         . '<td class="ff-stack ff-pt" align="right" valign="middle">' . email_cta($link, $button) . '</td></tr></table>'
         . '<p style="margin:14px 0 0;font-size:13px;line-height:1.5;color:#475569">&#128274; ' . e($note) . '</p></td></tr></table>';
 }
